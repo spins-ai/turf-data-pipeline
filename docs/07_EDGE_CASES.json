@@ -1,0 +1,41 @@
+[
+  {
+    "script": "01_calendrier_reunions.py",
+    "geres": [
+      "Jour sans réunion → liste vide, continue",
+      "HTTP 404/500/502/503/504 → retry backoff, non bloquant",
+      "Page vide ou format inattendu → None, log warning",
+      "Doublons intra-source → clé source|date|hippo_norm|numero",
+      "Doublons inter-sources → fusion sha256(date|hippo_norm)",
+      "Conflits de valeurs → tracés dans champs_en_conflit",
+      "Noms hippodrome différents → normaliser_hippodrome()",
+      "Disciplines différentes → DISCIPLINE_ALIASES + enrichissement",
+      "Réunion annulée/reportée → normaliser_statut()",
+      "Réunion à l'étranger → pays extrait Geny/PMU",
+      "Interruption script → checkpoint atomique",
+      "Checkpoint corrompu → reset auto",
+      "Le Trot Vue absent → 3 attributs + fallback regex",
+      "Geny HTML différent → fallback _parse_course_links()",
+      "Rate limiting → pause + backoff + 429",
+      "pyarrow absent → Parquet ignoré",
+      "BeautifulSoup absent → parsers HTML liste vide",
+      "Champs manquants → indicateur_donnee_incomplete + enrichissement"
+    ],
+    "a_surveiller": [
+      "Changement structure HTML sources",
+      "Hippodromes noms très similaires (Lyon-Parilly vs Lyon La Soie)",
+      "Volume mémoire 10 ans (~75K brutes, ~300Mo RAM)",
+      "Encodage caractères spéciaux"
+    ],
+    "dependances": {
+      "obligatoires": [
+        "requests>=2.31.0",
+        "beautifulsoup4>=4.12.0"
+      ],
+      "optionnelles": [
+        "pyarrow>=14.0.0",
+        "pyyaml>=6.0.1"
+      ]
+    }
+  }
+]

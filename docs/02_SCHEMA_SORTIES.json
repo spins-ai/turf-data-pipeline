@@ -1,0 +1,118 @@
+[
+  {
+    "script": "01_calendrier_reunions.py",
+    "dossier_sortie": "output/01_calendrier_reunions",
+    "fichiers": {
+      "reunions_brut.json/.parquet/.csv": {
+        "description": "Réunions brutes collectées (après dédup + validation)",
+        "champs": [
+          "source",
+          "url_source",
+          "timestamp_collecte",
+          "date_reunion_brut",
+          "hippodrome_brut",
+          "discipline_brut",
+          "numero_reunion_brut",
+          "url_reunion_brut",
+          "identifiant_source_reunion_brut",
+          "pays_brut",
+          "region_brut",
+          "nombre_courses_reunion_brut",
+          "statut_reunion_brut",
+          "libelle_reunion_brut",
+          "code_reunion_brut",
+          "type_reunion_brut",
+          "specialite_brut",
+          "heure_reunion_brut",
+          "terrain_brut",
+          "meteo_brut",
+          "extras"
+        ]
+      },
+      "reunions_normalisees.json/.parquet/.csv": {
+        "description": "Réunions normalisées, fusionnées, avec features et provenance",
+        "champs": [
+          "reunion_uid",
+          "cross_uid",
+          "cle_jour_hippodrome_numero",
+          "source",
+          "date_reunion_iso",
+          "hippodrome",
+          "hippodrome_normalise",
+          "discipline_normalisee",
+          "numero_reunion",
+          "url_reunion",
+          "identifiant_source_reunion",
+          "pays",
+          "region",
+          "nombre_courses_reunion",
+          "statut_reunion",
+          "libelle_reunion",
+          "code_reunion",
+          "type_reunion",
+          "specialite",
+          "heure_reunion",
+          "terrain",
+          "meteo",
+          "meteo_temperature",
+          "meteo_nebulosite",
+          "meteo_force_vent",
+          "meteo_direction_vent",
+          "has_quinte",
+          "paris_evenements",
+          "corde_piste",
+          "federation",
+          "condition",
+          "non_partants",
+          "nb_engages",
+          "has_replay",
+          "source_prioritaire",
+          "nb_sources_match",
+          "est_duplique_inter_source",
+          "indicateur_donnee_incomplete",
+          "indicateur_reunion_fusionnee",
+          "date_collecte",
+          "timestamp_collecte",
+          "url_source",
+          "sources_multiples",
+          "source_origine_principale",
+          "sources_secondaires",
+          "champs_confirmes_par_plusieurs_sources",
+          "champs_en_conflit"
+        ]
+      },
+      "reunions_references_02.json/.parquet/.csv": {
+        "description": "Table de référence pour 02_liste_courses.py",
+        "champs": [
+          "reunion_uid",
+          "date_reunion_iso",
+          "hippodrome_normalise",
+          "hippodrome",
+          "discipline_normalisee",
+          "numero_reunion",
+          "pays",
+          "nombre_courses_reunion",
+          "sources",
+          "url_pmu",
+          "url_letrot",
+          "url_geny",
+          "id_pmu",
+          "id_letrot",
+          "id_geny"
+        ]
+      },
+      "cartographie_variables.json": "Mapping champs source -> champs bruts internes",
+      "rapport_qualite_reunions.json": "Rapport d'exécution avec métriques",
+      ".checkpoint_calendrier.json": "État de reprise (jours traités par source)"
+    },
+    "formats": {
+      "json": "toujours",
+      "parquet": "si pyarrow",
+      "csv": "par défaut"
+    },
+    "logs": {
+      "console": "stdout",
+      "fichier": "logs/01_calendrier_reunions_YYYY-MM-DD.log"
+    }
+  }
+]

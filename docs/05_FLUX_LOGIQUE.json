@@ -1,0 +1,99 @@
+[
+  {
+    "script": "01_calendrier_reunions.py",
+    "etapes": [
+      {
+        "ordre": 1,
+        "nom": "CLI / Configuration",
+        "fonctions": [
+          "parse_args()",
+          "build_config()"
+        ]
+      },
+      {
+        "ordre": 2,
+        "nom": "Initialisation Pipeline",
+        "fonctions": [
+          "PipelineCalendrier.__init__()",
+          "_init_parsers()"
+        ]
+      },
+      {
+        "ordre": 3,
+        "nom": "Génération plage de dates",
+        "fonctions": [
+          "_generer_plage_dates()"
+        ]
+      },
+      {
+        "ordre": 4,
+        "nom": "Boucle jour par jour",
+        "sous_etapes": [
+          "Vérification checkpoint",
+          "Collecte par source",
+          "Gestion erreurs non bloquante",
+          "Marquage checkpoint",
+          "Sauvegarde intermédiaire (tous les 200j)",
+          "Pause inter-jour"
+        ]
+      },
+      {
+        "ordre": 5,
+        "nom": "Déduplication intra-source",
+        "fonctions": [
+          "deduplication_intra_source()"
+        ]
+      },
+      {
+        "ordre": 6,
+        "nom": "Validation",
+        "fonctions": [
+          "valider_reunion_brute()"
+        ]
+      },
+      {
+        "ordre": 7,
+        "nom": "Sauvegarde brutes",
+        "sortie": "reunions_brut.*"
+      },
+      {
+        "ordre": 8,
+        "nom": "Normalisation",
+        "fonctions": [
+          "normaliser_reunion()",
+          "normaliser_hippodrome()",
+          "normaliser_discipline()"
+        ]
+      },
+      {
+        "ordre": 9,
+        "nom": "Fusion inter-sources",
+        "fonctions": [
+          "fusion_inter_sources()"
+        ]
+      },
+      {
+        "ordre": 10,
+        "nom": "Sauvegarde normalisées",
+        "sortie": "reunions_normalisees.*"
+      },
+      {
+        "ordre": 11,
+        "nom": "Références pour 02",
+        "fonctions": [
+          "build_reunion_references()"
+        ]
+      },
+      {
+        "ordre": 12,
+        "nom": "Cartographie variables",
+        "sortie": "cartographie_variables.json"
+      },
+      {
+        "ordre": 13,
+        "nom": "Rapport qualité + docs",
+        "sortie": "rapport_qualite_reunions.json + docs/"
+      }
+    ]
+  }
+]

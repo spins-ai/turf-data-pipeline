@@ -1,0 +1,16 @@
+# Configuration exemple pour 01_calendrier_reunions.py
+# Usage : python 01_calendrier_reunions.py --config config_exemple.yaml
+
+date_debut: "2024-01-01"
+date_fin: "2024-12-31"
+dossier_sortie: "output/01_calendrier_reunions"
+dossier_logs: "logs"
+mode_reprise: true
+export_csv: true
+export_parquet: true
+export_json: true
+log_level: "INFO"
+http_timeout: 30
+http_retry_max: 3
+http_retry_backoff: 1.0
+pause_inter_jour: 0.5

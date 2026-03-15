@@ -1,0 +1,74 @@
+[
+  {
+    "script": "01_calendrier_reunions.py",
+    "classes": [
+      "pmu",
+      "letrot",
+      "geny",
+      "SourceEndpointConfig",
+      "PipelineConfig",
+      "ReunionBrute",
+      "ReunionNormalisee",
+      "ReunionReference",
+      "RapportQualite",
+      "HttpClient",
+      "BaseParser",
+      "Sauvegarder",
+      "CheckpointManager",
+      "PipelineCalendrier"
+    ],
+    "parsers": {
+      "pmu": "ParserPMU",
+      "letrot": "ParserLeTrot",
+      "geny": "ParserGeny"
+    },
+    "fonctions_normalisation": [
+      "normaliser_texte",
+      "normaliser_hippodrome",
+      "normaliser_discipline",
+      "normaliser_statut"
+    ],
+    "fonctions_uid": [
+      "generer_reunion_uid",
+      "generer_reunion_uid_cross_source",
+      "generer_cle_jour_hippo_numero"
+    ],
+    "fonctions_pipeline": [
+      "deduplication_intra_source",
+      "normaliser_reunion",
+      "fusion_inter_sources",
+      "build_reunion_references"
+    ],
+    "enums": {
+      "Discipline": [
+        "trot_attele",
+        "trot_monte",
+        "trot",
+        "plat",
+        "obstacle",
+        "steeple_chase",
+        "haies",
+        "cross_country",
+        "inconnu"
+      ],
+      "StatutReunion": [
+        "programmee",
+        "en_cours",
+        "terminee",
+        "annulee",
+        "reportee",
+        "inconnu"
+      ],
+      "TypeSource": [
+        "api_json",
+        "html_vue_embedded",
+        "html_server_rendered"
+      ],
+      "StrategieParsing": [
+        "json_direct",
+        "html_vue_attribute",
+        "html_css_selectors"
+      ]
+    }
+  }
+]

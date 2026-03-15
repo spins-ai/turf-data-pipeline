@@ -1,0 +1,295 @@
+[
+  {
+    "script": "01_calendrier_reunions.py",
+    "variables_brutes": {
+      "source": {
+        "type": "str",
+        "default": ""
+      },
+      "url_source": {
+        "type": "str",
+        "default": ""
+      },
+      "timestamp_collecte": {
+        "type": "str",
+        "default": ""
+      },
+      "date_reunion_brut": {
+        "type": "str",
+        "default": ""
+      },
+      "hippodrome_brut": {
+        "type": "str",
+        "default": ""
+      },
+      "discipline_brut": {
+        "type": "str",
+        "default": ""
+      },
+      "numero_reunion_brut": {
+        "type": "Optional[int]",
+        "default": "None"
+      },
+      "url_reunion_brut": {
+        "type": "str",
+        "default": ""
+      },
+      "identifiant_source_reunion_brut": {
+        "type": "str",
+        "default": ""
+      },
+      "pays_brut": {
+        "type": "str",
+        "default": ""
+      },
+      "region_brut": {
+        "type": "str",
+        "default": ""
+      },
+      "nombre_courses_reunion_brut": {
+        "type": "Optional[int]",
+        "default": "None"
+      },
+      "statut_reunion_brut": {
+        "type": "str",
+        "default": ""
+      },
+      "libelle_reunion_brut": {
+        "type": "str",
+        "default": ""
+      },
+      "code_reunion_brut": {
+        "type": "str",
+        "default": ""
+      },
+      "type_reunion_brut": {
+        "type": "str",
+        "default": ""
+      },
+      "specialite_brut": {
+        "type": "str",
+        "default": ""
+      },
+      "heure_reunion_brut": {
+        "type": "str",
+        "default": ""
+      },
+      "terrain_brut": {
+        "type": "str",
+        "default": ""
+      },
+      "meteo_brut": {
+        "type": "str",
+        "default": ""
+      },
+      "extras": {
+        "type": "dict[str, Any]",
+        "default": "<dataclasses._MISSING_TYPE object at 0x10578b350>"
+      }
+    },
+    "variables_normalisees": {
+      "reunion_uid": {
+        "type": "str"
+      },
+      "cross_uid": {
+        "type": "str"
+      },
+      "cle_jour_hippodrome_numero": {
+        "type": "str"
+      },
+      "source": {
+        "type": "str"
+      },
+      "date_reunion_iso": {
+        "type": "str"
+      },
+      "hippodrome": {
+        "type": "str"
+      },
+      "hippodrome_normalise": {
+        "type": "str"
+      },
+      "discipline_normalisee": {
+        "type": "str"
+      },
+      "numero_reunion": {
+        "type": "Optional[int]"
+      },
+      "url_reunion": {
+        "type": "str"
+      },
+      "identifiant_source_reunion": {
+        "type": "str"
+      },
+      "pays": {
+        "type": "str"
+      },
+      "region": {
+        "type": "str"
+      },
+      "nombre_courses_reunion": {
+        "type": "Optional[int]"
+      },
+      "statut_reunion": {
+        "type": "str"
+      },
+      "libelle_reunion": {
+        "type": "str"
+      },
+      "code_reunion": {
+        "type": "str"
+      },
+      "type_reunion": {
+        "type": "str"
+      },
+      "specialite": {
+        "type": "str"
+      },
+      "heure_reunion": {
+        "type": "str"
+      },
+      "terrain": {
+        "type": "str"
+      },
+      "meteo": {
+        "type": "str"
+      },
+      "meteo_temperature": {
+        "type": "Optional[int]"
+      },
+      "meteo_nebulosite": {
+        "type": "str"
+      },
+      "meteo_force_vent": {
+        "type": "Optional[int]"
+      },
+      "meteo_direction_vent": {
+        "type": "str"
+      },
+      "has_quinte": {
+        "type": "bool"
+      },
+      "paris_evenements": {
+        "type": "list[str]"
+      },
+      "corde_piste": {
+        "type": "str"
+      },
+      "federation": {
+        "type": "str"
+      },
+      "condition": {
+        "type": "str"
+      },
+      "non_partants": {
+        "type": "str"
+      },
+      "nb_engages": {
+        "type": "Optional[int]"
+      },
+      "has_replay": {
+        "type": "bool"
+      },
+      "source_prioritaire": {
+        "type": "str"
+      },
+      "nb_sources_match": {
+        "type": "int"
+      },
+      "est_duplique_inter_source": {
+        "type": "bool"
+      },
+      "indicateur_donnee_incomplete": {
+        "type": "bool"
+      },
+      "indicateur_reunion_fusionnee": {
+        "type": "bool"
+      },
+      "date_collecte": {
+        "type": "str"
+      },
+      "timestamp_collecte": {
+        "type": "str"
+      },
+      "url_source": {
+        "type": "str"
+      },
+      "sources_multiples": {
+        "type": "list[str]"
+      },
+      "source_origine_principale": {
+        "type": "str"
+      },
+      "sources_secondaires": {
+        "type": "list[str]"
+      },
+      "champs_confirmes_par_plusieurs_sources": {
+        "type": "list[str]"
+      },
+      "champs_en_conflit": {
+        "type": "dict[str, dict[str, str]]"
+      }
+    },
+    "mapping_source_vers_brut": {
+      "pmu": {
+        "hippodrome.libelleCourt": "hippodrome_brut",
+        "hippodrome.libelleLong": "hippodrome_brut_long",
+        "pays.libelle": "pays_brut",
+        "pays.code": "pays_code_brut",
+        "numOfficiel": "numero_reunion_brut",
+        "numExterne": "code_reunion_brut",
+        "discipline": "discipline_brut",
+        "disciplinesMere": "specialite_brut",
+        "statut": "statut_reunion_brut",
+        "nombreCourses": "nombre_courses_reunion_brut",
+        "nature": "type_reunion_brut",
+        "audience": "libelle_reunion_brut"
+      },
+      "letrot": {
+        "nomHippodrome": "hippodrome_brut",
+        "numHippodrome": "code_reunion_brut",
+        "numReunion": "numero_reunion_brut",
+        "nbCourse": "nombre_courses_reunion_brut",
+        "status": "statut_reunion_brut",
+        "type": "type_reunion_brut",
+        "seanceId": "identifiant_source_reunion_brut",
+        "dateReunion": "date_reunion_brut",
+        "heureReunion": "heure_reunion_brut"
+      },
+      "geny": {
+        ".nomReunion": "hippodrome_brut",
+        ".infoReunion heure": "heure_reunion_brut",
+        ".infoReunion terrain": "terrain_brut",
+        "anchor_name": "identifiant_source_reunion_brut",
+        "(RN)": "numero_reunion_brut",
+        "(pays)": "pays_brut",
+        "count(.courseParis)": "nombre_courses_reunion_brut"
+      }
+    },
+    "features_derivees": [
+      "reunion_uid",
+      "cle_jour_hippodrome_numero",
+      "source_prioritaire",
+      "nb_sources_match",
+      "est_duplique_inter_source",
+      "indicateur_donnee_incomplete",
+      "indicateur_reunion_fusionnee",
+      "date_collecte"
+    ],
+    "provenance": [
+      "sources_multiples",
+      "source_origine_principale",
+      "sources_secondaires",
+      "champs_confirmes_par_plusieurs_sources",
+      "champs_en_conflit"
+    ],
+    "champs_compares_pour_conflits": [
+      "hippodrome",
+      "discipline_normalisee",
+      "numero_reunion",
+      "pays",
+      "nombre_courses_reunion",
+      "statut_reunion"
+    ]
+  }
+]

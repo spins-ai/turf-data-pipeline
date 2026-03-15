@@ -1,0 +1,81 @@
+[
+  {
+    "script": "01_calendrier_reunions.py",
+    "sources": {
+      "pmu": {
+        "nom_source": "PMU",
+        "type_source": "api_json",
+        "priorite": 1,
+        "url_base": "https://online.turfinfo.api.pmu.fr",
+        "url_calendrier_jour_pattern": "https://online.turfinfo.api.pmu.fr/rest/client/7/programme/{date_ddmmyyyy}",
+        "methode_http": "GET",
+        "strategie_parsing": "json_direct",
+        "timeout": 30,
+        "retry_max": 3,
+        "retry_backoff": 1.0,
+        "active": true,
+        "champs_disponibles": [
+          "date_reunion_brut",
+          "hippodrome_brut",
+          "discipline_brut",
+          "numero_reunion_brut",
+          "url_reunion_brut",
+          "identifiant_source_reunion_brut",
+          "pays_brut",
+          "nombre_courses_reunion_brut",
+          "statut_reunion_brut",
+          "libelle_reunion_brut",
+          "code_reunion_brut",
+          "type_reunion_brut",
+          "specialite_brut"
+        ]
+      },
+      "letrot": {
+        "nom_source": "Le Trot",
+        "type_source": "html_vue_embedded",
+        "priorite": 2,
+        "url_base": "https://www.letrot.com",
+        "url_calendrier_jour_pattern": "https://www.letrot.com/courses/{date_iso}",
+        "methode_http": "GET",
+        "strategie_parsing": "html_vue_attribute",
+        "timeout": 30,
+        "retry_max": 3,
+        "retry_backoff": 1.0,
+        "active": false,
+        "champs_disponibles": [
+          "date_reunion_brut",
+          "hippodrome_brut",
+          "discipline_brut",
+          "numero_reunion_brut",
+          "url_reunion_brut",
+          "identifiant_source_reunion_brut",
+          "nombre_courses_reunion_brut",
+          "statut_reunion_brut",
+          "type_reunion_brut"
+        ]
+      },
+      "geny": {
+        "nom_source": "Geny",
+        "type_source": "html_server_rendered",
+        "priorite": 3,
+        "url_base": "https://www.geny.com",
+        "url_calendrier_jour_pattern": "https://www.geny.com/reunions-courses-pmu/_d{date_iso}",
+        "methode_http": "GET",
+        "strategie_parsing": "html_css_selectors",
+        "timeout": 30,
+        "retry_max": 3,
+        "retry_backoff": 1.0,
+        "active": false,
+        "champs_disponibles": [
+          "date_reunion_brut",
+          "hippodrome_brut",
+          "numero_reunion_brut",
+          "url_reunion_brut",
+          "identifiant_source_reunion_brut",
+          "pays_brut",
+          "nombre_courses_reunion_brut"
+        ]
+      }
+    }
+  }
+]

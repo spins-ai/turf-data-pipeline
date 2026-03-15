@@ -1,0 +1,83 @@
+[
+  {
+    "script": "01_calendrier_reunions.py",
+    "parametres_cli": {
+      "--date-debut": {
+        "type": "str (YYYY-MM-DD)",
+        "defaut": "date du jour",
+        "description": "Date de début"
+      },
+      "--date-fin": {
+        "type": "str (YYYY-MM-DD)",
+        "defaut": "date du jour",
+        "description": "Date de fin"
+      },
+      "--sources": {
+        "type": "str",
+        "defaut": "pmu,letrot,geny",
+        "description": "Sources séparées par virgules"
+      },
+      "--output": {
+        "type": "str",
+        "defaut": "output/01_calendrier_reunions",
+        "description": "Dossier de sortie"
+      },
+      "--config": {
+        "type": "str",
+        "defaut": null,
+        "description": "Fichier config YAML"
+      },
+      "--timeout": {
+        "type": "int",
+        "defaut": 30,
+        "description": "Timeout HTTP (secondes)"
+      },
+      "--retry": {
+        "type": "int",
+        "defaut": 3,
+        "description": "Retry max HTTP"
+      },
+      "--backoff": {
+        "type": "float",
+        "defaut": 1.0,
+        "description": "Backoff factor"
+      },
+      "--pause": {
+        "type": "float",
+        "defaut": 0.5,
+        "description": "Pause inter-jour (secondes)"
+      },
+      "--pause-source": {
+        "type": "float",
+        "defaut": 0.3,
+        "description": "Pause inter-source (secondes)"
+      },
+      "--log-level": {
+        "type": "str",
+        "defaut": "INFO",
+        "valeurs": [
+          "DEBUG",
+          "INFO",
+          "WARNING",
+          "ERROR"
+        ]
+      },
+      "--no-reprise": {
+        "type": "flag",
+        "description": "Désactive le mode reprise"
+      },
+      "--reset-checkpoint": {
+        "type": "flag",
+        "description": "Réinitialise le checkpoint"
+      },
+      "--no-csv": {
+        "type": "flag",
+        "description": "Désactive l'export CSV"
+      },
+      "--no-parquet": {
+        "type": "flag",
+        "description": "Désactive l'export Parquet"
+      }
+    }
+  }
+]
