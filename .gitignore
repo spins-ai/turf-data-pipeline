@@ -1,0 +1,28 @@
+# ══════════════════════════════════════════════
+# Données volumineuses (sur disque, pas sur GitHub)
+# ══════════════════════════════════════════════
+output/
+data_master/
+logs/
+*.json.tmp
+
+# Cache et checkpoints
+**/.checkpoint_*.json
+**/cache/
+**/html_raw/
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Environnement
+.env
+venv/
+*.egg-info/

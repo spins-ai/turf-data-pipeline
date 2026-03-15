@@ -1,0 +1,246 @@
+#!/usr/bin/env python3
+"""
+09_equipements.py
+=================
+Reconstruit l'historique d'equipements (oeilleres, deferre) par cheval
+a partir des partants normalises collectes par 02_liste_courses.py.
+
+Aucun appel API : traitement 100% local.
+
+Produit :
+  - equipements_historique.json / .parquet / .csv
+
+Usage :
+    python3 09_equipements.py
+    python3 09_equipements.py --input output/02_liste_courses/partants_normalises.json
+"""
+
+from __future__ import annotations
+
+import argparse
+import csv
+import json
+import logging
+import sys
+from pathlib import Path
+from typing import Optional
+
+# Imports optionnels
+try:
+    import pyarrow as pa
+    import pyarrow.parquet as pq
+    HAS_PARQUET = True
+except ImportError:
+    HAS_PARQUET = False
+
+# ===========================================================================
+# CONFIG
+# ===========================================================================
+
+INPUT_PARTANTS = Path("output/02_liste_courses/partants_normalises.json")
+OUTPUT_DIR = Path("output/09_equipements")
+LOG_DIR = Path("logs")
+
+
+# ===========================================================================
+# LOGGING
+# ===========================================================================
+
+def setup_logging() -> logging.Logger:
+    logger = logging.getLogger("09_equipements")
+    logger.setLevel(logging.INFO)
+    fmt = logging.Formatter(
+        "%(asctime)s | %(levelname)-8s | %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+    ch = logging.StreamHandler(sys.stdout)
+    ch.setFormatter(fmt)
+    logger.addHandler(ch)
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
+    fh = logging.FileHandler(LOG_DIR / "09_equipements.log", encoding="utf-8")
+    fh.setFormatter(fmt)
+    logger.addHandler(fh)
+    return logger
+
+
+# ===========================================================================
+# SAUVEGARDE
+# ===========================================================================
+
+def sauver_json(data: list[dict], path: Path, logger: logging.Logger):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(".tmp")
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2, default=str)
+    tmp.replace(path)
+    logger.info("Sauve: %s (%d entrees)", path.name, len(data))
+
+
+def sauver_parquet(data: list[dict], path: Path, logger: logging.Logger):
+    if not HAS_PARQUET or not data:
+        return
+    try:
+        table = pa.Table.from_pylist(data)
+        pq.write_table(table, path)
+        logger.info("Sauve: %s", path.name)
+    except Exception as e:
+        logger.warning("Parquet ignore: %s", e)
+
+
+def sauver_csv(data: list[dict], path: Path, logger: logging.Logger):
+    if not data:
+        return
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fieldnames = list(data[0].keys())
+    with open(path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
+        writer.writeheader()
+        writer.writerows(data)
+    logger.info("Sauve: %s", path.name)
+
+
+# ===========================================================================
+# TRAITEMENT
+# ===========================================================================
+
+def charger_partants(path: Path, logger: logging.Logger) -> list[dict]:
+    logger.info("Chargement partants: %s", path)
+    with open(path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    logger.info("  %d partants charges", len(data))
+    return data
+
+
+def construire_historique_equipements(partants: list[dict], logger: logging.Logger) -> list[dict]:
+    """
+    Pour chaque cheval, trie ses courses par date et construit l'historique
+    des changements d'equipement.
+    """
+    # Regrouper par nom_cheval
+    par_cheval: dict[str, list[dict]] = {}
+    for p in partants:
+        nom = p.get("nom_cheval", "")
+        if not nom:
+            continue
+        # Ignorer les non-partants
+        statut = p.get("statut", "")
+        if statut == "non_partant":
+            continue
+        par_cheval.setdefault(nom, []).append(p)
+
+    logger.info("  %d chevaux uniques", len(par_cheval))
+
+    resultats = []
+
+    for nom_cheval, courses in par_cheval.items():
+        # Trier par date
+        courses.sort(key=lambda x: x.get("date_reunion_iso", ""))
+
+        nb_avec_oeilleres = 0
+        nb_sans_oeilleres = 0
+        premiere_oeilleres_vue = False
+
+        for i, p in enumerate(courses):
+            oeilleres = p.get("oeilleres", "") or ""
+            deferre = p.get("deferre", "") or ""
+            date_iso = p.get("date_reunion_iso", "")
+            course_uid = p.get("course_uid", "")
+            partant_uid = p.get("partant_uid", "")
+
+            # Valeurs precedentes
+            if i > 0:
+                oeilleres_prev = courses[i - 1].get("oeilleres", "") or ""
+                deferre_prev = courses[i - 1].get("deferre", "") or ""
+            else:
+                oeilleres_prev = ""
+                deferre_prev = ""
+
+            # Changements
+            oeilleres_change = (i > 0) and (oeilleres != oeilleres_prev)
+            deferre_change = (i > 0) and (deferre != deferre_prev)
+
+            # Oeilleres : avec = toute valeur non vide et != "sans"
+            a_oeilleres = oeilleres not in ("", "sans")
+            avait_oeilleres = oeilleres_prev not in ("", "sans")
+
+            # Premiere oeilleres : premiere fois qu'on voit des oeilleres
+            premiere_oeilleres = False
+            if a_oeilleres and not premiere_oeilleres_vue:
+                premiere_oeilleres = True
+                premiere_oeilleres_vue = True
+
+            # Retrait oeilleres : avait oeilleres, plus maintenant
+            retrait_oeilleres = (i > 0) and avait_oeilleres and not a_oeilleres
+
+            # Compteurs
+            if a_oeilleres:
+                nb_avec_oeilleres += 1
+            else:
+                nb_sans_oeilleres += 1
+
+            record = {
+                "nom_cheval": nom_cheval,
+                "date_reunion_iso": date_iso,
+                "course_uid": course_uid,
+                "partant_uid": partant_uid,
+                "oeilleres": oeilleres,
+                "deferre": deferre,
+                "oeilleres_prev": oeilleres_prev,
+                "deferre_prev": deferre_prev,
+                "oeilleres_change": oeilleres_change,
+                "deferre_change": deferre_change,
+                "premiere_oeilleres": premiere_oeilleres,
+                "retrait_oeilleres": retrait_oeilleres,
+                "nb_courses_avec_oeilleres": nb_avec_oeilleres,
+                "nb_courses_sans_oeilleres": nb_sans_oeilleres,
+            }
+            resultats.append(record)
+
+    logger.info("  %d enregistrements equipements generes", len(resultats))
+    return resultats
+
+
+# ===========================================================================
+# MAIN
+# ===========================================================================
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Historique equipements par cheval (local, sans API)"
+    )
+    parser.add_argument(
+        "--input", type=str, default=str(INPUT_PARTANTS),
+        help="Chemin vers partants_normalises.json"
+    )
+    parser.add_argument(
+        "--output-dir", type=str, default=str(OUTPUT_DIR),
+        help="Repertoire de sortie"
+    )
+    args = parser.parse_args()
+
+    logger = setup_logging()
+    logger.info("=" * 70)
+    logger.info("09_equipements.py — Historique equipements")
+    logger.info("=" * 70)
+
+    input_path = Path(args.input)
+    output_dir = Path(args.output_dir)
+
+    if not input_path.exists():
+        logger.error("Fichier introuvable: %s", input_path)
+        sys.exit(1)
+
+    partants = charger_partants(input_path, logger)
+    resultats = construire_historique_equipements(partants, logger)
+
+    # Export
+    output_dir.mkdir(parents=True, exist_ok=True)
+    sauver_json(resultats, output_dir / "equipements_historique.json", logger)
+    sauver_parquet(resultats, output_dir / "equipements_historique.parquet", logger)
+    sauver_csv(resultats, output_dir / "equipements_historique.csv", logger)
+
+    logger.info("Termine — %d enregistrements", len(resultats))
+
+
+if __name__ == "__main__":
+    main()
