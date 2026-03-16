@@ -34,15 +34,16 @@
 - [x] 40_enrichissement_partants (655 MB — cotes tendance)
 
 ## 1.2 Scripts en cours 🔄 (attendre la fin)
-- [ ] 04_resultats — rapports définitifs PMU (221K courses)
-- [ ] 14_pedigree_scraper — pedigree 4 gen (15.6%, ETA ~2 jours)
-- [ ] 21_rapports_definitifs — rapports officiels (74%)
-- [ ] 23_pronostics_equidia — pronostics PMU (lancé)
-- [ ] 27_citations_enjeux — citations/enjeux (37%)
-- [ ] 28_combinaisons_marche — combinaisons (57%)
-- [ ] 37_rpscrape_racing_post — Racing Post UK (5,780 pages)
-- [ ] 38_rapports_internet — rapports internet (65%)
-- [ ] fetch_openmeteo_missing — météo mondiale (12,754 cache)
+- [ ] 04_resultats — rapports définitifs PMU (~2.1 GB collectés, en cours)
+- [ ] 14_pedigree_scraper — pedigree 4 gen (~89K/250K, ~35%, en cours)
+- [ ] 21_rapports_definitifs — rapports officiels (intégré dans rapports_master via 38)
+- [ ] 23_pronostics_equidia — pronostics PMU (~110K records, en cours)
+- [ ] 27_citations_enjeux — citations/enjeux (~144K/300K, ~48%, en cours)
+- [x] 28_combinaisons_marche — combinaisons (✅ FINI — 5.7M records, JSON valide)
+- [ ] 37_rpscrape_racing_post — Racing Post UK (crashé à 12 GB, à relancer)
+- [x] 38_rapports_internet — rapports internet (✅ FINI — 3M records, JSON valide)
+- [ ] fetch_openmeteo_missing — météo mondiale (12,754 cache, en cours)
+- [ ] 36_pedigree_query — tué par Cloudflare (à relancer avec proxy)
 
 ## 1.3 Scripts à relancer / compléter
 - [ ] Vérifier que le monitor auto-relance bien si crash
@@ -172,11 +173,13 @@
 
 ## 5.1 Fusions principales
 - [ ] Merger 02 + 02b → courses_master.json (toutes les courses PMU+LeTrot)
-- [ ] Merger 08 + 12 + 14 + 36 → pedigree_master.json (tout le pedigree)
-- [ ] Merger 21 + 38 → rapports_master.json (tous les rapports)
-- [ ] Merger 13 + 35 + Open-Meteo → meteo_master.json (toute la météo)
-- [ ] Merger 24 + 25 + 26 → stats_externes_master.json (CanalTurf+TurfoStats+Geny)
-- [ ] Merger 27 + 28 → marche_master.json (citations+combinaisons)
+- [x] Merger 08 + 12 + 14 + 36 → pedigree_master.json ✅ (✅ FAIT — 16 mars 2026 — 1,413,913 chevaux, 465 MB)
+- [x] Merger 21 + 38 → rapports_master.json ✅ (✅ FAIT — 16 mars 2026 — 217,569 courses, 421 MB)
+- [x] Merger 13 + 35 + Open-Meteo → meteo_master.json ✅ (✅ FAIT — 16 mars 2026 — 479,377 courses, 797 MB)
+- [x] Merger 24 + 25 + 26 → stats_externes_master.json ✅ (✅ FAIT — 16 mars 2026 — 9,159 profils + 8,332 courses)
+- [x] Merger 27 + 28 → marche_master.json ✅ (✅ FAIT — 16 mars 2026 — 151,258 records, 67 MB)
+- [x] equipements_master.json ✅ (✅ FAIT — 16 mars 2026 — 573,111 partants, 277 MB)
+- [x] horse_stats_master.json ✅ (✅ FAIT — 16 mars 2026 — 80,656 chevaux, 162 MB)
 
 ## 5.2 Mega-merge : partants enrichis
 - [ ] Partir de partants_normalises (2.7M records)
@@ -250,6 +253,24 @@
        → keyrace index, style course, affinité distance
 - [ ] geny_builder.py (10-15 features)
        → consensus pronostiqueurs, score commentaires
+
+## 6.2b Nouveaux builders écrits (attendent machine puissante pour exécution)
+- [x] entity_resolution.py — Entity Resolution / mega merge ✅ (✅ ÉCRIT — 16 mars 2026 — exécution sur PC)
+- [x] feature_engineering.py — orchestrateur FE ✅ (✅ ÉCRIT — 16 mars 2026 — exécution sur PC)
+- [x] feat_historique.py — ~80 features historique cheval ✅ (✅ ÉCRIT — 16 mars 2026 — exécution sur PC)
+- [x] feat_croisements.py — ~60 features croisements ✅ (✅ ÉCRIT — 16 mars 2026 — exécution sur PC)
+- [x] feat_jockey.py — ~50 features jockey/entraîneur ✅ (✅ ÉCRIT — 16 mars 2026 — exécution sur PC)
+- [x] feat_interactions.py — ~60 features interactions ✅ (✅ ÉCRIT — 16 mars 2026 — exécution sur PC)
+- [x] feat_pedigree.py — ~40 features pedigree ✅ (✅ ÉCRIT — 16 mars 2026 — exécution sur PC)
+- [x] feat_temporel.py — ~40 features temporelles ✅ (✅ ÉCRIT — 16 mars 2026 — exécution sur PC)
+- [x] feat_sequences.py — ~30 features séquences ✅ (✅ ÉCRIT — 16 mars 2026 — exécution sur PC)
+
+## 6.2c Post-processing des masters (complété)
+- [x] postprocess_meteo.py ✅ (✅ FAIT — 16 mars 2026 — terrain_category, penetrometre_numeric, meteo_score)
+- [x] postprocess_rapports.py ✅ (✅ FAIT — 16 mars 2026 — jour_semaine, saison, is_quinte, distance_category)
+- [x] postprocess_marche.py ✅ (✅ FAIT — 16 mars 2026 — cote_category, popularite, value_indicator)
+- [x] postprocess_equipements.py ✅ (✅ FAIT — 16 mars 2026 — poids_category, equipment_score, oeilleres_bool)
+- [x] postprocess_horse_stats.py ✅ (✅ FAIT — 16 mars 2026 — class_category, distance_pref, is_en_forme)
 
 ## 6.3 Créer features croisées (combinaisons entre sources)
 - [ ] cheval_jockey_affinity.py (10 features)
@@ -549,15 +570,23 @@
 ## 9.4 Export triple format
 - [ ] Exporter partants_master en JSON + CSV + Parquet
 - [ ] Exporter courses_master en JSON + CSV + Parquet
-- [ ] Exporter pedigree_master en JSON + CSV + Parquet
-- [ ] Exporter meteo_master en JSON + CSV + Parquet
+- [x] Exporter pedigree_master en JSON + CSV + Parquet ✅ (✅ FAIT — 16 mars 2026)
+- [x] Exporter meteo_master en JSON + CSV + Parquet ✅ (✅ FAIT — 16 mars 2026)
+- [x] Exporter rapports_master en JSON + Parquet ✅ (✅ FAIT — 16 mars 2026 — CSV manquant)
+- [x] Exporter equipements_master en JSON + Parquet ✅ (✅ FAIT — 16 mars 2026 — CSV manquant)
+- [x] Exporter marche_master en JSON + Parquet ✅ (✅ FAIT — 16 mars 2026 — CSV manquant)
 - [ ] Exporter features_matrix en JSON + CSV + Parquet
 - [ ] Exporter labels en JSON + CSV + Parquet
-- [ ] Exporter chaque master en triple format
+- [ ] Compléter les CSV manquants (rapports_master, equipements_master, marche_master)
 
 # ┌─────────────────────────────────────────┐
 # │  ÉTAPE 10 — DOCUMENTATION              │
 # └─────────────────────────────────────────┘
+
+## 10.0 Documentation créée (16 mars 2026)
+- [x] AUDIT_MASTERS.md ✅ (✅ FAIT — 16 mars 2026 — rapport d'audit des fichiers maîtres)
+- [x] CONTEXT.md mis à jour ✅ (✅ FAIT — 16 mars 2026 — contexte global du projet)
+- [x] QUESTIONS_COUSIN.md créé ✅ (✅ FAIT — 16 mars 2026 — questions pour expert hippique)
 
 ## 10.1 Documentation des données
 - [ ] Créer docs/README.md — vue d'ensemble du projet data
@@ -659,17 +688,23 @@
 - [ ] Prêt à être branché sur le dossier modèles
 
 # ════════════════════════════════════════════════════════════════
-# COMPTEURS FINAUX
+# COMPTEURS FINAUX (mis à jour 16 mars 2026)
 # ════════════════════════════════════════════════════════════════
 # Scripts de collecte existants: 41
 # Nouvelles sources à scraper: ~120+
-# Features actuelles: 80
-# Features cible: 468+
+# Features actuelles: ~460 (post-processing + 9 FE builders écrits, non encore exécutés)
+#   → 80 initiales + ~50 post-processing (5 scripts × ~10 features)
+#   → + ~330 des builders FE écrits (historique/croisements/jockey/interactions/pedigree/temporel/séquences)
+# Features builders cassés: +177 (à débugger)
+# Features cible: 528+
 # Records partants: ~2.7M+
 # Courses: ~221K+
 # Années couvertes: 2004-2026
-# Taille données brutes: ~80+ GB
+# Taille données brutes: ~52 GB collectés à ce jour (sur ~80+ GB estimés total)
 # Taille données nettoyées: ~50+ GB
+# Masters créés: pedigree (465MB), rapports (421MB), meteo (797MB),
+#                stats_externes, marche (67MB), equipements (277MB), horse_stats (162MB)
+# GitHub: https://github.com/spins-ai/turf-data-pipeline (privé, 3 commits)
 # Zéro trou, zéro corruption, zéro doublon
 # Documentation complète
 # Backup versionné
@@ -715,7 +750,7 @@
 - [ ] Backup sur disque externe + cloud si possible
 - [ ] Checksums SHA256 pour chaque fichier maître (détecter corruption silencieuse)
 - [ ] Fichier .env pour les clés API (jamais en dur dans le code)
-- [ ] .gitignore pour exclure données sensibles et fichiers lourds
+- [x] .gitignore pour exclure données sensibles et fichiers lourds ✅ (✅ FAIT — 16 mars 2026 — exclut data_master/, output/, logs/)
 - [ ] Permissions fichiers : read-only sur les fichiers maîtres finaux
 - [ ] Pas de données personnelles dans les exports (RGPD)
 - [ ] Script de vérification d'intégrité (compare checksums)
@@ -781,8 +816,8 @@
 - [ ] CHANGELOG.md : historique de TOUTES les modifications de données
 - [ ] Chaque comblage de trou loggé : quel champ, quelle valeur, quelle source
 - [ ] Chaque fusion loggée : combien de records avant/après, doublons supprimés
-- [ ] Rapport d'audit automatique après chaque étape majeure
-- [ ] Git pour versionner les scripts (pas les données, trop lourdes)
+- [x] Rapport d'audit automatique après chaque étape majeure ✅ (✅ FAIT — 16 mars 2026 — AUDIT_MASTERS.md créé)
+- [x] Git pour versionner les scripts (pas les données, trop lourdes) ✅ (✅ FAIT — 16 mars 2026 — GitHub: https://github.com/spins-ai/turf-data-pipeline, 3 commits)
 - [ ] Fichier MANIFEST.json : liste tous les fichiers avec taille, date, checksum
 - [ ] Tracer l'origine de chaque record (source_tag sur chaque ligne)
 # --- AUDIT PILIER 5 : tâches ajoutées ---
@@ -1204,7 +1239,7 @@
 # └─────────────────────────────────────────┘
 
 ## 0.1 Fichiers projet critiques manquants
-- [ ] Créer .gitignore (exclure output/, backups/, __pycache__, logs/, *.pyc)
+- [x] Créer .gitignore (exclure output/, backups/, __pycache__, logs/, *.pyc) ✅ (✅ FAIT — 16 mars 2026 — exclut data_master/, output/, logs/)
 - [ ] Créer .env pour les clés API (Betfair, Smarkets, NOAA, Météo France, etc.)
 - [ ] Créer requirements.txt COMPLET (ajouter ijson, pandas, numpy, requests, etc.)
 - [ ] Créer requirements.lock (pip freeze exact pour reproductibilité)
@@ -1567,25 +1602,30 @@
 - [ ] 🟡 DVC (Data Version Control) ou système maison pour versionner les données
 
 # ════════════════════════════════════════════════════════════════
-# COMPTEURS FINAUX MIS À JOUR (après audit expert 15/03/2026)
+# COMPTEURS FINAUX MIS À JOUR (16/03/2026)
 # ════════════════════════════════════════════════════════════════
 # TÂCHES TOTALES: ~1010+ (769 initiales + 90 audit #1 + 148 audit piliers)
 # dont 🔴 critiques: ~60  🟠 importantes: ~120  🟡 nice-to-have: ~60
 #
 # Scripts de collecte existants: 41
+# Scripts FE écrits (non exécutés — attendent PC): 9 builders + orchestrateur + entity_resolution
 # Nouvelles sources à scraper: ~120+
-# Features actuelles: 80
-# Features builders cassés: +177
+# Features actuelles: ~460
+#   → 80 base + ~50 post-processing (5 scripts) + ~330 builders FE écrits
+# Features builders cassés à débugger: +177
 # Features nouvelles sources: +130
 # Features croisées: +81
 # Features temporelles/contexte/avancées: +60
-# TOTAL CIBLE: 528+ features (avant selection)
+# TOTAL CIBLE: 528+ features (avant sélection)
 # Labels: 15+ (victoire, place, ROI, temps, value bet...)
 # Records partants: ~2.7M+
 # Courses: ~221K+
 # Années couvertes: 2004-2026
 # Hippodromes: 673 (monde entier)
-# Taille données brutes: ~80+ GB
+# Taille données brutes: ~52 GB collectés (sur ~80+ GB estimés total)
+# Masters fusionnés: 7 fichiers (pedigree 465MB, rapports 421MB, meteo 797MB,
+#                    marche 67MB, equipements 277MB, horse_stats 162MB, stats_externes)
+# GitHub: https://github.com/spins-ai/turf-data-pipeline (privé, 3 commits)
 # Format cible: Parquet + DuckDB
 # Zéro trou, zéro corruption, zéro doublon
 # Documentation complète (docs/, schemas/, tests/)
