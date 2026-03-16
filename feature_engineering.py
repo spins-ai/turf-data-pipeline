@@ -75,6 +75,24 @@ def apply_features_interactions(partants):
     return compute_interactions(partants)
 
 
+def apply_features_pedigree(partants):
+    """Features pedigree avancées — lignée × terrain/distance"""
+    from feat_pedigree import compute_pedigree_features
+    return compute_pedigree_features(partants)
+
+
+def apply_features_temporel(partants):
+    """Features temporelles — saisonnalité, cycles"""
+    from feat_temporel import compute_temporel
+    return compute_temporel(partants)
+
+
+def apply_features_sequences(partants):
+    """Features séquences — patterns, musique, tendances"""
+    from feat_sequences import compute_sequences
+    return compute_sequences(partants)
+
+
 def count_features(partants):
     """Compte le nombre de features uniques"""
     all_keys = set()
@@ -86,7 +104,7 @@ def count_features(partants):
 def main():
     start = time.time()
     log.info("=" * 60)
-    log.info("FEATURE ENGINEERING — 400+ features")
+    log.info("FEATURE ENGINEERING — 500+ features")
     log.info("=" * 60)
 
     # Charger
@@ -120,6 +138,24 @@ def main():
     log.info("MODULE 4 : Interactions + Marché")
     log.info("=" * 60)
     partants = apply_features_interactions(partants)
+    log.info(f"  → Features: {count_features(partants)}")
+
+    log.info("\n" + "=" * 60)
+    log.info("MODULE 5 : Pedigree avancé")
+    log.info("=" * 60)
+    partants = apply_features_pedigree(partants)
+    log.info(f"  → Features: {count_features(partants)}")
+
+    log.info("\n" + "=" * 60)
+    log.info("MODULE 6 : Temporel / Saisonnalité")
+    log.info("=" * 60)
+    partants = apply_features_temporel(partants)
+    log.info(f"  → Features: {count_features(partants)}")
+
+    log.info("\n" + "=" * 60)
+    log.info("MODULE 7 : Séquences / Patterns")
+    log.info("=" * 60)
+    partants = apply_features_sequences(partants)
     n_final = count_features(partants)
     log.info(f"  → Features: {n_final}")
 
