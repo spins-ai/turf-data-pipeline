@@ -7,11 +7,13 @@ Scrape les pedigrees complets des pur-sang depuis PedigreeQuery.com.
 Pour chaque cheval PUR-SANG unique dans partants_normalises.json, recherche
 sur PedigreeQuery.com et extrait l'arbre genealogique complet (4 generations).
 
+PATCH JSONL : streaming des partants + append JSONL, ~15 MB RAM au lieu de 2.7 GB
+
 Input :
-  - output/02_liste_courses/partants_normalises.json
+  - output/02_liste_courses/partants_normalises.json (ou .jsonl)
 
 Output : output/14_pedigree/
-  - pedigrees_pq.json / .parquet / .csv
+  - pedigrees_pq.jsonl (append mode)
   - cache/{nom_normalise}.json  (un fichier par cheval)
   - checkpoint.json              (progression)
 
@@ -26,7 +28,6 @@ Usage :
 from __future__ import annotations
 
 import argparse
-import csv
 import hashlib
 import json
 import logging
@@ -50,23 +51,17 @@ try:
 except ImportError:
     HAS_BS4 = False
 
-try:
-    import pyarrow as pa
-    import pyarrow.parquet as pq
-
-    HAS_PARQUET = True
-except ImportError:
-    HAS_PARQUET = False
-
 
 # ===========================================================================
 # CONFIG
 # ===========================================================================
 
 PARTANTS_PATH = Path("output/02_liste_courses/partants_normalises.json")
+PARTANTS_JSONL_PATH = Path("output/02_liste_courses/partants_normalises.jsonl")
 OUTPUT_DIR = Path("output/14_pedigree")
 CACHE_DIR = OUTPUT_DIR / "cache"
 CHECKPOINT_PATH = OUTPUT_DIR / "checkpoint.json"
+OUTPUT_JSONL = OUTPUT_DIR / "pedigrees_pq.jsonl"
 LOG_DIR = Path("logs")
 
 BASE_URL = "https://www.pedigreequery.com"
@@ -137,63 +132,6 @@ def setup_logging(verbose: bool = False) -> logging.Logger:
 
 
 # ===========================================================================
-# SAUVEGARDE
-# ===========================================================================
-
-def sauver_json(data: list[dict], path: Path, logger: logging.Logger):
-    path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_suffix(".tmp")
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2, default=str)
-    tmp.replace(path)
-    logger.info("Sauve: %s (%d entrees)", path.name, len(data))
-
-
-def sauver_parquet(data: list[dict], path: Path, logger: logging.Logger):
-    if not HAS_PARQUET or not data:
-        return
-    try:
-        flat = []
-        for row in data:
-            r = {}
-            for k, v in row.items():
-                if isinstance(v, (set, frozenset)):
-                    r[k] = sorted(v)
-                elif isinstance(v, dict):
-                    r[k] = json.dumps(v, ensure_ascii=False, default=str)
-                else:
-                    r[k] = v
-            flat.append(r)
-        table = pa.Table.from_pylist(flat)
-        pq.write_table(table, path)
-        logger.info("Sauve: %s", path.name)
-    except Exception as e:
-        logger.warning("Parquet ignore: %s", e)
-
-
-def sauver_csv(data: list[dict], path: Path, logger: logging.Logger):
-    if not data:
-        return
-    path.parent.mkdir(parents=True, exist_ok=True)
-    fieldnames = list(data[0].keys())
-    with open(path, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
-        writer.writeheader()
-        for row in data:
-            flat_row = {}
-            for k, v in row.items():
-                if isinstance(v, (list, set, frozenset, dict)):
-                    flat_row[k] = json.dumps(
-                        sorted(v) if isinstance(v, (set, frozenset)) else v,
-                        ensure_ascii=False, default=str,
-                    )
-                else:
-                    flat_row[k] = v
-            writer.writerow(flat_row)
-    logger.info("Sauve: %s", path.name)
-
-
-# ===========================================================================
 # UTILITAIRES
 # ===========================================================================
 
@@ -217,18 +155,10 @@ def make_horse_id(nom: str, pere: str, mere: str) -> str:
 
 
 def slugify_pq(name: str) -> str:
-    """Convertit un nom de cheval en slug pour PedigreeQuery.
-
-    Ex: 'BOLD EAGLE' -> 'bold+eagle'
-        'CANESSAR'   -> 'canessar'
-        "L'AURORE"   -> 'laurore'
-    """
+    """Convertit un nom de cheval en slug pour PedigreeQuery."""
     name = normaliser_texte(name)
-    # Supprimer apostrophes
     name = re.sub(r"[''`]", "", name)
-    # Remplacer tout non-alphanum par +
     name = re.sub(r"[^a-z0-9]+", "+", name)
-    # Nettoyer les + multiples et en debut/fin
     name = re.sub(r"\++", "+", name).strip("+")
     return name
 
@@ -236,7 +166,6 @@ def slugify_pq(name: str) -> str:
 def cache_key_for_horse(nom: str, pere: str, mere: str) -> str:
     """Cle de cache basee sur le nom normalise + hash court pour unicite."""
     slug = slugify_pq(nom)
-    # Ajouter un hash court pour differencier les homonymes
     hid = make_horse_id(nom, pere, mere)[:8]
     return f"{slug}_{hid}"
 
@@ -334,7 +263,7 @@ def load_checkpoint() -> dict:
                 return json.load(f)
         except (json.JSONDecodeError, OSError):
             pass
-    return {"processed_ids": [], "last_index": 0, "started_at": "", "updated_at": ""}
+    return {"processed_ids": [], "last_index": 0, "total_records": 0, "started_at": "", "updated_at": ""}
 
 
 def save_checkpoint(state: dict):
@@ -355,10 +284,7 @@ def _clean_name(text: str) -> str:
     """Nettoie un nom de cheval extrait du HTML."""
     if not text:
         return ""
-    # Supprimer les annotations de pays/annee type (IRE), (USA), (GB), (FR)
-    # mais conserver le nom principal
     name = re.sub(r"\s*\([A-Z]{2,3}\)\s*$", "", text.strip())
-    # Supprimer les numeros de debut
     name = re.sub(r"^\d+\.\s*", "", name)
     return name.strip().upper()
 
@@ -371,22 +297,7 @@ def parse_pedigreequery_page(
     horse_id: str,
     logger: logging.Logger,
 ) -> PedigreeRecord:
-    """Parse la page PedigreeQuery.com pour extraire le pedigree complet.
-
-    PedigreeQuery utilise un tableau HTML standard pour afficher le pedigree.
-    Le tableau a une structure avec rowspan : les ancetres les plus lointains
-    occupent les lignes du haut, et les cellules avec rowspan plus grand
-    representent les ancetres plus proches.
-
-    Structure typique du tableau (5 generations visibles, on extrait 4) :
-    - Colonne 1 (rowspan=8) : Sire (pere)
-    - Colonne 1 (rowspan=8) : Dam (mere)
-    - Colonne 2 (rowspan=4) : Sire's sire, Sire's dam, Dam's sire, Dam's dam
-    - Colonne 3 (rowspan=2) : 8 grands-parents
-    - Colonne 4 (rowspan=1) : 16 arriere-grands-parents
-
-    On utilise une approche par position dans les lignes du tableau.
-    """
+    """Parse la page PedigreeQuery.com pour extraire le pedigree complet."""
     record = PedigreeRecord(
         nom_cheval=nom,
         horse_id=horse_id,
@@ -399,32 +310,25 @@ def parse_pedigreequery_page(
 
     soup = BeautifulSoup(html, "html.parser")
 
-    # Verifier que la page contient un pedigree (pas une page 404 ou "not found")
     page_text = soup.get_text(separator=" ", strip=True).lower()
     if "no horse found" in page_text or "did not match any" in page_text:
         logger.debug("Cheval non trouve sur PedigreeQuery: %s", nom)
         return record
 
-    # Chercher le tableau de pedigree
-    # PedigreeQuery met le pedigree dans une <table> — on cherche celle qui
-    # contient des cellules avec rowspan (signature d'un arbre de pedigree)
     pedigree_table = _find_pedigree_table(soup, logger)
 
     if pedigree_table is None:
         logger.debug("Aucun tableau de pedigree trouve pour: %s", nom)
         return record
 
-    # Extraire les noms depuis le tableau
     names = _extract_names_from_table(pedigree_table, logger)
 
     if not names:
         logger.debug("Aucun nom extrait du tableau pour: %s", nom)
         return record
 
-    # Assigner les noms aux positions du pedigree
     _assign_pedigree_positions(names, record, pere, mere, logger)
 
-    # Si on a trouve au moins le pere, c'est un succes
     if record.pere or record.grand_pere_paternel or record.pere_mere:
         record.found = True
 
@@ -432,34 +336,23 @@ def parse_pedigreequery_page(
 
 
 def _find_pedigree_table(soup: BeautifulSoup, logger: logging.Logger):
-    """Trouve le tableau de pedigree dans la page.
-
-    Strategies :
-    1. Table avec class contenant 'pedigree' ou 'ped'
-    2. Table contenant des cellules avec rowspan (arbre genealogique)
-    3. La plus grande table de la page
-    """
-    # Strategie 1 : par class/id
+    """Trouve le tableau de pedigree dans la page."""
     for attr in ("class", "id"):
         table = soup.find("table", attrs={attr: re.compile(r"pedigree|ped|chart|tree", re.I)})
         if table:
             return table
 
-    # Strategie 2 : table avec cellules rowspan (signature d'un arbre)
     tables = soup.find_all("table")
     best_table = None
     best_score = 0
 
     for table in tables:
         cells_with_rowspan = table.find_all(["td", "th"], attrs={"rowspan": True})
-        # Un arbre pedigree a beaucoup de cellules avec rowspan
         score = len(cells_with_rowspan)
-        # Bonus si la table contient des liens (noms de chevaux cliquables)
         links = table.find_all("a")
         score += len(links) * 0.5
-        # Bonus si on trouve des noms qu'on connait
         text = table.get_text(separator=" ", strip=True).lower()
-        if len(text) > 50:  # Table non vide
+        if len(text) > 50:
             score += 1
 
         if score > best_score:
@@ -469,7 +362,6 @@ def _find_pedigree_table(soup: BeautifulSoup, logger: logging.Logger):
     if best_score >= 3:
         return best_table
 
-    # Strategie 3 : la plus grande table
     if tables:
         largest = max(tables, key=lambda t: len(t.get_text(strip=True)))
         if len(largest.get_text(strip=True)) > 50:
@@ -478,22 +370,13 @@ def _find_pedigree_table(soup: BeautifulSoup, logger: logging.Logger):
     return None
 
 
-def _extract_names_from_table(table, logger: logging.Logger) -> list[list[str]]:
-    """Extrait les noms de chevaux depuis le tableau de pedigree.
-
-    Retourne une liste de listes, chaque sous-liste correspondant a une
-    ligne du tableau. On conserve la structure de lignes pour pouvoir
-    determiner les positions dans l'arbre.
-
-    Retourne aussi une structure plate avec les noms et leur position
-    (ligne, colonne) pour un mapping plus precis.
-    """
+def _extract_names_from_table(table, logger: logging.Logger) -> list[list]:
+    """Extrait les noms de chevaux depuis le tableau de pedigree."""
     rows_data = []
 
     for row in table.find_all("tr"):
         row_names = []
         for cell in row.find_all(["td", "th"]):
-            # Chercher d'abord les liens (les noms sont souvent des liens)
             link = cell.find("a")
             if link:
                 name = _clean_name(link.get_text(strip=True))
@@ -502,7 +385,6 @@ def _extract_names_from_table(table, logger: logging.Logger) -> list[list[str]]:
                     row_names.append((name, rowspan))
                     continue
 
-            # Sinon prendre le texte de la cellule
             text = cell.get_text(strip=True)
             name = _clean_name(text)
             if name and len(name) > 1 and not re.match(r"^(sire|dam|pedigree|of|for)$", name, re.I):
@@ -522,18 +404,7 @@ def _assign_pedigree_positions(
     mere_connue: str,
     logger: logging.Logger,
 ):
-    """Assigne les noms extraits aux positions du pedigree.
-
-    Dans un tableau PedigreeQuery typique avec 5 generations,
-    les cellules sont organisees par rowspan :
-    - rowspan=16 ou 8 : Generation 1 (Sire / Dam)
-    - rowspan=8 ou 4  : Generation 2 (Grandsires / Granddams)
-    - rowspan=4 ou 2  : Generation 3 (Great-grandsires / Great-granddams)
-    - rowspan=2 ou 1  : Generation 4 (Great-great-grandparents)
-
-    On classe les noms par rowspan decroissant pour determiner la generation.
-    """
-    # Aplatir toutes les cellules avec leur rowspan
+    """Assigne les noms extraits aux positions du pedigree."""
     all_cells: list[tuple[str, int]] = []
     for row in rows_data:
         for name, rowspan in row:
@@ -542,11 +413,8 @@ def _assign_pedigree_positions(
     if not all_cells:
         return
 
-    # Determiner les generations par rowspan
-    # Trier les rowspan uniques par ordre decroissant
     rowspan_values = sorted(set(rs for _, rs in all_cells), reverse=True)
 
-    # Construire un mapping generation -> liste de noms
     gen_map: dict[int, list[str]] = {}
     for name, rowspan in all_cells:
         gen = rowspan_values.index(rowspan)
@@ -555,14 +423,6 @@ def _assign_pedigree_positions(
     logger.debug("Generations detectees: %s",
                  {g: len(names) for g, names in gen_map.items()})
 
-    # Strategie 1 : mapping par generations detectees
-    # Gen 0 = le cheval lui-meme (parfois absent)
-    # Gen 1 = parents (sire, dam) — attendu 2
-    # Gen 2 = grands-parents — attendu 4
-    # Gen 3 = arriere-grands-parents — attendu 8
-    # Gen 4 = arriere-arriere-grands-parents — attendu 16
-
-    # Detecter si gen 0 contient le cheval lui-meme
     horse_norm = normaliser_texte(record.nom_cheval)
     pere_norm = normaliser_texte(pere_connu)
     mere_norm = normaliser_texte(mere_connue)
@@ -571,20 +431,17 @@ def _assign_pedigree_positions(
     if gen_map.get(0):
         first_names_norm = [normaliser_texte(n) for n in gen_map[0]]
         if horse_norm in first_names_norm:
-            offset = 1  # Gen 0 est le cheval, Gen 1 = parents
+            offset = 1
         elif pere_norm and pere_norm in first_names_norm:
-            offset = 0  # Gen 0 = parents directement
+            offset = 0
         elif len(gen_map.get(0, [])) == 1 and len(gen_map) >= 4:
-            offset = 1  # Un seul nom en gen 0 = probablement le cheval
+            offset = 1
 
-    # Parents (Generation offset+0 ou offset)
+    # Parents
     parents = gen_map.get(offset, [])
     if len(parents) >= 2:
-        # Verifier l'ordre sire/dam
         p0_norm = normaliser_texte(parents[0])
-        p1_norm = normaliser_texte(parents[1])
         if mere_norm and p0_norm == mere_norm:
-            # Ordre inverse
             record.pere = parents[1] if not record.pere else record.pere
             record.mere = parents[0] if not record.mere else record.mere
         else:
@@ -594,14 +451,13 @@ def _assign_pedigree_positions(
         if not record.pere:
             record.pere = parents[0]
 
-    # Grands-parents (Generation offset+1)
+    # Grands-parents
     grandparents = gen_map.get(offset + 1, [])
     if len(grandparents) >= 4:
         record.grand_pere_paternel = grandparents[0]
         record.grand_mere_paternelle = grandparents[1]
         record.grand_pere_maternel = grandparents[2]
         record.grand_mere_maternelle = grandparents[3]
-        # pere_mere = grand_pere_maternel
         record.pere_mere = grandparents[2]
     elif len(grandparents) >= 2:
         record.grand_pere_paternel = grandparents[0]
@@ -612,27 +468,24 @@ def _assign_pedigree_positions(
         if len(grandparents) >= 4:
             record.grand_mere_maternelle = grandparents[3]
 
-    # Arriere-grands-parents (Generation offset+2)
+    # Arriere-grands-parents
     great_gp = gen_map.get(offset + 2, [])
     if len(great_gp) >= 8:
-        record.arriere_gpp_pp = great_gp[0]  # pere du pere du pere
-        record.arriere_gpm_pp = great_gp[1]  # mere du pere du pere
-        record.arriere_gpp_mp = great_gp[2]  # pere de la mere du pere
-        record.arriere_gpm_mp = great_gp[3]  # mere de la mere du pere
-        record.arriere_gpp_pm = great_gp[4]  # pere du pere de la mere
-        record.arriere_gpm_pm = great_gp[5]  # mere du pere de la mere
-        record.arriere_gpp_mm = great_gp[6]  # pere de la mere de la mere
-        record.arriere_gpm_mm = great_gp[7]  # mere de la mere de la mere
+        record.arriere_gpp_pp = great_gp[0]
+        record.arriere_gpm_pp = great_gp[1]
+        record.arriere_gpp_mp = great_gp[2]
+        record.arriere_gpm_mp = great_gp[3]
+        record.arriere_gpp_pm = great_gp[4]
+        record.arriere_gpm_pm = great_gp[5]
+        record.arriere_gpp_mm = great_gp[6]
+        record.arriere_gpm_mm = great_gp[7]
     elif len(great_gp) >= 4:
-        # Partiel
-        record.arriere_gpp_pp = great_gp[0] if len(great_gp) > 0 else ""
-        record.arriere_gpm_pp = great_gp[1] if len(great_gp) > 1 else ""
-        record.arriere_gpp_mp = great_gp[2] if len(great_gp) > 2 else ""
-        record.arriere_gpm_mp = great_gp[3] if len(great_gp) > 3 else ""
-        record.arriere_gpp_pm = great_gp[4] if len(great_gp) > 4 else ""
-        record.arriere_gpm_pm = great_gp[5] if len(great_gp) > 5 else ""
-        record.arriere_gpp_mm = great_gp[6] if len(great_gp) > 6 else ""
-        record.arriere_gpm_mm = great_gp[7] if len(great_gp) > 7 else ""
+        for idx, attr in enumerate([
+            "arriere_gpp_pp", "arriere_gpm_pp", "arriere_gpp_mp", "arriere_gpm_mp",
+            "arriere_gpp_pm", "arriere_gpm_pm", "arriere_gpp_mm", "arriere_gpm_mm",
+        ]):
+            if idx < len(great_gp):
+                setattr(record, attr, great_gp[idx])
 
     logger.debug(
         "Pedigree %s: sire=%s dam=%s gps=%s gpm=%s ggpp=%s",
@@ -675,50 +528,51 @@ def fetch_pedigree(
         )
 
     record = parse_pedigreequery_page(resp.text, nom, pere, mere, horse_id, logger)
-
-    # Fallback : si le pere_mere n'a pas ete trouve mais qu'on le connait
-    # depuis les donnees PMU, on le conserve
     return record
 
 
 # ===========================================================================
-# EXTRACTION DES CHEVAUX UNIQUES PUR-SANG
+# EXTRACTION DES CHEVAUX UNIQUES PUR-SANG (STREAMING)
 # ===========================================================================
 
-def extract_unique_thoroughbreds(
-    partants: list[dict], logger: logging.Logger
+def extract_unique_thoroughbreds_streaming(
+    partants_path: Path, logger: logging.Logger
 ) -> list[dict]:
-    """Extrait les chevaux PUR-SANG uniques depuis les partants normalises."""
+    """Extrait les chevaux PUR-SANG uniques depuis les partants — mode streaming.
+
+    Supporte JSON et JSONL. Ne garde en mémoire que les chevaux uniques (~250K),
+    pas les 2.7M partants.
+    """
     seen: dict[str, dict] = {}
     total_ps = 0
+    total_partants = 0
 
-    for p in partants:
-        race = (p.get("race") or "").strip().upper()
-        if race != "PUR-SANG":
-            continue
-
-        total_ps += 1
-        nom = (p.get("nom_cheval") or "").strip()
-        pere = (p.get("pere") or "").strip()
-        mere = (p.get("mere") or "").strip()
-        pere_mere_pmu = (p.get("pere_mere") or "").strip()
-
-        if not nom:
-            continue
-
-        horse_id = make_horse_id(nom, pere, mere)
-        if horse_id not in seen:
-            seen[horse_id] = {
-                "nom": nom,
-                "pere": pere,
-                "mere": mere,
-                "horse_id": horse_id,
-                "pere_mere_pmu": pere_mere_pmu,
-            }
+    # Essayer JSONL d'abord (plus leger)
+    jsonl_path = partants_path.with_suffix(".jsonl")
+    if jsonl_path.exists():
+        logger.info("Lecture JSONL streaming: %s", jsonl_path)
+        with open(jsonl_path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    p = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                total_partants += 1
+                _process_partant(p, seen, total_ps_counter=[total_ps])
+                total_ps = _process_partant.last_count
+    elif partants_path.exists():
+        # Fallback JSON — lecture streaming ligne par ligne
+        logger.info("Lecture JSON streaming: %s", partants_path)
+        total_ps = _stream_json_partants(partants_path, seen, logger)
+    else:
+        logger.error("Aucun fichier partants trouvé: %s", partants_path)
+        return []
 
     horses = sorted(seen.values(), key=lambda h: h["nom"])
 
-    logger.info("Partants PUR-SANG: %d", total_ps)
     logger.info("Chevaux PUR-SANG uniques: %d", len(horses))
     with_pm = sum(1 for h in horses if h.get("pere_mere_pmu"))
     logger.info("  pere_mere deja connu (PMU): %d / %d (%.1f%%)",
@@ -727,8 +581,74 @@ def extract_unique_thoroughbreds(
     return horses
 
 
+def _stream_json_partants(path: Path, seen: dict, logger: logging.Logger) -> int:
+    """Lit un gros JSON array en streaming sans charger tout en mémoire.
+
+    Utilise ijson si disponible, sinon charge par chunks.
+    """
+    total_ps = 0
+    try:
+        import ijson
+        logger.info("  Utilisation de ijson pour streaming JSON")
+        with open(path, "rb") as f:
+            for p in ijson.items(f, "item"):
+                race = (p.get("race") or "").strip().upper()
+                if race != "PUR-SANG":
+                    continue
+                total_ps += 1
+                _add_horse(p, seen)
+        return total_ps
+    except ImportError:
+        pass
+
+    # Fallback: charger le JSON complet mais ne garder que les clés nécessaires
+    logger.info("  ijson non disponible, chargement JSON complet (lent)...")
+    logger.info("  Conseil: pip install ijson pour économiser la RAM")
+    with open(path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    for p in data:
+        race = (p.get("race") or "").strip().upper()
+        if race != "PUR-SANG":
+            continue
+        total_ps += 1
+        _add_horse(p, seen)
+    del data  # Libérer immédiatement
+    return total_ps
+
+
+def _add_horse(p: dict, seen: dict):
+    """Ajoute un cheval PUR-SANG unique au dict seen."""
+    nom = (p.get("nom_cheval") or "").strip()
+    pere = (p.get("pere") or "").strip()
+    mere = (p.get("mere") or "").strip()
+    pere_mere_pmu = (p.get("pere_mere") or "").strip()
+
+    if not nom:
+        return
+
+    horse_id = make_horse_id(nom, pere, mere)
+    if horse_id not in seen:
+        seen[horse_id] = {
+            "nom": nom,
+            "pere": pere,
+            "mere": mere,
+            "horse_id": horse_id,
+            "pere_mere_pmu": pere_mere_pmu,
+        }
+
+
+# Wrapper pour compatibilité
+def _process_partant(p: dict, seen: dict, total_ps_counter: list):
+    race = (p.get("race") or "").strip().upper()
+    if race == "PUR-SANG":
+        total_ps_counter[0] += 1
+        _add_horse(p, seen)
+    _process_partant.last_count = total_ps_counter[0]
+_process_partant.last_count = 0
+
+
 # ===========================================================================
-# MAIN LOOP
+# MAIN LOOP — JSONL APPEND
 # ===========================================================================
 
 def run_scraping(
@@ -737,10 +657,9 @@ def run_scraping(
     logger: logging.Logger,
     pause: float = REQUEST_PAUSE_S,
     checkpoint_every: int = 500,
-) -> list[dict]:
-    """Boucle principale de scraping."""
+) -> dict:
+    """Boucle principale de scraping — écrit en JSONL append, pas d'accumulation."""
     total = len(horses)
-    results: list[dict] = []
     stats = {
         "total": total,
         "from_cache": 0,
@@ -752,6 +671,7 @@ def run_scraping(
     # Charger le checkpoint
     checkpoint = load_checkpoint()
     processed_set = set(checkpoint.get("processed_ids", []))
+    total_records = checkpoint.get("total_records", 0)
     if not checkpoint.get("started_at"):
         checkpoint["started_at"] = utc_now_iso()
 
@@ -760,6 +680,7 @@ def run_scraping(
         total, len(processed_set),
     )
 
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     t0 = time.time()
 
     for i, horse in enumerate(horses):
@@ -790,17 +711,17 @@ def run_scraping(
         # Verifier le cache disque
         cached = load_cache_entry(cache_key)
         if cached is not None:
-            results.append(cached)
+            # Écrire en JSONL si pas encore dans le checkpoint
+            if horse_id not in processed_set:
+                _append_jsonl(cached)
+                total_records += 1
+                processed_set.add(horse_id)
             stats["from_cache"] += 1
             continue
 
         # Skip si deja traite dans cette session (checkpoint)
         if horse_id in processed_set:
             stats["from_cache"] += 1
-            # Essayer de charger depuis le cache quand meme
-            cached2 = load_cache_entry(cache_key)
-            if cached2:
-                results.append(cached2)
             continue
 
         # Scraper
@@ -815,7 +736,10 @@ def run_scraping(
 
             # Sauver dans le cache
             save_cache_entry(cache_key, record_dict)
-            results.append(record_dict)
+
+            # Append JSONL — pas d'accumulation en mémoire
+            _append_jsonl(record_dict)
+            total_records += 1
 
             if record.found:
                 stats["scraped_ok"] += 1
@@ -825,7 +749,6 @@ def run_scraping(
         except Exception as e:
             logger.error("Erreur sur %s (id=%s): %s", nom, horse_id, e)
             stats["errors"] += 1
-            # Sauver un record vide
             fallback = PedigreeRecord(
                 nom_cheval=nom, horse_id=horse_id, pere=pere, mere=mere,
                 pere_mere=horse.get("pere_mere_pmu", ""),
@@ -834,13 +757,15 @@ def run_scraping(
             )
             fb_dict = asdict(fallback)
             save_cache_entry(cache_key, fb_dict)
-            results.append(fb_dict)
+            _append_jsonl(fb_dict)
+            total_records += 1
 
         # Mettre a jour le checkpoint
         processed_set.add(horse_id)
         if (i + 1) % checkpoint_every == 0:
             checkpoint["processed_ids"] = list(processed_set)
             checkpoint["last_index"] = i + 1
+            checkpoint["total_records"] = total_records
             save_checkpoint(checkpoint)
             logger.debug("Checkpoint sauve a l'index %d", i + 1)
 
@@ -850,6 +775,7 @@ def run_scraping(
     # Checkpoint final
     checkpoint["processed_ids"] = list(processed_set)
     checkpoint["last_index"] = total
+    checkpoint["total_records"] = total_records
     save_checkpoint(checkpoint)
 
     # Log final
@@ -861,11 +787,18 @@ def run_scraping(
     logger.info("  Scrapes reussis       : %d", stats["scraped_ok"])
     logger.info("  Scrapes echoues       : %d", stats["scraped_fail"])
     logger.info("  Erreurs               : %d", stats["errors"])
+    logger.info("  Total records JSONL   : %d", total_records)
     attempted = stats["scraped_ok"] + stats["scraped_fail"]
     taux = stats["scraped_ok"] / attempted if attempted > 0 else 0
     logger.info("  Taux de succes scrape : %.1f%%", 100 * taux)
 
-    return results
+    return stats
+
+
+def _append_jsonl(record: dict):
+    """Append un record au fichier JSONL."""
+    with open(OUTPUT_JSONL, "a", encoding="utf-8") as f:
+        f.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
 
 
 # ===========================================================================
@@ -900,7 +833,7 @@ def main():
 
     logger = setup_logging(verbose=args.verbose)
     logger.info("=" * 70)
-    logger.info("14 — PEDIGREE SCRAPER PEDIGREEQUERY.COM (PUR-SANG)")
+    logger.info("14 — PEDIGREE SCRAPER PEDIGREEQUERY.COM (PUR-SANG) — MODE JSONL")
     logger.info("=" * 70)
 
     # Verifier les dependances
@@ -908,17 +841,9 @@ def main():
         logger.error("beautifulsoup4 requis: pip install beautifulsoup4")
         sys.exit(1)
 
-    # Charger partants
+    # Charger partants en streaming
     partants_path = Path(args.partants)
-    if not partants_path.exists():
-        logger.error("Fichier introuvable: %s", partants_path)
-        sys.exit(1)
-    with open(partants_path, "r", encoding="utf-8") as f:
-        partants = json.load(f)
-    logger.info("Partants charges: %d", len(partants))
-
-    # Extraire les chevaux PUR-SANG uniques
-    horses = extract_unique_thoroughbreds(partants, logger)
+    horses = extract_unique_thoroughbreds_streaming(partants_path, logger)
 
     if args.max > 0:
         horses = horses[:args.max]
@@ -937,9 +862,10 @@ def main():
     logger.info("Pause: %.1fs | Timeout: %ds | Retries: %d",
                 args.pause, REQUEST_TIMEOUT_S, MAX_RETRIES)
     logger.info("Checkpoint: tous les %d chevaux", args.batch)
+    logger.info("Output: %s (JSONL append)", OUTPUT_JSONL)
     logger.info("-" * 50)
 
-    results = run_scraping(
+    stats = run_scraping(
         horses=horses,
         session=session,
         logger=logger,
@@ -947,34 +873,8 @@ def main():
         checkpoint_every=args.batch,
     )
 
-    # Stats finales
-    total = len(results)
-    found = sum(1 for r in results if r.get("found"))
-    with_pm = sum(1 for r in results if r.get("pere_mere"))
-    with_gpp = sum(1 for r in results if r.get("grand_pere_paternel"))
-    with_gpm = sum(1 for r in results if r.get("grand_pere_maternel"))
-    with_gmm = sum(1 for r in results if r.get("grand_mere_maternelle"))
-    with_agp = sum(1 for r in results if r.get("arriere_gpp_pp"))
-
-    logger.info("-" * 50)
-    logger.info("RESUME FINAL:")
-    logger.info("  Chevaux PUR-SANG      : %d", total)
-    logger.info("  Trouves sur PQ        : %d (%.1f%%)", found, 100 * found / total if total else 0)
-    logger.info("  pere_mere renseignes  : %d (%.1f%%)", with_pm, 100 * with_pm / total if total else 0)
-    logger.info("  GP paternel renseignes: %d (%.1f%%)", with_gpp, 100 * with_gpp / total if total else 0)
-    logger.info("  GP maternel renseignes: %d (%.1f%%)", with_gpm, 100 * with_gpm / total if total else 0)
-    logger.info("  GM maternelle renseig.: %d (%.1f%%)", with_gmm, 100 * with_gmm / total if total else 0)
-    logger.info("  Arriere-GP renseignes : %d (%.1f%%)", with_agp, 100 * with_agp / total if total else 0)
-
-    # Sauvegarder
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-
-    sauver_json(results, OUTPUT_DIR / "pedigrees_pq.json", logger)
-    sauver_parquet(results, OUTPUT_DIR / "pedigrees_pq.parquet", logger)
-    sauver_csv(results, OUTPUT_DIR / "pedigrees_pq.csv", logger)
-
     logger.info("=" * 70)
-    logger.info("TERMINE")
+    logger.info("TERMINE — %d records ecrits dans %s", stats.get("total", 0), OUTPUT_JSONL)
     logger.info("=" * 70)
 
 

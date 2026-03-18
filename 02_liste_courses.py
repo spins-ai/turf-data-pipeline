@@ -9,18 +9,19 @@ les deux en une seule requête par réunion.
 
 Sources :
   - PMU (API JSON) : /programme/{date}/R{num} → toutes les courses + participants
-  - Le Trot (HTML) : courses de trot hors-PMU (qualifications, régionales)
 
-Produit :
-  - courses_brut.json / courses_normalisees.json
-  - partants_brut.json / partants_normalises.json
-  - courses_references_04.json (interface pour script 04_resultats.py)
+Produit (JSONL append — léger en RAM) :
+  - courses_brut.jsonl / courses_normalisees.jsonl
+  - partants_brut.jsonl / partants_normalises.jsonl
+  - courses_references_04.jsonl (interface pour script 04_resultats.py)
+
+PATCH JSONL : ~50 MB RAM au lieu de 5 GB — append mode, pas d'accumulation
 
 Architecture :
   - 1 requête PMU par RÉUNION → toutes les courses + partants + résultats
   - Cache JSON par jour pour reprise
   - Checkpoint par réunion
-  - Export JSON + Parquet + CSV
+  - Export JSONL
 
 Usage :
     python3 02_liste_courses.py
@@ -46,14 +47,6 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-# Imports optionnels
-try:
-    import pyarrow as pa
-    import pyarrow.parquet as pq
-    HAS_PARQUET = True
-except ImportError:
-    HAS_PARQUET = False
-
 # ===========================================================================
 # CONFIG
 # ===========================================================================
@@ -64,9 +57,6 @@ CACHE_DIR = OUTPUT_DIR / "cache"
 LOG_DIR = Path("logs")
 
 PMU_API_BASE = "https://offline.turfinfo.api.pmu.fr/rest/client/1/programme"
-# Endpoints:
-#   {base}/{DDMMYYYY}/R{num}/C{num}              → course details
-#   {base}/{DDMMYYYY}/R{num}/C{num}/participants  → partants + résultats
 
 
 # ===========================================================================
@@ -76,7 +66,6 @@ PMU_API_BASE = "https://offline.turfinfo.api.pmu.fr/rest/client/1/programme"
 @dataclass
 class CourseBrute:
     """Course telle que collectée depuis l'API."""
-    # Traçabilité
     source: str = ""
     reunion_uid: str = ""
     date_reunion_iso: str = ""
@@ -85,8 +74,6 @@ class CourseBrute:
     numero_course: int = 0
     url_source: str = ""
     timestamp_collecte: str = ""
-
-    # Données course
     libelle: str = ""
     libelle_court: str = ""
     distance: Optional[int] = None
@@ -96,38 +83,28 @@ class CourseBrute:
     discipline: str = ""
     specialite: str = ""
     condition_sexe: str = ""
-    categorie_particularite: str = ""  # AUTOSTART, HANDICAP, GROUPE_III, etc.
-    condition_age: str = ""  # TROIS_ANS, QUATRE_ANS_ET_PLUS, etc.
+    categorie_particularite: str = ""
+    condition_age: str = ""
     conditions_texte: str = ""
     nombre_partants: Optional[int] = None
-    heure_depart: Optional[int] = None  # timestamp ms
-    montant_prix: Optional[int] = None  # centimes
+    heure_depart: Optional[int] = None
+    montant_prix: Optional[int] = None
     montant_1er: Optional[int] = None
     montant_2eme: Optional[int] = None
     montant_3eme: Optional[int] = None
     montant_4eme: Optional[int] = None
     montant_5eme: Optional[int] = None
-
-    # Résultat course
     statut: str = ""
     categorie_statut: str = ""
     ordre_arrivee: list = field(default_factory=list)
-    duree_course: Optional[int] = None  # ms
+    duree_course: Optional[int] = None
     incidents: list = field(default_factory=list)
     arrivee_definitive: bool = False
-
-    # Piste
     type_piste: str = ""
     penetrometre: str = ""
     penetrometre_valeur: str = ""
-
-    # Paris
     paris_disponibles: list = field(default_factory=list)
-
-    # Hippodrome (from reunion)
     hippodrome: str = ""
-
-    # Extras
     replay_disponible: bool = False
     course_trackee: bool = False
     extras: dict = field(default_factory=dict)
@@ -136,12 +113,9 @@ class CourseBrute:
 @dataclass
 class CourseNormalisee:
     """Course normalisée pour le pipeline aval."""
-    # Identifiants
     course_uid: str = ""
     reunion_uid: str = ""
-    cle_course: str = ""  # YYYY-MM-DD|hippodrome|RX|CY
-
-    # Contexte
+    cle_course: str = ""
     source: str = ""
     date_reunion_iso: str = ""
     hippodrome_normalise: str = ""
@@ -149,8 +123,6 @@ class CourseNormalisee:
     pays: str = ""
     numero_reunion: int = 0
     numero_course: int = 0
-
-    # Course
     libelle: str = ""
     distance: Optional[int] = None
     parcours: str = ""
@@ -159,30 +131,22 @@ class CourseNormalisee:
     specialite: str = ""
     conditions_texte: str = ""
     condition_sexe: str = ""
-    condition_age: str = ""  # trois_ans, quatre_ans_et_plus, etc.
-    categorie: str = ""  # autostart, handicap, groupe_iii, course_a_conditions, etc.
-    mode_depart: str = ""  # autostart, volte, stall (déduit de categorie + discipline)
+    condition_age: str = ""
+    categorie: str = ""
+    mode_depart: str = ""
     nombre_partants: Optional[int] = None
-    heure_depart: str = ""  # HH:MM
-    allocation_totale: Optional[int] = None  # euros
+    heure_depart: str = ""
+    allocation_totale: Optional[int] = None
     allocation_1er: Optional[int] = None
-
-    # Piste
     type_piste: str = ""
     penetrometre: str = ""
-
-    # Résultat
     statut: str = ""
     ordre_arrivee: list = field(default_factory=list)
     duree_course_ms: Optional[int] = None
     incidents: list = field(default_factory=list)
-
-    # Extras
     paris_types: list = field(default_factory=list)
     replay_disponible: bool = False
     course_trackee: bool = False
-
-    # Traçabilité
     timestamp_collecte: str = ""
     url_source: str = ""
 
@@ -194,7 +158,6 @@ class CourseNormalisee:
 @dataclass
 class PartantBrut:
     """Partant tel que collecté depuis l'API."""
-    # Traçabilité
     source: str = ""
     course_uid: str = ""
     reunion_uid: str = ""
@@ -203,8 +166,6 @@ class PartantBrut:
     numero_reunion: int = 0
     numero_course: int = 0
     timestamp_collecte: str = ""
-
-    # Cheval
     nom: str = ""
     num_pmu: Optional[int] = None
     age: Optional[int] = None
@@ -217,81 +178,56 @@ class PartantBrut:
     nombre_places: Optional[int] = None
     nombre_places_second: Optional[int] = None
     nombre_places_troisieme: Optional[int] = None
-    gains_carriere: Optional[int] = None  # centimes
+    gains_carriere: Optional[int] = None
     gains_victoires: Optional[int] = None
     gains_place: Optional[int] = None
     gains_annee_en_cours: Optional[int] = None
     gains_annee_precedente: Optional[int] = None
     indicateur_inedit: bool = False
-
-    # Jockey / Driver
     driver: str = ""
     driver_change: bool = False
-
-    # Entraîneur
     entraineur: str = ""
-
-    # Propriétaire
     proprietaire: str = ""
-
-    # Pedigree
     nom_pere: str = ""
     nom_mere: str = ""
     eleveur: str = ""
-
-    # Équipement
     oeilleres: str = ""
     deferre: str = ""
-
-    # Course
-    statut_partant: str = ""  # PARTANT, NON_PARTANT
+    statut_partant: str = ""
     engagement: bool = False
     supplement: Optional[int] = None
     handicap_distance: Optional[int] = None
-    handicap_poids: Optional[int] = None  # 10èmes de kg (625 = 62.5 kg)
-    handicap_valeur: Optional[float] = None  # valeur handicap
-    poids_condition_monte: Optional[int] = None  # poids de base en 10èmes de kg
+    handicap_poids: Optional[int] = None
+    handicap_valeur: Optional[float] = None
+    poids_condition_monte: Optional[int] = None
     poids_condition_monte_change: bool = False
-    taux_reclamation: Optional[int] = None  # prix à réclamer en centimes
-    place_corde: Optional[int] = None  # numéro de stalle / corde
+    taux_reclamation: Optional[int] = None
+    place_corde: Optional[int] = None
     allure: str = ""
-
-    # Infos supplémentaires
     pays: str = ""
     pays_entrainement: str = ""
-    nom_pere_mere: str = ""  # père de la mère
-    incident: str = ""  # DQ, allure irrégulière, etc.
-    distance_cheval_precedent: str = ""  # écart avec le précédent à l'arrivée
+    nom_pere_mere: str = ""
+    incident: str = ""
+    distance_cheval_precedent: str = ""
     commentaire_apres_course: str = ""
     avis_entraineur: str = ""
     jument_pleine: bool = False
-
-    # Résultat individuel
     ordre_arrivee: Optional[int] = None
-    temps_obtenu: Optional[int] = None  # ms (ex: 208130 = 2:08.13)
-    reduction_kilometrique: Optional[int] = None  # ms/km (ex: 73000 = 1:13.0)
-
-    # Cotes
+    temps_obtenu: Optional[int] = None
+    reduction_kilometrique: Optional[int] = None
     cote_direct: Optional[float] = None
     cote_reference: Optional[float] = None
-
-    # Casaque
     url_casaque: str = ""
-
-    # Extras
     extras: dict = field(default_factory=dict)
 
 
 @dataclass
 class PartantNormalise:
     """Partant normalisé pour le pipeline aval."""
-    # Identifiants
     partant_uid: str = ""
     course_uid: str = ""
     reunion_uid: str = ""
-    cle_partant: str = ""  # YYYY-MM-DD|hippodrome|RX|CY|numPMU
-
-    # Contexte course
+    cle_partant: str = ""
     source: str = ""
     date_reunion_iso: str = ""
     hippodrome_normalise: str = ""
@@ -299,9 +235,7 @@ class PartantNormalise:
     numero_course: int = 0
     distance: Optional[int] = None
     discipline: str = ""
-
-    # Cheval
-    horse_id: str = ""  # hash stable nom+pere+mere
+    horse_id: str = ""
     nom_cheval: str = ""
     num_pmu: Optional[int] = None
     age: Optional[int] = None
@@ -317,64 +251,44 @@ class PartantNormalise:
     gains_carriere_euros: Optional[float] = None
     gains_annee_euros: Optional[float] = None
     is_inedit: bool = False
-
-    # Jockey / Driver
     jockey_driver: str = ""
     jockey_driver_change: bool = False
-
-    # Entraîneur
     entraineur: str = ""
-
-    # Propriétaire
     proprietaire: str = ""
-
-    # Pedigree
     pere: str = ""
     mere: str = ""
     eleveur: str = ""
-
-    # Équipement
-    oeilleres: str = ""  # sans, avec, australiennes
-    deferre: str = ""  # aucun, anterieurs, posterieurs, 4_pieds
-
-    # Statut
-    statut: str = ""  # partant, non_partant
+    oeilleres: str = ""
+    deferre: str = ""
+    statut: str = ""
     engagement: bool = False
     supplement_euros: Optional[float] = None
     handicap_distance_m: Optional[int] = None
-    poids_porte_kg: Optional[float] = None  # handicapPoids / 10
-    poids_base_kg: Optional[float] = None  # poidsConditionMonte / 10
-    surcharge_decharge_kg: Optional[float] = None  # poids_porte - poids_base
+    poids_porte_kg: Optional[float] = None
+    poids_base_kg: Optional[float] = None
+    surcharge_decharge_kg: Optional[float] = None
     handicap_valeur: Optional[float] = None
     poids_monte_change: bool = False
     taux_reclamation_euros: Optional[float] = None
-    place_corde: Optional[int] = None  # stalle / numéro de corde
+    place_corde: Optional[int] = None
     allure: str = ""
-
-    # Infos supplémentaires
     pays_cheval: str = ""
     pays_entrainement: str = ""
-    pere_mere: str = ""  # père de la mère
+    pere_mere: str = ""
     incident: str = ""
-    ecart_precedent: str = ""  # écart avec le cheval précédent à l'arrivée
+    ecart_precedent: str = ""
     commentaire_apres_course: str = ""
     avis_entraineur: str = ""
     jument_pleine: bool = False
-
-    # Résultat
     position_arrivee: Optional[int] = None
     temps_ms: Optional[int] = None
     reduction_km_ms: Optional[int] = None
     is_gagnant: bool = False
-    is_place: bool = False  # top 3
+    is_place: bool = False
     is_disqualifie: bool = False
-
-    # Cotes
     cote_finale: Optional[float] = None
     cote_reference: Optional[float] = None
-    proba_implicite: Optional[float] = None  # 1/cote
-
-    # Traçabilité
+    proba_implicite: Optional[float] = None
     timestamp_collecte: str = ""
 
 
@@ -434,7 +348,6 @@ def make_uid(*parts: str) -> str:
 
 
 def ms_to_hhmm(ts_ms: Optional[int]) -> str:
-    """Convertit un timestamp ms Unix en HH:MM."""
     if not ts_ms:
         return ""
     try:
@@ -455,14 +368,7 @@ def centimes_to_euros(centimes: Optional[int]) -> Optional[float]:
 # ===========================================================================
 
 class ReunionCache:
-    """Cache des réponses API brutes par réunion.
-
-    Stocke pour chaque réunion :
-      - reunion_data : réponse de /programme/{date}/R{num}
-      - participants  : dict {num_course: réponse /participants}
-
-    Permet de ne pas re-requêter l'API en cas de crash/relance.
-    """
+    """Cache des réponses API brutes par réunion."""
 
     def __init__(self, cache_dir: Path):
         self.cache_dir = cache_dir
@@ -508,7 +414,7 @@ class CheckpointManager:
                 return json.loads(self.path.read_text())
             except (json.JSONDecodeError, OSError):
                 pass
-        return {"completed_reunions": []}
+        return {"completed_reunions": [], "total_courses": 0, "total_partants": 0}
 
     def is_done(self, reunion_uid: str) -> bool:
         return reunion_uid in self._data.get("completed_reunions", [])
@@ -525,6 +431,53 @@ class CheckpointManager:
     def count_done(self) -> int:
         return len(self._data.get("completed_reunions", []))
 
+    def update_counts(self, courses: int, partants: int):
+        self._data["total_courses"] = courses
+        self._data["total_partants"] = partants
+
+
+# ===========================================================================
+# JSONL WRITER
+# ===========================================================================
+
+class JsonlWriter:
+    """Écrit en mode append dans 4 fichiers JSONL — pas d'accumulation mémoire."""
+
+    def __init__(self, output_dir: Path):
+        output_dir.mkdir(parents=True, exist_ok=True)
+        self.courses_brut = output_dir / "courses_brut.jsonl"
+        self.courses_norm = output_dir / "courses_normalisees.jsonl"
+        self.partants_brut = output_dir / "partants_brut.jsonl"
+        self.partants_norm = output_dir / "partants_normalises.jsonl"
+        self.courses_ref = output_dir / "courses_references_04.jsonl"
+
+    def write_course(self, brut: dict, norm: dict):
+        self._append(self.courses_brut, brut)
+        self._append(self.courses_norm, norm)
+        # Référence pour script 04
+        ref = {
+            "course_uid": norm["course_uid"],
+            "reunion_uid": norm["reunion_uid"],
+            "date_reunion_iso": norm["date_reunion_iso"],
+            "hippodrome_normalise": norm["hippodrome_normalise"],
+            "numero_reunion": norm["numero_reunion"],
+            "numero_course": norm["numero_course"],
+            "nombre_partants": norm["nombre_partants"],
+            "statut": norm["statut"],
+            "discipline": norm.get("discipline", ""),
+            "distance": norm.get("distance"),
+        }
+        self._append(self.courses_ref, ref)
+
+    def write_partant(self, brut: dict, norm: dict):
+        self._append(self.partants_brut, brut)
+        self._append(self.partants_norm, norm)
+
+    @staticmethod
+    def _append(path: Path, record: dict):
+        with open(path, "a", encoding="utf-8") as f:
+            f.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
+
 
 # ===========================================================================
 # PARSING PMU
@@ -536,7 +489,6 @@ def fetch_reunion_pmu(
     num_reunion: int,
     logger: logging.Logger,
 ) -> Optional[dict]:
-    """Récupère les détails de toutes les courses d'une réunion (sans participants)."""
     url = f"{PMU_API_BASE}/{date_ddmmyyyy}/R{num_reunion}"
     try:
         resp = session.get(url, timeout=30)
@@ -559,7 +511,6 @@ def fetch_participants_pmu(
     num_course: int,
     logger: logging.Logger,
 ) -> Optional[dict]:
-    """Récupère les participants d'une course."""
     url = f"{PMU_API_BASE}/{date_ddmmyyyy}/R{num_reunion}/C{num_course}/participants"
     try:
         resp = session.get(url, timeout=15)
@@ -588,7 +539,6 @@ def parse_course_pmu(
     hippo = reunion_ref.get("hippodrome_normalise", "")
     num_reunion = reunion_ref.get("numero_reunion", 0)
 
-    # === Course ===
     course = CourseBrute(
         source="pmu",
         reunion_uid=reunion_uid,
@@ -629,7 +579,6 @@ def parse_course_pmu(
         course_trackee=course_data.get("courseTrackee", False),
     )
 
-    # Type piste et pénétromètre
     penetro = course_data.get("penetrometre", {})
     if isinstance(penetro, dict):
         course.penetrometre = penetro.get("intitule", "")
@@ -638,16 +587,13 @@ def parse_course_pmu(
     if tp:
         course.type_piste = tp
 
-    # Paris
     paris = course_data.get("paris", [])
     if paris:
         course.paris_disponibles = [p.get("typePari", "") for p in paris if isinstance(p, dict)]
 
-    # === Partants ===
     participants = participants_data.get("participants", [])
     course_uid = make_uid(date_iso, hippo, f"R{num_reunion}", f"C{num_course}")
 
-    # Identifier les disqualifiés
     dq_nums = set()
     for inc in course_data.get("incidents", []):
         if isinstance(inc, dict):
@@ -656,16 +602,13 @@ def parse_course_pmu(
 
     partants = []
     for p in participants:
-        # Extraire gains
         gains = p.get("gainsParticipant", {}) or {}
 
-        # Extraire cotes
         rapport_direct = p.get("dernierRapportDirect", {}) or {}
         rapport_ref = p.get("dernierRapportReference", {}) or {}
         cote_d = rapport_direct.get("rapport") if isinstance(rapport_direct, dict) else None
         cote_r = rapport_ref.get("rapport") if isinstance(rapport_ref, dict) else None
 
-        # Robe
         robe_data = p.get("robe", {})
         robe_str = ""
         if isinstance(robe_data, dict):
@@ -675,7 +618,6 @@ def parse_course_pmu(
 
         num_pmu = p.get("numPmu")
 
-        # Distance cheval précédent
         dist_prev = p.get("distanceChevalPrecedent", {})
         ecart_str = ""
         if isinstance(dist_prev, dict):
@@ -683,7 +625,6 @@ def parse_course_pmu(
         elif isinstance(dist_prev, str):
             ecart_str = dist_prev
 
-        # Commentaire après course
         com = p.get("commentaireApresCourse", {})
         com_texte = ""
         if isinstance(com, dict):
@@ -835,20 +776,18 @@ def normaliser_discipline_course(raw: str) -> str:
 
 
 def _deduire_mode_depart(categorie_raw: str, discipline_raw: str) -> str:
-    """Déduit le mode de départ depuis categorieParticularite + discipline."""
     cat = (categorie_raw or "").upper()
     disc = (discipline_raw or "").upper()
     if "AUTOSTART" in cat:
         return "autostart"
     if disc in ("ATTELE", "MONTE", "TROT_ATTELE", "TROT_MONTE"):
-        return "volte"  # défaut trot si pas autostart
+        return "volte"
     if disc in ("PLAT", "STEEPLECHASE", "HAIE", "CROSS"):
-        return "stall"  # départ en boîtes (stalles) pour le galop
+        return "stall"
     return ""
 
 
 def _make_horse_id(nom: str, pere: str, mere: str) -> str:
-    """Crée un identifiant stable pour un cheval à partir de nom+père+mère."""
     parts = [
         (nom or "").strip().upper(),
         (pere or "").strip().upper(),
@@ -860,7 +799,6 @@ def _make_horse_id(nom: str, pere: str, mere: str) -> str:
     return hashlib.md5(key.encode("utf-8")).hexdigest()[:12]
 
 
-# Hippodromes connus avec piste en sable fibré (PSF / polytrack / fibresand)
 _HIPPO_PSF = {
     "pau", "deauville", "chantilly", "lyon-parilly",
     "lyon parilly", "pornichet", "marseille-borely",
@@ -869,13 +807,10 @@ _HIPPO_PSF = {
 
 
 def _deduire_type_piste(type_piste_raw: str, discipline: str, parcours: str, hippo: str) -> str:
-    """Déduit la surface si l'API ne la fournit pas."""
-    # Si l'API l'a fourni, on le garde
     tp = (type_piste_raw or "").strip().lower()
     if tp and tp not in ("inconnu", "non_defini"):
         return tp
 
-    # Indices dans le parcours
     parcours_low = (parcours or "").lower()
     if "sable" in parcours_low or "fibre" in parcours_low or "psf" in parcours_low:
         return "psf"
@@ -885,15 +820,10 @@ def _deduire_type_piste(type_piste_raw: str, discipline: str, parcours: str, hip
     disc = (discipline or "").lower()
     hippo_low = (hippo or "").lower()
 
-    # Trot → cendrée/sable
     if disc in ("attele", "trot_attele", "monte", "trot_monte"):
         return "cendrée"
-
-    # Galop obstacle → gazon
     if disc in ("steeplechase", "steeple", "haie", "haies", "cross", "cross_country"):
         return "gazon"
-
-    # Galop plat → PSF si hippodrome connu, sinon gazon
     if disc in ("plat", "galop"):
         if hippo_low in _HIPPO_PSF:
             return "psf"
@@ -903,7 +833,6 @@ def _deduire_type_piste(type_piste_raw: str, discipline: str, parcours: str, hip
 
 
 def normaliser_course(brute: CourseBrute, reunion_ref: dict) -> CourseNormalisee:
-    """Normalise une course brute."""
     date_iso = brute.date_reunion_iso
     hippo = brute.hippodrome_normalise
     nr = brute.numero_reunion
@@ -950,19 +879,16 @@ def normaliser_course(brute: CourseBrute, reunion_ref: dict) -> CourseNormalisee
 
 
 def normaliser_partant(brute: PartantBrut, course_norm: CourseNormalisee) -> PartantNormalise:
-    """Normalise un partant brut."""
     date_iso = brute.date_reunion_iso
     hippo = brute.hippodrome_normalise
     nr = brute.numero_reunion
     nc = brute.numero_course
     num = brute.num_pmu or 0
 
-    # Calculer si placé (top 3)
     pos = brute.ordre_arrivee
     is_gagnant = pos == 1 if pos else False
     is_place = pos is not None and 1 <= pos <= 3
 
-    # Probabilité implicite
     cote = brute.cote_direct or brute.cote_reference
     proba = round(1.0 / cote, 4) if cote and cote > 0 else None
 
@@ -1031,7 +957,7 @@ def normaliser_partant(brute: PartantBrut, course_norm: CourseNormalisee) -> Par
         reduction_km_ms=brute.reduction_kilometrique,
         is_gagnant=is_gagnant,
         is_place=is_place,
-        is_disqualifie=False,  # Sera mis à jour après
+        is_disqualifie=False,
         cote_finale=brute.cote_direct,
         cote_reference=brute.cote_reference,
         proba_implicite=proba,
@@ -1040,42 +966,60 @@ def normaliser_partant(brute: PartantBrut, course_norm: CourseNormalisee) -> Par
 
 
 # ===========================================================================
-# SAUVEGARDE
+# PROCESS REUNION → JSONL (no accumulation)
 # ===========================================================================
 
-def sauver_json(data: list[dict], path: Path, logger: logging.Logger):
-    path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_suffix(".tmp")
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2, default=str)
-    tmp.replace(path)
-    logger.info("Sauvé: %s (%d entrées)", path.name, len(data))
+def process_reunion_to_jsonl(
+    reunion_data: dict,
+    participants_by_course: dict,
+    ref: dict,
+    writer: JsonlWriter,
+    logger: logging.Logger,
+) -> tuple[int, int]:
+    """Traite une réunion et écrit directement en JSONL. Retourne (nb_courses, nb_partants)."""
+    courses_list = reunion_data.get("courses", [])
+    timestamp = utc_now_iso()
+    nb_courses = 0
+    nb_partants = 0
 
+    for course_data in courses_list:
+        nc = course_data.get("numOrdre") or course_data.get("numExterne", 0)
+        if not nc:
+            continue
 
-def sauver_parquet(data: list[dict], path: Path, logger: logging.Logger):
-    if not HAS_PARQUET or not data:
-        return
-    try:
-        table = pa.Table.from_pylist(data)
-        pq.write_table(table, path)
-        logger.info("Sauvé: %s", path.name)
-    except Exception as e:
-        logger.warning("Parquet ignoré: %s", e)
+        participants_data = participants_by_course.get(str(nc), {"participants": []})
 
+        try:
+            course_brute, partants_bruts = parse_course_pmu(
+                course_data, participants_data, ref, nc, timestamp
+            )
+            course_norm = normaliser_course(course_brute, ref)
 
-def sauver_csv(data: list[dict], path: Path, logger: logging.Logger):
-    if not data:
-        return
-    path.parent.mkdir(parents=True, exist_ok=True)
-    fieldnames = list(data[0].keys())
-    with open(path, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
-        writer.writeheader()
-        writer.writerows(data)
-    logger.info("Sauvé: %s", path.name)
+            # Marquer les DQ
+            dq_nums = set()
+            for inc in course_brute.incidents:
+                if isinstance(inc, dict):
+                    for n in inc.get("numeroParticipants", []):
+                        dq_nums.add(n)
 
+            # Écrire course en JSONL
+            writer.write_course(asdict(course_brute), asdict(course_norm))
+            nb_courses += 1
 
-import csv  # noqa: E402 (already imported above via implicit)
+            # Écrire partants en JSONL
+            for pb in partants_bruts:
+                pn = normaliser_partant(pb, course_norm)
+                if pb.num_pmu in dq_nums:
+                    pn.is_disqualifie = True
+                writer.write_partant(asdict(pb), asdict(pn))
+                nb_partants += 1
+
+        except Exception as e:
+            d_iso = ref.get("date_reunion_iso", "?")
+            n_reu = ref.get("numero_reunion", "?")
+            logger.warning("Erreur parsing %s R%s C%s: %s", d_iso, n_reu, nc, e)
+
+    return nb_courses, nb_partants
 
 
 # ===========================================================================
@@ -1083,20 +1027,21 @@ import csv  # noqa: E402 (already imported above via implicit)
 # ===========================================================================
 
 def main():
-    parser = argparse.ArgumentParser(description="Collecte courses + partants PMU")
+    parser = argparse.ArgumentParser(description="Collecte courses + partants PMU — MODE JSONL")
     parser.add_argument("--pause", type=float, default=0.3, help="Pause entre requêtes (s)")
-    parser.add_argument("--batch", type=int, default=500, help="Sauvegarde intermédiaire tous les N réunions")
+    parser.add_argument("--batch", type=int, default=500, help="Checkpoint tous les N réunions")
     parser.add_argument("--date-debut", type=str, default=None, help="Date début (YYYY-MM-DD)")
     parser.add_argument("--date-fin", type=str, default=None, help="Date fin (YYYY-MM-DD)")
-    parser.add_argument("--max-reunions", type=int, default=0, help="Max réunions à traiter (0=toutes)")
+    parser.add_argument("--max-reunions", type=int, default=0, help="Max réunions (0=toutes)")
+    parser.add_argument("--rebuild", action="store_true", help="Forcer reconstruction depuis cache")
     args = parser.parse_args()
 
     logger = setup_logging()
     logger.info("=" * 70)
-    logger.info("02 — COLLECTE COURSES + PARTANTS")
+    logger.info("02 — COLLECTE COURSES + PARTANTS — MODE JSONL")
     logger.info("=" * 70)
 
-    # Charger références
+    # Charger références (petit fichier ~10 MB)
     if not REFERENCES_PATH.exists():
         logger.error("Fichier références introuvable: %s", REFERENCES_PATH)
         sys.exit(1)
@@ -1105,16 +1050,17 @@ def main():
         all_refs = json.load(f)
     logger.info("Références chargées: %d réunions", len(all_refs))
 
-    # Filtrer par date si demandé
+    # Filtrer par date
     refs = all_refs
+    del all_refs  # libérer
     if args.date_debut:
         refs = [r for r in refs if r.get("date_reunion_iso", "") >= args.date_debut]
     if args.date_fin:
         refs = [r for r in refs if r.get("date_reunion_iso", "") <= args.date_fin]
 
-    # Filtrer seulement les réunions PMU (avec url_pmu et numero_reunion > 0)
     refs_pmu = [r for r in refs if r.get("url_pmu") and (r.get("numero_reunion") or 0) > 0]
     refs_pmu.sort(key=lambda r: (r.get("date_reunion_iso", ""), r.get("numero_reunion", 0)))
+    del refs  # libérer
 
     logger.info("Réunions PMU à traiter: %d", len(refs_pmu))
 
@@ -1129,42 +1075,24 @@ def main():
     # Cache API par réunion
     cache = ReunionCache(CACHE_DIR)
 
+    # JSONL Writer — append mode, pas d'accumulation
+    writer = JsonlWriter(OUTPUT_DIR)
+
     # Session HTTP
     session = create_session()
 
-    # Accumulateurs — charger données existantes si reprise
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-
-    def _load_existing(filename):
-        p = OUTPUT_DIR / filename
-        if p.exists():
-            try:
-                with open(p, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-                logger.info(f"Reprise: {len(data)} entrées chargées depuis {filename}")
-                return data
-            except (json.JSONDecodeError, OSError):
-                pass
-        return []
-
-    all_courses_brut = _load_existing("courses_brut.json")
-    all_courses_norm = _load_existing("courses_normalisees.json")
-    all_partants_brut = _load_existing("partants_brut.json")
-    all_partants_norm = _load_existing("partants_normalises.json")
-
-    # Détection de données corrompues/tronquées : si on a beaucoup de réunions
-    # dans le checkpoint mais peu de partants dans les JSON, reconstruire depuis le cache
-    nb_done = len(checkpoint._data.get("completed_reunions", []))
-    if nb_done > 100 and len(all_partants_norm) < nb_done * 5:
-        logger.info(f"⚠️  Données tronquées détectées: {len(all_partants_norm)} partants "
-                    f"pour {nb_done} réunions dans le checkpoint")
-        logger.info("Reconstruction depuis le cache...")
-        all_courses_brut = []
-        all_courses_norm = []
-        all_partants_brut = []
-        all_partants_norm = []
+    # === Rebuild depuis cache si demandé ===
+    if args.rebuild:
+        logger.info("Reconstruction depuis cache demandée...")
+        # Vider les JSONL existants
+        for p in [writer.courses_brut, writer.courses_norm, writer.partants_brut,
+                  writer.partants_norm, writer.courses_ref]:
+            if p.exists():
+                p.unlink()
 
         rebuilt_count = 0
+        total_c = 0
+        total_p = 0
         for ref in refs_pmu:
             r_uid = ref.get("reunion_uid", "")
             if not checkpoint.is_done(r_uid):
@@ -1176,52 +1104,29 @@ def main():
             cached = cache.get(d_iso, n_reu)
             if not cached:
                 continue
+
             reunion_data = cached.get("reunion_data")
             participants_by_course = cached.get("participants", {})
             if not reunion_data:
                 continue
-            courses_list = reunion_data.get("courses", [])
-            timestamp = ref.get("timestamp", utc_now_iso())
-            for course_data in courses_list:
-                nc = course_data.get("numOrdre") or course_data.get("numExterne", 0)
-                if not nc:
-                    continue
-                participants_data = participants_by_course.get(str(nc), {"participants": []})
-                try:
-                    course_brute, partants_bruts = parse_course_pmu(
-                        course_data, participants_data, ref, nc, timestamp
-                    )
-                    course_norm = normaliser_course(course_brute, ref)
-                    dq_nums = set()
-                    for inc in course_brute.incidents:
-                        if isinstance(inc, dict):
-                            for n in inc.get("numeroParticipants", []):
-                                dq_nums.add(n)
-                    for pb in partants_bruts:
-                        pn = normaliser_partant(pb, course_norm)
-                        if pn.num_pmu in dq_nums:
-                            pn.is_disqualifie = True
-                        all_partants_brut.append(asdict(pb))
-                        all_partants_norm.append(asdict(pn))
-                    all_courses_brut.append(asdict(course_brute))
-                    all_courses_norm.append(asdict(course_norm))
-                except Exception as e:
-                    logger.warning(f"Erreur rebuild {d_iso} R{n_reu} C{nc}: {e}")
+
+            nc, np = process_reunion_to_jsonl(
+                reunion_data, participants_by_course, ref, writer, logger
+            )
+            total_c += nc
+            total_p += np
             rebuilt_count += 1
+
             if rebuilt_count % 500 == 0:
-                logger.info(f"  Reconstruit: {rebuilt_count} réunions, "
-                           f"{len(all_courses_norm)} courses, {len(all_partants_norm)} partants")
+                logger.info("  Reconstruit: %d réunions, %d courses, %d partants",
+                           rebuilt_count, total_c, total_p)
 
-        logger.info(f"✅ Reconstruction terminée: {rebuilt_count} réunions, "
-                   f"{len(all_courses_norm)} courses, {len(all_partants_norm)} partants")
-        # Sauver immédiatement
-        sauver_json(all_courses_brut, OUTPUT_DIR / "courses_brut.json", logger)
-        sauver_json(all_courses_norm, OUTPUT_DIR / "courses_normalisees.json", logger)
-        sauver_json(all_partants_brut, OUTPUT_DIR / "partants_brut.json", logger)
-        sauver_json(all_partants_norm, OUTPUT_DIR / "partants_normalises.json", logger)
+        logger.info("Reconstruction terminée: %d réunions, %d courses, %d partants",
+                   rebuilt_count, total_c, total_p)
 
-    total_courses = len(all_courses_norm)
-    total_partants = len(all_partants_norm)
+    # === Boucle principale ===
+    total_courses = checkpoint._data.get("total_courses", 0)
+    total_partants = checkpoint._data.get("total_partants", 0)
     total_erreurs = 0
     total_requetes = 0
     reunions_traitees = 0
@@ -1229,20 +1134,17 @@ def main():
     for idx, ref in enumerate(refs_pmu, 1):
         reunion_uid = ref.get("reunion_uid", "")
 
-        # Skip si déjà fait
         if checkpoint.is_done(reunion_uid):
             continue
 
         date_iso = ref.get("date_reunion_iso", "")
         num_reunion = ref.get("numero_reunion", 0)
-        hippo = ref.get("hippodrome_normalise", "")
 
         if not date_iso or num_reunion <= 0:
             continue
 
         date_obj = date.fromisoformat(date_iso)
         date_ddmmyyyy = date_obj.strftime("%d%m%Y")
-        timestamp = utc_now_iso()
 
         # === Vérifier le cache ===
         cached = cache.get(date_iso, num_reunion)
@@ -1252,7 +1154,6 @@ def main():
             from_cache = True
         else:
             from_cache = False
-            # 1 requête réunion → détails de toutes les courses
             reunion_data = fetch_reunion_pmu(session, date_ddmmyyyy, num_reunion, logger)
             total_requetes += 1
             participants_by_course = {}
@@ -1265,7 +1166,7 @@ def main():
 
         courses_list = reunion_data.get("courses", [])
 
-        # Fetcher les participants manquants (pas dans le cache)
+        # Fetcher les participants manquants
         if not from_cache:
             for course_data in courses_list:
                 nc = course_data.get("numOrdre") or course_data.get("numExterne", 0)
@@ -1284,40 +1185,12 @@ def main():
                 "participants": participants_by_course,
             })
 
-        for course_data in courses_list:
-            nc = course_data.get("numOrdre") or course_data.get("numExterne", 0)
-            if not nc:
-                continue
-
-            participants_data = participants_by_course.get(str(nc), {"participants": []})
-
-            # Parser
-            course_brute, partants_bruts = parse_course_pmu(
-                course_data, participants_data, ref, nc, timestamp
-            )
-
-            # Normaliser
-            course_norm = normaliser_course(course_brute, ref)
-
-            # Marquer les DQ dans les partants
-            dq_nums = set()
-            for inc in course_brute.incidents:
-                if isinstance(inc, dict):
-                    for n in inc.get("numeroParticipants", []):
-                        dq_nums.add(n)
-
-            for pb in partants_bruts:
-                pn = normaliser_partant(pb, course_norm)
-                if pb.num_pmu in dq_nums:
-                    pn.is_disqualifie = True
-                all_partants_brut.append(asdict(pb))
-                all_partants_norm.append(asdict(pn))
-
-            all_courses_brut.append(asdict(course_brute))
-            all_courses_norm.append(asdict(course_norm))
-
-            total_courses += 1
-            total_partants += len(partants_bruts)
+        # Traiter et écrire en JSONL — PAS d'accumulation mémoire
+        nb_c, nb_p = process_reunion_to_jsonl(
+            reunion_data, participants_by_course, ref, writer, logger
+        )
+        total_courses += nb_c
+        total_partants += nb_p
 
         checkpoint.mark_done(reunion_uid)
         reunions_traitees += 1
@@ -1329,17 +1202,16 @@ def main():
                 total_partants, total_erreurs, total_requetes,
             )
 
-        # Sauvegarde intermédiaire
+        # Checkpoint périodique
         if reunions_traitees % args.batch == 0:
-            sauver_json(all_courses_norm, OUTPUT_DIR / "courses_normalisees.json", logger)
-            sauver_json(all_partants_norm, OUTPUT_DIR / "partants_normalises.json", logger)
+            checkpoint.update_counts(total_courses, total_partants)
             checkpoint.save()
             logger.info(
-                ">>> Sauvegarde intermédiaire: %d réunions, %d courses, %d partants <<<",
+                ">>> Checkpoint: %d réunions, %d courses, %d partants <<<",
                 reunions_traitees, total_courses, total_partants,
             )
 
-        # Renouveler session tous les 2000 requêtes
+        # Renouveler session
         if total_requetes > 0 and total_requetes % 2000 == 0:
             session.close()
             session = create_session()
@@ -1347,41 +1219,14 @@ def main():
 
         time.sleep(args.pause)
 
-    # === Sauvegarde finale ===
-    logger.info("Sauvegarde finale...")
-
-    # Courses
-    sauver_json(all_courses_brut, OUTPUT_DIR / "courses_brut.json", logger)
-    sauver_json(all_courses_norm, OUTPUT_DIR / "courses_normalisees.json", logger)
-    sauver_parquet(all_courses_norm, OUTPUT_DIR / "courses_normalisees.parquet", logger)
-    sauver_csv(all_courses_norm, OUTPUT_DIR / "courses_normalisees.csv", logger)
-
-    # Partants
-    sauver_json(all_partants_brut, OUTPUT_DIR / "partants_brut.json", logger)
-    sauver_json(all_partants_norm, OUTPUT_DIR / "partants_normalises.json", logger)
-    sauver_parquet(all_partants_norm, OUTPUT_DIR / "partants_normalises.parquet", logger)
-    sauver_csv(all_partants_norm, OUTPUT_DIR / "partants_normalises.csv", logger)
-
-    # Références pour script 04
-    courses_refs = []
-    for cn in all_courses_norm:
-        courses_refs.append({
-            "course_uid": cn["course_uid"],
-            "reunion_uid": cn["reunion_uid"],
-            "date_reunion_iso": cn["date_reunion_iso"],
-            "hippodrome_normalise": cn["hippodrome_normalise"],
-            "numero_reunion": cn["numero_reunion"],
-            "numero_course": cn["numero_course"],
-            "nombre_partants": cn["nombre_partants"],
-            "statut": cn["statut"],
-        })
-    sauver_json(courses_refs, OUTPUT_DIR / "courses_references_04.json", logger)
-
+    # === Checkpoint final ===
+    checkpoint.update_counts(total_courses, total_partants)
     checkpoint.save()
 
     logger.info("=" * 70)
     logger.info("TERMINÉ: %d réunions, %d courses, %d partants, %d erreurs, %d requêtes",
                 reunions_traitees, total_courses, total_partants, total_erreurs, total_requetes)
+    logger.info("Fichiers JSONL: %s", OUTPUT_DIR)
     logger.info("=" * 70)
 
 

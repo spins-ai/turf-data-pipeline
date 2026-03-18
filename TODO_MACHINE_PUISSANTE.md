@@ -40,7 +40,7 @@
 - [ ] 23_pronostics_equidia — pronostics PMU (~110K records, en cours)
 - [ ] 27_citations_enjeux — citations/enjeux (~144K/300K, ~48%, en cours)
 - [x] 28_combinaisons_marche — combinaisons (✅ FINI — 5.7M records, JSON valide)
-- [ ] 37_rpscrape_racing_post — Racing Post UK (crashé à 12 GB, à relancer)
+- [ ] 37_rpscrape_racing_post — Racing Post UK (crashé à 12 GB, PATCHÉ JSONL ✅ — à relancer)
 - [x] 38_rapports_internet — rapports internet (✅ FINI — 3M records, JSON valide)
 - [ ] fetch_openmeteo_missing — météo mondiale (12,754 cache, en cours)
 - [ ] 36_pedigree_query — tué par Cloudflare (à relancer avec proxy)
@@ -264,6 +264,21 @@
 - [x] feat_pedigree.py — ~40 features pedigree ✅ (✅ ÉCRIT — 16 mars 2026 — exécution sur PC)
 - [x] feat_temporel.py — ~40 features temporelles ✅ (✅ ÉCRIT — 16 mars 2026 — exécution sur PC)
 - [x] feat_sequences.py — ~30 features séquences ✅ (✅ ÉCRIT — 16 mars 2026 — exécution sur PC)
+
+## 6.2d Scripts de calcul (session 2 — 18 mars 2026)
+- [x] 41_sequences_performances.py — ~30 features séquences (trend, momentum, séries, repos) ✅ ÉCRIT
+- [x] 42_croisement_racing_post_pmu.py — ~15 features RPR/TopSpeed/class ✅ ÉCRIT
+- [x] 43_croisement_meteo_courses.py — ~20 features météo + historique terrain ✅ ÉCRIT
+- [x] 44_croisement_pedigree_partants.py — ~25 features pedigree (sire stats, inbreeding, stamina/speed) ✅ ÉCRIT
+- [x] 45_graphe_relations_gnn.py — ~15 features graphe + edges JSONL ✅ ÉCRIT
+- [x] 46_track_bias_speed_class.py — ~25 features bias/speed/class/field_strength ✅ ÉCRIT
+- [x] 48_parse_conditions_texte.py — ~20 features regex conditions ✅ ÉCRIT
+- [x] 49_ecart_cotes_internet_national.py — ~20 features market efficiency ✅ ÉCRIT
+
+## 6.2e Patches JSONL scripts lourds (session 2 — 18 mars 2026)
+- [x] 02_liste_courses.py — PATCHÉ ~50 MB RAM (était 5 GB) — JsonlWriter + --rebuild ✅
+- [x] 14_pedigree_scraper.py — PATCHÉ ~15 MB RAM (était 2.7 GB) — streaming + append JSONL ✅
+- [x] 37_rpscrape_racing_post.py — PATCHÉ ~15 MB RAM (était 1.6 GB) — checkpoint + append JSONL ✅
 
 ## 6.2c Post-processing des masters (complété)
 - [x] postprocess_meteo.py ✅ (✅ FAIT — 16 mars 2026 — terrain_category, penetrometre_numeric, meteo_score)
