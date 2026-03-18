@@ -25,8 +25,7 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 
-BASE = "/Users/quentinherve/models hybride"
-OUTPUT_DIR = os.path.join(BASE, "output", "meteo_complete")
+OUTPUT_DIR = os.path.join("output", "meteo_complete")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 
@@ -60,7 +59,7 @@ def normalize_hippo(name):
 def load_courses():
     """Load the master list of 257,806 courses."""
     print("[1/7] Loading master courses list...")
-    path = os.path.join(BASE, "output", "02_liste_courses", "courses_normalisees.json")
+    path = os.path.join("output", "02_liste_courses", "courses_normalisees.json")
     with open(path) as f:
         courses = json.load(f)
     print(f"  -> {len(courses)} courses loaded")
@@ -70,7 +69,7 @@ def load_courses():
 def load_meteo_france():
     """Load Météo France data — keyed by (hippodrome_normalized, date)."""
     print("[2/7] Loading Météo France data...")
-    path = os.path.join(BASE, "output", "35_meteo_france", "meteo_france_hippodromes.json")
+    path = os.path.join("output", "35_meteo_france", "meteo_france_hippodromes.json")
     with open(path) as f:
         data = json.load(f)
 
@@ -104,7 +103,7 @@ def load_meteo_france():
 def load_reunions_enrichies():
     """Load reunions enrichies — keyed by alt_key (date_R_C) with mapping to course_uid."""
     print("[3/7] Loading reunions enrichies (PMU official weather)...")
-    path = os.path.join(BASE, "output", "39_reunions_enrichies", "reunions_enrichies.json")
+    path = os.path.join("output", "39_reunions_enrichies", "reunions_enrichies.json")
     with open(path) as f:
         data = json.load(f)
 
@@ -132,7 +131,7 @@ def load_reunions_enrichies():
 def load_meteo_historique():
     """Load existing meteo_historique.json — keyed by course_uid (hex hash)."""
     print("[4/7] Loading meteo_historique.json...")
-    path = os.path.join(BASE, "output", "13_meteo_historique", "meteo_historique.json")
+    path = os.path.join("output", "13_meteo_historique", "meteo_historique.json")
     with open(path) as f:
         data = json.load(f)
 
@@ -164,7 +163,7 @@ def load_meteo_historique():
 def load_open_meteo_cache():
     """Load all Open-Meteo cache files — keyed by (hippodrome, date)."""
     print("[5/7] Loading Open-Meteo cache files...")
-    cache_dir = os.path.join(BASE, "output", "13_meteo_historique", "cache")
+    cache_dir = os.path.join("output", "13_meteo_historique", "cache")
     files = glob.glob(os.path.join(cache_dir, "*.json"))
     print(f"  -> Found {len(files)} cache files")
 
@@ -240,7 +239,7 @@ def load_open_meteo_cache():
 def load_nasa_data():
     """Load NASA POWER data from reunions_normalisees_meteo.parquet — keyed by reunion_uid."""
     print("[6/7] Loading NASA POWER data (from reunions_normalisees_meteo)...")
-    path = os.path.join(BASE, "output", "01_calendrier_reunions", "reunions_normalisees_meteo.parquet")
+    path = os.path.join("output", "01_calendrier_reunions", "reunions_normalisees_meteo.parquet")
     df = pd.read_parquet(path)
 
     # Build reunion_uid -> meteo mapping

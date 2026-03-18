@@ -14,9 +14,8 @@ import sys
 import os
 from collections import defaultdict
 
-BASE = "/Users/quentinherve/models hybride"
-PARTANTS_PATH = os.path.join(BASE, "output/02_liste_courses/partants_normalises.json")
-OUTPUT_PATH = os.path.join(BASE, "output/02_liste_courses/partants_enrichis.json")
+PARTANTS_PATH = os.path.join("output", "02_liste_courses", "partants_normalises.json")
+OUTPUT_PATH = os.path.join("output", "02_liste_courses", "partants_enrichis.json")
 
 # Track which fields came from which source
 source_fields = {}
@@ -88,7 +87,7 @@ def stream_json_array(path, report_every=500000):
 # 1. Load 05_historique_chevaux index (by nom_cheval)
 # ─────────────────────────────────────────────────────────────
 def load_05_historique_chevaux():
-    path = os.path.join(BASE, "output/05_historique_chevaux/historique_chevaux.json")
+    path = os.path.join("output", "05_historique_chevaux", "historique_chevaux.json")
     log(f"Loading 05_historique_chevaux from {os.path.basename(path)}...")
     idx = {}
     # Fields we want (excluding courses_detail which is huge)
@@ -119,7 +118,7 @@ def load_05_historique_chevaux():
 # 2. Load 06_historique_jockeys index (by jockey name)
 # ─────────────────────────────────────────────────────────────
 def load_06_historique_jockeys():
-    path = os.path.join(BASE, "output/06_historique_jockeys/historique_jockeys.json")
+    path = os.path.join("output", "06_historique_jockeys", "historique_jockeys.json")
     log(f"Loading 06_historique_jockeys...")
     idx = {}
     keep_fields = [
@@ -148,7 +147,7 @@ def load_06_historique_jockeys():
 # 3. Load 07_cotes_marche index (by partant_uid)
 # ─────────────────────────────────────────────────────────────
 def load_07_cotes_marche():
-    path = os.path.join(BASE, "output/07_cotes_marche/cotes_marche.json")
+    path = os.path.join("output", "07_cotes_marche", "cotes_marche.json")
     log(f"Loading 07_cotes_marche...")
     idx = {}
     # Fields to extract (that add value beyond what partants already has)
@@ -178,7 +177,7 @@ def load_07_cotes_marche():
 # 4. Load 09_equipements index (by partant_uid)
 # ─────────────────────────────────────────────────────────────
 def load_09_equipements():
-    path = os.path.join(BASE, "output/09_equipements/equipements_historique.json")
+    path = os.path.join("output", "09_equipements", "equipements_historique.json")
     log(f"Loading 09_equipements...")
     idx = {}
     keep_fields = [
@@ -208,7 +207,7 @@ def load_09_equipements():
 # 5. Load 10_poids_handicaps index (by partant_uid)
 # ─────────────────────────────────────────────────────────────
 def load_10_poids_handicaps():
-    path = os.path.join(BASE, "output/10_poids_handicaps/poids_handicaps.json")
+    path = os.path.join("output", "10_poids_handicaps", "poids_handicaps.json")
     log(f"Loading 10_poids_handicaps...")
     idx = {}
     keep_fields = [
@@ -237,7 +236,7 @@ def load_10_poids_handicaps():
 # 6. Load 11_sectionals index (by partant_uid)
 # ─────────────────────────────────────────────────────────────
 def load_11_sectionals():
-    path = os.path.join(BASE, "output/11_sectionals/sectionals.json")
+    path = os.path.join("output", "11_sectionals", "sectionals.json")
     log(f"Loading 11_sectionals...")
     idx = {}
     keep_fields = [
@@ -265,7 +264,7 @@ def load_11_sectionals():
 # 7. Load 17_sire_ifce index (by horse name) - use index_par_nom
 # ─────────────────────────────────────────────────────────────
 def load_17_sire_ifce():
-    path = os.path.join(BASE, "output/17_sire_ifce/index_par_nom.json")
+    path = os.path.join("output", "17_sire_ifce", "index_par_nom.json")
     log(f"Loading 17_sire_ifce (index_par_nom, 335MB)...")
     keep_fields = [
         'date_naissance', 'pays_naissance', 'consommation',
@@ -297,7 +296,7 @@ def load_17_sire_ifce():
 # 8. Load 40_enrichissement_partants index (by cle_partant)
 # ─────────────────────────────────────────────────────────────
 def load_40_enrichissement():
-    path = os.path.join(BASE, "output/40_enrichissement_partants/enrichissement_partants.json")
+    path = os.path.join("output", "40_enrichissement_partants", "enrichissement_partants.json")
     log(f"Loading 40_enrichissement_partants (655MB)...")
     idx = {}
     skip_fields = {'cle_partant'}
@@ -325,7 +324,7 @@ def load_40_enrichissement():
 # 9. Load 39_reunions_enrichies index (by date+R+C)
 # ─────────────────────────────────────────────────────────────
 def load_39_reunions_enrichies():
-    path = os.path.join(BASE, "output/39_reunions_enrichies/reunions_enrichies.json")
+    path = os.path.join("output", "39_reunions_enrichies", "reunions_enrichies.json")
     log(f"Loading 39_reunions_enrichies (1.6GB - streaming)...")
     idx = {}
     # Skip fields already in partants or that are huge nested structures

@@ -16,10 +16,9 @@ import sys
 import time
 from collections import defaultdict
 
-BASE_DIR = "/Users/quentinherve/models hybride"
-FILE_21 = os.path.join(BASE_DIR, "output/21_rapports_definitifs/rapports_definitifs.json")
-FILE_38 = os.path.join(BASE_DIR, "output/38_rapports_internet/rapports_internet.json")
-OUTPUT_DIR = os.path.join(BASE_DIR, "output/rapports_merged")
+FILE_21 = os.path.join("output", "21_rapports_definitifs", "rapports_definitifs.json")
+FILE_38 = os.path.join("output", "38_rapports_internet", "rapports_internet.json")
+OUTPUT_DIR = os.path.join("output", "rapports_merged")
 OUTPUT_FILE = os.path.join(OUTPUT_DIR, "rapports_complets.json")
 
 
