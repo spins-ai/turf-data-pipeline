@@ -44,6 +44,11 @@ BASE_URL = "https://racing.hkjc.com"
 RESULTS_URL = f"{BASE_URL}/racing/information/English/Racing/LocalResults.aspx"
 ENTRIES_URL = f"{BASE_URL}/racing/information/English/Racing/RaceCard.aspx"
 SECTIONALS_URL = f"{BASE_URL}/racing/information/English/Racing/SectionalTime.aspx"
+RUNNING_POS_URL = f"{BASE_URL}/racing/information/English/Racing/RunningPosition.aspx"
+HORSE_URL = f"{BASE_URL}/racing/information/English/Horse/Horse.aspx"
+RACE_REPLAY_URL = f"{BASE_URL}/racing/information/English/Racing/RaceReplay.aspx"
+# HKJC AJAX API endpoints for detailed data
+HKJC_API_BASE = "https://racing.hkjc.com/racing/information/english/racing"
 
 
 def new_session():
@@ -171,6 +176,69 @@ def scrape_race_card(session, date_str):
                 record[key] = cell
             records.append(record)
 
+    # --- Extract embedded JSON/JavaScript data from race card ---
+    for script in soup.find_all("script"):
+        script_text = script.string or ""
+        # Look for race data objects
+        for m in re.finditer(r'(?:var|let|const)\s+(\w*(?:race|card|entry|horse|runner)\w*)\s*=\s*(\{.+?\}|\[.+?\]);',
+                             script_text, re.DOTALL | re.IGNORECASE):
+            try:
+                data = json.loads(m.group(2))
+                records.append({
+                    "date": date_str,
+                    "source": "hkjc",
+                    "type": "racecard_embedded_var",
+                    "var_name": m.group(1),
+                    "data": data,
+                    "scraped_at": datetime.utcnow().isoformat(),
+                })
+            except json.JSONDecodeError:
+                pass
+        # JSON.parse patterns
+        for m in re.finditer(r'JSON\.parse\s*\(\s*[\'"](.+?)[\'"]\s*\)', script_text, re.DOTALL):
+            try:
+                raw = m.group(1).encode().decode('unicode_escape')
+                data = json.loads(raw)
+                records.append({
+                    "date": date_str,
+                    "source": "hkjc",
+                    "type": "racecard_json_parse",
+                    "data": data,
+                    "scraped_at": datetime.utcnow().isoformat(),
+                })
+            except (json.JSONDecodeError, UnicodeDecodeError):
+                pass
+
+    for script in soup.find_all("script", {"type": re.compile(r'application/(ld\+)?json')}):
+        try:
+            data = json.loads(script.string or "")
+            records.append({
+                "date": date_str,
+                "source": "hkjc",
+                "type": "racecard_script_json",
+                "data": data,
+                "scraped_at": datetime.utcnow().isoformat(),
+            })
+        except json.JSONDecodeError:
+            pass
+
+    # --- Extract all data-attributes (HKJC uses data-* extensively) ---
+    for el in soup.find_all(attrs=lambda attrs: attrs and any(
+            k.startswith("data-") and any(kw in k.lower() for kw in
+            ["horse", "race", "runner", "jockey", "trainer", "weight", "draw", "odds", "no"])
+            for k in attrs)):
+        data_attrs = {k: v for k, v in el.attrs.items() if k.startswith("data-")}
+        if data_attrs:
+            records.append({
+                "date": date_str,
+                "source": "hkjc",
+                "type": "racecard_data_attrs",
+                "tag": el.name,
+                "text": el.get_text(strip=True)[:200],
+                "attributes": data_attrs,
+                "scraped_at": datetime.utcnow().isoformat(),
+            })
+
     with open(cache_file, "w", encoding="utf-8") as f:
         json.dump(records, f, ensure_ascii=False, indent=2)
 
@@ -239,6 +307,75 @@ def scrape_results(session, date_str):
                     "content": text[:1000],
                     "scraped_at": datetime.utcnow().isoformat(),
                 })
+
+    # --- Extract race comments / stewards reports ---
+    for div in soup.find_all(["div", "p", "td", "section"], class_=True):
+        classes = " ".join(div.get("class", []))
+        text = div.get_text(strip=True)
+        if any(kw in classes.lower() for kw in ["comment", "steward", "report", "race-remark",
+                                                  "incident", "inquiry", "running-comment"]):
+            if text and 10 < len(text) < 3000:
+                records.append({
+                    "date": date_str,
+                    "source": "hkjc",
+                    "type": "race_comment",
+                    "content": text[:2500],
+                    "scraped_at": datetime.utcnow().isoformat(),
+                })
+
+    # --- Extract running positions from results page ---
+    for table in soup.find_all("table"):
+        table_text = table.get_text().lower()
+        if any(kw in table_text for kw in ["running position", "running pos", "1st sec", "2nd sec"]):
+            rows = table.find_all("tr")
+            rp_headers = []
+            if rows:
+                rp_headers = [th.get_text(strip=True).lower().replace(" ", "_")
+                              for th in rows[0].find_all(["th", "td"])]
+            for row in rows[1:]:
+                cells = [td.get_text(strip=True) for td in row.find_all(["td", "th"])]
+                if cells and len(cells) >= 2:
+                    entry = {
+                        "date": date_str,
+                        "source": "hkjc",
+                        "type": "running_position",
+                        "scraped_at": datetime.utcnow().isoformat(),
+                    }
+                    for j, cell in enumerate(cells):
+                        key = rp_headers[j] if j < len(rp_headers) and rp_headers[j] else f"col_{j}"
+                        entry[key] = cell
+                    records.append(entry)
+
+    # --- Embedded JSON from results page ---
+    for script in soup.find_all("script"):
+        script_text = script.string or ""
+        for m in re.finditer(r'(?:var|let|const)\s+(\w*(?:result|dividend|position|pool|race)\w*)\s*=\s*(\{.+?\}|\[.+?\]);',
+                             script_text, re.DOTALL | re.IGNORECASE):
+            try:
+                data = json.loads(m.group(2))
+                records.append({
+                    "date": date_str,
+                    "source": "hkjc",
+                    "type": "result_embedded_var",
+                    "var_name": m.group(1),
+                    "data": data,
+                    "scraped_at": datetime.utcnow().isoformat(),
+                })
+            except json.JSONDecodeError:
+                pass
+
+    for script in soup.find_all("script", {"type": re.compile(r'application/(ld\+)?json')}):
+        try:
+            data = json.loads(script.string or "")
+            records.append({
+                "date": date_str,
+                "source": "hkjc",
+                "type": "result_script_json",
+                "data": data,
+                "scraped_at": datetime.utcnow().isoformat(),
+            })
+        except json.JSONDecodeError:
+            pass
 
     with open(cache_file, "w", encoding="utf-8") as f:
         json.dump(records, f, ensure_ascii=False, indent=2)
@@ -333,6 +470,314 @@ def scrape_sectionals(session, date_str):
                 except json.JSONDecodeError:
                     pass
 
+    # --- Enhanced GPS/tracking data extraction from scripts ---
+    for script in soup.find_all("script"):
+        script_text = script.string or ""
+        # Broad match for any GPS/tracking/sectional JS objects
+        for m in re.finditer(
+            r'(?:var|let|const)\s+(\w*(?:gps|track|section|position|running|speed|distance)\w*)\s*=\s*(\{[\s\S]+?\}|\[[\s\S]+?\]);',
+            script_text, re.IGNORECASE
+        ):
+            try:
+                data = json.loads(m.group(2))
+                records.append({
+                    "date": date_str,
+                    "source": "hkjc",
+                    "type": "gps_tracking_var",
+                    "var_name": m.group(1),
+                    "data": data,
+                    "scraped_at": datetime.utcnow().isoformat(),
+                })
+            except json.JSONDecodeError:
+                pass
+        # Look for large arrays of coordinate/position data
+        for m in re.finditer(r'\[\s*\[\s*[\d.]+\s*,\s*[\d.]+(?:\s*,\s*[\d.]+)*\s*\](?:\s*,\s*\[[\d.,\s]+\]){5,}\s*\]',
+                             script_text):
+            try:
+                data = json.loads(m.group(0))
+                records.append({
+                    "date": date_str,
+                    "source": "hkjc",
+                    "type": "gps_coordinate_array",
+                    "num_points": len(data),
+                    "data": data,
+                    "scraped_at": datetime.utcnow().isoformat(),
+                })
+            except json.JSONDecodeError:
+                pass
+
+    # --- Extract script type="application/json" ---
+    for script in soup.find_all("script", {"type": re.compile(r'application/(ld\+)?json')}):
+        try:
+            data = json.loads(script.string or "")
+            records.append({
+                "date": date_str,
+                "source": "hkjc",
+                "type": "sectional_script_json",
+                "data": data,
+                "scraped_at": datetime.utcnow().isoformat(),
+            })
+        except json.JSONDecodeError:
+            pass
+
+    # --- Data attributes on sectional elements ---
+    for el in soup.find_all(attrs=lambda attrs: attrs and any(
+            k.startswith("data-") and any(kw in k.lower() for kw in
+            ["section", "time", "speed", "position", "gps", "horse", "split"])
+            for k in attrs)):
+        data_attrs = {k: v for k, v in el.attrs.items() if k.startswith("data-")}
+        if data_attrs:
+            records.append({
+                "date": date_str,
+                "source": "hkjc",
+                "type": "sectional_data_attrs",
+                "tag": el.name,
+                "text": el.get_text(strip=True)[:200],
+                "attributes": data_attrs,
+                "scraped_at": datetime.utcnow().isoformat(),
+            })
+
+    with open(cache_file, "w", encoding="utf-8") as f:
+        json.dump(records, f, ensure_ascii=False, indent=2)
+
+    return records
+
+
+def scrape_running_positions(session, date_str):
+    """Scrape HKJC running positions for all races on a given date."""
+    cache_file = os.path.join(CACHE_DIR, f"runpos_{date_str}.json")
+    if os.path.exists(cache_file):
+        with open(cache_file, "r", encoding="utf-8") as f:
+            return json.load(f)
+
+    dt = datetime.strptime(date_str, "%Y-%m-%d")
+    hkjc_date = dt.strftime("%d/%m/%Y")
+
+    params = {"RaceDate": hkjc_date}
+    resp = fetch_with_retry(session, RUNNING_POS_URL, params=params)
+    if not resp:
+        return None
+
+    soup = BeautifulSoup(resp.text, "html.parser")
+    records = []
+
+    # Extract running position tables
+    for table in soup.find_all("table"):
+        rows = table.find_all("tr")
+        headers = []
+        if rows:
+            headers = [th.get_text(strip=True).lower().replace(" ", "_")
+                       for th in rows[0].find_all(["th", "td"])]
+        if len(headers) < 2:
+            continue
+
+        for row in rows[1:]:
+            cells = [td.get_text(strip=True) for td in row.find_all(["td", "th"])]
+            if not cells or len(cells) < 2:
+                continue
+            record = {
+                "date": date_str,
+                "source": "hkjc",
+                "type": "running_position_detail",
+                "scraped_at": datetime.utcnow().isoformat(),
+            }
+            for j, cell in enumerate(cells):
+                key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
+                record[key] = cell
+            records.append(record)
+
+    # Extract embedded JS data for positions
+    for script in soup.find_all("script"):
+        script_text = script.string or ""
+        if any(kw in script_text.lower() for kw in ["runposition", "running", "raceposition"]):
+            for m in re.finditer(r'(?:var|let|const)\s+(\w+)\s*=\s*(\{[\s\S]+?\}|\[[\s\S]+?\]);', script_text):
+                try:
+                    data = json.loads(m.group(2))
+                    records.append({
+                        "date": date_str,
+                        "source": "hkjc",
+                        "type": "running_position_js",
+                        "var_name": m.group(1),
+                        "data": data,
+                        "scraped_at": datetime.utcnow().isoformat(),
+                    })
+                except json.JSONDecodeError:
+                    pass
+
+    with open(cache_file, "w", encoding="utf-8") as f:
+        json.dump(records, f, ensure_ascii=False, indent=2)
+
+    return records
+
+
+def scrape_race_replay_metadata(session, date_str):
+    """Scrape HKJC race replay metadata (video URLs, thumbnails)."""
+    cache_file = os.path.join(CACHE_DIR, f"replay_{date_str}.json")
+    if os.path.exists(cache_file):
+        with open(cache_file, "r", encoding="utf-8") as f:
+            return json.load(f)
+
+    dt = datetime.strptime(date_str, "%Y-%m-%d")
+    hkjc_date = dt.strftime("%d/%m/%Y")
+
+    params = {"RaceDate": hkjc_date}
+    resp = fetch_with_retry(session, RACE_REPLAY_URL, params=params)
+    if not resp:
+        return None
+
+    soup = BeautifulSoup(resp.text, "html.parser")
+    records = []
+
+    # Extract video/media elements
+    for el in soup.find_all(["video", "source", "iframe", "a", "div"]):
+        src = el.get("src") or el.get("data-src") or el.get("data-video") or el.get("href", "")
+        if src and any(kw in src.lower() for kw in ["replay", "video", "stream", "mp4", "m3u8",
+                                                      "rtmp", "hls", "media"]):
+            records.append({
+                "date": date_str,
+                "source": "hkjc",
+                "type": "race_replay_url",
+                "media_url": src,
+                "media_tag": el.name,
+                "poster": el.get("poster", el.get("data-poster", "")),
+                "title": el.get("title", el.get_text(strip=True)[:100]),
+                "scraped_at": datetime.utcnow().isoformat(),
+            })
+
+    # Extract replay JS data
+    for script in soup.find_all("script"):
+        script_text = script.string or ""
+        if any(kw in script_text.lower() for kw in ["replay", "video", "media", "stream"]):
+            for m in re.finditer(r'(?:var|let|const)\s+(\w+)\s*=\s*(\{[\s\S]+?\}|\[[\s\S]+?\]);', script_text):
+                try:
+                    data = json.loads(m.group(2))
+                    records.append({
+                        "date": date_str,
+                        "source": "hkjc",
+                        "type": "replay_embedded_data",
+                        "var_name": m.group(1),
+                        "data": data,
+                        "scraped_at": datetime.utcnow().isoformat(),
+                    })
+                except json.JSONDecodeError:
+                    pass
+        # URL patterns for video streams
+        for m in re.finditer(r'["\']((https?://[^"\']+\.(?:m3u8|mp4|flv))[^"\']*)["\']', script_text):
+            records.append({
+                "date": date_str,
+                "source": "hkjc",
+                "type": "replay_stream_url",
+                "media_url": m.group(1),
+                "scraped_at": datetime.utcnow().isoformat(),
+            })
+
+    # Extract image thumbnails for replays
+    for img in soup.find_all("img"):
+        src = img.get("src") or img.get("data-src") or ""
+        alt = img.get("alt", "").lower()
+        if any(kw in src.lower() or kw in alt for kw in ["replay", "race", "finish", "photo"]):
+            records.append({
+                "date": date_str,
+                "source": "hkjc",
+                "type": "replay_thumbnail",
+                "image_url": src,
+                "alt": img.get("alt", ""),
+                "scraped_at": datetime.utcnow().isoformat(),
+            })
+
+    with open(cache_file, "w", encoding="utf-8") as f:
+        json.dump(records, f, ensure_ascii=False, indent=2)
+
+    return records
+
+
+def scrape_horse_form(session, horse_url, date_str):
+    """Scrape full form history for a horse (last 10+ races)."""
+    if not horse_url:
+        return []
+    if not horse_url.startswith("http"):
+        horse_url = BASE_URL + horse_url
+
+    url_hash = re.sub(r'[^a-zA-Z0-9]', '_', horse_url[-60:])
+    cache_file = os.path.join(CACHE_DIR, f"horse_{url_hash}.json")
+    if os.path.exists(cache_file):
+        with open(cache_file, "r", encoding="utf-8") as f:
+            return json.load(f)
+
+    resp = fetch_with_retry(session, horse_url)
+    if not resp:
+        return []
+
+    soup = BeautifulSoup(resp.text, "html.parser")
+    records = []
+
+    # Horse name
+    horse_name = ""
+    h1 = soup.find("h1")
+    if h1:
+        horse_name = h1.get_text(strip=True)
+
+    # Extract form tables (past performances)
+    for table in soup.find_all("table"):
+        rows = table.find_all("tr")
+        headers = []
+        if rows:
+            headers = [th.get_text(strip=True).lower().replace(" ", "_")
+                       for th in rows[0].find_all(["th", "td"])]
+        if len(headers) < 3:
+            continue
+
+        for row in rows[1:]:
+            cells = [td.get_text(strip=True) for td in row.find_all(["td", "th"])]
+            if not cells or len(cells) < 3:
+                continue
+            record = {
+                "date": date_str,
+                "source": "hkjc",
+                "type": "horse_form_entry",
+                "horse_name": horse_name,
+                "horse_url": horse_url,
+                "scraped_at": datetime.utcnow().isoformat(),
+            }
+            for j, cell in enumerate(cells):
+                key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
+                record[key] = cell
+            records.append(record)
+
+    # Stats by distance/track/going
+    for div in soup.find_all(["div", "section", "table"], class_=True):
+        classes = " ".join(div.get("class", []))
+        if any(kw in classes.lower() for kw in ["stats", "record", "summary", "career"]):
+            text = div.get_text(strip=True)
+            if text and 10 < len(text) < 3000:
+                records.append({
+                    "date": date_str,
+                    "source": "hkjc",
+                    "type": "horse_stats_summary",
+                    "horse_name": horse_name,
+                    "content": text[:2500],
+                    "scraped_at": datetime.utcnow().isoformat(),
+                })
+
+    # Embedded JSON for horse
+    for script in soup.find_all("script"):
+        script_text = script.string or ""
+        for m in re.finditer(r'(?:var|let|const)\s+(\w*(?:horse|form|perf|season|career)\w*)\s*=\s*(\{[\s\S]+?\}|\[[\s\S]+?\]);',
+                             script_text, re.IGNORECASE):
+            try:
+                data = json.loads(m.group(2))
+                records.append({
+                    "date": date_str,
+                    "source": "hkjc",
+                    "type": "horse_embedded_data",
+                    "horse_name": horse_name,
+                    "var_name": m.group(1),
+                    "data": data,
+                    "scraped_at": datetime.utcnow().isoformat(),
+                })
+            except json.JSONDecodeError:
+                pass
+
     with open(cache_file, "w", encoding="utf-8") as f:
         json.dump(records, f, ensure_ascii=False, indent=2)
 
@@ -401,6 +846,47 @@ def main():
             for rec in sect_records:
                 append_jsonl(output_file, rec)
                 total_records += 1
+
+        smart_pause(2.0, 1.0)
+
+        # Scrape running positions
+        runpos_records = scrape_running_positions(session, date_str)
+        if runpos_records:
+            for rec in runpos_records:
+                append_jsonl(output_file, rec)
+                total_records += 1
+
+        smart_pause(2.0, 1.0)
+
+        # Scrape race replay metadata
+        replay_records = scrape_race_replay_metadata(session, date_str)
+        if replay_records:
+            for rec in replay_records:
+                append_jsonl(output_file, rec)
+                total_records += 1
+
+        # Scrape horse form for horses found in race cards (limit per day)
+        if card_records:
+            horse_urls = set()
+            for rec in card_records:
+                for key, val in rec.items():
+                    if isinstance(val, str) and "Horse.aspx" in val:
+                        horse_urls.add(val)
+            # Also look for horse links in data attributes
+            for rec in card_records:
+                if rec.get("type") == "racecard_data_attrs":
+                    attrs = rec.get("attributes", {})
+                    for v in attrs.values():
+                        if isinstance(v, str) and "Horse" in v:
+                            horse_urls.add(v)
+
+            for hurl in list(horse_urls)[:10]:  # Limit to 10 horses per day
+                horse_data = scrape_horse_form(session, hurl, date_str)
+                if horse_data:
+                    for rec in horse_data:
+                        append_jsonl(output_file, rec)
+                        total_records += 1
+                smart_pause(2.0, 1.0)
 
         day_count += 1
 

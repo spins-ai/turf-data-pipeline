@@ -199,6 +199,118 @@ def scrape_zeturf_day(session, date_str):
             "scraped_at": datetime.utcnow().isoformat(),
         })
 
+    # --- Extraire les commentaires de course ---
+    for div in soup.find_all(["div", "p", "span", "article"], class_=True):
+        classes = " ".join(div.get("class", []))
+        text = div.get_text(strip=True)
+        if any(kw in classes.lower() for kw in ["comment", "analyse", "avis", "editorial",
+                                                  "recap", "resume", "chronique", "rapport"]):
+            if text and 20 < len(text) < 3000:
+                records.append({
+                    "date": date_str,
+                    "source": "zeturf",
+                    "type": "commentaire_course",
+                    "contenu": text[:2500],
+                    "scraped_at": datetime.utcnow().isoformat(),
+                })
+
+    # --- Extraire les JSON embarques dans les scripts ---
+    for script in soup.find_all("script"):
+        script_text = script.string or ""
+        # JSON.parse(...) patterns
+        for m in re.finditer(r'JSON\.parse\s*\(\s*[\'"](.+?)[\'"]\s*\)', script_text, re.DOTALL):
+            try:
+                raw = m.group(1).encode().decode('unicode_escape')
+                data = json.loads(raw)
+                records.append({
+                    "date": date_str,
+                    "source": "zeturf",
+                    "type": "embedded_json_parse",
+                    "data": data,
+                    "scraped_at": datetime.utcnow().isoformat(),
+                })
+            except (json.JSONDecodeError, UnicodeDecodeError):
+                pass
+        # window.__DATA or window.XXX = {...} patterns
+        for m in re.finditer(r'window\[?[\'"]?(__\w+|raceData|courseData|betData|oddsData)[\'"]?\]?\s*=\s*(\{.+?\});',
+                             script_text, re.DOTALL):
+            try:
+                data = json.loads(m.group(2))
+                records.append({
+                    "date": date_str,
+                    "source": "zeturf",
+                    "type": "embedded_window_data",
+                    "var_name": m.group(1),
+                    "data": data,
+                    "scraped_at": datetime.utcnow().isoformat(),
+                })
+            except json.JSONDecodeError:
+                pass
+        # var xxx = [...] or var xxx = {...} large data
+        for m in re.finditer(r'(?:var|let|const)\s+(\w+)\s*=\s*(\[[\s\S]{50,}?\]);', script_text):
+            try:
+                data = json.loads(m.group(2))
+                records.append({
+                    "date": date_str,
+                    "source": "zeturf",
+                    "type": "embedded_var_array",
+                    "var_name": m.group(1),
+                    "data": data,
+                    "scraped_at": datetime.utcnow().isoformat(),
+                })
+            except json.JSONDecodeError:
+                pass
+
+    # --- Extraire script type="application/json" ---
+    for script in soup.find_all("script", {"type": "application/json"}):
+        try:
+            data = json.loads(script.string or "")
+            records.append({
+                "date": date_str,
+                "source": "zeturf",
+                "type": "script_application_json",
+                "data_id": script.get("id", ""),
+                "data": data,
+                "scraped_at": datetime.utcnow().isoformat(),
+            })
+        except json.JSONDecodeError:
+            pass
+
+    # --- Extraire TOUS les data-attributes pertinents ---
+    for el in soup.find_all(attrs=lambda attrs: attrs and any(
+            k.startswith("data-") and any(kw in k for kw in
+            ["cote", "odd", "cheval", "horse", "runner", "race", "pari", "bet", "mise"])
+            for k in attrs)):
+        data_attrs = {k: v for k, v in el.attrs.items() if k.startswith("data-")}
+        if data_attrs:
+            records.append({
+                "date": date_str,
+                "source": "zeturf",
+                "type": "data_attributes",
+                "tag": el.name,
+                "text": el.get_text(strip=True)[:200],
+                "attributes": data_attrs,
+                "scraped_at": datetime.utcnow().isoformat(),
+            })
+
+    # --- Extraire les cotes detaillees par type de pari ---
+    for div in soup.find_all(["div", "section", "table"], class_=True):
+        classes = " ".join(div.get("class", []))
+        if any(kw in classes.lower() for kw in ["pari", "bet-type", "simple", "couple", "tierce",
+                                                  "quarte", "quinte", "multi", "2sur4"]):
+            bet_type = classes
+            for sub in div.find_all(["tr", "li", "div"]):
+                text = sub.get_text(strip=True)
+                if text and re.search(r'\d', text) and 3 < len(text) < 500:
+                    records.append({
+                        "date": date_str,
+                        "source": "zeturf",
+                        "type": "cote_par_pari",
+                        "bet_type_class": bet_type,
+                        "contenu": text,
+                        "scraped_at": datetime.utcnow().isoformat(),
+                    })
+
     # Sauvegarder cache
     with open(cache_file, "w", encoding="utf-8") as f:
         json.dump(records, f, ensure_ascii=False, indent=2)
@@ -258,6 +370,128 @@ def scrape_course_detail(session, course_url, date_str):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
                 partant[key] = cell
             partants.append(partant)
+
+    # --- Commentaires de course dans la page detail ---
+    for div in soup.find_all(["div", "p", "article", "section"], class_=True):
+        classes = " ".join(div.get("class", []))
+        text = div.get_text(strip=True)
+        if any(kw in classes.lower() for kw in ["comment", "analyse", "avis", "recap",
+                                                  "rapport", "resume", "editorial", "verdict"]):
+            if text and 20 < len(text) < 3000:
+                partants.append({
+                    "date": date_str,
+                    "source": "zeturf",
+                    "type": "commentaire_detail",
+                    "nom_prix": nom_prix,
+                    "contenu": text[:2500],
+                    "url_course": course_url,
+                    "scraped_at": datetime.utcnow().isoformat(),
+                })
+
+    # --- Historique forme du cheval (dernieres courses) ---
+    for div in soup.find_all(["div", "section", "table"], class_=True):
+        classes = " ".join(div.get("class", []))
+        if any(kw in classes.lower() for kw in ["form", "historique", "dernieres", "palmares",
+                                                  "previous", "last-runs", "perf"]):
+            # Extract from sub-table if present
+            sub_table = div.find("table")
+            if sub_table:
+                rows = sub_table.find_all("tr")
+                sub_headers = []
+                if rows:
+                    sub_headers = [th.get_text(strip=True).lower().replace(" ", "_")
+                                   for th in rows[0].find_all(["th", "td"])]
+                for row in rows[1:]:
+                    cells = [td.get_text(strip=True) for td in row.find_all(["td", "th"])]
+                    if cells and len(cells) >= 2:
+                        entry = {
+                            "date": date_str,
+                            "source": "zeturf",
+                            "type": "historique_forme",
+                            "nom_prix": nom_prix,
+                            "url_course": course_url,
+                            "scraped_at": datetime.utcnow().isoformat(),
+                        }
+                        for j, cell in enumerate(cells):
+                            key = sub_headers[j] if j < len(sub_headers) and sub_headers[j] else f"col_{j}"
+                            entry[key] = cell
+                        partants.append(entry)
+            else:
+                # Extract as text block
+                text = div.get_text(strip=True)
+                if text and 10 < len(text) < 2000:
+                    partants.append({
+                        "date": date_str,
+                        "source": "zeturf",
+                        "type": "historique_forme_text",
+                        "nom_prix": nom_prix,
+                        "contenu": text[:1500],
+                        "url_course": course_url,
+                        "scraped_at": datetime.utcnow().isoformat(),
+                    })
+
+    # --- JSON embarque dans la page detail ---
+    for script in soup.find_all("script"):
+        script_text = script.string or ""
+        for m in re.finditer(r'JSON\.parse\s*\(\s*[\'"](.+?)[\'"]\s*\)', script_text, re.DOTALL):
+            try:
+                raw = m.group(1).encode().decode('unicode_escape')
+                data = json.loads(raw)
+                partants.append({
+                    "date": date_str,
+                    "source": "zeturf",
+                    "type": "detail_embedded_json",
+                    "nom_prix": nom_prix,
+                    "data": data,
+                    "scraped_at": datetime.utcnow().isoformat(),
+                })
+            except (json.JSONDecodeError, UnicodeDecodeError):
+                pass
+        for m in re.finditer(r'window\[?[\'"]?(__\w+|raceData|courseData|partants|runners)[\'"]?\]?\s*=\s*(\{.+?\}|\[.+?\]);',
+                             script_text, re.DOTALL):
+            try:
+                data = json.loads(m.group(2))
+                partants.append({
+                    "date": date_str,
+                    "source": "zeturf",
+                    "type": "detail_window_data",
+                    "var_name": m.group(1),
+                    "nom_prix": nom_prix,
+                    "data": data,
+                    "scraped_at": datetime.utcnow().isoformat(),
+                })
+            except json.JSONDecodeError:
+                pass
+
+    for script in soup.find_all("script", {"type": "application/json"}):
+        try:
+            data = json.loads(script.string or "")
+            partants.append({
+                "date": date_str,
+                "source": "zeturf",
+                "type": "detail_script_json",
+                "data_id": script.get("id", ""),
+                "nom_prix": nom_prix,
+                "data": data,
+                "scraped_at": datetime.utcnow().isoformat(),
+            })
+        except json.JSONDecodeError:
+            pass
+
+    # --- Video/photo metadata ---
+    for el in soup.find_all(["video", "source", "iframe", "img"]):
+        src = el.get("src") or el.get("data-src") or el.get("data-video-url") or ""
+        if src and any(kw in src.lower() for kw in ["replay", "video", "course", "stream", "mp4", "m3u8"]):
+            partants.append({
+                "date": date_str,
+                "source": "zeturf",
+                "type": "video_metadata",
+                "nom_prix": nom_prix,
+                "media_url": src,
+                "media_tag": el.name,
+                "poster": el.get("poster", ""),
+                "scraped_at": datetime.utcnow().isoformat(),
+            })
 
     with open(cache_file, "w", encoding="utf-8") as f:
         json.dump(partants, f, ensure_ascii=False, indent=2)

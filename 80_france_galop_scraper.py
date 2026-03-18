@@ -342,6 +342,112 @@ def scrape_resultats_jour(session, date_str):
             if record.get("nom_prix") or record.get("hippodrome"):
                 records.append(record)
 
+    # --- Extraire les commentaires officiels ---
+    for div in soup.find_all(["div", "p", "article", "section", "span"], class_=True):
+        classes = " ".join(div.get("class", []))
+        text = div.get_text(strip=True)
+        if any(kw in classes.lower() for kw in ["commentaire", "comment", "analyse", "rapport",
+                                                  "resume", "observation", "avis-officiel",
+                                                  "compte-rendu", "chronique"]):
+            if text and 20 < len(text) < 5000:
+                records.append({
+                    "source": "france_galop",
+                    "date": date_str,
+                    "type": "commentaire_officiel",
+                    "contenu": text[:4000],
+                    "scraped_at": datetime.utcnow().isoformat(),
+                })
+
+    # --- Extraire les JSON embarques ---
+    for script in soup.find_all("script"):
+        script_text = script.string or ""
+        for m in re.finditer(r'JSON\.parse\s*\(\s*[\'"](.+?)[\'"]\s*\)', script_text, re.DOTALL):
+            try:
+                raw = m.group(1).encode().decode('unicode_escape')
+                data = json.loads(raw)
+                records.append({
+                    "source": "france_galop",
+                    "date": date_str,
+                    "type": "embedded_json_parse",
+                    "data": data,
+                    "scraped_at": datetime.utcnow().isoformat(),
+                })
+            except (json.JSONDecodeError, UnicodeDecodeError):
+                pass
+        for m in re.finditer(r'window\[?[\'"]?(__\w+|raceData|resultData|courseData)[\'"]?\]?\s*=\s*(\{.+?\}|\[.+?\]);',
+                             script_text, re.DOTALL):
+            try:
+                data = json.loads(m.group(2))
+                records.append({
+                    "source": "france_galop",
+                    "date": date_str,
+                    "type": "embedded_window_data",
+                    "var_name": m.group(1),
+                    "data": data,
+                    "scraped_at": datetime.utcnow().isoformat(),
+                })
+            except json.JSONDecodeError:
+                pass
+
+    for script in soup.find_all("script", {"type": re.compile(r'application/(ld\+)?json')}):
+        try:
+            data = json.loads(script.string or "")
+            records.append({
+                "source": "france_galop",
+                "date": date_str,
+                "type": "script_application_json",
+                "data_id": script.get("id", ""),
+                "data": data,
+                "scraped_at": datetime.utcnow().isoformat(),
+            })
+        except json.JSONDecodeError:
+            pass
+
+    # --- Extraire les liens vers PDF resultats ---
+    for link in soup.find_all("a", href=True):
+        href = link["href"]
+        if href.lower().endswith(".pdf") or "pdf" in href.lower():
+            records.append({
+                "source": "france_galop",
+                "date": date_str,
+                "type": "pdf_resultat_link",
+                "pdf_url": href if href.startswith("http") else f"{BASE_URL}{href}",
+                "text": link.get_text(strip=True),
+                "scraped_at": datetime.utcnow().isoformat(),
+            })
+
+    # --- Extraire les data-attributes pertinents ---
+    for el in soup.find_all(attrs=lambda attrs: attrs and any(
+            k.startswith("data-") and any(kw in k for kw in
+            ["course", "race", "cheval", "horse", "hippo", "resultat", "classement"])
+            for k in attrs)):
+        data_attrs = {k: v for k, v in el.attrs.items() if k.startswith("data-")}
+        if data_attrs:
+            records.append({
+                "source": "france_galop",
+                "date": date_str,
+                "type": "data_attributes",
+                "tag": el.name,
+                "text": el.get_text(strip=True)[:200],
+                "attributes": data_attrs,
+                "scraped_at": datetime.utcnow().isoformat(),
+            })
+
+    # --- Video/photo metadata ---
+    for el in soup.find_all(["video", "source", "iframe", "img", "a"]):
+        src = el.get("src") or el.get("data-src") or el.get("href", "")
+        if src and any(kw in src.lower() for kw in ["replay", "video", "photo-arrivee",
+                                                      "stream", "mp4", "m3u8", "finish-photo"]):
+            records.append({
+                "source": "france_galop",
+                "date": date_str,
+                "type": "media_metadata",
+                "media_url": src if src.startswith("http") else f"{BASE_URL}{src}",
+                "media_tag": el.name,
+                "text": el.get_text(strip=True)[:100],
+                "scraped_at": datetime.utcnow().isoformat(),
+            })
+
     with open(cache_file, "w", encoding="utf-8") as f:
         json.dump(records, f, ensure_ascii=False, indent=2)
 
@@ -452,6 +558,178 @@ def scrape_course_detail(session, course_url, date_str):
                     break
 
             records.append(partant)
+
+    # --- Commentaires officiels du detail de course ---
+    for div in soup.find_all(["div", "p", "article", "section"], class_=True):
+        classes = " ".join(div.get("class", []))
+        text = div.get_text(strip=True)
+        if any(kw in classes.lower() for kw in ["commentaire", "comment", "analyse", "rapport",
+                                                  "observation", "verdict", "compte-rendu",
+                                                  "race-comment", "steward"]):
+            if text and 20 < len(text) < 5000:
+                records.append({
+                    "source": "france_galop",
+                    "date": date_str,
+                    "type": "commentaire_course_detail",
+                    "nom_prix": course_info.get("nom_prix", ""),
+                    "contenu": text[:4000],
+                    "url": course_url,
+                    "scraped_at": datetime.utcnow().isoformat(),
+                })
+
+    # --- Stats par hippodrome/terrain/distance dans la page detail ---
+    for div in soup.find_all(["div", "section", "table"], class_=True):
+        classes = " ".join(div.get("class", []))
+        if any(kw in classes.lower() for kw in ["statistique", "stats", "bilan", "record",
+                                                  "historique", "palmares", "track-record"]):
+            if div.name == "table":
+                rows = div.find_all("tr")
+                stat_headers = []
+                if rows:
+                    stat_headers = [th.get_text(strip=True).lower().replace(" ", "_")
+                                    for th in rows[0].find_all(["th", "td"])]
+                for row in rows[1:]:
+                    cells = [td.get_text(strip=True) for td in row.find_all(["td", "th"])]
+                    if cells and len(cells) >= 2:
+                        entry = {
+                            "source": "france_galop",
+                            "date": date_str,
+                            "type": "stats_detail_table",
+                            "nom_prix": course_info.get("nom_prix", ""),
+                            "url": course_url,
+                            "scraped_at": datetime.utcnow().isoformat(),
+                        }
+                        for j, cell in enumerate(cells):
+                            key = stat_headers[j] if j < len(stat_headers) and stat_headers[j] else f"col_{j}"
+                            entry[key] = cell
+                        records.append(entry)
+            else:
+                text = div.get_text(strip=True)
+                if text and 10 < len(text) < 3000:
+                    records.append({
+                        "source": "france_galop",
+                        "date": date_str,
+                        "type": "stats_detail_text",
+                        "nom_prix": course_info.get("nom_prix", ""),
+                        "contenu": text[:2500],
+                        "url": course_url,
+                        "scraped_at": datetime.utcnow().isoformat(),
+                    })
+
+    # --- Historique complet cheval (depuis la page course) ---
+    for div in soup.find_all(["div", "section", "table"], class_=True):
+        classes = " ".join(div.get("class", []))
+        if any(kw in classes.lower() for kw in ["form", "historique", "dernieres-courses",
+                                                  "palmares", "previous", "carriere", "perf"]):
+            if div.name == "table":
+                rows = div.find_all("tr")
+                form_headers = []
+                if rows:
+                    form_headers = [th.get_text(strip=True).lower().replace(" ", "_")
+                                    for th in rows[0].find_all(["th", "td"])]
+                for row in rows[1:]:
+                    cells = [td.get_text(strip=True) for td in row.find_all(["td", "th"])]
+                    if cells and len(cells) >= 2:
+                        entry = {
+                            "source": "france_galop",
+                            "date": date_str,
+                            "type": "historique_forme",
+                            "nom_prix": course_info.get("nom_prix", ""),
+                            "url": course_url,
+                            "scraped_at": datetime.utcnow().isoformat(),
+                        }
+                        for j, cell in enumerate(cells):
+                            key = form_headers[j] if j < len(form_headers) and form_headers[j] else f"col_{j}"
+                            entry[key] = cell
+                        records.append(entry)
+            else:
+                text = div.get_text(strip=True)
+                if text and 10 < len(text) < 3000:
+                    records.append({
+                        "source": "france_galop",
+                        "date": date_str,
+                        "type": "historique_forme_text",
+                        "nom_prix": course_info.get("nom_prix", ""),
+                        "contenu": text[:2500],
+                        "url": course_url,
+                        "scraped_at": datetime.utcnow().isoformat(),
+                    })
+
+    # --- JSON embarque dans la page detail ---
+    for script in soup.find_all("script"):
+        script_text = script.string or ""
+        for m in re.finditer(r'JSON\.parse\s*\(\s*[\'"](.+?)[\'"]\s*\)', script_text, re.DOTALL):
+            try:
+                raw = m.group(1).encode().decode('unicode_escape')
+                data = json.loads(raw)
+                records.append({
+                    "source": "france_galop",
+                    "date": date_str,
+                    "type": "detail_embedded_json",
+                    "nom_prix": course_info.get("nom_prix", ""),
+                    "data": data,
+                    "scraped_at": datetime.utcnow().isoformat(),
+                })
+            except (json.JSONDecodeError, UnicodeDecodeError):
+                pass
+        for m in re.finditer(r'window\[?[\'"]?(__\w+|courseDetail|partantsData|arriveeData)[\'"]?\]?\s*=\s*(\{.+?\}|\[.+?\]);',
+                             script_text, re.DOTALL):
+            try:
+                data = json.loads(m.group(2))
+                records.append({
+                    "source": "france_galop",
+                    "date": date_str,
+                    "type": "detail_window_data",
+                    "var_name": m.group(1),
+                    "nom_prix": course_info.get("nom_prix", ""),
+                    "data": data,
+                    "scraped_at": datetime.utcnow().isoformat(),
+                })
+            except json.JSONDecodeError:
+                pass
+
+    for script in soup.find_all("script", {"type": re.compile(r'application/(ld\+)?json')}):
+        try:
+            data = json.loads(script.string or "")
+            records.append({
+                "source": "france_galop",
+                "date": date_str,
+                "type": "detail_script_json",
+                "nom_prix": course_info.get("nom_prix", ""),
+                "data": data,
+                "scraped_at": datetime.utcnow().isoformat(),
+            })
+        except json.JSONDecodeError:
+            pass
+
+    # --- PDF links dans la page detail ---
+    for link in soup.find_all("a", href=True):
+        href = link["href"]
+        if href.lower().endswith(".pdf") or "pdf" in href.lower():
+            records.append({
+                "source": "france_galop",
+                "date": date_str,
+                "type": "detail_pdf_link",
+                "nom_prix": course_info.get("nom_prix", ""),
+                "pdf_url": href if href.startswith("http") else f"{BASE_URL}{href}",
+                "text": link.get_text(strip=True),
+                "scraped_at": datetime.utcnow().isoformat(),
+            })
+
+    # --- Video/photo arrivee ---
+    for el in soup.find_all(["video", "source", "iframe", "img", "a"]):
+        src = el.get("src") or el.get("data-src") or el.get("href", "")
+        if src and any(kw in src.lower() for kw in ["replay", "video", "photo", "arrivee",
+                                                      "stream", "mp4", "m3u8", "finish"]):
+            records.append({
+                "source": "france_galop",
+                "date": date_str,
+                "type": "detail_media",
+                "nom_prix": course_info.get("nom_prix", ""),
+                "media_url": src if src.startswith("http") else f"{BASE_URL}{src}",
+                "media_tag": el.name,
+                "scraped_at": datetime.utcnow().isoformat(),
+            })
 
     with open(cache_file, "w", encoding="utf-8") as f:
         json.dump(records, f, ensure_ascii=False, indent=2)
@@ -612,10 +890,189 @@ def scrape_fiche_cheval(session, horse_url):
                 pass
             break
 
+    # --- Historique complet des courses (last 10+) ---
+    form_history = []
+    for table in soup.find_all("table"):
+        table_text = table.get_text().lower()
+        if any(kw in table_text for kw in ["date", "course", "hippodrome", "place", "distance"]):
+            rows = table.find_all("tr")
+            headers = []
+            if rows:
+                headers = [th.get_text(strip=True).lower().replace(" ", "_")
+                           for th in rows[0].find_all(["th", "td"])]
+            if len(headers) < 3:
+                continue
+            for row in rows[1:]:
+                cells = [td.get_text(strip=True) for td in row.find_all(["td", "th"])]
+                if cells and len(cells) >= 3:
+                    entry = {}
+                    for j, cell in enumerate(cells):
+                        key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
+                        entry[key] = cell
+                    form_history.append(entry)
+    if form_history:
+        fiche["historique_courses"] = form_history
+        fiche["nb_courses_historique"] = len(form_history)
+
+    # --- Stats par terrain/distance/hippodrome ---
+    stats_sections = {}
+    for div in soup.find_all(["div", "section", "table"], class_=True):
+        classes = " ".join(div.get("class", []))
+        if any(kw in classes.lower() for kw in ["stats", "statistique", "bilan", "record",
+                                                  "par-terrain", "par-distance", "par-hippodrome"]):
+            section_name = classes
+            if div.name == "table":
+                rows = div.find_all("tr")
+                stat_headers = []
+                if rows:
+                    stat_headers = [th.get_text(strip=True).lower().replace(" ", "_")
+                                    for th in rows[0].find_all(["th", "td"])]
+                entries = []
+                for row in rows[1:]:
+                    cells = [td.get_text(strip=True) for td in row.find_all(["td", "th"])]
+                    if cells and len(cells) >= 2:
+                        entry = {}
+                        for j, cell in enumerate(cells):
+                            key = stat_headers[j] if j < len(stat_headers) and stat_headers[j] else f"col_{j}"
+                            entry[key] = cell
+                        entries.append(entry)
+                if entries:
+                    stats_sections[section_name] = entries
+            else:
+                text = div.get_text(strip=True)
+                if text and 10 < len(text) < 3000:
+                    stats_sections[section_name] = text[:2500]
+    if stats_sections:
+        fiche["stats_par_categorie"] = stats_sections
+
+    # --- JSON embarque dans la fiche cheval ---
+    for script in soup.find_all("script"):
+        script_text = script.string or ""
+        for m in re.finditer(r'window\[?[\'"]?(__\w+|horseData|ficheData|performanceData)[\'"]?\]?\s*=\s*(\{.+?\}|\[.+?\]);',
+                             script_text, re.DOTALL):
+            try:
+                data = json.loads(m.group(2))
+                fiche[f"embedded_{m.group(1)}"] = data
+            except json.JSONDecodeError:
+                pass
+        for m in re.finditer(r'JSON\.parse\s*\(\s*[\'"](.+?)[\'"]\s*\)', script_text, re.DOTALL):
+            try:
+                raw = m.group(1).encode().decode('unicode_escape')
+                data = json.loads(raw)
+                if "embedded_json_data" not in fiche:
+                    fiche["embedded_json_data"] = []
+                fiche["embedded_json_data"].append(data)
+            except (json.JSONDecodeError, UnicodeDecodeError):
+                pass
+
+    for script in soup.find_all("script", {"type": re.compile(r'application/(ld\+)?json')}):
+        try:
+            data = json.loads(script.string or "")
+            fiche["structured_data"] = data
+        except json.JSONDecodeError:
+            pass
+
+    # --- Data attributes sur la fiche ---
+    data_attrs_all = {}
+    for el in soup.find_all(attrs=lambda attrs: attrs and any(
+            k.startswith("data-") and any(kw in k for kw in
+            ["cheval", "horse", "pere", "mere", "gain", "perf", "race"])
+            for k in attrs)):
+        for k, v in el.attrs.items():
+            if k.startswith("data-"):
+                data_attrs_all[k] = v
+    if data_attrs_all:
+        fiche["data_attributes"] = data_attrs_all
+
+    # --- Photo du cheval ---
+    for img in soup.find_all("img"):
+        src = img.get("src") or img.get("data-src") or ""
+        alt = img.get("alt", "").lower()
+        if any(kw in src.lower() or kw in alt for kw in ["cheval", "horse", "photo", "profil"]):
+            fiche["photo_url"] = src if src.startswith("http") else f"{BASE_URL}{src}"
+            break
+
     with open(cache_file, "w", encoding="utf-8") as f:
         json.dump(fiche, f, ensure_ascii=False, indent=2)
 
     return fiche
+
+
+def scrape_stats_hippodrome(session, hippodrome_name):
+    """Scraper les statistiques par hippodrome."""
+    cache_file = os.path.join(CACHE_DIR, f"hippo_{hippodrome_name}.json")
+    if os.path.exists(cache_file):
+        with open(cache_file, "r", encoding="utf-8") as f:
+            return json.load(f)
+
+    urls_to_try = [
+        f"{BASE_URL}/fr/hippodromes/{hippodrome_name}",
+        f"{BASE_URL}/fr/courses/hippodrome/{hippodrome_name}",
+        f"{BASE_URL}/hippodromes/{hippodrome_name}",
+    ]
+
+    soup = None
+    for url in urls_to_try:
+        resp = fetch_with_retry(session, url)
+        if resp:
+            soup = BeautifulSoup(resp.text, "html.parser")
+            break
+        smart_pause(1.0, 0.5)
+
+    if not soup:
+        return []
+
+    records = []
+
+    # Info hippodrome
+    info = {
+        "source": "france_galop",
+        "type": "hippodrome_info",
+        "hippodrome": hippodrome_name,
+        "scraped_at": datetime.utcnow().isoformat(),
+    }
+
+    h1 = soup.find("h1")
+    if h1:
+        info["titre"] = h1.get_text(strip=True)
+
+    for dt in soup.find_all(["dt", "th", "label", "strong"]):
+        dd = dt.find_next_sibling(["dd", "td", "span", "div"])
+        if dd:
+            key = dt.get_text(strip=True).lower().replace(" ", "_").replace(":", "")
+            val = dd.get_text(strip=True)
+            if key and val and len(key) < 50:
+                info[key] = val
+
+    records.append(info)
+
+    # Stats tables (distances, records, etc.)
+    for table in soup.find_all("table"):
+        rows = table.find_all("tr")
+        headers = []
+        if rows:
+            headers = [th.get_text(strip=True).lower().replace(" ", "_")
+                       for th in rows[0].find_all(["th", "td"])]
+        if len(headers) < 2:
+            continue
+        for row in rows[1:]:
+            cells = [td.get_text(strip=True) for td in row.find_all(["td", "th"])]
+            if cells and len(cells) >= 2:
+                record = {
+                    "source": "france_galop",
+                    "type": "hippodrome_stats",
+                    "hippodrome": hippodrome_name,
+                    "scraped_at": datetime.utcnow().isoformat(),
+                }
+                for j, cell in enumerate(cells):
+                    key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
+                    record[key] = cell
+                records.append(record)
+
+    with open(cache_file, "w", encoding="utf-8") as f:
+        json.dump(records, f, ensure_ascii=False, indent=2)
+
+    return records
 
 
 def main():
@@ -726,6 +1183,19 @@ def main():
                         total_records += 1
                     log.info(f"    -> {len(records)} entrees")
                 smart_pause(2.0, 1.0)
+
+    # --- Phase 3: Stats par hippodrome ---
+    if args.mode in ("all",):
+        log.info("--- Phase 3: Statistiques par hippodrome ---")
+        for hippo in HIPPODROMES_FR[:15]:  # Top 15 hippodromes
+            log.info(f"  Hippodrome: {hippo}")
+            hippo_records = scrape_stats_hippodrome(session, hippo)
+            if hippo_records:
+                for rec in hippo_records:
+                    append_jsonl(output_file, rec)
+                    total_records += 1
+                log.info(f"    -> {len(hippo_records)} entrees")
+            smart_pause(2.0, 1.0)
 
     save_checkpoint({
         "last_date": end_date.strftime("%Y-%m-%d"),

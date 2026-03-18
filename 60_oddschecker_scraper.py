@@ -360,6 +360,176 @@ def scrape_race_odds(session, race_url, date_str):
             "scraped_at": datetime.utcnow().isoformat(),
         })
 
+    # --- Historical odds movements timeline ---
+    for div in soup.find_all(["div", "section", "table"], class_=True):
+        classes = " ".join(div.get("class", []))
+        if any(kw in classes.lower() for kw in ["odds-history", "price-history", "movement",
+                                                  "timeline", "odds-graph", "chart-data"]):
+            if div.name == "table":
+                rows = div.find_all("tr")
+                hist_headers = []
+                if rows:
+                    hist_headers = [th.get_text(strip=True).lower().replace(" ", "_")
+                                    for th in rows[0].find_all(["th", "td"])]
+                for row in rows[1:]:
+                    cells = [td.get_text(strip=True) for td in row.find_all(["td", "th"])]
+                    if cells and len(cells) >= 2:
+                        entry = {
+                            "date": date_str,
+                            "source": "oddschecker",
+                            "type": "odds_history_entry",
+                            "race_name": race_name,
+                            "url": race_url,
+                            "scraped_at": datetime.utcnow().isoformat(),
+                        }
+                        for j, cell in enumerate(cells):
+                            key = hist_headers[j] if j < len(hist_headers) and hist_headers[j] else f"col_{j}"
+                            entry[key] = cell
+                        records.append(entry)
+            else:
+                text = div.get_text(strip=True)
+                if text and 10 < len(text) < 3000:
+                    records.append({
+                        "date": date_str,
+                        "source": "oddschecker",
+                        "type": "odds_history_text",
+                        "race_name": race_name,
+                        "content": text[:2500],
+                        "url": race_url,
+                        "scraped_at": datetime.utcnow().isoformat(),
+                    })
+
+    # --- Market percentage / overround calculation ---
+    all_best_decimals = []
+    for rec in records:
+        if rec.get("type") == "odds_comparison" and rec.get("best_odds"):
+            best_dec = rec["best_odds"].get("decimal")
+            if best_dec and best_dec > 1.0:
+                all_best_decimals.append(best_dec)
+    if all_best_decimals:
+        implied_probs = [1.0 / d for d in all_best_decimals]
+        market_pct = sum(implied_probs) * 100
+        records.append({
+            "date": date_str,
+            "source": "oddschecker",
+            "type": "market_percentage",
+            "race_name": race_name,
+            "market_percentage": round(market_pct, 2),
+            "overround": round(market_pct - 100, 2),
+            "num_runners_priced": len(all_best_decimals),
+            "url": race_url,
+            "scraped_at": datetime.utcnow().isoformat(),
+        })
+
+    # --- Extract ALL data-* attributes from odds cells comprehensively ---
+    for el in soup.find_all(attrs=lambda attrs: attrs and any(
+            k.startswith("data-") and any(kw in k for kw in
+            ["odds", "odig", "bk", "runner", "horse", "sel", "market", "price",
+             "best", "movement", "history", "prev", "open"])
+            for k in attrs)):
+        data_attrs = {k: v for k, v in el.attrs.items() if k.startswith("data-")}
+        if data_attrs:
+            parent_row = el.find_parent("tr")
+            horse = ""
+            if parent_row:
+                name_el = parent_row.find(["td", "a", "span"], class_=lambda c: c and
+                                          any(k in " ".join(c).lower() for k in ["name", "runner", "sel"]))
+                if name_el:
+                    horse = name_el.get_text(strip=True)
+            records.append({
+                "date": date_str,
+                "source": "oddschecker",
+                "type": "comprehensive_data_attrs",
+                "race_name": race_name,
+                "horse_name": horse,
+                "tag": el.name,
+                "text": el.get_text(strip=True)[:200],
+                "attributes": data_attrs,
+                "scraped_at": datetime.utcnow().isoformat(),
+            })
+
+    # --- Embedded JSON data from scripts ---
+    for script in soup.find_all("script"):
+        script_text = script.string or ""
+        # window.__DATA, oddsData, marketData
+        for m in re.finditer(r'window\[?[\'"]?(__\w+|__NEXT_DATA__|oddsData|marketData|raceData|graphData)[\'"]?\]?\s*=\s*(\{.+?\}|\[.+?\]);',
+                             script_text, re.DOTALL):
+            try:
+                data = json.loads(m.group(2))
+                records.append({
+                    "date": date_str,
+                    "source": "oddschecker",
+                    "type": "embedded_window_data",
+                    "race_name": race_name,
+                    "var_name": m.group(1),
+                    "data": data,
+                    "scraped_at": datetime.utcnow().isoformat(),
+                })
+            except json.JSONDecodeError:
+                pass
+        # JSON.parse patterns
+        for m in re.finditer(r'JSON\.parse\s*\(\s*[\'"](.+?)[\'"]\s*\)', script_text, re.DOTALL):
+            try:
+                raw = m.group(1).encode().decode('unicode_escape')
+                data = json.loads(raw)
+                records.append({
+                    "date": date_str,
+                    "source": "oddschecker",
+                    "type": "embedded_json_parse",
+                    "race_name": race_name,
+                    "data": data,
+                    "scraped_at": datetime.utcnow().isoformat(),
+                })
+            except (json.JSONDecodeError, UnicodeDecodeError):
+                pass
+
+    for script in soup.find_all("script", {"type": re.compile(r'application/(ld\+)?json')}):
+        try:
+            data = json.loads(script.string or "")
+            records.append({
+                "date": date_str,
+                "source": "oddschecker",
+                "type": "script_application_json",
+                "race_name": race_name,
+                "data_id": script.get("id", ""),
+                "data": data,
+                "scraped_at": datetime.utcnow().isoformat(),
+            })
+        except json.JSONDecodeError:
+            pass
+
+    # --- Extract tips/predictions sections ---
+    for div in soup.find_all(["div", "section", "article"], class_=True):
+        classes = " ".join(div.get("class", []))
+        if any(kw in classes.lower() for kw in ["tip", "prediction", "verdict", "nap",
+                                                  "best-bet", "each-way"]):
+            text = div.get_text(strip=True)
+            if text and 10 < len(text) < 2000:
+                records.append({
+                    "date": date_str,
+                    "source": "oddschecker",
+                    "type": "tip_prediction",
+                    "race_name": race_name,
+                    "content": text[:1500],
+                    "scraped_at": datetime.utcnow().isoformat(),
+                })
+
+    # --- Extract betting offers / promotions metadata ---
+    for div in soup.find_all(["div", "section", "a"], class_=True):
+        classes = " ".join(div.get("class", []))
+        if any(kw in classes.lower() for kw in ["offer", "promo", "bonus", "free-bet",
+                                                  "enhanced-odds", "boost"]):
+            text = div.get_text(strip=True)
+            if text and 5 < len(text) < 500:
+                records.append({
+                    "date": date_str,
+                    "source": "oddschecker",
+                    "type": "betting_offer",
+                    "race_name": race_name,
+                    "content": text[:400],
+                    "scraped_at": datetime.utcnow().isoformat(),
+                })
+
     with open(cache_file, "w", encoding="utf-8") as f:
         json.dump(records, f, ensure_ascii=False, indent=2)
 
