@@ -60,7 +60,7 @@ def load_courses():
     """Load the master list of 257,806 courses."""
     print("[1/7] Loading master courses list...")
     path = os.path.join("output", "02_liste_courses", "courses_normalisees.json")
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         courses = json.load(f)
     print(f"  -> {len(courses)} courses loaded")
     return courses
@@ -70,7 +70,7 @@ def load_meteo_france():
     """Load Météo France data — keyed by (hippodrome_normalized, date)."""
     print("[2/7] Loading Météo France data...")
     path = os.path.join("output", "35_meteo_france", "meteo_france_hippodromes.json")
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         data = json.load(f)
 
     meteo_france = {}
@@ -104,7 +104,7 @@ def load_reunions_enrichies():
     """Load reunions enrichies — keyed by alt_key (date_R_C) with mapping to course_uid."""
     print("[3/7] Loading reunions enrichies (PMU official weather)...")
     path = os.path.join("output", "39_reunions_enrichies", "reunions_enrichies.json")
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         data = json.load(f)
 
     # Build alt_key -> meteo mapping
@@ -132,7 +132,7 @@ def load_meteo_historique():
     """Load existing meteo_historique.json — keyed by course_uid (hex hash)."""
     print("[4/7] Loading meteo_historique.json...")
     path = os.path.join("output", "13_meteo_historique", "meteo_historique.json")
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         data = json.load(f)
 
     meteo_hist = {}
@@ -188,7 +188,7 @@ def load_open_meteo_cache():
         hippo = normalize_hippo(hippo)
 
         try:
-            with open(fpath) as f:
+            with open(fpath, encoding="utf-8") as f:
                 data = json.load(f)
         except Exception:
             errors += 1
@@ -431,7 +431,7 @@ def merge_all():
     # Save JSON
     print("\nSaving JSON...")
     json_path = os.path.join(OUTPUT_DIR, "meteo_complete.json")
-    with open(json_path, "w") as f:
+    with open(json_path, "w", encoding="utf-8") as f:
         json.dump(results, f, ensure_ascii=False, indent=None)
     print(f"  -> {json_path} ({os.path.getsize(json_path) / 1e6:.1f} MB)")
 

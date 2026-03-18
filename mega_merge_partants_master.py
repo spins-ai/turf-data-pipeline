@@ -75,12 +75,25 @@ def load_json_index(path, key_field, description, keep_fields=None):
                         index[key] = {k: r[k] for k in keep_fields if k in r}
                     else:
                         index[key] = r
-    elif size > 500 * 1024 * 1024:
+    elif size > 2000 * 1024 * 1024:
         log.warning(f"  [TROP GROS] {path} ({size // 1024 // 1024} MB) — skip")
         return index
     else:
         try:
             with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            if isinstance(data, list):
+                for r in data:
+                    key = r.get(key_field, "")
+                    if key:
+                        if keep_fields:
+                            index[key] = {k: r[k] for k in keep_fields if k in r}
+                        else:
+                            index[key] = r
+            del data
+        except UnicodeDecodeError:
+            log.warning(f"  Retry avec encoding latin-1...")
+            with open(path, "r", encoding="latin-1") as f:
                 data = json.load(f)
             if isinstance(data, list):
                 for r in data:
@@ -108,6 +121,16 @@ def load_horse_index(path, description):
     log.info(f"  Chargement {description}: {path}")
     try:
         with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        if isinstance(data, list):
+            for r in data:
+                nom = (r.get("nom_cheval") or r.get("nom") or "").upper().strip()
+                if nom:
+                    index[nom] = r
+        del data
+    except UnicodeDecodeError:
+        log.warning(f"  Retry avec encoding latin-1...")
+        with open(path, "r", encoding="latin-1") as f:
             data = json.load(f)
         if isinstance(data, list):
             for r in data:
