@@ -107,8 +107,10 @@ def load_json_or_jsonl(path: str, logger: logging.Logger) -> list:
 # BUILDER
 # ===========================================================================
 
-def build_equipement_features(partants: list, logger: logging.Logger) -> list:
+def build_equipement_features(partants: list, logger: logging.Logger = None) -> list:
     """Build 16 equipment features with point-in-time safety."""
+    if logger is None:
+        logger = logging.getLogger(__name__)
 
     # Sort chronologically
     sorted_p = sorted(

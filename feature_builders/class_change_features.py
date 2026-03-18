@@ -97,8 +97,10 @@ def load_json_or_jsonl(path: str, logger: logging.Logger) -> list:
 # BUILDER
 # ===========================================================================
 
-def build_class_change_features(partants: list, courses: list, logger: logging.Logger) -> list:
+def build_class_change_features(partants: list, courses: list, logger: logging.Logger = None) -> list:
     """Build 11 class-change and context-transition features."""
+    if logger is None:
+        logger = logging.getLogger(__name__)
 
     # Build course lookup for allocation and surface
     course_lookup: dict[str, dict] = {}

@@ -110,8 +110,10 @@ def load_json_or_jsonl(path: str, logger: logging.Logger) -> list:
 # BUILDER
 # ===========================================================================
 
-def build_combo_features(partants: list, logger: logging.Logger) -> list:
+def build_combo_features(partants: list, logger: logging.Logger = None) -> list:
     """Build 13 jockey-trainer-horse combination features."""
+    if logger is None:
+        logger = logging.getLogger(__name__)
 
     # Sort chronologically for temporal integrity
     sorted_p = sorted(

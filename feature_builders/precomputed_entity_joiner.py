@@ -106,8 +106,10 @@ def _load_json_index(path: str, key: str, logger: logging.Logger) -> dict:
 # BUILDER
 # ===========================================================================
 
-def build_precomputed_entity_features(partants: list, logger: logging.Logger) -> list:
+def build_precomputed_entity_features(partants: list, logger: logging.Logger = None) -> list:
     """Join 22 pre-computed per-entity features from scripts 05, 06, 08."""
+    if logger is None:
+        logger = logging.getLogger(__name__)
 
     # Load all entity files
     cheval_idx = _load_json_index(

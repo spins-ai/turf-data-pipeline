@@ -114,8 +114,10 @@ def load_json_or_jsonl(path: str, logger: logging.Logger) -> list:
 # BUILDER
 # ===========================================================================
 
-def build_profil_cheval_features(partants: list, logger: logging.Logger) -> list:
+def build_profil_cheval_features(partants: list, logger: logging.Logger = None) -> list:
     """Build 24 horse profile features."""
+    if logger is None:
+        logger = logging.getLogger(__name__)
 
     # Group by course for relative place_corde
     course_nb_partants: dict[str, int] = defaultdict(int)

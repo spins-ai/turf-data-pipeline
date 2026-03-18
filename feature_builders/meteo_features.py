@@ -95,8 +95,12 @@ def _load_meteo_index(meteo_path: str, logger: logging.Logger) -> dict:
 # BUILDER
 # ===========================================================================
 
-def build_meteo_features(partants: list, meteo_index: dict, logger: logging.Logger) -> list:
+def build_meteo_features(partants: list, meteo_index: dict = None, logger: logging.Logger = None) -> list:
     """Build 15 weather impact features."""
+    if logger is None:
+        logger = logging.getLogger(__name__)
+    if meteo_index is None:
+        meteo_index = {}
 
     enriched = 0
     results = []

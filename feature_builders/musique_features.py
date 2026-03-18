@@ -112,8 +112,10 @@ def load_json_or_jsonl(path: str, logger: logging.Logger) -> list:
 # BUILDER
 # ===========================================================================
 
-def build_musique_features(partants: list, logger: logging.Logger) -> list:
+def build_musique_features(partants: list, logger: logging.Logger = None) -> list:
     """Build 22 features from decoded musique string."""
+    if logger is None:
+        logger = logging.getLogger(__name__)
     results = []
     enriched = 0
 

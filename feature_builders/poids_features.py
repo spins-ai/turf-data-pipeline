@@ -83,8 +83,10 @@ def load_json_or_jsonl(path: str, logger: logging.Logger) -> list:
 # BUILDER
 # ===========================================================================
 
-def build_poids_features(partants: list, logger: logging.Logger) -> list:
+def build_poids_features(partants: list, logger: logging.Logger = None) -> list:
     """Build 15 weight/handicap features with point-in-time safety."""
+    if logger is None:
+        logger = logging.getLogger(__name__)
 
     # Sort chronologically
     sorted_p = sorted(

@@ -96,8 +96,10 @@ def _load_json_index(path: str, key: str, logger: logging.Logger) -> dict:
 # BUILDER
 # ===========================================================================
 
-def build_precomputed_partant_features(partants: list, logger: logging.Logger) -> list:
+def build_precomputed_partant_features(partants: list, logger: logging.Logger = None) -> list:
     """Join 14 pre-computed per-partant features from scripts 07, 09, 10, 11."""
+    if logger is None:
+        logger = logging.getLogger(__name__)
 
     # Load all 4 pre-computed files
     cotes_idx = _load_json_index(

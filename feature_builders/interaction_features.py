@@ -104,8 +104,10 @@ def load_json_or_jsonl(path: str, logger: logging.Logger) -> list:
 # BUILDER
 # ===========================================================================
 
-def build_interaction_features(partants: list, logger: logging.Logger) -> list:
+def build_interaction_features(partants: list, logger: logging.Logger = None) -> list:
     """Build 10 interaction features from merged feature matrix."""
+    if logger is None:
+        logger = logging.getLogger(__name__)
 
     enriched = 0
     results = []
