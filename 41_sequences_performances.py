@@ -127,8 +127,8 @@ def compute_sequences(partants):
                 "nb_courses_historique": len(history),
             }
 
+            enriched += 1
             if len(history) >= 1:
-                enriched += 1
 
                 # Séquences brutes (dernières N courses)
                 recent = history[-MAX_SEQ_LEN:]
@@ -243,10 +243,34 @@ def compute_sequences(partants):
                 result["nb_places_recent_5"] = sum(1 for h in recent[-5:] if h.get("place") or h.get("gagnant"))
 
             else:
-                # Pas d'historique
+                # Pas d'historique — valeurs par défaut
                 result["seq_positions"] = []
                 result["seq_cotes"] = []
                 result["seq_distances"] = []
+                result["trend_position_5"] = None
+                result["trend_cote_5"] = None
+                result["trend_position_10"] = None
+                result["volatilite_position_5"] = None
+                result["position_moy_5"] = None
+                result["position_moy_10"] = None
+                result["serie_victoires"] = 0
+                result["serie_places"] = 0
+                result["serie_non_places"] = 0
+                result["derniere_victoire_courses_ago"] = None
+                result["derniere_place_courses_ago"] = None
+                result["tx_victoire_hist"] = None
+                result["tx_place_hist"] = None
+                result["gain_moyen_hist"] = None
+                result["red_km_moy_hist"] = None
+                result["red_km_best_hist"] = None
+                result["nb_hippodromes_differents"] = 0
+                result["pct_meme_hippo"] = None
+                result["pct_meme_discipline"] = None
+                result["momentum"] = None
+                result["best_position"] = None
+                result["worst_position"] = None
+                result["nb_victoires_recent_5"] = 0
+                result["nb_places_recent_5"] = 0
 
             fout.write(json.dumps(result, ensure_ascii=False) + "\n")
 

@@ -46,6 +46,8 @@ log = logging.getLogger(__name__)
 
 def parse_conditions(texte):
     """Parse le texte des conditions de course et extrait les features structurées."""
+    if texte is None:
+        texte = ""
     if not texte:
         return {}
 
@@ -213,7 +215,7 @@ def main():
                 "conditions_texte", "discipline", "distance", "numero_reunion", "numero_course",
                 "categorie", "condition_age", "condition_sexe", "libelle"}
         if path.endswith(".jsonl"):
-            with open(path, "r", encoding="utf-8") as f:
+            with open(path, "r", encoding="utf-8", errors="replace") as f:
                 for line in f:
                     line = line.strip()
                     if not line:
@@ -224,7 +226,7 @@ def main():
                     except json.JSONDecodeError:
                         continue
         else:
-            with open(path, "r", encoding="utf-8") as f:
+            with open(path, "r", encoding="utf-8", errors="replace") as f:
                 data = json.load(f)
             for c in data:
                 courses.append({k: c[k] for k in KEEP if k in c})
@@ -244,8 +246,8 @@ def main():
 
     with open(output_file, "w", encoding="utf-8") as fout:
         for i, c in enumerate(courses):
-            texte = c.get("conditions_texte", "")
-            libelle = c.get("libelle", "")
+            texte = c.get("conditions_texte") or ""
+            libelle = c.get("libelle") or ""
 
             # Parser les deux textes et fusionner
             parsed = parse_conditions(texte)
@@ -260,7 +262,7 @@ def main():
             parsed["course_uid"] = c.get("course_uid", "")
             parsed["date_reunion_iso"] = c.get("date_reunion_iso", "")
             parsed["hippodrome_normalise"] = c.get("hippodrome_normalise", "")
-            parsed["conditions_texte_original"] = texte[:200]  # tronqué pour debug
+            parsed["conditions_texte_original"] = (texte or "")[:200]  # tronqué pour debug
 
             if len(parsed) > 5:  # au moins quelques features extraites
                 total_enriched += 1

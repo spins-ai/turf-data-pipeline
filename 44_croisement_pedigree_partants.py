@@ -74,7 +74,7 @@ def load_pedigree_index():
         log.info(f"Chargement pedigree: {path}")
 
         if path.endswith(".jsonl"):
-            with open(path, "r", encoding="utf-8") as f:
+            with open(path, "r", encoding="utf-8", errors="replace") as f:
                 for line in f:
                     line = line.strip()
                     if not line:
@@ -87,7 +87,7 @@ def load_pedigree_index():
                     except json.JSONDecodeError:
                         continue
         else:
-            with open(path, "r", encoding="utf-8") as f:
+            with open(path, "r", encoding="utf-8", errors="replace") as f:
                 data = json.load(f)
             if isinstance(data, list):
                 for p in data:
@@ -120,7 +120,7 @@ def load_partants():
             continue
         log.info(f"Chargement partants: {path}")
         if path.endswith(".jsonl"):
-            with open(path, "r", encoding="utf-8") as f:
+            with open(path, "r", encoding="utf-8", errors="replace") as f:
                 for line in f:
                     line = line.strip()
                     if not line:
@@ -131,7 +131,7 @@ def load_partants():
                     except json.JSONDecodeError:
                         continue
         else:
-            with open(path, "r", encoding="utf-8") as f:
+            with open(path, "r", encoding="utf-8", errors="replace") as f:
                 data = json.load(f)
             for p in data:
                 partants.append({k: p[k] for k in KEEP if k in p})

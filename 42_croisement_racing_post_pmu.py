@@ -41,12 +41,13 @@ def load_racing_post():
     """Charge les données Racing Post."""
     records = []
     for path in ["output/37_racing_post/racing_post_fr.jsonl",
-                 "output/37_racing_post/racing_post_fr.json"]:
+                 "output/37_racing_post/racing_post_fr.json",
+                 "data_master/racing_post_master.json"]:
         if not os.path.exists(path):
             continue
         log.info(f"Chargement RP: {path}")
         if path.endswith(".jsonl"):
-            with open(path, "r", encoding="utf-8") as f:
+            with open(path, "r", encoding="utf-8", errors="replace") as f:
                 for line in f:
                     line = line.strip()
                     if not line:
@@ -56,8 +57,12 @@ def load_racing_post():
                     except json.JSONDecodeError:
                         continue
         else:
-            with open(path, "r", encoding="utf-8") as f:
-                records = json.load(f)
+            with open(path, "r", encoding="utf-8", errors="replace") as f:
+                data = json.load(f)
+            if isinstance(data, list):
+                records = data
+            elif isinstance(data, dict):
+                records = list(data.values()) if data else []
         break
 
     log.info(f"  {len(records)} records Racing Post")
@@ -70,13 +75,14 @@ def load_partants_light():
             "hippodrome_normalise", "distance", "discipline", "position_arrivee",
             "is_gagnant", "is_place", "cote_finale"}
     partants = []
-    for path in ["output/02_liste_courses/partants_normalises.jsonl",
+    for path in ["data_master/partants_master.jsonl",
+                 "output/02_liste_courses/partants_normalises.jsonl",
                  "output/02_liste_courses/partants_normalises.json"]:
         if not os.path.exists(path):
             continue
         log.info(f"Chargement partants: {path}")
         if path.endswith(".jsonl"):
-            with open(path, "r", encoding="utf-8") as f:
+            with open(path, "r", encoding="utf-8", errors="replace") as f:
                 for line in f:
                     line = line.strip()
                     if not line:
@@ -87,7 +93,7 @@ def load_partants_light():
                     except json.JSONDecodeError:
                         continue
         else:
-            with open(path, "r", encoding="utf-8") as f:
+            with open(path, "r", encoding="utf-8", errors="replace") as f:
                 data = json.load(f)
             for p in data:
                 partants.append({k: p[k] for k in KEEP if k in p})
@@ -108,29 +114,50 @@ def normalize_name(name):
     return "".join(c for c in nfkd if not unicodedata.combining(c))
 
 
+def extract_horse_name_from_raw(raw_text):
+    """Extrait le nom du cheval depuis raw_text (format: '1st | HORSE NAME | ...')."""
+    if not raw_text:
+        return ""
+    parts = raw_text.split("|")
+    for part in parts[1:4]:
+        cleaned = part.strip()
+        # Skip les numéros, odds, positions, termes techniques
+        if cleaned and not re.match(r'^\d', cleaned) and len(cleaned) > 2:
+            if cleaned.lower() not in ("evens", "fav", "nf", "f", "co-fav"):
+                return cleaned
+    return ""
+
+
 def build_rp_index(rp_records):
     """Construit un index des données RP par nom de cheval normalisé."""
     index = defaultdict(list)
 
     for r in rp_records:
-        raw_text = r.get("raw_text", "")
-        rpr = r.get("rpr")
-        topspeed = r.get("topspeed")
+        rpr = r.get("rpr") or r.get("racing_post_rating")
+        topspeed = r.get("topspeed") or r.get("top_speed") or r.get("ts")
         position = r.get("position")
-        date_str = r.get("date", "")
+        date_str = r.get("date", "") or r.get("date_reunion_iso", "") or ""
 
-        # Extraire le nom du cheval depuis raw_text
-        # Pattern typique: "1st | HORSE NAME | ..."
-        parts = raw_text.split("|")
-        horse_name = ""
-        for part in parts[1:3]:
-            cleaned = part.strip()
-            # Skip les numéros, odds, etc.
-            if cleaned and not re.match(r'^\d', cleaned) and len(cleaned) > 2:
-                # Skip les termes techniques
-                if cleaned.lower() not in ("evens", "fav", "nf"):
-                    horse_name = cleaned
-                    break
+        # Convertir rpr/topspeed en int si possible
+        try:
+            rpr = int(rpr) if rpr else None
+        except (ValueError, TypeError):
+            rpr = None
+        try:
+            topspeed = int(topspeed) if topspeed else None
+        except (ValueError, TypeError):
+            topspeed = None
+        try:
+            position = int(position) if position else None
+        except (ValueError, TypeError):
+            position = None
+
+        # Priorité 1 : champ nom_cheval / horse_name direct
+        horse_name = (r.get("nom_cheval") or r.get("horse_name") or "").strip()
+
+        # Priorité 2 : extraction depuis raw_text
+        if not horse_name:
+            horse_name = extract_horse_name_from_raw(r.get("raw_text", ""))
 
         if not horse_name:
             continue
@@ -140,7 +167,7 @@ def build_rp_index(rp_records):
             continue
 
         index[name_norm].append({
-            "date": date_str,
+            "date": str(date_str)[:10],
             "rpr": rpr,
             "topspeed": topspeed,
             "position": position,
@@ -229,7 +256,7 @@ def main():
     rp_records = load_racing_post()
     if not rp_records:
         log.warning("Pas de données Racing Post — fichier vide créé")
-        with open(os.path.join(OUTPUT_DIR, "croisement_rp_pmu.jsonl"), "w") as f:
+        with open(os.path.join(OUTPUT_DIR, "croisement_rp_pmu.jsonl"), "w", encoding="utf-8", errors="replace") as f:
             pass
         return
 
