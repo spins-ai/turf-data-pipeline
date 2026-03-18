@@ -285,6 +285,65 @@ def combler_record(record, meteo_index, hippo_db, sire_index, partants_count):
             record["nombre_partants"] = partants_count[cuid]
             combles += 1
 
+    # === Comblage par inférence (4.2) ===
+
+    # Terrain probable si manquant (depuis météo + hippo)
+    terrain = record.get("type_piste")
+    if not terrain or terrain in (None, "", "inconnu"):
+        # Inférer depuis discipline
+        disc = (record.get("discipline") or "").lower()
+        if disc in ("trot_attele", "trot_monte"):
+            record["type_piste"] = "cendrée"
+            combles += 1
+        elif disc in ("steeple", "haies", "cross_country"):
+            record["type_piste"] = "gazon"
+            combles += 1
+        elif disc == "plat":
+            # PSF si hippo connu
+            hippos_psf = {"pau", "deauville", "chantilly", "lyon-parilly", "pornichet",
+                          "marseille-borely", "salon-de-provence", "agen"}
+            if hippo in hippos_psf:
+                record["type_piste"] = "psf"
+            else:
+                record["type_piste"] = "gazon"
+            combles += 1
+
+    # Distance réelle si manquante (inférer depuis type course + hippo)
+    dist = record.get("distance")
+    if not dist or dist in (None, 0):
+        disc = (record.get("discipline") or "").lower()
+        if disc in ("trot_attele", "trot_monte"):
+            record["distance"] = 2700  # distance standard trot
+            combles += 1
+        elif disc == "plat":
+            record["distance"] = 1600  # distance standard plat
+            combles += 1
+
+    # Poids porté si manquant (handicap officiel + surcharge)
+    poids = record.get("poids_porte_kg")
+    if poids is None:
+        poids_base = record.get("poids_base_kg")
+        surcharge = record.get("surcharge_decharge_kg")
+        if poids_base is not None:
+            if surcharge is not None:
+                record["poids_porte_kg"] = round(poids_base + surcharge, 1)
+            else:
+                record["poids_porte_kg"] = poids_base
+            combles += 1
+
+    # Temps course si manquant (inférer depuis réduction km + distance)
+    temps = record.get("temps_ms")
+    if temps is None:
+        red_km = record.get("reduction_km_ms")
+        dist_val = record.get("distance")
+        if red_km is not None and dist_val is not None:
+            try:
+                # temps_ms = red_km_ms * distance_km
+                record["temps_ms"] = int(float(red_km) * float(dist_val) / 1000)
+                combles += 1
+            except (ValueError, TypeError, ZeroDivisionError):
+                pass
+
     return record, combles
 
 
