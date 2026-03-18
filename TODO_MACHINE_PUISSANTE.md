@@ -235,24 +235,15 @@
 - [ ] Vérifier que les 177 features ne sont plus None
 
 ## 6.2 Créer 9 nouveaux builders (sources existantes non exploitées)
-- [ ] perf_detaillees_builder.py (40-60 features depuis output/22)
-       → rolling moyennes, volatilité, best/worst perf, patterns
-- [ ] smarkets_builder.py (15-20 features exchange)
-       → spread back/lay, volume, market efficiency
-- [ ] racing_post_builder.py (10-15 features)
-       → RPR, TopSpeed, class rating international
-- [ ] reunions_builder.py (15-20 features)
-       → météo PMU directe, incidents, types paris, audience
-- [ ] enrichissement_builder.py (8 features)
-       → gains décomposées, tendance cote, grosse prise
-- [ ] pedigree_advanced_builder.py (15-20 features)
-       → grands-parents, inbreeding, lignée, stamina/speed index
-- [ ] canalturf_builder.py (10-15 features)
-       → stats alternatives, cross-validation
-- [ ] turfostats_builder.py (10-15 features)
-       → keyrace index, style course, affinité distance
-- [ ] geny_builder.py (10-15 features)
-       → consensus pronostiqueurs, score commentaires
+- [x] perf_detaillees_builder.py (40-60 features) ✅ ÉCRIT session 2
+- [x] smarkets_builder.py (15-20 features exchange) ✅ ÉCRIT session 2
+- [x] racing_post_builder.py (10-15 features) ✅ ÉCRIT session 2
+- [x] reunions_builder.py (15-20 features) ✅ ÉCRIT session 2
+- [x] enrichissement_builder.py (8 features) ✅ ÉCRIT session 2
+- [x] pedigree_advanced_builder.py (15-20 features) ✅ ÉCRIT session 2
+- [x] canalturf_builder.py (10-15 features) ✅ ÉCRIT session 2
+- [x] turfostats_builder.py (10-15 features) ✅ ÉCRIT session 2
+- [x] geny_builder.py (10-15 features) ✅ ÉCRIT session 2
 
 ## 6.2b Nouveaux builders écrits (attendent machine puissante pour exécution)
 - [x] entity_resolution.py — Entity Resolution / mega merge ✅ (✅ ÉCRIT — 16 mars 2026 — exécution sur PC)
@@ -288,26 +279,16 @@
 - [x] postprocess_horse_stats.py ✅ (✅ FAIT — 16 mars 2026 — class_category, distance_pref, is_en_forme)
 
 ## 6.3 Créer features croisées (combinaisons entre sources)
-- [ ] cheval_jockey_affinity.py (10 features)
-       → duo historique, taux victoire ensemble, affinité
-- [ ] cheval_hippodrome_affinity.py (8 features)
-       → affinité piste, perf par track, première fois
-- [ ] cheval_distance_affinity.py (8 features)
-       → distance optimale, écart à l'optimale
-- [ ] cheval_terrain_affinity.py (6 features)
-       → perf par going, terrain optimal
-- [ ] jockey_entraineur_combo.py (6 features)
-       → combo gagnante, spécialité discipline
-- [ ] entraineur_hippodrome.py (5 features)
-       → spécialiste piste, déplacement
-- [ ] value_betting_features.py (10 features)
-       → CLV, steam moves, sharp money, overbet/underbet
-- [ ] meteo_terrain_interaction.py (8 features)
-       → pluie×going, sol gelé, vent face
-- [ ] pedigree_discipline_match.py (10 features)
-       → lignée adaptée, stamina index, precocity
-- [ ] field_strength_features.py (10 features)
-       → force du lot, concentration cotes, hétérogénéité
+- [x] feat_cheval_jockey_affinity.py (10 features) ✅ ÉCRIT session 2
+- [x] feat_cheval_hippodrome_affinity.py (8 features) ✅ ÉCRIT session 2
+- [x] feat_cheval_distance_affinity.py (8 features) ✅ ÉCRIT session 2
+- [x] feat_cheval_terrain_affinity.py (6 features) ✅ ÉCRIT session 2
+- [x] feat_jockey_entraineur_combo.py (6 features) ✅ ÉCRIT session 2
+- [x] feat_entraineur_hippodrome.py (5 features) ✅ ÉCRIT session 2
+- [x] feat_value_betting.py (10 features) ✅ ÉCRIT session 2
+- [x] feat_meteo_terrain_interaction.py (8 features) ✅ ÉCRIT session 2
+- [x] feat_pedigree_discipline_match.py (10 features) ✅ ÉCRIT session 2
+- [x] feat_field_strength.py (10 features) ✅ ÉCRIT session 2
 
 ## 6.4 Reconstruire la matrice de features
 - [ ] Exécuter master_feature_builder.py avec TOUS les builders

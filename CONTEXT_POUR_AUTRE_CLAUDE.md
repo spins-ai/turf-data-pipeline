@@ -70,10 +70,33 @@ tabnet, tft, gnn, bayesian_nn, survival_model, quantile_regressor, autogluon, tp
 h2o, stacking_classifier, blending, meta_model, anomalie_detector, retour_forme_hidden,
 gan_turf, value_hunter_rl
 
+## Pipeline complet CRÉÉ (session 2 — 18 mars 2026)
+Tous ces scripts sont prêts à exécuter dans l'ordre :
+1. `audit_data_integrity.py` — audit JSON/JSONL, doublons, outliers, taux remplissage
+2. `nettoyage_global.py` — fix UTF-8, normalisation noms/hippos/disciplines
+3. `deduplication.py` — déduplique courses/partants/pedigrees/rapports
+4. `comblage_trous.py` — remplissage depuis météo/SIRE/hippodromes + inférence
+5. `merge_02_02b_courses_master.py` — fusionne 02+02b → courses_master.jsonl
+6. `mega_merge_partants_master.py` — fusion toutes sources → partants_master.jsonl
+7. Scripts 41-49 (calcul features)
+8. 9 builders features dans feature_builders/
+9. 10 scripts affinités croisées (feat_cheval_*, feat_jockey_*, etc.)
+
+## 9 Builders features CRÉÉS (feature_builders/)
+- perf_detaillees_builder.py, smarkets_builder.py, racing_post_builder.py
+- reunions_builder.py, enrichissement_builder.py, pedigree_advanced_builder.py
+- canalturf_builder.py, turfostats_builder.py, geny_builder.py
+
+## 10 Scripts affinités croisées CRÉÉS
+- feat_cheval_jockey_affinity.py, feat_cheval_hippodrome_affinity.py
+- feat_cheval_distance_affinity.py, feat_cheval_terrain_affinity.py
+- feat_jockey_entraineur_combo.py, feat_entraineur_hippodrome.py
+- feat_value_betting.py, feat_meteo_terrain_interaction.py
+- feat_pedigree_discipline_match.py, feat_field_strength.py
+
 ## Prochaines étapes (session 3+)
-- Exécuter les 8 scripts de calcul (41-49) sur la machine puissante
-- Étape 2 du TODO : audit/vérification de tous les JSON
-- Étape 3 : nettoyage global (encodage, normalisation, déduplication)
-- Étape 4 : comblage de trous (croisements entre sources)
-- Étape 5 : fusion/mega-merge → partants_master.json
-- Étape 6 : feature engineering complet (400+ colonnes)
+- EXÉCUTER tous les scripts ci-dessus dans l'ordre
+- Étape 6.1 : Debugger les 177 features cassées (11 builders existants)
+- Étape 6.4 : Reconstruire la matrice de features (400+ colonnes)
+- Étape 7+ : Nouveaux scrapers (FR, UK, US, AU, etc.)
+- Phase 2 : Modèles ML (dans un nouveau dossier)
