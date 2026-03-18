@@ -144,6 +144,189 @@ def save_checkpoint(data):
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
+def extract_embedded_json(soup, date_str, source="betfair_exchange"):
+    """Extract all embedded JSON from script tags (market data, runner data)."""
+    records = []
+    for script in soup.find_all("script"):
+        script_text = script.string or ""
+        if script.get("type") == "application/ld+json":
+            try:
+                ld = json.loads(script_text)
+                records.append({
+                    "date": date_str,
+                    "source": source,
+                    "type": "json_ld",
+                    "ld_type": ld.get("@type", "") if isinstance(ld, dict) else "array",
+                    "data": ld if isinstance(ld, dict) else ld[:20],
+                    "scraped_at": datetime.utcnow().isoformat(),
+                })
+            except (json.JSONDecodeError, TypeError):
+                pass
+            continue
+        if len(script_text) < 50:
+            continue
+        for kw in ["market", "runner", "selection", "odds", "price", "volume",
+                    "matched", "traded", "back", "lay", "exchange", "depth"]:
+            if kw in script_text.lower():
+                json_matches = re.findall(r'\{[^{}]{30,}\}', script_text)
+                for jm in json_matches[:20]:
+                    try:
+                        data = json.loads(jm)
+                        if any(k in str(data).lower() for k in ["market", "runner", "odds",
+                                                                   "price", "matched", "volume"]):
+                            records.append({
+                                "date": date_str,
+                                "source": source,
+                                "type": "embedded_market_json",
+                                "data": data,
+                                "scraped_at": datetime.utcnow().isoformat(),
+                            })
+                    except json.JSONDecodeError:
+                        pass
+                array_matches = re.findall(r'\[[^\[\]]{30,}\]', script_text)
+                for am in array_matches[:10]:
+                    try:
+                        data = json.loads(am)
+                        if isinstance(data, list) and len(data) > 0:
+                            records.append({
+                                "date": date_str,
+                                "source": source,
+                                "type": "embedded_market_array",
+                                "data": data[:50],
+                                "scraped_at": datetime.utcnow().isoformat(),
+                            })
+                    except json.JSONDecodeError:
+                        pass
+                break
+    return records
+
+
+def extract_data_attributes(soup, date_str, source="betfair_exchange"):
+    """Extract all data-* attributes from DOM elements (market IDs, runner IDs, etc.)."""
+    records = []
+    seen = set()
+    for el in soup.find_all(True):
+        data_attrs = {k: v for k, v in el.attrs.items()
+                      if isinstance(k, str) and k.startswith("data-") and v}
+        if len(data_attrs) >= 2:
+            key = frozenset(data_attrs.items())
+            if key in seen:
+                continue
+            seen.add(key)
+            record = {
+                "date": date_str,
+                "source": source,
+                "type": "data_attribute",
+                "tag": el.name,
+                "scraped_at": datetime.utcnow().isoformat(),
+            }
+            for attr_name, attr_val in data_attrs.items():
+                clean_name = attr_name.replace("data-", "").replace("-", "_")
+                record[clean_name] = attr_val
+            text = el.get_text(strip=True)
+            if text and len(text) < 300:
+                record["text_content"] = text
+            records.append(record)
+    return records
+
+
+def extract_market_depth(soup, date_str, source="betfair_exchange"):
+    """Extract market depth data (multiple back/lay price levels)."""
+    records = []
+    for el in soup.find_all(["div", "td", "span", "section"], class_=True):
+        classes = " ".join(el.get("class", []))
+        if any(kw in classes.lower() for kw in ["depth", "ladder", "price-level",
+                                                   "back-price", "lay-price",
+                                                   "best-price", "available"]):
+            text = el.get_text(strip=True)
+            if text and re.search(r'\d', text) and len(text) < 300:
+                record = {
+                    "date": date_str,
+                    "source": source,
+                    "type": "market_depth",
+                    "content": text,
+                    "classes_css": classes,
+                    "scraped_at": datetime.utcnow().isoformat(),
+                }
+                # Parse price/size pairs
+                prices = re.findall(r'(\d+\.?\d*)', text)
+                if prices:
+                    record["prices_parsed"] = [float(p) for p in prices[:10]]
+                records.append(record)
+    return records
+
+
+def extract_volume_timeline(soup, date_str, source="betfair_exchange"):
+    """Extract volume timeline and traded price data."""
+    records = []
+    for el in soup.find_all(["div", "section", "span"], class_=True):
+        classes = " ".join(el.get("class", []))
+        if any(kw in classes.lower() for kw in ["volume", "traded", "turnover",
+                                                   "matched-amount", "money-matched",
+                                                   "total-matched", "timeline"]):
+            text = el.get_text(strip=True)
+            if text and re.search(r'\d', text) and len(text) < 500:
+                record = {
+                    "date": date_str,
+                    "source": source,
+                    "type": "volume_timeline",
+                    "content": text[:300],
+                    "classes_css": classes,
+                    "scraped_at": datetime.utcnow().isoformat(),
+                }
+                # Parse monetary amounts
+                amounts = re.findall(r'[\$\xa3\u20ac]?([\d,]+\.?\d*)', text.replace(",", ""))
+                if amounts:
+                    record["amounts_parsed"] = [float(a) for a in amounts[:10] if float(a) > 0]
+                records.append(record)
+    return records
+
+
+def extract_traded_prices(soup, date_str, source="betfair_exchange"):
+    """Extract traded price history data."""
+    records = []
+    for el in soup.find_all(["div", "table", "section"], class_=True):
+        classes = " ".join(el.get("class", []))
+        if any(kw in classes.lower() for kw in ["traded-price", "price-history",
+                                                   "wap", "last-price-traded",
+                                                   "graph-data", "chart-data"]):
+            if el.name == "table":
+                rows = el.find_all("tr")
+                headers = []
+                if rows:
+                    headers = [th.get_text(strip=True).lower().replace(" ", "_")
+                               for th in rows[0].find_all(["th", "td"])]
+                for row in rows[1:]:
+                    cells = [td.get_text(strip=True) for td in row.find_all(["td", "th"])]
+                    if cells and len(cells) >= 2:
+                        record = {
+                            "date": date_str,
+                            "source": source,
+                            "type": "traded_price",
+                            "scraped_at": datetime.utcnow().isoformat(),
+                        }
+                        for j, cell in enumerate(cells):
+                            key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
+                            record[key] = cell
+                        records.append(record)
+            else:
+                text = el.get_text(strip=True)
+                if text and 3 < len(text) < 500:
+                    record = {
+                        "date": date_str,
+                        "source": source,
+                        "type": "traded_price_data",
+                        "content": text,
+                        "classes_css": classes,
+                        "scraped_at": datetime.utcnow().isoformat(),
+                    }
+                    prices = re.findall(r'(\d+\.?\d*)', text)
+                    if prices:
+                        record["prices"] = [float(p) for p in prices[:20]]
+                    records.append(record)
+    return records
+
+
 def scrape_exchange_markets(session, date_str):
     """Scrape Betfair Exchange horse racing market listings."""
     cache_file = os.path.join(CACHE_DIR, f"markets_{date_str}.json")
@@ -161,6 +344,13 @@ def scrape_exchange_markets(session, date_str):
 
     soup = BeautifulSoup(resp.text, "html.parser")
     records = []
+
+    # --- NEW: Full extraction pattern ---
+    records.extend(extract_embedded_json(soup, date_str, "betfair_exchange"))
+    records.extend(extract_data_attributes(soup, date_str, "betfair_exchange"))
+    records.extend(extract_market_depth(soup, date_str, "betfair_exchange"))
+    records.extend(extract_volume_timeline(soup, date_str, "betfair_exchange"))
+    records.extend(extract_traded_prices(soup, date_str, "betfair_exchange"))
 
     # Extract market links (race events)
     for link in soup.find_all("a", href=True):
@@ -221,6 +411,12 @@ def scrape_market_odds(session, date_str):
 
     soup = BeautifulSoup(resp.text, "html.parser")
     records = []
+
+    # --- NEW: Full extraction on odds page ---
+    records.extend(extract_embedded_json(soup, date_str, "betfair_exchange"))
+    records.extend(extract_data_attributes(soup, date_str, "betfair_exchange"))
+    records.extend(extract_market_depth(soup, date_str, "betfair_exchange"))
+    records.extend(extract_traded_prices(soup, date_str, "betfair_exchange"))
 
     # Extract odds tables
     for table in soup.find_all("table"):
@@ -324,6 +520,12 @@ def scrape_market_volume(session, date_str):
 
     soup = BeautifulSoup(resp.text, "html.parser")
     records = []
+
+    # --- NEW: Full extraction on volume page ---
+    records.extend(extract_embedded_json(soup, date_str, "betfair_exchange"))
+    records.extend(extract_data_attributes(soup, date_str, "betfair_exchange"))
+    records.extend(extract_volume_timeline(soup, date_str, "betfair_exchange"))
+    records.extend(extract_traded_prices(soup, date_str, "betfair_exchange"))
 
     # Extract volume/liquidity data from market sections
     for div in soup.find_all(["div", "section"], class_=True):

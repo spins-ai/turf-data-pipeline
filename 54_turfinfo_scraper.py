@@ -104,6 +104,143 @@ def save_checkpoint(data):
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
+def extract_embedded_json(soup, date_str, source="turfinfo"):
+    """Extract all embedded JSON from script tags."""
+    records = []
+    for script in soup.find_all("script"):
+        script_text = script.string or ""
+        if script.get("type") == "application/ld+json":
+            try:
+                ld = json.loads(script_text)
+                records.append({
+                    "date": date_str,
+                    "source": source,
+                    "type": "json_ld",
+                    "ld_type": ld.get("@type", "") if isinstance(ld, dict) else "array",
+                    "data": ld if isinstance(ld, dict) else ld[:20],
+                    "scraped_at": datetime.utcnow().isoformat(),
+                })
+            except (json.JSONDecodeError, TypeError):
+                pass
+            continue
+        if len(script_text) < 50:
+            continue
+        for kw in ["course", "cheval", "partant", "musique", "cote", "resultat",
+                    "pronostic", "reunion", "hippodrome"]:
+            if kw in script_text.lower():
+                json_matches = re.findall(r'\{[^{}]{30,}\}', script_text)
+                for jm in json_matches[:15]:
+                    try:
+                        data = json.loads(jm)
+                        records.append({
+                            "date": date_str,
+                            "source": source,
+                            "type": "embedded_json",
+                            "data": data,
+                            "scraped_at": datetime.utcnow().isoformat(),
+                        })
+                    except json.JSONDecodeError:
+                        pass
+                array_matches = re.findall(r'\[[^\[\]]{30,}\]', script_text)
+                for am in array_matches[:10]:
+                    try:
+                        data = json.loads(am)
+                        if isinstance(data, list) and len(data) > 0:
+                            records.append({
+                                "date": date_str,
+                                "source": source,
+                                "type": "embedded_json_array",
+                                "data": data[:30],
+                                "scraped_at": datetime.utcnow().isoformat(),
+                            })
+                    except json.JSONDecodeError:
+                        pass
+                break
+    return records
+
+
+def extract_data_attributes(soup, date_str, source="turfinfo"):
+    """Extract all data-* attributes from DOM elements."""
+    records = []
+    seen = set()
+    for el in soup.find_all(True):
+        data_attrs = {k: v for k, v in el.attrs.items()
+                      if isinstance(k, str) and k.startswith("data-") and v}
+        if len(data_attrs) >= 2:
+            key = frozenset(data_attrs.items())
+            if key in seen:
+                continue
+            seen.add(key)
+            record = {
+                "date": date_str,
+                "source": source,
+                "type": "data_attribute",
+                "tag": el.name,
+                "scraped_at": datetime.utcnow().isoformat(),
+            }
+            for attr_name, attr_val in data_attrs.items():
+                clean_name = attr_name.replace("data-", "").replace("-", "_")
+                record[clean_name] = attr_val
+            text = el.get_text(strip=True)
+            if text and len(text) < 300:
+                record["text_content"] = text
+            records.append(record)
+    return records
+
+
+def extract_comments_analyses(soup, date_str, source="turfinfo"):
+    """Extract comment and analysis divs including race comments."""
+    records = []
+    for el in soup.find_all(["div", "p", "section", "article", "blockquote"], class_=True):
+        classes = " ".join(el.get("class", []))
+        if any(kw in classes.lower() for kw in ["comment", "analyse", "expert", "avis",
+                                                   "resume", "verdict", "recap",
+                                                   "race-comment", "course-comment",
+                                                   "description", "editorial"]):
+            text = el.get_text(strip=True)
+            if text and 20 < len(text) < 3000:
+                record = {
+                    "date": date_str,
+                    "source": source,
+                    "type": "commentaire_course",
+                    "contenu": text[:2000],
+                    "classes_css": classes,
+                    "scraped_at": datetime.utcnow().isoformat(),
+                }
+                author_el = el.find(["span", "strong", "a"],
+                                     class_=lambda c: c and any(kw in " ".join(c).lower()
+                                                                for kw in ["author", "auteur", "expert"]))
+                if author_el:
+                    record["auteur"] = author_el.get_text(strip=True)
+                records.append(record)
+    return records
+
+
+def extract_musique_detaillee(soup, date_str, source="turfinfo"):
+    """Extract detailed musique (form) data from TurfInfo."""
+    records = []
+    for el in soup.find_all(["div", "span", "td"], class_=True):
+        classes = " ".join(el.get("class", []))
+        if any(kw in classes.lower() for kw in ["musique", "form", "perf", "historique",
+                                                   "past-results", "derniere-course"]):
+            text = el.get_text(strip=True)
+            if text and 3 < len(text) < 500:
+                record = {
+                    "date": date_str,
+                    "source": source,
+                    "type": "musique_detaillee",
+                    "contenu": text,
+                    "classes_css": classes,
+                    "scraped_at": datetime.utcnow().isoformat(),
+                }
+                # Parse musique codes
+                musique_match = re.search(r'([0-9DATap]{4,})', text)
+                if musique_match:
+                    record["musique_code"] = musique_match.group(1)
+                records.append(record)
+    return records
+
+
 def scrape_programme_day(session, date_str):
     """Scraper le programme TurfInfo d'un jour donné."""
     cache_file = os.path.join(CACHE_DIR, f"programme_{date_str}.json")
@@ -119,6 +256,12 @@ def scrape_programme_day(session, date_str):
     soup = BeautifulSoup(resp.text, "html.parser")
     records = []
     course_links = []
+
+    # --- NEW: Full extraction pattern ---
+    records.extend(extract_embedded_json(soup, date_str, "turfinfo"))
+    records.extend(extract_data_attributes(soup, date_str, "turfinfo"))
+    records.extend(extract_comments_analyses(soup, date_str, "turfinfo"))
+    records.extend(extract_musique_detaillee(soup, date_str, "turfinfo"))
 
     # --- Extraire les réunions ---
     for div in soup.find_all(["div", "section", "article"], class_=True):
@@ -198,6 +341,12 @@ def scrape_course_detail(session, course_url, date_str):
 
     soup = BeautifulSoup(resp.text, "html.parser")
     records = []
+
+    # --- NEW: Full extraction on course detail page ---
+    records.extend(extract_embedded_json(soup, date_str, "turfinfo"))
+    records.extend(extract_data_attributes(soup, date_str, "turfinfo"))
+    records.extend(extract_comments_analyses(soup, date_str, "turfinfo"))
+    records.extend(extract_musique_detaillee(soup, date_str, "turfinfo"))
 
     # Titre de la course
     nom_prix = ""

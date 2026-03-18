@@ -109,6 +109,177 @@ def save_checkpoint(data):
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
+def extract_embedded_json(soup, date_str, source="punters_au"):
+    """Extract all embedded JSON from script tags."""
+    records = []
+    for script in soup.find_all("script"):
+        script_text = script.string or ""
+        if script.get("type") == "application/ld+json":
+            try:
+                ld = json.loads(script_text)
+                records.append({
+                    "date": date_str,
+                    "source": source,
+                    "type": "json_ld",
+                    "ld_type": ld.get("@type", "") if isinstance(ld, dict) else "array",
+                    "data": ld if isinstance(ld, dict) else ld[:20],
+                    "scraped_at": datetime.utcnow().isoformat(),
+                })
+            except (json.JSONDecodeError, TypeError):
+                pass
+            continue
+        if len(script_text) < 50:
+            continue
+        for kw in ["race", "runner", "horse", "jockey", "trainer", "odds", "form",
+                    "tip", "speed", "track", "result", "barrier", "weight"]:
+            if kw in script_text.lower():
+                json_matches = re.findall(r'\{[^{}]{30,}\}', script_text)
+                for jm in json_matches[:15]:
+                    try:
+                        data = json.loads(jm)
+                        records.append({
+                            "date": date_str,
+                            "source": source,
+                            "type": "embedded_json",
+                            "data": data,
+                            "scraped_at": datetime.utcnow().isoformat(),
+                        })
+                    except json.JSONDecodeError:
+                        pass
+                array_matches = re.findall(r'\[[^\[\]]{30,}\]', script_text)
+                for am in array_matches[:10]:
+                    try:
+                        data = json.loads(am)
+                        if isinstance(data, list) and len(data) > 0:
+                            records.append({
+                                "date": date_str,
+                                "source": source,
+                                "type": "embedded_json_array",
+                                "data": data[:30],
+                                "scraped_at": datetime.utcnow().isoformat(),
+                            })
+                    except json.JSONDecodeError:
+                        pass
+                break
+    return records
+
+
+def extract_data_attributes(soup, date_str, source="punters_au"):
+    """Extract all data-* attributes from DOM elements."""
+    records = []
+    seen = set()
+    for el in soup.find_all(True):
+        data_attrs = {k: v for k, v in el.attrs.items()
+                      if isinstance(k, str) and k.startswith("data-") and v}
+        if len(data_attrs) >= 2:
+            key = frozenset(data_attrs.items())
+            if key in seen:
+                continue
+            seen.add(key)
+            record = {
+                "date": date_str,
+                "source": source,
+                "type": "data_attribute",
+                "tag": el.name,
+                "scraped_at": datetime.utcnow().isoformat(),
+            }
+            for attr_name, attr_val in data_attrs.items():
+                clean_name = attr_name.replace("data-", "").replace("-", "_")
+                record[clean_name] = attr_val
+            text = el.get_text(strip=True)
+            if text and len(text) < 300:
+                record["text_content"] = text
+            records.append(record)
+    return records
+
+
+def extract_comments(soup, date_str, source="punters_au"):
+    """Extract comments, previews and analysis divs."""
+    records = []
+    for el in soup.find_all(["div", "p", "section", "article", "blockquote"], class_=True):
+        classes = " ".join(el.get("class", []))
+        if any(kw in classes.lower() for kw in ["comment", "preview", "analysis",
+                                                   "verdict", "expert", "assessment",
+                                                   "race-comment", "summary"]):
+            text = el.get_text(strip=True)
+            if text and 20 < len(text) < 3000:
+                records.append({
+                    "date": date_str,
+                    "source": source,
+                    "type": "comment",
+                    "content": text[:2000],
+                    "classes_css": classes,
+                    "scraped_at": datetime.utcnow().isoformat(),
+                })
+    return records
+
+
+def extract_track_conditions_detail(soup, date_str, source="punters_au"):
+    """Extract detailed track condition data."""
+    records = []
+    for el in soup.find_all(["div", "span", "section", "p"], class_=True):
+        classes = " ".join(el.get("class", []))
+        if any(kw in classes.lower() for kw in ["track-condition", "going", "rail",
+                                                   "weather", "surface", "moisture",
+                                                   "penetrometer", "track-info"]):
+            text = el.get_text(strip=True)
+            if text and 3 < len(text) < 500:
+                record = {
+                    "date": date_str,
+                    "source": source,
+                    "type": "track_condition_detail",
+                    "content": text,
+                    "classes_css": classes,
+                    "scraped_at": datetime.utcnow().isoformat(),
+                }
+                # Parse track rating (e.g., Good 4, Heavy 8)
+                rating_match = re.search(r'(Good|Soft|Heavy|Firm|Synthetic)\s*(\d+)?', text, re.I)
+                if rating_match:
+                    record["track_rating"] = rating_match.group(0).strip()
+                records.append(record)
+    return records
+
+
+def extract_speed_maps(soup, date_str, source="punters_au"):
+    """Extract speed map data from Punters."""
+    records = []
+    for el in soup.find_all(["div", "section", "table"], class_=True):
+        classes = " ".join(el.get("class", []))
+        if any(kw in classes.lower() for kw in ["speed-map", "pace-map", "race-pace",
+                                                   "settling", "position-map"]):
+            if el.name == "table":
+                rows = el.find_all("tr")
+                headers = []
+                if rows:
+                    headers = [th.get_text(strip=True).lower().replace(" ", "_")
+                               for th in rows[0].find_all(["th", "td"])]
+                for row in rows[1:]:
+                    cells = [td.get_text(strip=True) for td in row.find_all(["td", "th"])]
+                    if cells and len(cells) >= 2:
+                        record = {
+                            "date": date_str,
+                            "source": source,
+                            "type": "speed_map",
+                            "scraped_at": datetime.utcnow().isoformat(),
+                        }
+                        for j, cell in enumerate(cells):
+                            key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
+                            record[key] = cell
+                        records.append(record)
+            else:
+                text = el.get_text(strip=True)
+                if text and 5 < len(text) < 1000:
+                    records.append({
+                        "date": date_str,
+                        "source": source,
+                        "type": "speed_map_data",
+                        "content": text[:500],
+                        "classes_css": classes,
+                        "scraped_at": datetime.utcnow().isoformat(),
+                    })
+    return records
+
+
 def scrape_form_guide(session, date_str):
     """Scrape Punters.com.au form guide for a given date."""
     cache_file = os.path.join(CACHE_DIR, f"form_{date_str}.json")
@@ -123,6 +294,13 @@ def scrape_form_guide(session, date_str):
 
     soup = BeautifulSoup(resp.text, "html.parser")
     records = []
+
+    # --- NEW: Full extraction pattern ---
+    records.extend(extract_embedded_json(soup, date_str, "punters_au"))
+    records.extend(extract_data_attributes(soup, date_str, "punters_au"))
+    records.extend(extract_comments(soup, date_str, "punters_au"))
+    records.extend(extract_track_conditions_detail(soup, date_str, "punters_au"))
+    records.extend(extract_speed_maps(soup, date_str, "punters_au"))
 
     # Extract meeting/track sections
     for section in soup.find_all(["div", "section"], class_=True):
@@ -194,6 +372,12 @@ def scrape_results(session, date_str):
     soup = BeautifulSoup(resp.text, "html.parser")
     records = []
 
+    # --- NEW: Full extraction on results page ---
+    records.extend(extract_embedded_json(soup, date_str, "punters_au"))
+    records.extend(extract_data_attributes(soup, date_str, "punters_au"))
+    records.extend(extract_comments(soup, date_str, "punters_au"))
+    records.extend(extract_track_conditions_detail(soup, date_str, "punters_au"))
+
     # Extract result tables
     for table in soup.find_all("table"):
         rows = table.find_all("tr")
@@ -253,6 +437,11 @@ def scrape_tips(session, date_str):
 
     soup = BeautifulSoup(resp.text, "html.parser")
     records = []
+
+    # --- NEW: Full extraction on tips page ---
+    records.extend(extract_embedded_json(soup, date_str, "punters_au"))
+    records.extend(extract_data_attributes(soup, date_str, "punters_au"))
+    records.extend(extract_comments(soup, date_str, "punters_au"))
 
     # Extract tip sections
     for div in soup.find_all(["div", "section", "article"], class_=True):

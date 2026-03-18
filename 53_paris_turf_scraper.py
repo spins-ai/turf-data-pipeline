@@ -105,6 +105,148 @@ def save_checkpoint(data):
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
+def extract_embedded_json(soup, date_str, source="paris_turf"):
+    """Extract all embedded JSON from script tags."""
+    records = []
+    for script in soup.find_all("script"):
+        script_text = script.string or ""
+        if script.get("type") == "application/ld+json":
+            try:
+                ld = json.loads(script_text)
+                records.append({
+                    "date": date_str,
+                    "source": source,
+                    "type": "json_ld",
+                    "ld_type": ld.get("@type", "") if isinstance(ld, dict) else "array",
+                    "data": ld if isinstance(ld, dict) else ld[:20],
+                    "scraped_at": datetime.utcnow().isoformat(),
+                })
+            except (json.JSONDecodeError, TypeError):
+                pass
+            continue
+        if len(script_text) < 50:
+            continue
+        for kw in ["pronostic", "cheval", "course", "partant", "cote", "odds",
+                    "runner", "race", "expert", "prediction", "terrain", "distance"]:
+            if kw in script_text.lower():
+                json_matches = re.findall(r'\{[^{}]{30,}\}', script_text)
+                for jm in json_matches[:15]:
+                    try:
+                        data = json.loads(jm)
+                        records.append({
+                            "date": date_str,
+                            "source": source,
+                            "type": "embedded_json",
+                            "data": data,
+                            "scraped_at": datetime.utcnow().isoformat(),
+                        })
+                    except json.JSONDecodeError:
+                        pass
+                array_matches = re.findall(r'\[[^\[\]]{30,}\]', script_text)
+                for am in array_matches[:10]:
+                    try:
+                        data = json.loads(am)
+                        if isinstance(data, list) and len(data) > 0:
+                            records.append({
+                                "date": date_str,
+                                "source": source,
+                                "type": "embedded_json_array",
+                                "data": data[:30],
+                                "scraped_at": datetime.utcnow().isoformat(),
+                            })
+                    except json.JSONDecodeError:
+                        pass
+                break
+    return records
+
+
+def extract_data_attributes(soup, date_str, source="paris_turf"):
+    """Extract all data-* attributes from DOM elements."""
+    records = []
+    seen = set()
+    for el in soup.find_all(True):
+        data_attrs = {k: v for k, v in el.attrs.items()
+                      if isinstance(k, str) and k.startswith("data-") and v}
+        if len(data_attrs) >= 2:
+            key = frozenset(data_attrs.items())
+            if key in seen:
+                continue
+            seen.add(key)
+            record = {
+                "date": date_str,
+                "source": source,
+                "type": "data_attribute",
+                "tag": el.name,
+                "scraped_at": datetime.utcnow().isoformat(),
+            }
+            for attr_name, attr_val in data_attrs.items():
+                clean_name = attr_name.replace("data-", "").replace("-", "_")
+                record[clean_name] = attr_val
+            text = el.get_text(strip=True)
+            if text and len(text) < 300:
+                record["text_content"] = text
+            records.append(record)
+    return records
+
+
+def extract_comments_analyses(soup, date_str, source="paris_turf"):
+    """Extract comment and analysis divs."""
+    records = []
+    for el in soup.find_all(["div", "p", "section", "article", "blockquote"], class_=True):
+        classes = " ".join(el.get("class", []))
+        if any(kw in classes.lower() for kw in ["comment", "analyse", "expert", "avis",
+                                                   "conseil", "editorial", "resume",
+                                                   "verdict", "opinion", "recap",
+                                                   "pronostic-text", "prediction"]):
+            text = el.get_text(strip=True)
+            if text and 20 < len(text) < 3000:
+                record = {
+                    "date": date_str,
+                    "source": source,
+                    "type": "commentaire",
+                    "contenu": text[:2000],
+                    "classes_css": classes,
+                    "scraped_at": datetime.utcnow().isoformat(),
+                }
+                author_el = el.find(["span", "strong", "a"],
+                                     class_=lambda c: c and any(kw in " ".join(c).lower()
+                                                                for kw in ["author", "auteur", "expert", "name"]))
+                if author_el:
+                    record["auteur"] = author_el.get_text(strip=True)
+                records.append(record)
+    return records
+
+
+def extract_terrain_distance_stats(soup, date_str, source="paris_turf"):
+    """Extract terrain and distance statistics from Paris-Turf."""
+    records = []
+    for div in soup.find_all(["div", "section", "span", "td"], class_=True):
+        classes = " ".join(div.get("class", []))
+        if any(kw in classes.lower() for kw in ["terrain", "going", "ground",
+                                                   "distance", "stat-terrain",
+                                                   "stat-distance", "piste"]):
+            text = div.get_text(strip=True)
+            if text and 5 < len(text) < 1000:
+                record = {
+                    "date": date_str,
+                    "source": source,
+                    "type": "stats_terrain_distance",
+                    "contenu": text[:500],
+                    "classes_css": classes,
+                    "scraped_at": datetime.utcnow().isoformat(),
+                }
+                # Parse percentages
+                pcts = re.findall(r'(\d{1,3})\s*%', text)
+                if pcts:
+                    record["pourcentages"] = pcts[:10]
+                # Parse distances
+                dists = re.findall(r'(\d[\d\s]*)\s*m', text)
+                if dists:
+                    record["distances_m"] = [d.replace(" ", "") for d in dists[:5]]
+                records.append(record)
+    return records
+
+
 def scrape_programme_day(session, date_str):
     """Scraper le programme Paris-Turf d'un jour donné."""
     cache_file = os.path.join(CACHE_DIR, f"programme_{date_str}.json")
@@ -128,6 +270,12 @@ def scrape_programme_day(session, date_str):
     soup = BeautifulSoup(resp.text, "html.parser")
     records = []
     course_links = []
+
+    # --- NEW: Full extraction pattern ---
+    records.extend(extract_embedded_json(soup, date_str, "paris_turf"))
+    records.extend(extract_data_attributes(soup, date_str, "paris_turf"))
+    records.extend(extract_comments_analyses(soup, date_str, "paris_turf"))
+    records.extend(extract_terrain_distance_stats(soup, date_str, "paris_turf"))
 
     # --- Extraire les réunions ---
     for div in soup.find_all(["div", "section", "article"], class_=True):
@@ -215,6 +363,12 @@ def scrape_course_predictions(session, course_url, date_str):
 
     soup = BeautifulSoup(resp.text, "html.parser")
     records = []
+
+    # --- NEW: Full extraction on course prediction page ---
+    records.extend(extract_embedded_json(soup, date_str, "paris_turf"))
+    records.extend(extract_data_attributes(soup, date_str, "paris_turf"))
+    records.extend(extract_comments_analyses(soup, date_str, "paris_turf"))
+    records.extend(extract_terrain_distance_stats(soup, date_str, "paris_turf"))
 
     # Nom du prix et conditions
     nom_prix = ""
