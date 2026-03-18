@@ -1,5 +1,15 @@
-# 01_calendrier_reunions.py - Dépendances
-requests>=2.31.0
-beautifulsoup4>=4.12.0
-pyarrow>=14.0.0
-pyyaml>=6.0.1
+requests
+beautifulsoup4
+lxml
+ijson
+pandas
+numpy
+urllib3
+meteostat
+scikit-learn
+scipy
+xgboost
+lightgbm
+catboost
+pyarrow
+pyyaml

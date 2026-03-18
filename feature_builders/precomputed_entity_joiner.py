@@ -1,101 +1,134 @@
+#!/usr/bin/env python3
 """
 feature_builders.precomputed_entity_joiner
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Joins pre-computed per-entity data from scripts 05/06/08.
-These files are indexed by name (nom_cheval, jockey name, sire/dam name)
+22 features joined from pre-computed per-entity data (scripts 05/06/08).
+
+These files are indexed by name (nom_cheval, jockey, entraineur, pere, mere)
 and contain aggregated career-level stats.
+
+Usage:
+    python feature_builders/precomputed_entity_joiner.py
+    python feature_builders/precomputed_entity_joiner.py --input output/02_liste_courses/partants_normalises.jsonl
 """
 
 from __future__ import annotations
 
+import argparse
 import json
+import logging
 import os
-from typing import Any
+import sys
+from datetime import datetime
+
+# ===========================================================================
+# CONFIG
+# ===========================================================================
+
+PARTANTS_DEFAULT = os.path.join("output", "02_liste_courses", "partants_normalises.jsonl")
+OUTPUT_DIR_DEFAULT = os.path.join("output", "precomputed_entity_features")
+LOG_DIR = os.path.join("logs")
+_OUTPUT_BASE = os.path.join("output")
+
+# ===========================================================================
+# LOGGING
+# ===========================================================================
+
+def setup_logging() -> logging.Logger:
+    logger = logging.getLogger("precomputed_entity_joiner")
+    logger.setLevel(logging.INFO)
+    fmt = logging.Formatter(
+        "%(asctime)s | %(levelname)-8s | %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+    ch = logging.StreamHandler(sys.stdout)
+    ch.setFormatter(fmt)
+    logger.addHandler(ch)
+    os.makedirs(LOG_DIR, exist_ok=True)
+    fh = logging.FileHandler(os.path.join(LOG_DIR, "precomputed_entity_joiner.log"), encoding="utf-8")
+    fh.setFormatter(fmt)
+    logger.addHandler(fh)
+    return logger
+
+# ===========================================================================
+# HELPERS
+# ===========================================================================
+
+def _normalize_name(name) -> str:
+    if not name:
+        return ""
+    return str(name).strip().upper()
+
+# ===========================================================================
+# LOAD
+# ===========================================================================
+
+def load_jsonl(path: str, logger: logging.Logger) -> list:
+    records = []
+    with open(path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if line:
+                records.append(json.loads(line))
+    logger.info("Charge %d enregistrements depuis %s", len(records), path)
+    return records
 
 
-_OUTPUT_BASE = os.path.join(os.path.dirname(__file__), "..", "output")
+def load_json_or_jsonl(path: str, logger: logging.Logger) -> list:
+    if path.endswith(".jsonl"):
+        return load_jsonl(path, logger)
+    jsonl_path = path.replace(".json", ".jsonl")
+    if os.path.exists(jsonl_path):
+        return load_jsonl(jsonl_path, logger)
+    if os.path.exists(path):
+        logger.info("Chargement JSON: %s", path)
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        logger.info("  %d entrees chargees", len(data))
+        return data
+    logger.warning("Fichier introuvable (skip): %s", path)
+    return []
 
 
-def _load_json_index(path: str, key: str) -> dict[str, dict]:
-    """Load a JSON file and build a lookup dict by key."""
-    if not os.path.exists(path):
-        print(f"  [entity] Not found (skipped): {path}")
-        return {}
-    with open(path, encoding="utf-8") as f:
-        data = json.load(f)
+def _load_json_index(path: str, key: str, logger: logging.Logger) -> dict:
+    """Load a JSON/JSONL file and build a lookup dict by key."""
+    data = load_json_or_jsonl(path, logger)
     index = {}
     for rec in data:
         k = rec.get(key)
         if k:
             index[k] = rec
-    print(f"  [entity] Loaded {len(index)} entities from {os.path.basename(path)}")
+    if index:
+        logger.info("  Index %s: %d entities", os.path.basename(path), len(index))
     return index
 
+# ===========================================================================
+# BUILDER
+# ===========================================================================
 
-def _normalize_name(name: str | None) -> str:
-    """Normalize a name for matching (uppercase, strip)."""
-    if not name:
-        return ""
-    return name.strip().upper()
-
-
-def build_precomputed_entity_features(partants: list[dict]) -> list[dict]:
-    """Join pre-computed per-entity features from scripts 05, 06, 08.
-
-    New features added (prefix ent_ = entity-level):
-
-    From historique_chevaux (script 05) - 6 new:
-    - ent_cheval_nb_courses_total: total career races (from aggregated history)
-    - ent_cheval_gains_total: total career earnings (aggregated)
-    - ent_cheval_nb_disciplines: number of distinct disciplines raced
-    - ent_cheval_nb_hippodromes: number of distinct hippodromes
-    - ent_cheval_anciennete_jours: days between first and current race
-    - ent_cheval_nb_distances: number of distinct distance categories
-
-    From historique_jockeys (script 06) - 5 new:
-    - ent_jockey_nb_montes_total: total career rides
-    - ent_jockey_taux_victoire_global: overall career win rate
-    - ent_jockey_taux_place_global: overall career place rate
-    - ent_jockey_nb_chevaux_montes: number of distinct horses ridden
-    - ent_jockey_gains_total: total career earnings
-
-    From historique_entraineurs (script 06) - 5 new:
-    - ent_entraineur_nb_partants_total: total career starters
-    - ent_entraineur_taux_victoire_global: overall career win rate
-    - ent_entraineur_taux_place_global: overall career place rate
-    - ent_entraineur_nb_chevaux: number of distinct horses trained
-    - ent_entraineur_gains_total: total career earnings
-
-    From pedigree enrichi (script 08) - 6 new:
-    - ent_pere_nb_descendants: sire total offspring count
-    - ent_pere_taux_victoire: sire offspring win rate
-    - ent_pere_nb_disciplines: sire offspring discipline diversity
-    - ent_mere_nb_descendants: dam total offspring count
-    - ent_mere_taux_victoire: dam offspring win rate
-    - ent_mere_nb_disciplines: dam offspring discipline diversity
-    """
-    from datetime import datetime
+def build_precomputed_entity_features(partants: list, logger: logging.Logger) -> list:
+    """Join 22 pre-computed per-entity features from scripts 05, 06, 08."""
 
     # Load all entity files
     cheval_idx = _load_json_index(
         os.path.join(_OUTPUT_BASE, "05_historique_chevaux", "historique_chevaux.json"),
-        key="nom_cheval",
+        "nom_cheval", logger,
     )
     jockey_idx = _load_json_index(
         os.path.join(_OUTPUT_BASE, "06_historique_jockeys", "historique_jockeys.json"),
-        key="nom",
+        "nom", logger,
     )
     entraineur_idx = _load_json_index(
         os.path.join(_OUTPUT_BASE, "06_historique_jockeys", "historique_entraineurs.json"),
-        key="nom",
+        "nom", logger,
     )
     pere_idx = _load_json_index(
         os.path.join(_OUTPUT_BASE, "08_pedigree", "pedigree_peres.json"),
-        key="nom_pere",
+        "nom_pere", logger,
     )
     mere_idx = _load_json_index(
         os.path.join(_OUTPUT_BASE, "08_pedigree", "pedigree_meres.json"),
-        key="nom_mere",
+        "nom_mere", logger,
     )
 
     # Normalize all keys for fuzzy matching
@@ -105,12 +138,12 @@ def build_precomputed_entity_features(partants: list[dict]) -> list[dict]:
     pere_norm = {_normalize_name(k): v for k, v in pere_idx.items()}
     mere_norm = {_normalize_name(k): v for k, v in mere_idx.items()}
 
-    results = []
+    enriched = 0
     stats = {"cheval": 0, "jockey": 0, "entraineur": 0, "pere": 0, "mere": 0}
+    results = []
 
-    for p in partants:
-        uid = p.get("partant_uid")
-        row: dict[str, Any] = {"partant_uid": uid}
+    for idx, p in enumerate(partants):
+        feat = {}
 
         # --- Historique cheval (script 05) ---
         nom = _normalize_name(p.get("nom_cheval"))
@@ -118,30 +151,30 @@ def build_precomputed_entity_features(partants: list[dict]) -> list[dict]:
         if cheval:
             stats["cheval"] += 1
 
-        row["ent_cheval_nb_courses_total"] = cheval.get("nb_courses_total")
-        row["ent_cheval_gains_total"] = cheval.get("gains_total_euros")
+        feat["ent_cheval_nb_courses_total"] = cheval.get("nb_courses_total")
+        feat["ent_cheval_gains_total"] = cheval.get("gains_total_euros")
 
         disciplines = cheval.get("disciplines")
-        row["ent_cheval_nb_disciplines"] = len(disciplines) if isinstance(disciplines, list) else None
+        feat["ent_cheval_nb_disciplines"] = len(disciplines) if isinstance(disciplines, list) else None
 
         hippos = cheval.get("hippodromes")
-        row["ent_cheval_nb_hippodromes"] = len(hippos) if isinstance(hippos, list) else None
+        feat["ent_cheval_nb_hippodromes"] = len(hippos) if isinstance(hippos, list) else None
 
         distances = cheval.get("distances_courues")
-        row["ent_cheval_nb_distances"] = len(set(distances)) if isinstance(distances, list) else None
+        feat["ent_cheval_nb_distances"] = len(set(distances)) if isinstance(distances, list) else None
 
-        # Ancienneté: days since first race
+        # Anciennete: days since first race
         premiere = cheval.get("premiere_course_date")
         date_course = p.get("date_reunion_iso")
         if premiere and date_course:
             try:
                 d1 = datetime.fromisoformat(str(premiere)[:10])
                 d2 = datetime.fromisoformat(str(date_course)[:10])
-                row["ent_cheval_anciennete_jours"] = (d2 - d1).days
+                feat["ent_cheval_anciennete_jours"] = (d2 - d1).days
             except (ValueError, TypeError):
-                row["ent_cheval_anciennete_jours"] = None
+                feat["ent_cheval_anciennete_jours"] = None
         else:
-            row["ent_cheval_anciennete_jours"] = None
+            feat["ent_cheval_anciennete_jours"] = None
 
         # --- Historique jockey (script 06) ---
         jockey_name = _normalize_name(p.get("jockey_driver"))
@@ -149,11 +182,11 @@ def build_precomputed_entity_features(partants: list[dict]) -> list[dict]:
         if jockey:
             stats["jockey"] += 1
 
-        row["ent_jockey_nb_montes_total"] = jockey.get("nb_montes")
-        row["ent_jockey_taux_victoire_global"] = jockey.get("taux_victoire")
-        row["ent_jockey_taux_place_global"] = jockey.get("taux_place")
-        row["ent_jockey_nb_chevaux_montes"] = jockey.get("chevaux_montes")
-        row["ent_jockey_gains_total"] = jockey.get("gains_total_euros")
+        feat["ent_jockey_nb_montes_total"] = jockey.get("nb_montes")
+        feat["ent_jockey_taux_victoire_global"] = jockey.get("taux_victoire")
+        feat["ent_jockey_taux_place_global"] = jockey.get("taux_place")
+        feat["ent_jockey_nb_chevaux_montes"] = jockey.get("chevaux_montes")
+        feat["ent_jockey_gains_total"] = jockey.get("gains_total_euros")
 
         # --- Historique entraineur (script 06) ---
         ent_name = _normalize_name(p.get("entraineur"))
@@ -161,37 +194,84 @@ def build_precomputed_entity_features(partants: list[dict]) -> list[dict]:
         if entraineur:
             stats["entraineur"] += 1
 
-        row["ent_entraineur_nb_partants_total"] = entraineur.get("nb_montes")
-        row["ent_entraineur_taux_victoire_global"] = entraineur.get("taux_victoire")
-        row["ent_entraineur_taux_place_global"] = entraineur.get("taux_place")
-        row["ent_entraineur_nb_chevaux"] = entraineur.get("chevaux_montes")
-        row["ent_entraineur_gains_total"] = entraineur.get("gains_total_euros")
+        feat["ent_entraineur_nb_partants_total"] = entraineur.get("nb_montes")
+        feat["ent_entraineur_taux_victoire_global"] = entraineur.get("taux_victoire")
+        feat["ent_entraineur_taux_place_global"] = entraineur.get("taux_place")
+        feat["ent_entraineur_nb_chevaux"] = entraineur.get("chevaux_montes")
+        feat["ent_entraineur_gains_total"] = entraineur.get("gains_total_euros")
 
-        # --- Pedigree père (script 08) ---
+        # --- Pedigree pere (script 08) ---
         pere_name = _normalize_name(p.get("pere"))
         pere = pere_norm.get(pere_name, {})
         if pere:
             stats["pere"] += 1
 
-        row["ent_pere_nb_descendants"] = pere.get("nb_descendants_courses")
-        row["ent_pere_taux_victoire"] = pere.get("taux_victoire_descendants")
+        feat["ent_pere_nb_descendants"] = pere.get("nb_descendants_courses")
+        feat["ent_pere_taux_victoire"] = pere.get("taux_victoire_descendants")
         pere_disc = pere.get("disciplines")
-        row["ent_pere_nb_disciplines"] = len(pere_disc) if isinstance(pere_disc, list) else None
+        feat["ent_pere_nb_disciplines"] = len(pere_disc) if isinstance(pere_disc, list) else None
 
-        # --- Pedigree mère (script 08) ---
+        # --- Pedigree mere (script 08) ---
         mere_name = _normalize_name(p.get("mere"))
         mere = mere_norm.get(mere_name, {})
         if mere:
             stats["mere"] += 1
 
-        row["ent_mere_nb_descendants"] = mere.get("nb_descendants_courses")
-        row["ent_mere_taux_victoire"] = mere.get("taux_victoire_descendants")
+        feat["ent_mere_nb_descendants"] = mere.get("nb_descendants_courses")
+        feat["ent_mere_taux_victoire"] = mere.get("taux_victoire_descendants")
         mere_disc = mere.get("disciplines")
-        row["ent_mere_nb_disciplines"] = len(mere_disc) if isinstance(mere_disc, list) else None
+        feat["ent_mere_nb_disciplines"] = len(mere_disc) if isinstance(mere_disc, list) else None
 
-        results.append(row)
+        if any(v is not None for v in feat.values()):
+            enriched += 1
+
+        p.update(feat)
+        results.append(p)
+
+        if (idx + 1) % 200000 == 0:
+            logger.info("  %d/%d traites", idx + 1, len(partants))
 
     n = len(partants)
-    print(f"  [entity] Match rates: cheval={stats['cheval']}/{n}, jockey={stats['jockey']}/{n}, "
-          f"entraineur={stats['entraineur']}/{n}, pere={stats['pere']}/{n}, mere={stats['mere']}/{n}")
+    logger.info("Match rates: cheval=%d/%d, jockey=%d/%d, entraineur=%d/%d, pere=%d/%d, mere=%d/%d",
+                stats["cheval"], n, stats["jockey"], n, stats["entraineur"], n,
+                stats["pere"], n, stats["mere"], n)
+    logger.info("Features precomputed_entity: %d/%d enrichis (%.1f%%)",
+                enriched, len(results), 100 * enriched / max(len(results), 1))
     return results
+
+# ===========================================================================
+# EXPORT
+# ===========================================================================
+
+def save_jsonl(records: list, path: str, logger: logging.Logger):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        for r in records:
+            f.write(json.dumps(r, ensure_ascii=False, default=str) + "\n")
+    logger.info("Sauve JSONL: %s (%d)", path, len(records))
+
+# ===========================================================================
+# MAIN
+# ===========================================================================
+
+def main():
+    parser = argparse.ArgumentParser(description="22 pre-computed per-entity features")
+    parser.add_argument("--input", default=PARTANTS_DEFAULT, help="Partants JSONL/JSON")
+    parser.add_argument("--output-dir", default=OUTPUT_DIR_DEFAULT, help="Output directory")
+    args = parser.parse_args()
+
+    logger = setup_logging()
+    logger.info("=" * 70)
+    logger.info("precomputed_entity_joiner.py")
+    logger.info("=" * 70)
+
+    partants = load_json_or_jsonl(args.input, logger)
+    results = build_precomputed_entity_features(partants, logger)
+
+    out_path = os.path.join(args.output_dir, "precomputed_entity_features.jsonl")
+    save_jsonl(results, out_path, logger)
+    logger.info("Termine — %d partants traites", len(results))
+
+
+if __name__ == "__main__":
+    main()

@@ -1,45 +1,71 @@
+#!/usr/bin/env python3
 """
 feature_builders.combo_features
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Jockey-Trainer-Horse combination features.
-Computes win rates, place rates, and experience metrics for entity pairs
-(jockey+trainer, jockey+horse, trainer+horse) and entity+context pairs
-(jockey+hippodrome, trainer+hippodrome, jockey+distance, trainer+distance).
+13 features from jockey-trainer-horse combinations and entity+context pairs.
 
-Temporal integrity: for any partant at date D, only races with date < D are used.
+Temporal integrity: for any partant at date D, only races with date < D
+are used (no future leakage).
 
-Features produced (13):
-- jockey_trainer_nb_courses: how often this jockey+trainer pair has raced together
-- jockey_trainer_taux_victoire: win rate of this jockey+trainer pair
-- jockey_trainer_taux_place: place rate of this jockey+trainer pair
-- jockey_cheval_nb_courses: how often this jockey has ridden this horse
-- jockey_cheval_taux_victoire: jockey's win rate on this horse
-- trainer_cheval_taux_victoire: trainer's win rate with this horse
-- jockey_hippo_taux_victoire: jockey's win rate at this hippodrome
-- trainer_hippo_taux_victoire: trainer's win rate at this hippodrome
-- jockey_distance_taux_victoire: jockey's win rate at this distance category
-- trainer_distance_taux_victoire: trainer's win rate at this distance category
-- is_new_jockey: first time this jockey rides this horse (boolean)
-- is_new_trainer: first time this trainer trains this horse (boolean)
-- jockey_change: different jockey from last race on this horse (boolean)
+Usage:
+    python feature_builders/combo_features.py
+    python feature_builders/combo_features.py --input output/02_liste_courses/partants_normalises.jsonl
 """
 
 from __future__ import annotations
 
+import argparse
+import json
+import logging
+import os
+import sys
 from collections import defaultdict
 from typing import Optional
 
+# ===========================================================================
+# CONFIG
+# ===========================================================================
+
+PARTANTS_DEFAULT = os.path.join("output", "02_liste_courses", "partants_normalises.jsonl")
+OUTPUT_DIR_DEFAULT = os.path.join("output", "combo_features")
+LOG_DIR = os.path.join("logs")
+
+# ===========================================================================
+# LOGGING
+# ===========================================================================
+
+def setup_logging() -> logging.Logger:
+    logger = logging.getLogger("combo_features")
+    logger.setLevel(logging.INFO)
+    fmt = logging.Formatter(
+        "%(asctime)s | %(levelname)-8s | %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+    ch = logging.StreamHandler(sys.stdout)
+    ch.setFormatter(fmt)
+    logger.addHandler(ch)
+    os.makedirs(LOG_DIR, exist_ok=True)
+    fh = logging.FileHandler(os.path.join(LOG_DIR, "combo_features.log"), encoding="utf-8")
+    fh.setFormatter(fmt)
+    logger.addHandler(fh)
+    return logger
+
+# ===========================================================================
+# HELPERS
+# ===========================================================================
 
 def _safe_rate(count: int, total: int) -> Optional[float]:
-    """Win/place rate, or None if no data."""
     if total == 0:
         return None
-    return count / total
+    return round(count / total, 4)
 
 
-def _distance_category(dist: Optional[int]) -> Optional[str]:
-    """Bucket distance into sprint/mile/intermediate/staying."""
+def _distance_category(dist) -> Optional[str]:
     if dist is None:
+        return None
+    try:
+        dist = int(dist)
+    except (ValueError, TypeError):
         return None
     if dist < 1400:
         return "sprint"
@@ -50,62 +76,81 @@ def _distance_category(dist: Optional[int]) -> Optional[str]:
     else:
         return "staying"
 
+# ===========================================================================
+# LOAD
+# ===========================================================================
 
-def build_combo_features(partants: list[dict]) -> list[dict]:
-    """Build jockey-trainer-horse combination features for every partant.
+def load_jsonl(path: str, logger: logging.Logger) -> list:
+    records = []
+    with open(path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if line:
+                records.append(json.loads(line))
+    logger.info("Charge %d enregistrements depuis %s", len(records), path)
+    return records
 
-    Parameters
-    ----------
-    partants : list[dict]
-        All partant records. Expected fields: partant_uid, nom_cheval,
-        jockey_driver, entraineur, date_reunion_iso, hippodrome_normalise,
-        distance, position_arrivee, is_gagnant, is_place.
 
-    Returns
-    -------
-    list[dict]
-        One dict per partant_uid with combo features.
-    """
+def load_json_or_jsonl(path: str, logger: logging.Logger) -> list:
+    if path.endswith(".jsonl"):
+        return load_jsonl(path, logger)
+    jsonl_path = path.replace(".json", ".jsonl")
+    if os.path.exists(jsonl_path):
+        return load_jsonl(jsonl_path, logger)
+    if os.path.exists(path):
+        logger.info("Chargement JSON: %s", path)
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        logger.info("  %d entrees chargees", len(data))
+        return data
+    logger.error("Fichier introuvable: %s", path)
+    sys.exit(1)
+
+# ===========================================================================
+# BUILDER
+# ===========================================================================
+
+def build_combo_features(partants: list, logger: logging.Logger) -> list:
+    """Build 13 jockey-trainer-horse combination features."""
+
     # Sort chronologically for temporal integrity
     sorted_p = sorted(
         partants,
         key=lambda p: (
-            p.get("date_reunion_iso", ""),
-            p.get("course_uid", ""),
-            p.get("num_pmu", 0),
+            str(p.get("date_reunion_iso", "") or ""),
+            str(p.get("course_uid", "") or ""),
+            p.get("num_pmu", 0) or 0,
         ),
     )
 
-    # Accumulate histories for each combo key as we iterate chronologically
-    # Each history entry: {"date": str, "gagnant": bool, "place": bool}
-    jt_history: dict[str, list[dict]] = defaultdict(list)   # jockey+trainer
-    jh_history: dict[str, list[dict]] = defaultdict(list)   # jockey+horse
-    th_history: dict[str, list[dict]] = defaultdict(list)   # trainer+horse
-    j_hippo_history: dict[str, list[dict]] = defaultdict(list)  # jockey+hippo
-    t_hippo_history: dict[str, list[dict]] = defaultdict(list)  # trainer+hippo
-    j_dist_history: dict[str, list[dict]] = defaultdict(list)   # jockey+dist_cat
-    t_dist_history: dict[str, list[dict]] = defaultdict(list)   # trainer+dist_cat
+    # Accumulate histories for each combo key
+    jt_history: dict[str, list[dict]] = defaultdict(list)
+    jh_history: dict[str, list[dict]] = defaultdict(list)
+    th_history: dict[str, list[dict]] = defaultdict(list)
+    j_hippo_history: dict[str, list[dict]] = defaultdict(list)
+    t_hippo_history: dict[str, list[dict]] = defaultdict(list)
+    j_dist_history: dict[str, list[dict]] = defaultdict(list)
+    t_dist_history: dict[str, list[dict]] = defaultdict(list)
 
-    # Track last jockey per horse for jockey_change detection
+    # Track last jockey per horse
     horse_last_jockey: dict[str, str] = {}
 
+    enriched = 0
     results = []
 
-    for p in sorted_p:
-        uid = p.get("partant_uid")
-        cheval = p.get("nom_cheval", "")
-        jockey = p.get("jockey_driver", "")
-        trainer = p.get("entraineur", "")
-        date_iso = p.get("date_reunion_iso", "")
-        hippo = p.get("hippodrome_normalise", "")
+    for idx, p in enumerate(sorted_p):
+        cheval = (p.get("nom_cheval") or "").upper().strip()
+        jockey = (p.get("jockey_driver") or "").upper().strip()
+        trainer = (p.get("entraineur") or "").upper().strip()
+        date_iso = str(p.get("date_reunion_iso", "") or "")[:10]
+        hippo = (p.get("hippodrome_normalise") or "").upper().strip()
         dist = p.get("distance")
         dist_cat = _distance_category(dist)
 
         is_gagnant = bool(p.get("is_gagnant"))
         is_place = bool(p.get("is_place"))
-        pos = p.get("position_arrivee")
 
-        # -- Build combo keys --
+        # Build combo keys
         jt_key = f"{jockey}||{trainer}" if jockey and trainer else None
         jh_key = f"{jockey}||{cheval}" if jockey and cheval else None
         th_key = f"{trainer}||{cheval}" if trainer and cheval else None
@@ -114,7 +159,7 @@ def build_combo_features(partants: list[dict]) -> list[dict]:
         j_dist_key = f"{jockey}||{dist_cat}" if jockey and dist_cat else None
         t_dist_key = f"{trainer}||{dist_cat}" if trainer and dist_cat else None
 
-        # -- Retrieve PAST records (strictly < current date) --
+        # Retrieve PAST records (strictly < current date)
         def _past(history, key):
             if key is None:
                 return []
@@ -128,7 +173,7 @@ def build_combo_features(partants: list[dict]) -> list[dict]:
         j_dist_past = _past(j_dist_history, j_dist_key)
         t_dist_past = _past(t_dist_history, t_dist_key)
 
-        # -- Compute features --
+        # Compute features
         jt_nb = len(jt_past)
         jt_wins = sum(1 for r in jt_past if r["gagnant"])
         jt_places = sum(1 for r in jt_past if r["place"])
@@ -139,53 +184,41 @@ def build_combo_features(partants: list[dict]) -> list[dict]:
         th_nb = len(th_past)
         th_wins = sum(1 for r in th_past if r["gagnant"])
 
-        j_hippo_nb = len(j_hippo_past)
         j_hippo_wins = sum(1 for r in j_hippo_past if r["gagnant"])
-
-        t_hippo_nb = len(t_hippo_past)
         t_hippo_wins = sum(1 for r in t_hippo_past if r["gagnant"])
-
-        j_dist_nb = len(j_dist_past)
         j_dist_wins = sum(1 for r in j_dist_past if r["gagnant"])
-
-        t_dist_nb = len(t_dist_past)
         t_dist_wins = sum(1 for r in t_dist_past if r["gagnant"])
 
-        # Jockey change: different jockey from last time this horse raced
+        # Jockey change
         last_jockey = horse_last_jockey.get(cheval)
         jockey_change = None
         if last_jockey is not None and jockey:
             jockey_change = 1 if last_jockey != jockey else 0
 
+        has_any_past = jt_nb > 0 or jh_nb > 0 or th_nb > 0
+        if has_any_past:
+            enriched += 1
+
         feat = {
-            "partant_uid": uid,
-            # Jockey-Trainer combo
             "jockey_trainer_nb_courses": jt_nb if jt_key else None,
             "jockey_trainer_taux_victoire": _safe_rate(jt_wins, jt_nb),
             "jockey_trainer_taux_place": _safe_rate(jt_places, jt_nb),
-            # Jockey-Horse combo
             "jockey_cheval_nb_courses": jh_nb if jh_key else None,
             "jockey_cheval_taux_victoire": _safe_rate(jh_wins, jh_nb),
-            # Trainer-Horse combo
             "trainer_cheval_taux_victoire": _safe_rate(th_wins, th_nb),
-            # Jockey at hippodrome
-            "jockey_hippo_taux_victoire": _safe_rate(j_hippo_wins, j_hippo_nb),
-            # Trainer at hippodrome
-            "trainer_hippo_taux_victoire": _safe_rate(t_hippo_wins, t_hippo_nb),
-            # Jockey at distance category
-            "jockey_distance_taux_victoire": _safe_rate(j_dist_wins, j_dist_nb),
-            # Trainer at distance category
-            "trainer_distance_taux_victoire": _safe_rate(t_dist_wins, t_dist_nb),
-            # First-time flags
+            "jockey_hippo_taux_victoire": _safe_rate(j_hippo_wins, len(j_hippo_past)),
+            "trainer_hippo_taux_victoire": _safe_rate(t_hippo_wins, len(t_hippo_past)),
+            "jockey_distance_taux_victoire": _safe_rate(j_dist_wins, len(j_dist_past)),
+            "trainer_distance_taux_victoire": _safe_rate(t_dist_wins, len(t_dist_past)),
             "is_new_jockey": 1 if (jh_key and jh_nb == 0) else (0 if jh_key else None),
             "is_new_trainer": 1 if (th_key and th_nb == 0) else (0 if th_key else None),
-            # Jockey change
             "jockey_change": jockey_change,
         }
 
-        results.append(feat)
+        p.update(feat)
+        results.append(p)
 
-        # -- Append current race to histories for future use --
+        # Append current race to histories
         record = {"date": date_iso, "gagnant": is_gagnant, "place": is_place}
 
         if jt_key:
@@ -203,8 +236,49 @@ def build_combo_features(partants: list[dict]) -> list[dict]:
         if t_dist_key:
             t_dist_history[t_dist_key].append(record)
 
-        # Update last jockey for this horse
         if cheval and jockey:
             horse_last_jockey[cheval] = jockey
 
+        if (idx + 1) % 100000 == 0:
+            logger.info("  %d/%d traites, %d enrichis", idx + 1, len(sorted_p), enriched)
+
+    logger.info("Features combo: %d/%d enrichis (%.1f%%)",
+                enriched, len(results), 100 * enriched / max(len(results), 1))
     return results
+
+# ===========================================================================
+# EXPORT
+# ===========================================================================
+
+def save_jsonl(records: list, path: str, logger: logging.Logger):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        for r in records:
+            f.write(json.dumps(r, ensure_ascii=False, default=str) + "\n")
+    logger.info("Sauve JSONL: %s (%d)", path, len(records))
+
+# ===========================================================================
+# MAIN
+# ===========================================================================
+
+def main():
+    parser = argparse.ArgumentParser(description="13 jockey-trainer-horse combo features")
+    parser.add_argument("--input", default=PARTANTS_DEFAULT, help="Partants JSONL/JSON")
+    parser.add_argument("--output-dir", default=OUTPUT_DIR_DEFAULT, help="Output directory")
+    args = parser.parse_args()
+
+    logger = setup_logging()
+    logger.info("=" * 70)
+    logger.info("combo_features.py")
+    logger.info("=" * 70)
+
+    partants = load_json_or_jsonl(args.input, logger)
+    results = build_combo_features(partants, logger)
+
+    out_path = os.path.join(args.output_dir, "combo_features.jsonl")
+    save_jsonl(results, out_path, logger)
+    logger.info("Termine — %d partants traites", len(results))
+
+
+if __name__ == "__main__":
+    main()

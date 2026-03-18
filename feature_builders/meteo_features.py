@@ -1,76 +1,114 @@
+#!/usr/bin/env python3
 """
 feature_builders.meteo_features
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Builds weather-derived features from the météo historique dataset.
-Joins on course_uid to attach weather conditions to each partant.
+15 features from weather data (temperature, wind, rain, humidity).
+
+Joins meteo data on course_uid to attach weather conditions to each partant.
+
+Usage:
+    python feature_builders/meteo_features.py
+    python feature_builders/meteo_features.py --input output/02_liste_courses/partants_normalises.jsonl
+    python feature_builders/meteo_features.py --meteo output/13_meteo_historique/meteo_historique.json
 """
 
 from __future__ import annotations
 
+import argparse
 import json
+import logging
 import os
-from typing import Any
+import sys
+
+# ===========================================================================
+# CONFIG
+# ===========================================================================
+
+PARTANTS_DEFAULT = os.path.join("output", "02_liste_courses", "partants_normalises.jsonl")
+METEO_DEFAULT = os.path.join("output", "13_meteo_historique", "meteo_historique.json")
+OUTPUT_DIR_DEFAULT = os.path.join("output", "meteo_features")
+LOG_DIR = os.path.join("logs")
+
+# ===========================================================================
+# LOGGING
+# ===========================================================================
+
+def setup_logging() -> logging.Logger:
+    logger = logging.getLogger("meteo_features")
+    logger.setLevel(logging.INFO)
+    fmt = logging.Formatter(
+        "%(asctime)s | %(levelname)-8s | %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+    ch = logging.StreamHandler(sys.stdout)
+    ch.setFormatter(fmt)
+    logger.addHandler(ch)
+    os.makedirs(LOG_DIR, exist_ok=True)
+    fh = logging.FileHandler(os.path.join(LOG_DIR, "meteo_features.log"), encoding="utf-8")
+    fh.setFormatter(fmt)
+    logger.addHandler(fh)
+    return logger
+
+# ===========================================================================
+# LOAD
+# ===========================================================================
+
+def load_jsonl(path: str, logger: logging.Logger) -> list:
+    records = []
+    with open(path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if line:
+                records.append(json.loads(line))
+    logger.info("Charge %d enregistrements depuis %s", len(records), path)
+    return records
 
 
-def _load_meteo(meteo_path: str | None = None) -> dict[str, dict]:
-    """Load météo data and index by course_uid."""
-    if meteo_path is None:
-        meteo_path = os.path.join(
-            os.path.dirname(__file__), "..", "output", "13_meteo_historique", "meteo_historique.json"
-        )
-    if not os.path.exists(meteo_path):
-        print(f"  [meteo] File not found: {meteo_path}")
-        return {}
+def load_json_or_jsonl(path: str, logger: logging.Logger) -> list:
+    if path.endswith(".jsonl"):
+        return load_jsonl(path, logger)
+    jsonl_path = path.replace(".json", ".jsonl")
+    if os.path.exists(jsonl_path):
+        return load_jsonl(jsonl_path, logger)
+    if os.path.exists(path):
+        logger.info("Chargement JSON: %s", path)
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        logger.info("  %d entrees chargees", len(data))
+        return data
+    logger.warning("Fichier introuvable: %s", path)
+    return []
 
-    with open(meteo_path, encoding="utf-8") as f:
-        data = json.load(f)
 
-    index: dict[str, dict] = {}
+def _load_meteo_index(meteo_path: str, logger: logging.Logger) -> dict:
+    """Load meteo data and index by course_uid."""
+    data = load_json_or_jsonl(meteo_path, logger)
+    index = {}
     for rec in data:
         uid = rec.get("course_uid")
         if uid:
             index[uid] = rec
-    print(f"  [meteo] Loaded {len(index)} course weather records")
+    logger.info("Index meteo: %d courses", len(index))
     return index
 
+# ===========================================================================
+# BUILDER
+# ===========================================================================
 
-def build_meteo_features(
-    partants: list[dict],
-    meteo_path: str | None = None,
-) -> list[dict]:
-    """Build weather features for each partant.
+def build_meteo_features(partants: list, meteo_index: dict, logger: logging.Logger) -> list:
+    """Build 15 weather impact features."""
 
-    Features produced (15):
-    - meteo_temperature_c: temperature at race time
-    - meteo_temp_range: max - min temperature of the day
-    - meteo_humidity_pct: relative humidity
-    - meteo_precipitation_mm: hourly precipitation
-    - meteo_precip_total_mm: daily total precipitation
-    - meteo_wind_speed_kmh: wind speed
-    - meteo_wind_gusts_kmh: wind gusts
-    - meteo_is_rainy: boolean rain flag
-    - meteo_is_windy: boolean wind flag (>30 kmh)
-    - meteo_is_hot: boolean hot flag (>30°C)
-    - meteo_is_cold: boolean cold flag (<5°C)
-    - meteo_weather_code: WMO weather code
-    - meteo_comfort_index: combined comfort metric (ideal ~15°C, low wind, no rain)
-    - meteo_wind_impact: wind impact score (higher = more disruptive)
-    - meteo_ground_moisture: estimated ground moisture (precip + humidity proxy)
-    """
-    meteo_index = _load_meteo(meteo_path)
-
+    enriched = 0
     results = []
-    matched = 0
 
-    for p in partants:
-        uid = p.get("partant_uid")
+    for idx, p in enumerate(partants):
         course_uid = p.get("course_uid")
-        row: dict[str, Any] = {"partant_uid": uid}
-
         meteo = meteo_index.get(course_uid, {}) if course_uid else {}
 
+        feat = {}
+
         if meteo:
-            matched += 1
+            enriched += 1
             temp = meteo.get("temperature_c")
             temp_min = meteo.get("temp_min_c")
             temp_max = meteo.get("temp_max_c")
@@ -80,39 +118,41 @@ def build_meteo_features(
             wind = meteo.get("wind_speed_kmh")
             gusts = meteo.get("wind_gusts_kmh")
 
-            row["meteo_temperature_c"] = temp
-            row["meteo_temp_range"] = (temp_max - temp_min) if temp_max is not None and temp_min is not None else None
-            row["meteo_humidity_pct"] = humidity
-            row["meteo_precipitation_mm"] = precip
-            row["meteo_precip_total_mm"] = precip_total
-            row["meteo_wind_speed_kmh"] = wind
-            row["meteo_wind_gusts_kmh"] = gusts
-            row["meteo_is_rainy"] = meteo.get("is_rainy")
-            row["meteo_is_windy"] = meteo.get("is_windy")
-            row["meteo_is_hot"] = meteo.get("is_hot")
-            row["meteo_is_cold"] = meteo.get("is_cold")
-            row["meteo_weather_code"] = meteo.get("weather_code")
+            feat["meteo_temperature_c"] = temp
+            feat["meteo_temp_range"] = (temp_max - temp_min) if temp_max is not None and temp_min is not None else None
+            feat["meteo_humidity_pct"] = humidity
+            feat["meteo_precipitation_mm"] = precip
+            feat["meteo_precip_total_mm"] = precip_total
+            feat["meteo_wind_speed_kmh"] = wind
+            feat["meteo_wind_gusts_kmh"] = gusts
+            feat["meteo_is_rainy"] = meteo.get("is_rainy")
+            feat["meteo_is_windy"] = meteo.get("is_windy")
+            feat["meteo_is_hot"] = meteo.get("is_hot")
+            feat["meteo_is_cold"] = meteo.get("is_cold")
+            feat["meteo_weather_code"] = meteo.get("weather_code")
 
-            # Comfort index: ideal temp ~15°C, low wind, no rain
+            # Comfort index: ideal temp ~15C, low wind, no rain
             if temp is not None and wind is not None:
-                temp_penalty = abs(temp - 15) / 10  # 0 at 15°C, 1 at 25°C or 5°C
-                wind_penalty = (wind or 0) / 40  # 0 at calm, 1 at 40 km/h
+                temp_penalty = abs(temp - 15) / 10
+                wind_penalty = (wind or 0) / 40
                 rain_penalty = 1.0 if meteo.get("is_rainy") else 0.0
-                row["meteo_comfort_index"] = round(max(0, 1.0 - temp_penalty - wind_penalty * 0.3 - rain_penalty * 0.3), 3)
+                feat["meteo_comfort_index"] = round(
+                    max(0, 1.0 - temp_penalty - wind_penalty * 0.3 - rain_penalty * 0.3), 3
+                )
             else:
-                row["meteo_comfort_index"] = None
+                feat["meteo_comfort_index"] = None
 
-            # Wind impact (higher = more disruptive for race)
+            # Wind impact (higher = more disruptive)
             if wind is not None:
-                row["meteo_wind_impact"] = round(((wind or 0) + (gusts or 0) * 0.5) / 30, 3)
+                feat["meteo_wind_impact"] = round(((wind or 0) + (gusts or 0) * 0.5) / 30, 3)
             else:
-                row["meteo_wind_impact"] = None
+                feat["meteo_wind_impact"] = None
 
             # Ground moisture proxy
             if precip_total is not None and humidity is not None:
-                row["meteo_ground_moisture"] = round(precip_total + humidity / 100 * 2, 3)
+                feat["meteo_ground_moisture"] = round(precip_total + humidity / 100 * 2, 3)
             else:
-                row["meteo_ground_moisture"] = None
+                feat["meteo_ground_moisture"] = None
         else:
             for k in ("meteo_temperature_c", "meteo_temp_range", "meteo_humidity_pct",
                        "meteo_precipitation_mm", "meteo_precip_total_mm",
@@ -120,9 +160,53 @@ def build_meteo_features(
                        "meteo_is_rainy", "meteo_is_windy", "meteo_is_hot", "meteo_is_cold",
                        "meteo_weather_code", "meteo_comfort_index", "meteo_wind_impact",
                        "meteo_ground_moisture"):
-                row[k] = None
+                feat[k] = None
 
-        results.append(row)
+        p.update(feat)
+        results.append(p)
 
-    print(f"  [meteo] Matched {matched}/{len(partants)} partants with weather data")
+        if (idx + 1) % 200000 == 0:
+            logger.info("  %d/%d traites, %d enrichis", idx + 1, len(partants), enriched)
+
+    logger.info("Features meteo: %d/%d enrichis (%.1f%%)",
+                enriched, len(results), 100 * enriched / max(len(results), 1))
     return results
+
+# ===========================================================================
+# EXPORT
+# ===========================================================================
+
+def save_jsonl(records: list, path: str, logger: logging.Logger):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        for r in records:
+            f.write(json.dumps(r, ensure_ascii=False, default=str) + "\n")
+    logger.info("Sauve JSONL: %s (%d)", path, len(records))
+
+# ===========================================================================
+# MAIN
+# ===========================================================================
+
+def main():
+    parser = argparse.ArgumentParser(description="15 weather impact features")
+    parser.add_argument("--input", default=PARTANTS_DEFAULT, help="Partants JSONL/JSON")
+    parser.add_argument("--meteo", default=METEO_DEFAULT, help="Meteo data JSON/JSONL")
+    parser.add_argument("--output-dir", default=OUTPUT_DIR_DEFAULT, help="Output directory")
+    args = parser.parse_args()
+
+    logger = setup_logging()
+    logger.info("=" * 70)
+    logger.info("meteo_features.py")
+    logger.info("=" * 70)
+
+    partants = load_json_or_jsonl(args.input, logger)
+    meteo_index = _load_meteo_index(args.meteo, logger)
+    results = build_meteo_features(partants, meteo_index, logger)
+
+    out_path = os.path.join(args.output_dir, "meteo_features.jsonl")
+    save_jsonl(results, out_path, logger)
+    logger.info("Termine — %d partants traites", len(results))
+
+
+if __name__ == "__main__":
+    main()

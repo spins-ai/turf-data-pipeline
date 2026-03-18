@@ -1,43 +1,110 @@
+#!/usr/bin/env python3
 """
 feature_builders.poids_features
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Builds weight and handicap features.
+15 features from weight carried, handicap values, and relative weight.
+
+Temporal integrity: for each partant at date D, only races with date < D
+are used for weight change comparisons (no future leakage).
+
+Usage:
+    python feature_builders/poids_features.py
+    python feature_builders/poids_features.py --input output/02_liste_courses/partants_normalises.jsonl
 """
 
 from __future__ import annotations
 
-from typing import Any
+import argparse
+import json
+import logging
+import os
+import sys
+from collections import defaultdict
+
+# ===========================================================================
+# CONFIG
+# ===========================================================================
+
+PARTANTS_DEFAULT = os.path.join("output", "02_liste_courses", "partants_normalises.jsonl")
+OUTPUT_DIR_DEFAULT = os.path.join("output", "poids_features")
+LOG_DIR = os.path.join("logs")
+
+# ===========================================================================
+# LOGGING
+# ===========================================================================
+
+def setup_logging() -> logging.Logger:
+    logger = logging.getLogger("poids_features")
+    logger.setLevel(logging.INFO)
+    fmt = logging.Formatter(
+        "%(asctime)s | %(levelname)-8s | %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+    ch = logging.StreamHandler(sys.stdout)
+    ch.setFormatter(fmt)
+    logger.addHandler(ch)
+    os.makedirs(LOG_DIR, exist_ok=True)
+    fh = logging.FileHandler(os.path.join(LOG_DIR, "poids_features.log"), encoding="utf-8")
+    fh.setFormatter(fmt)
+    logger.addHandler(fh)
+    return logger
+
+# ===========================================================================
+# LOAD
+# ===========================================================================
+
+def load_jsonl(path: str, logger: logging.Logger) -> list:
+    records = []
+    with open(path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if line:
+                records.append(json.loads(line))
+    logger.info("Charge %d enregistrements depuis %s", len(records), path)
+    return records
 
 
-def build_poids_features(partants: list[dict]) -> list[dict]:
-    """Build weight/handicap features for each partant.
+def load_json_or_jsonl(path: str, logger: logging.Logger) -> list:
+    if path.endswith(".jsonl"):
+        return load_jsonl(path, logger)
+    jsonl_path = path.replace(".json", ".jsonl")
+    if os.path.exists(jsonl_path):
+        return load_jsonl(jsonl_path, logger)
+    if os.path.exists(path):
+        logger.info("Chargement JSON: %s", path)
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        logger.info("  %d entrees chargees", len(data))
+        return data
+    logger.error("Fichier introuvable: %s", path)
+    sys.exit(1)
 
-    Features produced (15):
-    - poids_porte_kg: absolute weight carried
-    - poids_handicap_valeur: handicap value
-    - poids_handicap_distance_m: distance handicap (trot)
-    - poids_relatif_champ: weight relative to field average
-    - poids_ecart_top_weight: difference from top weight in race
-    - poids_ecart_min_weight: difference from minimum weight in race
-    - poids_rang_poids: rank by weight (1 = heaviest)
-    - poids_supplement: supplement paid (indicates confidence)
-    - poids_diff_vs_avg: weight vs field average (alias for poids_relatif_champ)
-    - poids_diff_vs_last: weight change from last race
-    - poids_par_distance: weight per meter ratio (kg/m * 1000)
-    - poids_surcharge_kg: extra weight (surcharge)
-    - poids_is_top_weight: 1 if heaviest in field
-    - poids_is_bottom_weight: 1 if lightest in field
-    """
-    # Group partants by course to compute relative features
-    courses: dict[str, list[dict]] = {}
-    for p in partants:
-        cuid = p.get("course_uid")
-        if cuid:
-            courses.setdefault(cuid, []).append(p)
+# ===========================================================================
+# BUILDER
+# ===========================================================================
+
+def build_poids_features(partants: list, logger: logging.Logger) -> list:
+    """Build 15 weight/handicap features with point-in-time safety."""
+
+    # Sort chronologically
+    sorted_p = sorted(
+        partants,
+        key=lambda p: (
+            str(p.get("date_reunion_iso", "") or ""),
+            str(p.get("course_uid", "") or ""),
+            p.get("num_pmu", 0) or 0,
+        ),
+    )
 
     # Pre-compute per-course weight stats
+    course_runners: dict[str, list[dict]] = defaultdict(list)
+    for p in sorted_p:
+        cuid = p.get("course_uid")
+        if cuid:
+            course_runners[cuid].append(p)
+
     course_stats: dict[str, dict] = {}
-    for cuid, runners in courses.items():
+    for cuid, runners in course_runners.items():
         weights = [r.get("poids_porte_kg") for r in runners if r.get("poids_porte_kg") is not None]
         if weights:
             course_stats[cuid] = {
@@ -47,84 +114,120 @@ def build_poids_features(partants: list[dict]) -> list[dict]:
                 "weights_sorted": sorted(weights, reverse=True),
             }
 
-    # Build horse history for poids_diff_vs_last
-    horse_history: dict[str, list[dict]] = {}
-    for p in partants:
-        nom = p.get("nom_cheval")
-        if nom:
-            horse_history.setdefault(nom, []).append(p)
-    for nom in horse_history:
-        horse_history[nom].sort(key=lambda x: x.get("date_reunion_iso", ""))
-
-    horse_idx: dict[str, dict[str, int]] = {}
-    for nom, races in horse_history.items():
-        idx = {}
-        for i, r in enumerate(races):
-            uid = r.get("partant_uid")
-            if uid:
-                idx[uid] = i
-        horse_idx[nom] = idx
-
+    # Horse history for weight change detection
+    horse_history: dict[str, list[dict]] = defaultdict(list)
+    enriched = 0
     results = []
-    for p in partants:
-        uid = p.get("partant_uid")
-        cuid = p.get("course_uid")
-        nom = p.get("nom_cheval")
-        distance = p.get("distance")
-        row: dict[str, Any] = {"partant_uid": uid}
 
+    for idx, p in enumerate(sorted_p):
+        cheval = (p.get("nom_cheval") or "").upper().strip()
+        date_iso = str(p.get("date_reunion_iso", "") or "")[:10]
+        cuid = p.get("course_uid")
+        distance = p.get("distance")
+
+        feat = {}
         poids = p.get("poids_porte_kg")
-        row["poids_porte_kg"] = poids
-        row["poids_handicap_valeur"] = p.get("handicap_valeur")
-        row["poids_handicap_distance_m"] = p.get("handicap_distance_m")
+
+        feat["poids_porte_kg"] = poids
+        feat["poids_handicap_valeur"] = p.get("handicap_valeur")
+        feat["poids_handicap_distance_m"] = p.get("handicap_distance_m")
 
         sup = p.get("supplement_euros")
-        row["poids_supplement"] = sup if sup is not None else 0
+        feat["poids_supplement"] = sup if sup is not None else 0
 
-        # Surcharge
         surcharge = p.get("surcharge_kg") or p.get("surcharge")
-        row["poids_surcharge_kg"] = surcharge if surcharge is not None else 0
+        feat["poids_surcharge_kg"] = surcharge if surcharge is not None else 0
 
+        # Relative to field
         stats = course_stats.get(cuid) if cuid else None
         if poids is not None and stats:
-            row["poids_relatif_champ"] = round(poids - stats["avg"], 2)
-            row["poids_diff_vs_avg"] = row["poids_relatif_champ"]
-            row["poids_ecart_top_weight"] = round(poids - stats["max"], 2)
-            row["poids_ecart_min_weight"] = round(poids - stats["min"], 2)
-            # Rank: 1 = heaviest
-            row["poids_rang_poids"] = sum(1 for w in stats["weights_sorted"] if w > poids) + 1
-            row["poids_is_top_weight"] = 1 if poids == stats["max"] else 0
-            row["poids_is_bottom_weight"] = 1 if poids == stats["min"] else 0
+            enriched += 1
+            feat["poids_relatif_champ"] = round(poids - stats["avg"], 2)
+            feat["poids_diff_vs_avg"] = feat["poids_relatif_champ"]
+            feat["poids_ecart_top_weight"] = round(poids - stats["max"], 2)
+            feat["poids_ecart_min_weight"] = round(poids - stats["min"], 2)
+            feat["poids_rang_poids"] = sum(1 for w in stats["weights_sorted"] if w > poids) + 1
+            feat["poids_is_top_weight"] = 1 if poids == stats["max"] else 0
+            feat["poids_is_bottom_weight"] = 1 if poids == stats["min"] else 0
         else:
-            row["poids_relatif_champ"] = None
-            row["poids_diff_vs_avg"] = None
-            row["poids_ecart_top_weight"] = None
-            row["poids_ecart_min_weight"] = None
-            row["poids_rang_poids"] = None
-            row["poids_is_top_weight"] = None
-            row["poids_is_bottom_weight"] = None
+            feat["poids_relatif_champ"] = None
+            feat["poids_diff_vs_avg"] = None
+            feat["poids_ecart_top_weight"] = None
+            feat["poids_ecart_min_weight"] = None
+            feat["poids_rang_poids"] = None
+            feat["poids_is_top_weight"] = None
+            feat["poids_is_bottom_weight"] = None
 
-        # Weight per distance (kg per meter * 1000 for readability)
+        # Weight per distance
         if poids is not None and distance and distance > 0:
-            row["poids_par_distance"] = round((poids / distance) * 1000, 3)
+            feat["poids_par_distance"] = round((poids / distance) * 1000, 3)
         else:
-            row["poids_par_distance"] = None
+            feat["poids_par_distance"] = None
 
-        # Weight change from last race
-        if nom and nom in horse_idx:
-            cur_idx = horse_idx[nom].get(uid)
-            if cur_idx is not None and cur_idx > 0:
-                prev_race = horse_history[nom][cur_idx - 1]
-                prev_poids = prev_race.get("poids_porte_kg")
+        # Weight change from last race (point-in-time)
+        if cheval:
+            past = [r for r in horse_history.get(cheval, []) if r["date"] < date_iso]
+            if past:
+                prev_poids = past[-1].get("poids")
                 if poids is not None and prev_poids is not None:
-                    row["poids_diff_vs_last"] = round(poids - prev_poids, 2)
+                    feat["poids_diff_vs_last"] = round(poids - prev_poids, 2)
                 else:
-                    row["poids_diff_vs_last"] = None
+                    feat["poids_diff_vs_last"] = None
             else:
-                row["poids_diff_vs_last"] = None
+                feat["poids_diff_vs_last"] = None
         else:
-            row["poids_diff_vs_last"] = None
+            feat["poids_diff_vs_last"] = None
 
-        results.append(row)
+        p.update(feat)
+        results.append(p)
 
+        # Update history
+        if cheval:
+            horse_history[cheval].append({
+                "date": date_iso,
+                "poids": poids,
+            })
+
+        if (idx + 1) % 200000 == 0:
+            logger.info("  %d/%d traites, %d enrichis", idx + 1, len(sorted_p), enriched)
+
+    logger.info("Features poids: %d/%d enrichis (%.1f%%)",
+                enriched, len(results), 100 * enriched / max(len(results), 1))
     return results
+
+# ===========================================================================
+# EXPORT
+# ===========================================================================
+
+def save_jsonl(records: list, path: str, logger: logging.Logger):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        for r in records:
+            f.write(json.dumps(r, ensure_ascii=False, default=str) + "\n")
+    logger.info("Sauve JSONL: %s (%d)", path, len(records))
+
+# ===========================================================================
+# MAIN
+# ===========================================================================
+
+def main():
+    parser = argparse.ArgumentParser(description="15 weight/handicap features")
+    parser.add_argument("--input", default=PARTANTS_DEFAULT, help="Partants JSONL/JSON")
+    parser.add_argument("--output-dir", default=OUTPUT_DIR_DEFAULT, help="Output directory")
+    args = parser.parse_args()
+
+    logger = setup_logging()
+    logger.info("=" * 70)
+    logger.info("poids_features.py")
+    logger.info("=" * 70)
+
+    partants = load_json_or_jsonl(args.input, logger)
+    results = build_poids_features(partants, logger)
+
+    out_path = os.path.join(args.output_dir, "poids_features.jsonl")
+    save_jsonl(results, out_path, logger)
+    logger.info("Termine — %d partants traites", len(results))
+
+
+if __name__ == "__main__":
+    main()

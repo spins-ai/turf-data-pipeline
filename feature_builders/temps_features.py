@@ -1,182 +1,293 @@
+#!/usr/bin/env python3
 """
 feature_builders.temps_features
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Builds performance timing features from temps_ms and reduction_km_ms.
+15 features from race times, speeds, and reduction kilometrique.
+
+Temporal integrity: for each partant at date D, only races with date < D
+are used for historical stats (no future leakage).
+
+Usage:
+    python feature_builders/temps_features.py
+    python feature_builders/temps_features.py --input output/02_liste_courses/partants_normalises.jsonl
 """
 
 from __future__ import annotations
 
-from typing import Any
+import argparse
+import json
+import logging
+import os
+import sys
+from collections import defaultdict
+from typing import Optional
+
+# ===========================================================================
+# CONFIG
+# ===========================================================================
+
+PARTANTS_DEFAULT = os.path.join("output", "02_liste_courses", "partants_normalises.jsonl")
+OUTPUT_DIR_DEFAULT = os.path.join("output", "temps_features")
+LOG_DIR = os.path.join("logs")
+
+# ===========================================================================
+# LOGGING
+# ===========================================================================
+
+def setup_logging() -> logging.Logger:
+    logger = logging.getLogger("temps_features")
+    logger.setLevel(logging.INFO)
+    fmt = logging.Formatter(
+        "%(asctime)s | %(levelname)-8s | %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+    ch = logging.StreamHandler(sys.stdout)
+    ch.setFormatter(fmt)
+    logger.addHandler(ch)
+    os.makedirs(LOG_DIR, exist_ok=True)
+    fh = logging.FileHandler(os.path.join(LOG_DIR, "temps_features.log"), encoding="utf-8")
+    fh.setFormatter(fmt)
+    logger.addHandler(fh)
+    return logger
+
+# ===========================================================================
+# HELPERS
+# ===========================================================================
+
+def _safe_mean(values: list) -> Optional[float]:
+    clean = [v for v in values if v is not None]
+    if not clean:
+        return None
+    return round(sum(clean) / len(clean), 4)
 
 
-def build_temps_features(partants: list[dict]) -> list[dict]:
-    """Build timing/speed features for each partant.
+def _safe_stdev(values: list) -> Optional[float]:
+    clean = [v for v in values if v is not None]
+    if len(clean) < 2:
+        return None
+    mean = sum(clean) / len(clean)
+    variance = sum((v - mean) ** 2 for v in clean) / (len(clean) - 1)
+    return round(variance ** 0.5, 4)
 
-    Features produced (15):
-    - temps_temps_ms: raw finish time in ms
-    - temps_reduction_km_ms: reduction kilométrique in ms
-    - temps_vitesse_kmh: average speed in km/h
-    - temps_relatif_vainqueur: time difference vs winner (ms)
-    - temps_ecart_gagnant_pct: % slower than winner
-    - temps_rang_vitesse: rank by speed within race
-    - temps_reduction_relative: reduction km relative to race average
-    - temps_avg_reduction_5: average reduction km over last 5 races
-    - temps_avg_reduction_10: average reduction km over last 10 races
-    - temps_best_reduction_5: best reduction km over last 5 races
-    - temps_best_reduction_10: best reduction km over last 10 races
-    - temps_reduction_trend: trend in reduction km (positive = improving)
-    - temps_ecart_moyen_champ: time gap to field average
-    - temps_speed_consistency: std deviation of reduction km (lower = more consistent)
-    """
-    # Group by course for relative computations
-    courses: dict[str, list[dict]] = {}
-    for p in partants:
+# ===========================================================================
+# LOAD
+# ===========================================================================
+
+def load_jsonl(path: str, logger: logging.Logger) -> list:
+    records = []
+    with open(path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if line:
+                records.append(json.loads(line))
+    logger.info("Charge %d enregistrements depuis %s", len(records), path)
+    return records
+
+
+def load_json_or_jsonl(path: str, logger: logging.Logger) -> list:
+    if path.endswith(".jsonl"):
+        return load_jsonl(path, logger)
+    jsonl_path = path.replace(".json", ".jsonl")
+    if os.path.exists(jsonl_path):
+        return load_jsonl(jsonl_path, logger)
+    if os.path.exists(path):
+        logger.info("Chargement JSON: %s", path)
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        logger.info("  %d entrees chargees", len(data))
+        return data
+    logger.error("Fichier introuvable: %s", path)
+    sys.exit(1)
+
+# ===========================================================================
+# BUILDER
+# ===========================================================================
+
+def build_temps_features(partants: list, logger: logging.Logger) -> list:
+    """Build 15 time/speed features with point-in-time safety."""
+
+    # Sort chronologically
+    sorted_p = sorted(
+        partants,
+        key=lambda p: (
+            str(p.get("date_reunion_iso", "") or ""),
+            str(p.get("course_uid", "") or ""),
+            p.get("num_pmu", 0) or 0,
+        ),
+    )
+
+    # Group by course for relative computations (pre-scan)
+    course_runners: dict[str, list[dict]] = defaultdict(list)
+    for p in sorted_p:
         cuid = p.get("course_uid")
         if cuid:
-            courses.setdefault(cuid, []).append(p)
+            course_runners[cuid].append(p)
 
-    # Pre-compute per-course timing stats
+    # Pre-compute per-course stats
     course_stats: dict[str, dict] = {}
-    for cuid, runners in courses.items():
+    for cuid, runners in course_runners.items():
         times = [r.get("temps_ms") for r in runners if r.get("temps_ms")]
         reductions = [r.get("reduction_km_ms") for r in runners if r.get("reduction_km_ms")]
-
         winner_time = None
         for r in runners:
-            if r.get("position_arrivee") == 1 and r.get("temps_ms"):
+            pos = r.get("position_arrivee") or r.get("classement")
+            if pos == 1 and r.get("temps_ms"):
                 winner_time = r["temps_ms"]
                 break
-
-        stats: dict[str, Any] = {}
+        stats = {}
         if times:
             stats["avg_time"] = sum(times) / len(times)
-            stats["min_time"] = min(times)
             stats["times_sorted"] = sorted(times)
         if reductions:
             stats["avg_reduction"] = sum(reductions) / len(reductions)
         stats["winner_time"] = winner_time
         course_stats[cuid] = stats
 
-    # Build horse history for trend computation
-    horse_history: dict[str, list[dict]] = {}
-    for p in partants:
-        nom = p.get("nom_cheval")
-        if nom:
-            horse_history.setdefault(nom, []).append(p)
-
-    for nom in horse_history:
-        horse_history[nom].sort(key=lambda x: x.get("date_reunion_iso", ""))
-
-    # Index to find position in horse history
-    horse_idx: dict[str, dict[str, int]] = {}
-    for nom, races in horse_history.items():
-        idx = {}
-        for i, r in enumerate(races):
-            uid = r.get("partant_uid")
-            if uid:
-                idx[uid] = i
-        horse_idx[nom] = idx
-
+    # Horse history accumulator for rolling features
+    horse_history: dict[str, list[dict]] = defaultdict(list)
+    enriched = 0
     results = []
-    for p in partants:
-        uid = p.get("partant_uid")
-        cuid = p.get("course_uid")
-        nom = p.get("nom_cheval")
-        distance = p.get("distance")
-        row: dict[str, Any] = {"partant_uid": uid}
 
+    for idx, p in enumerate(sorted_p):
+        cheval = (p.get("nom_cheval") or "").upper().strip()
+        date_iso = str(p.get("date_reunion_iso", "") or "")[:10]
+        cuid = p.get("course_uid")
+        distance = p.get("distance")
+
+        feat = {}
         temps_ms = p.get("temps_ms")
         red_km = p.get("reduction_km_ms")
 
-        row["temps_temps_ms"] = temps_ms
-        row["temps_reduction_km_ms"] = red_km
+        feat["temps_temps_ms"] = temps_ms
+        feat["temps_reduction_km_ms"] = red_km
 
         # Speed in km/h
         if temps_ms and distance and temps_ms > 0:
             speed = (distance / 1000) / (temps_ms / 3_600_000)
-            row["temps_vitesse_kmh"] = round(speed, 2)
+            feat["temps_vitesse_kmh"] = round(speed, 2)
         else:
-            row["temps_vitesse_kmh"] = None
+            feat["temps_vitesse_kmh"] = None
 
         # Relative to race
         stats = course_stats.get(cuid, {})
 
         if temps_ms and stats.get("winner_time"):
-            row["temps_relatif_vainqueur"] = temps_ms - stats["winner_time"]
-            # Percentage slower than winner
+            feat["temps_relatif_vainqueur"] = temps_ms - stats["winner_time"]
             if stats["winner_time"] > 0:
-                row["temps_ecart_gagnant_pct"] = round(
+                feat["temps_ecart_gagnant_pct"] = round(
                     ((temps_ms - stats["winner_time"]) / stats["winner_time"]) * 100, 3
                 )
             else:
-                row["temps_ecart_gagnant_pct"] = None
+                feat["temps_ecart_gagnant_pct"] = None
         else:
-            row["temps_relatif_vainqueur"] = None
-            row["temps_ecart_gagnant_pct"] = None
+            feat["temps_relatif_vainqueur"] = None
+            feat["temps_ecart_gagnant_pct"] = None
 
         if temps_ms and stats.get("avg_time"):
-            row["temps_ecart_moyen_champ"] = round(temps_ms - stats["avg_time"], 1)
+            feat["temps_ecart_moyen_champ"] = round(temps_ms - stats["avg_time"], 1)
         else:
-            row["temps_ecart_moyen_champ"] = None
+            feat["temps_ecart_moyen_champ"] = None
 
         if temps_ms and stats.get("times_sorted"):
-            row["temps_rang_vitesse"] = sum(1 for t in stats["times_sorted"] if t < temps_ms) + 1
+            feat["temps_rang_vitesse"] = sum(1 for t in stats["times_sorted"] if t < temps_ms) + 1
         else:
-            row["temps_rang_vitesse"] = None
+            feat["temps_rang_vitesse"] = None
 
         if red_km and stats.get("avg_reduction"):
-            row["temps_reduction_relative"] = round(red_km - stats["avg_reduction"], 1)
+            feat["temps_reduction_relative"] = round(red_km - stats["avg_reduction"], 1)
         else:
-            row["temps_reduction_relative"] = None
+            feat["temps_reduction_relative"] = None
 
-        # Historical reduction km stats
-        if nom and nom in horse_idx:
-            cur_idx = horse_idx[nom].get(uid)
-            if cur_idx is not None and cur_idx > 0:
-                prior = horse_history[nom][:cur_idx]
-                prior_reds = [r.get("reduction_km_ms") for r in prior if r.get("reduction_km_ms")]
-                prior_reds.reverse()  # most recent first
+        # Historical reduction km stats (point-in-time: only past data)
+        if cheval:
+            past = [r for r in horse_history.get(cheval, []) if r["date"] < date_iso]
+            prior_reds = [r["reduction_km"] for r in reversed(past) if r.get("reduction_km")]
 
+            if prior_reds:
+                enriched += 1
                 last_5 = prior_reds[:5]
                 last_10 = prior_reds[:10]
+                feat["temps_avg_reduction_5"] = round(sum(last_5) / len(last_5), 1)
+                feat["temps_avg_reduction_10"] = round(sum(last_10) / len(last_10), 1)
+                feat["temps_best_reduction_5"] = min(last_5)
+                feat["temps_best_reduction_10"] = min(last_10)
 
-                row["temps_avg_reduction_5"] = round(sum(last_5) / len(last_5), 1) if last_5 else None
-                row["temps_avg_reduction_10"] = round(sum(last_10) / len(last_10), 1) if last_10 else None
-                row["temps_best_reduction_5"] = min(last_5) if last_5 else None
-                row["temps_best_reduction_10"] = min(last_10) if last_10 else None
-
-                # Speed consistency: std deviation of reduction km (lower = more consistent)
                 if len(prior_reds) >= 3:
                     mean_red = sum(prior_reds) / len(prior_reds)
                     variance = sum((r - mean_red) ** 2 for r in prior_reds) / len(prior_reds)
-                    row["temps_speed_consistency"] = round(variance ** 0.5, 1)
+                    feat["temps_speed_consistency"] = round(variance ** 0.5, 1)
                 else:
-                    row["temps_speed_consistency"] = None
+                    feat["temps_speed_consistency"] = None
 
-                # Trend: compare last 3 vs previous 3 (lower = faster = better for trot)
                 recent_3 = prior_reds[:3]
                 prev_3 = prior_reds[3:6]
                 if len(recent_3) >= 2 and len(prev_3) >= 2:
-                    row["temps_reduction_trend"] = round(
+                    feat["temps_reduction_trend"] = round(
                         sum(prev_3) / len(prev_3) - sum(recent_3) / len(recent_3), 1
                     )
                 else:
-                    row["temps_reduction_trend"] = None
+                    feat["temps_reduction_trend"] = None
             else:
-                row["temps_avg_reduction_5"] = None
-                row["temps_avg_reduction_10"] = None
-                row["temps_best_reduction_5"] = None
-                row["temps_best_reduction_10"] = None
-                row["temps_speed_consistency"] = None
-                row["temps_reduction_trend"] = None
+                for k in ("temps_avg_reduction_5", "temps_avg_reduction_10",
+                           "temps_best_reduction_5", "temps_best_reduction_10",
+                           "temps_speed_consistency", "temps_reduction_trend"):
+                    feat[k] = None
         else:
-            row["temps_avg_reduction_5"] = None
-            row["temps_avg_reduction_10"] = None
-            row["temps_best_reduction_5"] = None
-            row["temps_best_reduction_10"] = None
-            row["temps_speed_consistency"] = None
-            row["temps_reduction_trend"] = None
+            for k in ("temps_avg_reduction_5", "temps_avg_reduction_10",
+                       "temps_best_reduction_5", "temps_best_reduction_10",
+                       "temps_speed_consistency", "temps_reduction_trend"):
+                feat[k] = None
 
-        results.append(row)
+        p.update(feat)
+        results.append(p)
 
+        # Update horse history
+        if cheval:
+            horse_history[cheval].append({
+                "date": date_iso,
+                "reduction_km": red_km,
+            })
+
+        if (idx + 1) % 200000 == 0:
+            logger.info("  %d/%d traites, %d enrichis", idx + 1, len(sorted_p), enriched)
+
+    logger.info("Features temps: %d/%d enrichis (%.1f%%)",
+                enriched, len(results), 100 * enriched / max(len(results), 1))
     return results
+
+# ===========================================================================
+# EXPORT
+# ===========================================================================
+
+def save_jsonl(records: list, path: str, logger: logging.Logger):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        for r in records:
+            f.write(json.dumps(r, ensure_ascii=False, default=str) + "\n")
+    logger.info("Sauve JSONL: %s (%d)", path, len(records))
+
+# ===========================================================================
+# MAIN
+# ===========================================================================
+
+def main():
+    parser = argparse.ArgumentParser(description="15 time/speed features")
+    parser.add_argument("--input", default=PARTANTS_DEFAULT, help="Partants JSONL/JSON")
+    parser.add_argument("--output-dir", default=OUTPUT_DIR_DEFAULT, help="Output directory")
+    args = parser.parse_args()
+
+    logger = setup_logging()
+    logger.info("=" * 70)
+    logger.info("temps_features.py")
+    logger.info("=" * 70)
+
+    partants = load_json_or_jsonl(args.input, logger)
+    results = build_temps_features(partants, logger)
+
+    out_path = os.path.join(args.output_dir, "temps_features.jsonl")
+    save_jsonl(results, out_path, logger)
+    logger.info("Termine — %d partants traites", len(results))
+
+
+if __name__ == "__main__":
+    main()
