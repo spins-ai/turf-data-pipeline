@@ -66,7 +66,7 @@ def scrape_results_page(course_id, date_str):
     cache_key = f"{course_id}_{date_str}"
     cache_file = os.path.join(CACHE_DIR, f"{cache_key}.json")
     if os.path.exists(cache_file):
-        with open(cache_file) as f:
+        with open(cache_file, "r", encoding="utf-8", errors="replace") as f:
             return json.load(f)
 
     # Format: racingpost.com/results/COURSE_ID/YYYY-MM-DD
@@ -134,7 +134,7 @@ def scrape_results_page(course_id, date_str):
                         records.append(record)
 
             if records:
-                with open(cache_file, "w") as f:
+                with open(cache_file, "w", encoding="utf-8") as f:
                     json.dump(records, f, ensure_ascii=False)
                 return records
 
@@ -157,7 +157,7 @@ def main():
     last_course_idx = 0
     last_date_str = ""
     if os.path.exists(checkpoint_file):
-        with open(checkpoint_file) as f:
+        with open(checkpoint_file, "r", encoding="utf-8", errors="replace") as f:
             cp = json.load(f)
         total_records = cp.get("total_records", 0)
         last_course_idx = cp.get("last_course_idx", 0)
@@ -207,7 +207,7 @@ def main():
             if collected_pages % 20 == 0 and collected_pages > 0:
                 log.info(f"    {collected_pages} pages, {total_records} records total")
                 # Checkpoint
-                with open(checkpoint_file, "w") as f:
+                with open(checkpoint_file, "w", encoding="utf-8") as f:
                     json.dump({
                         "last_course_idx": course_idx,
                         "last_date_str": date_str,
@@ -215,7 +215,7 @@ def main():
                     }, f)
 
         # Checkpoint fin de course
-        with open(checkpoint_file, "w") as f:
+        with open(checkpoint_file, "w", encoding="utf-8") as f:
             json.dump({
                 "last_course_idx": course_idx + 1,
                 "last_date_str": "",

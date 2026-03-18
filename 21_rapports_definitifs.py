@@ -41,7 +41,7 @@ def load_courses_references():
     seen_uids = set()
     for path in paths:
         if os.path.exists(path):
-            with open(path) as f:
+            with open(path, "r", encoding="utf-8", errors="replace") as f:
                 data = json.load(f)
             for c in data:
                 uid = c.get("course_uid", "")
@@ -59,7 +59,7 @@ def fetch_rapports(date_str, numero_reunion, num_course):
     cache_file = os.path.join(CACHE_DIR, f"{cache_key}.json")
     if os.path.exists(cache_file):
         try:
-            with open(cache_file) as f:
+            with open(cache_file, "r", encoding="utf-8", errors="replace") as f:
                 return json.load(f)
         except (json.JSONDecodeError, OSError):
             os.remove(cache_file)
@@ -73,7 +73,7 @@ def fetch_rapports(date_str, numero_reunion, num_course):
         if resp.status_code == 200:
             data = resp.json()
             if data:  # Ne pas cacher les réponses vides
-                with open(cache_file, "w") as f:
+                with open(cache_file, "w", encoding="utf-8") as f:
                     json.dump(data, f, ensure_ascii=False)
             return data
         elif resp.status_code == 429:
@@ -190,7 +190,7 @@ def main():
     start_idx = 0
     total_rapports = 0
     if os.path.exists(checkpoint_file):
-        with open(checkpoint_file) as f:
+        with open(checkpoint_file, "r", encoding="utf-8", errors="replace") as f:
             cp = json.load(f)
         start_idx = cp.get("last_index", 0)
         total_rapports = cp.get("total_rapports", 0)
@@ -221,7 +221,7 @@ def main():
 
         if rapports_raw and len(rapports_raw) > 0:
             flat = extract_rapports_flat(rapports_raw, course)
-            with open(output_file, "a") as f:
+            with open(output_file, "a", encoding="utf-8") as f:
                 f.write(json.dumps(flat, ensure_ascii=False) + "\n")
             total_rapports += 1
             collected += 1
@@ -234,13 +234,13 @@ def main():
             log.info(f"  [{i+1}/{len(courses)}] rapports={collected} total={total_rapports} vides={empty} erreurs={errors}")
 
         if (i + 1 - start_idx) % 500 == 0:
-            with open(checkpoint_file, "w") as f:
+            with open(checkpoint_file, "w", encoding="utf-8") as f:
                 json.dump({"last_index": i + 1, "total_rapports": total_rapports}, f)
             log.info(f">>> Checkpoint: {total_rapports} rapports <<<")
 
         smart_pause(0.2, 0.1)
 
-    with open(checkpoint_file, "w") as f:
+    with open(checkpoint_file, "w", encoding="utf-8") as f:
         json.dump({"last_index": len(courses), "total_rapports": total_rapports}, f)
 
     log.info("=" * 60)

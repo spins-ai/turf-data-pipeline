@@ -63,7 +63,7 @@ def load_reunions():
         log.error(f"Fichier introuvable : {path}")
         return []
 
-    with open(path) as f:
+    with open(path, "r", encoding="utf-8", errors="replace") as f:
         data = json.load(f)
 
     # Filtrer : uniquement les reunions PMU (ont un numero_reunion)
@@ -80,7 +80,7 @@ def fetch_reunion(date_str, num_r):
     cache_file = os.path.join(CACHE_DIR, f"{cache_key}.json")
     if os.path.exists(cache_file):
         try:
-            with open(cache_file) as f:
+            with open(cache_file, "r", encoding="utf-8", errors="replace") as f:
                 return json.load(f)
         except (json.JSONDecodeError, OSError):
             os.remove(cache_file)
@@ -95,7 +95,7 @@ def fetch_reunion(date_str, num_r):
         if resp.status_code == 200:
             data = resp.json()
             if data:
-                with open(cache_file, "w") as f:
+                with open(cache_file, "w", encoding="utf-8") as f:
                     json.dump(data, f, ensure_ascii=False)
                 return data
         elif resp.status_code == 429:
@@ -258,7 +258,7 @@ def main():
     start_idx = 0
     total_records = 0
     if os.path.exists(checkpoint_file):
-        with open(checkpoint_file) as f:
+        with open(checkpoint_file, "r", encoding="utf-8", errors="replace") as f:
             cp = json.load(f)
         start_idx = cp.get("last_index", 0)
         total_records = cp.get("total_records", 0)
@@ -285,7 +285,7 @@ def main():
         data = fetch_reunion(date_api, num_r)
         if data:
             records = flatten_reunion(data, reunion)
-            with open(output_file, "a") as f:
+            with open(output_file, "a", encoding="utf-8") as f:
                 for r in records:
                     f.write(json.dumps(r, ensure_ascii=False) + "\n")
             total_records += len(records)
@@ -301,7 +301,7 @@ def main():
             )
 
         if (i + 1 - start_idx) % 500 == 0:
-            with open(checkpoint_file, "w") as f:
+            with open(checkpoint_file, "w", encoding="utf-8") as f:
                 json.dump({
                     "last_index": i + 1,
                     "total_records": total_records,
@@ -311,7 +311,7 @@ def main():
 
         smart_pause(0.4, 0.2)
 
-    with open(checkpoint_file, "w") as f:
+    with open(checkpoint_file, "w", encoding="utf-8") as f:
         json.dump({"last_index": len(reunions), "total_records": total_records, "total_reunions": collected}, f)
 
     log.info("=" * 60)

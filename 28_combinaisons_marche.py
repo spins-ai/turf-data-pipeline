@@ -62,7 +62,7 @@ def load_courses():
         "output/02b_liste_courses_2013/courses_normalisees.json",
     ]:
         if os.path.exists(path):
-            with open(path) as f:
+            with open(path, "r", encoding="utf-8", errors="replace") as f:
                 data = json.load(f)
             for c in data:
                 uid = c.get("course_uid", "")
@@ -80,7 +80,7 @@ def fetch_combinaisons(date_str, num_r, num_c):
     cache_file = os.path.join(CACHE_DIR, f"{cache_key}.json")
     if os.path.exists(cache_file):
         try:
-            with open(cache_file) as f:
+            with open(cache_file, "r", encoding="utf-8", errors="replace") as f:
                 return json.load(f)
         except (json.JSONDecodeError, OSError):
             os.remove(cache_file)
@@ -95,7 +95,7 @@ def fetch_combinaisons(date_str, num_r, num_c):
         if resp.status_code == 200:
             data = resp.json()
             if data and "combinaisons" in data:
-                with open(cache_file, "w") as f:
+                with open(cache_file, "w", encoding="utf-8") as f:
                     json.dump(data, f, ensure_ascii=False)
                 return data
         elif resp.status_code == 429:
@@ -151,7 +151,7 @@ def main():
     start_idx = 0
     total_records = 0
     if os.path.exists(checkpoint_file):
-        with open(checkpoint_file) as f:
+        with open(checkpoint_file, "r", encoding="utf-8", errors="replace") as f:
             cp = json.load(f)
         start_idx = cp.get("last_index", 0)
         total_records = cp.get("total_records", 0)
@@ -178,7 +178,7 @@ def main():
         data = fetch_combinaisons(date_api, num_r, num_c)
         if data and "combinaisons" in data:
             records = flatten_combinaisons(data, course)
-            with open(output_file, "a") as f:
+            with open(output_file, "a", encoding="utf-8") as f:
                 for r in records:
                     f.write(json.dumps(r, ensure_ascii=False) + "\n")
             total_records += len(records)
@@ -190,13 +190,13 @@ def main():
             log.info(f"  [{i+1}/{len(courses)}] courses={collected} records={total_records} erreurs={errors}")
 
         if (i + 1 - start_idx) % 500 == 0:
-            with open(checkpoint_file, "w") as f:
+            with open(checkpoint_file, "w", encoding="utf-8") as f:
                 json.dump({"last_index": i + 1, "total_records": total_records}, f)
             log.info(f">>> Checkpoint: {total_records} records <<<")
 
         smart_pause(0.25, 0.15)
 
-    with open(checkpoint_file, "w") as f:
+    with open(checkpoint_file, "w", encoding="utf-8") as f:
         json.dump({"last_index": len(courses), "total_records": total_records}, f)
 
     log.info("=" * 60)
