@@ -254,19 +254,15 @@ def main():
 
     # Checkpoint
     checkpoint_file = os.path.join(OUTPUT_DIR, ".checkpoint_39.json")
+    output_file = os.path.join(OUTPUT_DIR, "reunions_enrichies.jsonl")
     start_idx = 0
+    total_records = 0
     if os.path.exists(checkpoint_file):
         with open(checkpoint_file) as f:
             cp = json.load(f)
         start_idx = cp.get("last_index", 0)
-        log.info(f"Reprise au checkpoint: index {start_idx}")
-
-    all_records = []
-    output_file = os.path.join(OUTPUT_DIR, "reunions_enrichies.json")
-    if os.path.exists(output_file) and start_idx > 0:
-        with open(output_file) as f:
-            all_records = json.load(f)
-        log.info(f"Charge {len(all_records)} records existants")
+        total_records = cp.get("total_records", 0)
+        log.info(f"Reprise au checkpoint: index {start_idx}, {total_records} records déjà écrits")
 
     errors = 0
     collected = 0
@@ -289,60 +285,38 @@ def main():
         data = fetch_reunion(date_api, num_r)
         if data:
             records = flatten_reunion(data, reunion)
-            all_records.extend(records)
+            with open(output_file, "a") as f:
+                for r in records:
+                    f.write(json.dumps(r, ensure_ascii=False) + "\n")
+            total_records += len(records)
             collected += 1
             total_courses += len(records)
         else:
             errors += 1
 
-        # Progression
         if (i + 1 - start_idx) % 100 == 0:
             log.info(
                 f"  [{i+1}/{len(reunions)}] reunions={collected} "
-                f"courses={total_courses} records={len(all_records)} erreurs={errors}"
+                f"courses={total_courses} total={total_records} erreurs={errors}"
             )
 
-        # Sauvegarde intermediaire
         if (i + 1 - start_idx) % 500 == 0:
-            with open(output_file, "w") as f:
-                json.dump(all_records, f, ensure_ascii=False)
             with open(checkpoint_file, "w") as f:
                 json.dump({
                     "last_index": i + 1,
-                    "total_records": len(all_records),
+                    "total_records": total_records,
                     "total_reunions": collected,
                 }, f)
-            log.info(f">>> Sauvegarde: {len(all_records)} records ({collected} reunions) <<<")
+            log.info(f">>> Checkpoint: {total_records} records ({collected} reunions) <<<")
 
         smart_pause(0.4, 0.2)
 
-    # Sauvegarde finale
-    with open(output_file, "w") as f:
-        json.dump(all_records, f, ensure_ascii=False)
+    with open(checkpoint_file, "w") as f:
+        json.dump({"last_index": len(reunions), "total_records": total_records, "total_reunions": collected}, f)
 
-    # Nettoyage checkpoint
-    if os.path.exists(checkpoint_file):
-        os.remove(checkpoint_file)
-
-    # Stats
     log.info("=" * 60)
-    log.info(f"TERMINE: {collected} reunions, {total_courses} courses, {len(all_records)} records, {errors} erreurs")
+    log.info(f"TERMINE: {collected} reunions, {total_courses} courses, {total_records} records, {errors} erreurs")
     log.info("=" * 60)
-
-    # Stats meteo
-    with_meteo = sum(1 for r in all_records if r.get("meteo_temperature") is not None)
-    with_incidents = sum(1 for r in all_records if r.get("nb_incidents", 0) > 0)
-    with_conditions = sum(1 for r in all_records if r.get("conditions"))
-    with_duree = sum(1 for r in all_records if r.get("duree_course_ms"))
-    with_commentaire = sum(1 for r in all_records if r.get("commentaire_apres_course"))
-    with_paris = sum(1 for r in all_records if r.get("nb_types_paris", 0) > 0)
-
-    log.info(f"  Avec meteo       : {with_meteo}/{len(all_records)}")
-    log.info(f"  Avec incidents   : {with_incidents}/{len(all_records)}")
-    log.info(f"  Avec conditions  : {with_conditions}/{len(all_records)}")
-    log.info(f"  Avec duree       : {with_duree}/{len(all_records)}")
-    log.info(f"  Avec commentaire : {with_commentaire}/{len(all_records)}")
-    log.info(f"  Avec paris       : {with_paris}/{len(all_records)}")
 
 
 if __name__ == "__main__":

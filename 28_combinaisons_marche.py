@@ -56,6 +56,7 @@ def smart_pause(base=0.3, jitter=0.15):
 def load_courses():
     courses = []
     seen = set()
+    KEEP = {"course_uid", "date_reunion_iso", "numero_reunion", "numero_course", "hippodrome_normalise"}
     for path in [
         "output/02_liste_courses/courses_normalisees.json",
         "output/02b_liste_courses_2013/courses_normalisees.json",
@@ -67,9 +68,10 @@ def load_courses():
                 uid = c.get("course_uid", "")
                 if uid and uid not in seen:
                     seen.add(uid)
-                    courses.append(c)
+                    courses.append({k: c[k] for k in KEEP if k in c})
+            del data
     courses.sort(key=lambda c: c.get("date_reunion_iso", ""))
-    log.info(f"Chargé {len(courses)} courses uniques")
+    log.info(f"Chargé {len(courses)} courses uniques (mode léger)")
     return courses
 
 def fetch_combinaisons(date_str, num_r, num_c):
@@ -145,19 +147,15 @@ def main():
         return
 
     checkpoint_file = os.path.join(OUTPUT_DIR, ".checkpoint_28.json")
+    output_file = os.path.join(OUTPUT_DIR, "combinaisons_marche.jsonl")
     start_idx = 0
+    total_records = 0
     if os.path.exists(checkpoint_file):
         with open(checkpoint_file) as f:
             cp = json.load(f)
         start_idx = cp.get("last_index", 0)
-        log.info(f"Reprise au checkpoint: index {start_idx}")
-
-    all_records = []
-    output_file = os.path.join(OUTPUT_DIR, "combinaisons_marche.json")
-    if os.path.exists(output_file) and start_idx > 0:
-        with open(output_file) as f:
-            all_records = json.load(f)
-        log.info(f"Chargé {len(all_records)} records existants")
+        total_records = cp.get("total_records", 0)
+        log.info(f"Reprise au checkpoint: index {start_idx}, {total_records} records déjà écrits")
 
     errors = 0
     collected = 0
@@ -180,28 +178,29 @@ def main():
         data = fetch_combinaisons(date_api, num_r, num_c)
         if data and "combinaisons" in data:
             records = flatten_combinaisons(data, course)
-            all_records.extend(records)
+            with open(output_file, "a") as f:
+                for r in records:
+                    f.write(json.dumps(r, ensure_ascii=False) + "\n")
+            total_records += len(records)
             collected += 1
         else:
             errors += 1
 
         if (i + 1 - start_idx) % 100 == 0:
-            log.info(f"  [{i+1}/{len(courses)}] courses={collected} records={len(all_records)} erreurs={errors}")
+            log.info(f"  [{i+1}/{len(courses)}] courses={collected} records={total_records} erreurs={errors}")
 
         if (i + 1 - start_idx) % 500 == 0:
-            with open(output_file, "w") as f:
-                json.dump(all_records, f, ensure_ascii=False)
             with open(checkpoint_file, "w") as f:
-                json.dump({"last_index": i + 1, "total_records": len(all_records)}, f)
-            log.info(f">>> Sauvegarde: {len(all_records)} records <<<")
+                json.dump({"last_index": i + 1, "total_records": total_records}, f)
+            log.info(f">>> Checkpoint: {total_records} records <<<")
 
         smart_pause(0.25, 0.15)
 
-    with open(output_file, "w") as f:
-        json.dump(all_records, f, ensure_ascii=False)
+    with open(checkpoint_file, "w") as f:
+        json.dump({"last_index": len(courses), "total_records": total_records}, f)
 
     log.info("=" * 60)
-    log.info(f"TERMINÉ: {collected} courses, {len(all_records)} records, {errors} erreurs")
+    log.info(f"TERMINÉ: {collected} courses, {total_records} records, {errors} erreurs")
     log.info("=" * 60)
 
 if __name__ == "__main__":

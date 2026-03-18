@@ -31,8 +31,9 @@ def smart_pause(base=0.3, jitter=0.2):
     time.sleep(base + random.uniform(-jitter, jitter))
 
 def load_courses_references():
-    """Charger toutes les courses connues depuis les scripts 02 et 02b"""
+    """Charger toutes les courses connues depuis les scripts 02 et 02b (mode léger)"""
     courses = []
+    KEEP = {"course_uid", "date_reunion_iso", "numero_reunion", "numero_course", "hippodrome_normalise", "discipline", "distance"}
     paths = [
         "output/02_liste_courses/courses_normalisees.json",
         "output/02b_liste_courses_2013/courses_normalisees.json",
@@ -46,8 +47,9 @@ def load_courses_references():
                 uid = c.get("course_uid", "")
                 if uid and uid not in seen_uids:
                     seen_uids.add(uid)
-                    courses.append(c)
-    log.info(f"Chargé {len(courses)} courses uniques depuis {len(paths)} fichiers")
+                    courses.append({k: c[k] for k in KEEP if k in c})
+            del data
+    log.info(f"Chargé {len(courses)} courses uniques (mode léger)")
     return courses
 
 def fetch_rapports(date_str, numero_reunion, num_course):
@@ -184,20 +186,15 @@ def main():
 
     # Checkpoint
     checkpoint_file = os.path.join(OUTPUT_DIR, ".checkpoint_21.json")
+    output_file = os.path.join(OUTPUT_DIR, "rapports_definitifs.jsonl")
     start_idx = 0
+    total_rapports = 0
     if os.path.exists(checkpoint_file):
         with open(checkpoint_file) as f:
             cp = json.load(f)
         start_idx = cp.get("last_index", 0)
-        log.info(f"Reprise au checkpoint: index {start_idx}")
-
-    all_rapports = []
-    # Charger les rapports existants
-    output_file = os.path.join(OUTPUT_DIR, "rapports_definitifs.json")
-    if os.path.exists(output_file) and start_idx > 0:
-        with open(output_file) as f:
-            all_rapports = json.load(f)
-        log.info(f"Chargé {len(all_rapports)} rapports existants")
+        total_rapports = cp.get("total_rapports", 0)
+        log.info(f"Reprise au checkpoint: index {start_idx}, {total_rapports} rapports déjà écrits")
 
     errors = 0
     empty = 0
@@ -213,7 +210,6 @@ def main():
         if not date_iso or not num_r or not num_c:
             continue
 
-        # Format date pour l'API: DDMMYYYY
         try:
             dt = datetime.strptime(date_iso[:10], "%Y-%m-%d")
             date_api = dt.strftime("%d%m%Y")
@@ -225,45 +221,30 @@ def main():
 
         if rapports_raw and len(rapports_raw) > 0:
             flat = extract_rapports_flat(rapports_raw, course)
-            all_rapports.append(flat)
+            with open(output_file, "a") as f:
+                f.write(json.dumps(flat, ensure_ascii=False) + "\n")
+            total_rapports += 1
             collected += 1
         elif rapports_raw is not None:
             empty += 1
         else:
             errors += 1
 
-        # Progress
         if (i + 1 - start_idx) % 100 == 0:
-            log.info(f"  [{i+1}/{len(courses)}] rapports={collected} vides={empty} erreurs={errors} req={req_count}")
+            log.info(f"  [{i+1}/{len(courses)}] rapports={collected} total={total_rapports} vides={empty} erreurs={errors}")
 
-        # Sauvegarde intermédiaire
         if (i + 1 - start_idx) % 500 == 0:
-            with open(output_file, "w") as f:
-                json.dump(all_rapports, f, ensure_ascii=False)
             with open(checkpoint_file, "w") as f:
-                json.dump({"last_index": i + 1, "total_rapports": len(all_rapports)}, f)
-            log.info(f">>> Sauvegarde: {len(all_rapports)} rapports <<<")
+                json.dump({"last_index": i + 1, "total_rapports": total_rapports}, f)
+            log.info(f">>> Checkpoint: {total_rapports} rapports <<<")
 
         smart_pause(0.2, 0.1)
 
-    # Sauvegarde finale
-    log.info("Sauvegarde finale...")
-    with open(output_file, "w") as f:
-        json.dump(all_rapports, f, ensure_ascii=False)
-
-    import csv
-    if all_rapports:
-        all_keys = set()
-        for r in all_rapports:
-            all_keys.update(r.keys())
-        all_keys = sorted(all_keys)
-        with open(os.path.join(OUTPUT_DIR, "rapports_definitifs.csv"), "w", newline="", encoding="utf-8") as f:
-            writer = csv.DictWriter(f, fieldnames=all_keys)
-            writer.writeheader()
-            writer.writerows(all_rapports)
+    with open(checkpoint_file, "w") as f:
+        json.dump({"last_index": len(courses), "total_rapports": total_rapports}, f)
 
     log.info("=" * 60)
-    log.info(f"TERMINÉ: {len(all_rapports)} rapports, {errors} erreurs")
+    log.info(f"TERMINÉ: {total_rapports} rapports, {errors} erreurs")
     log.info("=" * 60)
 
 if __name__ == "__main__":
