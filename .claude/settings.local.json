@@ -81,7 +81,8 @@
       "Bash(python3:*)",
       "Bash(du -sh \"/Users/quentinherve/models hybride/output/\"*)",
       "Bash(gh auth:*)",
-      "Bash(git --version)"
+      "Bash(git --version)",
+      "Bash(ls -d \"/Users/quentinherve/models hybride/output/\"*/)"
     ]
   }
 }
