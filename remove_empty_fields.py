@@ -75,7 +75,7 @@ def analyze_file(filepath: Path) -> Tuple[int, Dict[str, int], Dict[str, Dict[An
     # Compteur de presences par champ
     presence_counts: Dict[str, int] = defaultdict(int)
 
-    with open(filepath, "r", encoding="utf-8") as f:
+    with open(filepath, "r", encoding="utf-8", errors="replace") as f:
         for line_no, line in enumerate(f, 1):
             line = line.strip()
             if not line:
@@ -177,8 +177,8 @@ def clean_file(filepath: Path, fields_to_remove: Set[str]) -> int:
 
     written = 0
     try:
-        with open(filepath, "r", encoding="utf-8") as fin, \
-             open(tmp_path, "w", encoding="utf-8") as fout:
+        with open(filepath, "r", encoding="utf-8", errors="replace") as fin, \
+             open(tmp_path, "w", encoding="utf-8", errors="replace") as fout:
             for line in fin:
                 line = line.strip()
                 if not line:
@@ -319,7 +319,7 @@ def main():
             log.info(f"  Aucun champ a supprimer")
 
     # Sauvegarder le rapport
-    with open(REPORT_FILE, "w", encoding="utf-8") as f:
+    with open(REPORT_FILE, "w", encoding="utf-8", errors="replace") as f:
         json.dump(report, f, indent=2, ensure_ascii=False)
     log.info(f"\nRapport sauvegarde : {REPORT_FILE}")
 
