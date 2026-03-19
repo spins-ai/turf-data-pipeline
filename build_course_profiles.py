@@ -110,8 +110,11 @@ def load_partants():
         t0 = time.time()
 
         if str(fpath).endswith(".jsonl"):
-            with open(fpath, "r", encoding="utf-8", errors="replace") as f:
-                for line in f:
+            with open(fpath, "r", encoding="utf-8", errors="replace", buffering=1024*1024) as f:
+                while True:
+                    line = f.readline()
+                    if not line:
+                        break
                     line = line.strip()
                     if not line:
                         continue
