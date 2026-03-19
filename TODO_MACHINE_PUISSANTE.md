@@ -219,6 +219,24 @@
 - [ ] Configurer des proxys rotatifs pour eviter les bans IP
 - [ ] Obtenir API keys payantes (Betfair, Timeform Pro, Racing Post)
 
+## 4.8 TACHES REPORTEES (RAM insuffisante ou besoin correction)
+- [ ] Convert features_matrix.jsonl (36 GB) en Parquet — utiliser convert_features_parquet.py en chunks
+- [ ] Convert les 11 builders JSONL (253 GB) en Parquet — idem par chunks
+- [ ] Relancer remove_empty_fields en mode execute apres fix permissions output/
+- [ ] Relancer enrichissement_champs.py 2eme passe sur fichier enrichi
+- [ ] Relancer mega_merge avec partants_master_enrichi.jsonl
+- [ ] Relancer master_feature_builder sur le fichier enrichi
+- [ ] Copier output/ en local (supprimer junction Mac) pour permissions ecriture
+- [ ] Relancer scripts collecte (21,22,27,28,38,39) apres copie locale
+- [ ] Installer Playwright pour les 14 scrapers bloques (section 4.6)
+- [ ] Obtenir API Betfair pour cotes exchange
+- [ ] Obtenir abonnement Racing Post/Timeform Pro pour sectionals detailles
+- [ ] Exporter tous les data_master en triple format (JSON+CSV+Parquet)
+- [ ] Executer pilier_drift_detection.py
+- [ ] Executer pilier_golden_records.py
+- [ ] Executer pilier_coverage_matrix.py (si pas fini)
+- [ ] Executer organize_project.py --execute (reorganisation fichiers)
+
 ## 4.7 CALCULS A 0% — BESOIN DONNEES SUPPLEMENTAIRES
 - [ ] 42 croisement Racing Post (0%) -> Racing Post data pas dans le bon format, refaire le mapping
 - [ ] 49 ecart cotes internet/national (0%) -> cles de jointure ne matchent pas, corriger le script
