@@ -1,6 +1,6 @@
 # Statistiques Finales du Pipeline
 
-*Généré le 2026-03-19 06:58*
+*Généré le 2026-03-19 07:22*
 
 ## Résumé Global
 
@@ -12,7 +12,7 @@
 | Jockeys uniques | 27,867 |
 | Entraîneurs uniques | 27,686 |
 | Hippodromes | 527 |
-| Plage de dates | 2013-02-19 → 2026-03-12 |
+| Plage de dates | 2013-02-19 -> 2026-03-12 |
 | Nombre de jours | 4,700 |
 | Champs partants | 19230 |
 
@@ -19303,6 +19303,7 @@
 | meteo_master.json | 98.3 MB |
 | meteo_master.parquet | 6.4 MB |
 | partants_master.jsonl | 16.5 GB |
+| partants_master_enrichi.jsonl.tmp | 13.3 GB |
 | pedigree_master.csv | 185.4 MB |
 | pedigree_master.json | 444.8 MB |
 | pedigree_master.parquet | 28.4 MB |
@@ -19310,4 +19311,4 @@
 | racing_post_master.json | 0.0 MB |
 | rapports_master.json | 728.7 MB |
 | rapports_master.parquet | 67.8 MB |
-| **TOTAL** | **18.5 GB** |
+| **TOTAL** | **31.8 GB** |
