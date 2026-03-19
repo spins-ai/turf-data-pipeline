@@ -98,7 +98,7 @@ def convert_one_file(jsonl_path: Path, parquet_path: Path, chunk_size: int = 50_
     # Phase 1: déduire le schéma
     print(f"  Phase 1: Inférence schéma (1000 premières lignes) ...")
     columns = infer_parquet_schema(jsonl_path)
-    print(f"    → {len(columns)} colonnes détectées")
+    print(f"    -> {len(columns)} colonnes détectées")
 
     # Phase 2: conversion par chunks
     print(f"  Phase 2: Conversion par chunks de {chunk_size:,} lignes ...")
@@ -207,7 +207,7 @@ def convert_one_file(jsonl_path: Path, parquet_path: Path, chunk_size: int = 50_
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Convertir features JSONL → Parquet")
+    parser = argparse.ArgumentParser(description="Convertir features JSONL -> Parquet")
     parser.add_argument("--file", type=str, default=None,
                         help="Convertir un seul fichier (nom du .jsonl)")
     parser.add_argument("--chunk-size", type=int, default=50_000,
@@ -216,7 +216,7 @@ def main():
 
     t0 = time.time()
     print("=" * 60)
-    print("CONVERSION FEATURES JSONL → PARQUET (zstd)")
+    print("CONVERSION FEATURES JSONL -> PARQUET (zstd)")
     print("=" * 60)
 
     if not FEATURES_DIR.exists():
