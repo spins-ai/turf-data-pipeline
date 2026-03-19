@@ -281,7 +281,9 @@ def enrich_partant(
             pass
 
     # 1. commentaire_apres_course — depuis rapports
-    if not (partant.get("commentaire_apres_course") or "").strip():
+    val_comm = partant.get("commentaire_apres_course")
+    if isinstance(val_comm, dict): val_comm = str(val_comm)
+    if not (val_comm or "").strip() if isinstance(val_comm, str) else not val_comm:
         course_comms = rapports_idx.get(course_uid, {})
         if num_pmu_int is not None:
             comm = course_comms.get(str(num_pmu_int)) or course_comms.get(num_pmu_int)

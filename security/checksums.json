@@ -1,0 +1,1641 @@
+{
+  "generated_at": "2026-03-19T06:39:00.102301",
+  "base_dir": "C:\\Users\\celia\\turf-data-pipeline\\.claude\\worktrees\\naughty-bardeen",
+  "total_files": 272,
+  "total_size": 317788066097,
+  "total_size_human": "296.0 GB",
+  "files": {
+    "00_enrichissement_meteo.py": {
+      "sha256": "003d4941623b2d12907d898999780552972df67926571ec5fa01f351ebe2b2a9",
+      "size": 22606,
+      "size_human": "22.1 KB",
+      "modified": "2026-03-18T13:16:36.130004"
+    },
+    "01_calendrier_reunions.py": {
+      "sha256": "84bf4e09ed48c1ee2a39adcaddb5c185e95de5d0c479c34104f2686964ea2f4b",
+      "size": 106161,
+      "size_human": "103.7 KB",
+      "modified": "2026-03-18T13:16:36.130004"
+    },
+    "02_liste_courses.py": {
+      "sha256": "41b82ba4798c725c4fdca6d02da60ae9757ff97508463e5f03f7de268e509e65",
+      "size": 46134,
+      "size_human": "45.1 KB",
+      "modified": "2026-03-18T14:14:55.922200"
+    },
+    "02b_liste_courses_2013.py": {
+      "sha256": "08c7cf5dba7b299bf323712c73764762126e602ccc57729216f7ce2dd73b70c0",
+      "size": 52220,
+      "size_human": "51.0 KB",
+      "modified": "2026-03-18T13:16:36.130004"
+    },
+    "02b_scraper_letrot.py": {
+      "sha256": "e76bbc65a02e063ba80af1ad1ef53cfca9d3978962cde9434501a3328bd82de3",
+      "size": 72502,
+      "size_human": "70.8 KB",
+      "modified": "2026-03-18T13:16:36.130004"
+    },
+    "04_resultats.py": {
+      "sha256": "119aa29360370342aaaf5cb694be969baf6443c914a26d3eea1b5d2355bf1a89",
+      "size": 17726,
+      "size_human": "17.3 KB",
+      "modified": "2026-03-18T13:16:36.130004"
+    },
+    "05_historique_chevaux.py": {
+      "sha256": "6a8dc6f3c35ce36a02880a9475fa52a3f23ad540119a4168d2aa9d308c43204e",
+      "size": 13053,
+      "size_human": "12.7 KB",
+      "modified": "2026-03-18T13:16:36.130004"
+    },
+    "06_historique_jockeys.py": {
+      "sha256": "4780e623cb81d12565e1c127fa3dd936354fe3d46387621704715b132d37c6d8",
+      "size": 12090,
+      "size_human": "11.8 KB",
+      "modified": "2026-03-18T13:16:36.136274"
+    },
+    "07_cotes_marche.py": {
+      "sha256": "4172c9fffedef66c2dcc710c3f993720992c247274532825da04cd57a2a73b00",
+      "size": 9541,
+      "size_human": "9.3 KB",
+      "modified": "2026-03-18T13:16:36.136274"
+    },
+    "08_pedigree.py": {
+      "sha256": "9a9dbb669d719355c22151f58674f713ed164f08bd361d93fbc6b80d24192e8e",
+      "size": 11419,
+      "size_human": "11.2 KB",
+      "modified": "2026-03-18T13:16:36.136274"
+    },
+    "09_equipements.py": {
+      "sha256": "7c9d086d6bac46d1f83c4b71b4577a198c3eda60c3bd7d587274803a2a628ecf",
+      "size": 8471,
+      "size_human": "8.3 KB",
+      "modified": "2026-03-18T13:16:36.136274"
+    },
+    "10_poids_handicaps.py": {
+      "sha256": "77f3670e73c32a4cedfe0ec37127645b182d36394979bf8873789ac55a9110cb",
+      "size": 10026,
+      "size_human": "9.8 KB",
+      "modified": "2026-03-18T13:16:36.136274"
+    },
+    "11_sectionals.py": {
+      "sha256": "7a7e697ed546b11c4c4b0a3172d97817f8f8f477e168808ba4bd4ee37ee861c0",
+      "size": 10731,
+      "size_human": "10.5 KB",
+      "modified": "2026-03-18T13:16:36.136274"
+    },
+    "12_pedigree_scraper.py": {
+      "sha256": "8afa30d5c78979eda9cb0bbed97964574958b876caf0091338a9fd3e1790aad3",
+      "size": 50482,
+      "size_human": "49.3 KB",
+      "modified": "2026-03-18T13:16:36.136274"
+    },
+    "13_meteo_historique.py": {
+      "sha256": "d981a0aa9aff9d86d1c7d15f122d5ef7006a0614195d2e07917061e213620482",
+      "size": 28977,
+      "size_human": "28.3 KB",
+      "modified": "2026-03-18T13:16:36.136274"
+    },
+    "14_pedigree_scraper.py": {
+      "sha256": "6acbfa3813f9fabbb3c666321bf53637f6c68010412bad8bbbc888694e361900",
+      "size": 30041,
+      "size_human": "29.3 KB",
+      "modified": "2026-03-18T20:50:08.905825"
+    },
+    "15_download_external_datasets.py": {
+      "sha256": "bad620722937f78563ce352c5e40535715cf4b8fecdb8305fd42d17ef3292f14",
+      "size": 15732,
+      "size_human": "15.4 KB",
+      "modified": "2026-03-18T13:16:36.136274"
+    },
+    "16_collecte_nanaelie_2004_2013.py": {
+      "sha256": "724727e4aa051fb5b6de2200362cbaa9fbec6773acba02b02d2516ab79645d25",
+      "size": 22507,
+      "size_human": "22.0 KB",
+      "modified": "2026-03-18T13:16:36.136274"
+    },
+    "17_process_sire.py": {
+      "sha256": "2db65875c4d0ae112a64a1045ddb8d9b96f28e851612451a4d9b514bcb582989",
+      "size": 6467,
+      "size_human": "6.3 KB",
+      "modified": "2026-03-18T13:16:36.136274"
+    },
+    "18_letrot_records.py": {
+      "sha256": "cdfce39be9214801adeed01241a0b7d7e9c7498fb040815840391a98afcd9943",
+      "size": 9948,
+      "size_human": "9.7 KB",
+      "modified": "2026-03-18T13:16:36.136274"
+    },
+    "19_boturfers_stats.py": {
+      "sha256": "0945bbf5bbcca87b37990a96907f2d2fdce30253cb3e5f7dccaf2000af293899",
+      "size": 8159,
+      "size_human": "8.0 KB",
+      "modified": "2026-03-18T13:16:36.136274"
+    },
+    "20_ifce_stats.py": {
+      "sha256": "18368fd7d486a4422018c31d924b79ca4b6163affc189f3fa45a5acd7ceb6a78",
+      "size": 6917,
+      "size_human": "6.8 KB",
+      "modified": "2026-03-18T13:16:36.136274"
+    },
+    "21_rapports_definitifs.py": {
+      "sha256": "13ab78312bedb11626b2985e4da78aad000a86b1ec97a32879dfcc087baa93dd",
+      "size": 9992,
+      "size_human": "9.8 KB",
+      "modified": "2026-03-18T20:50:07.551655"
+    },
+    "22_performances_detaillees.py": {
+      "sha256": "7395b1c9747356d08e3aa4888c45d5ccbca5944246d88ba5cb1798ae39628023",
+      "size": 8328,
+      "size_human": "8.1 KB",
+      "modified": "2026-03-18T20:50:07.764572"
+    },
+    "23_pronostics_equidia.py": {
+      "sha256": "96e6511ada503f90ca34562c764d5bc26bbf429be74cf16ea3d82b63654926d2",
+      "size": 15858,
+      "size_human": "15.5 KB",
+      "modified": "2026-03-18T13:16:36.145662"
+    },
+    "24_canalturf_scraper.py": {
+      "sha256": "71401384e93ed2fb7ed13ca41dbb99a84b78a8f289cfe70069fdf294f3104762",
+      "size": 7930,
+      "size_human": "7.7 KB",
+      "modified": "2026-03-18T13:16:36.145662"
+    },
+    "25_turfostats_scraper.py": {
+      "sha256": "2128ff67d4f5c8e597663c79f2a7f0ee9e0bf091b4612dbd0885dd9450c485ef",
+      "size": 8172,
+      "size_human": "8.0 KB",
+      "modified": "2026-03-18T13:16:36.145662"
+    },
+    "26_geny_scraper.py": {
+      "sha256": "66fb182f9bfc25b36d5179d8a77225468f84afbf4a822b8cc7ef475be2f8033a",
+      "size": 5987,
+      "size_human": "5.8 KB",
+      "modified": "2026-03-18T13:16:36.145662"
+    },
+    "27_citations_enjeux.py": {
+      "sha256": "aab4e452e81b864b48a1588574b13dfc9e6f19b46605a47abe1a8411c33e2ae1",
+      "size": 8724,
+      "size_human": "8.5 KB",
+      "modified": "2026-03-18T20:50:08.024288"
+    },
+    "28_combinaisons_marche.py": {
+      "sha256": "7b0ce7bb4de0f55ab0cfd8f96aeab74a7354e9fd2edc9ba98ce4d738b9078482",
+      "size": 7524,
+      "size_human": "7.3 KB",
+      "modified": "2026-03-18T20:50:08.207582"
+    },
+    "29_arqana_ventes.py": {
+      "sha256": "5d1fd2895018a80a4c370dc3935d85b000f47d7d8f59b36a4b4b0d1c7f3df9f9",
+      "size": 9352,
+      "size_human": "9.1 KB",
+      "modified": "2026-03-18T13:16:36.145662"
+    },
+    "30_smarkets_exchange.py": {
+      "sha256": "36780ac3771a38ff942f18a0706e7742b88f8613f020a8e3247e6e256841b95e",
+      "size": 13791,
+      "size_human": "13.5 KB",
+      "modified": "2026-03-18T13:16:36.145662"
+    },
+    "31_zone_turf.py": {
+      "sha256": "669b8d4ab43a747cdfd2f7c1ace6ed473035862f30a1bfbd17bcf00c5e222f00",
+      "size": 6605,
+      "size_human": "6.5 KB",
+      "modified": "2026-03-18T13:16:36.145662"
+    },
+    "32_turfomania.py": {
+      "sha256": "f2c02e1c5da48aa3db7fe69860db3df99300efde6da44825fa0a99e677e3e369",
+      "size": 5819,
+      "size_human": "5.7 KB",
+      "modified": "2026-03-18T13:16:36.145662"
+    },
+    "33_turf_fr.py": {
+      "sha256": "81b1d8af361aa19ed848f281d0ed4897c1d76fd91ae3dd0813d64eac07a3a3c3",
+      "size": 5206,
+      "size_human": "5.1 KB",
+      "modified": "2026-03-18T13:16:36.145662"
+    },
+    "34_unibet_cotes.py": {
+      "sha256": "590187f755a57d881063340114ff0e7e8f08aae46cabacb61cecf6a89337819c",
+      "size": 6484,
+      "size_human": "6.3 KB",
+      "modified": "2026-03-18T13:16:36.145662"
+    },
+    "35_meteo_france_api.py": {
+      "sha256": "5a9f029ed3e7da65562b6ab2050dbd625146b5e49234696503817e494d575be9",
+      "size": 9072,
+      "size_human": "8.9 KB",
+      "modified": "2026-03-18T13:16:36.153036"
+    },
+    "36_pedigree_query.py": {
+      "sha256": "5621b46e41237d6a20e0584d3b54f6c9c0c9602b2c48efcec7fe051f8cebc9c7",
+      "size": 13918,
+      "size_human": "13.6 KB",
+      "modified": "2026-03-18T13:16:36.153036"
+    },
+    "37_rpscrape_racing_post.py": {
+      "sha256": "16c4b4c35323e55101a8d06a1941509b9cc6e8051dcf7f03beea7ac2f41658b4",
+      "size": 8524,
+      "size_human": "8.3 KB",
+      "modified": "2026-03-18T20:50:09.101853"
+    },
+    "38_rapports_internet.py": {
+      "sha256": "1274205c721bb98a0ea0c06e8b7b7eb1fefcaf48dfda790cf15fb9c829a4e11b",
+      "size": 8293,
+      "size_human": "8.1 KB",
+      "modified": "2026-03-18T20:50:08.412606"
+    },
+    "39_reunions_enrichies.py": {
+      "sha256": "de6cc9d961f1eb5c3f51ceb606adb504cc3be1e30c6e91809148d2e727db0e5e",
+      "size": 11380,
+      "size_human": "11.1 KB",
+      "modified": "2026-03-18T20:50:08.696004"
+    },
+    "40_enrichissement_partants.py": {
+      "sha256": "dc5e26749fd991b79494f62b1aac206f4416b47f43290a5772ff0c988a7c2cac",
+      "size": 6373,
+      "size_human": "6.2 KB",
+      "modified": "2026-03-18T13:16:36.153036"
+    },
+    "41_sequences_performances.py": {
+      "sha256": "39e074d97d988bba8e67d7abf3d205ebfe6b6d511f9c4137209d9d6cfe122fc3",
+      "size": 13324,
+      "size_human": "13.0 KB",
+      "modified": "2026-03-18T20:09:53.248915"
+    },
+    "42_croisement_racing_post_pmu.py": {
+      "sha256": "207936fb04b91885356a6f7cbf6f14a5c5cd6b3d759c51adcaf275e3abc228da",
+      "size": 10004,
+      "size_human": "9.8 KB",
+      "modified": "2026-03-18T20:09:52.312979"
+    },
+    "43_croisement_meteo_courses.py": {
+      "sha256": "59113a701f211b5c2381f704bfc8b22d484b9c7932fa99e3352f1a0b40650a6b",
+      "size": 11886,
+      "size_human": "11.6 KB",
+      "modified": "2026-03-18T14:21:47.366298"
+    },
+    "44_croisement_pedigree_partants.py": {
+      "sha256": "12b0c414cbd6fff7c6138a1e77db3cc21a8c68959648216923b64578e12a6ec2",
+      "size": 14735,
+      "size_human": "14.4 KB",
+      "modified": "2026-03-18T20:10:00.863929"
+    },
+    "45_graphe_relations_gnn.py": {
+      "sha256": "21e0e30d3f4f20640325b7bedcf8e6a2f9805841810be8ba21004ddef32a0aef",
+      "size": 10891,
+      "size_human": "10.6 KB",
+      "modified": "2026-03-18T14:23:29.623205"
+    },
+    "46_track_bias_speed_class.py": {
+      "sha256": "9cda667ac360bd9b7730b156f761e6b65968f42e0fd1fa7817222053065a421f",
+      "size": 14280,
+      "size_human": "13.9 KB",
+      "modified": "2026-03-18T14:24:39.444002"
+    },
+    "48_parse_conditions_texte.py": {
+      "sha256": "7f7403a8bec7c9654fef3528804cd71fb6fcb7ad99654edd6034695ab8deac6a",
+      "size": 10816,
+      "size_human": "10.6 KB",
+      "modified": "2026-03-18T20:10:23.071904"
+    },
+    "49_ecart_cotes_internet_national.py": {
+      "sha256": "a171ba39757f0e0155188d5a76ed87c6adc16f05b6243b7813909dba8520974c",
+      "size": 14816,
+      "size_human": "14.5 KB",
+      "modified": "2026-03-18T14:26:27.207206"
+    },
+    "51_zeturf_scraper.py": {
+      "sha256": "cddb20ae6c9310909a028231a48ccbf7aa9da557c502da1db2909b1f0d7b63e3",
+      "size": 23453,
+      "size_human": "22.9 KB",
+      "modified": "2026-03-18T21:12:56.048944"
+    },
+    "52_turfomania_scraper.py": {
+      "sha256": "008162062fa585c9373a42c36e96229db6c1187dc15568e619f7a792c5e707bb",
+      "size": 19537,
+      "size_human": "19.1 KB",
+      "modified": "2026-03-18T21:21:31.838165"
+    },
+    "53_paris_turf_scraper.py": {
+      "sha256": "bfd2cd8c96fe27c0963d4475d3a56ce80c796badcd93afca9c4d9580bd8ecbc5",
+      "size": 21635,
+      "size_human": "21.1 KB",
+      "modified": "2026-03-18T21:22:18.689354"
+    },
+    "54_turfinfo_scraper.py": {
+      "sha256": "9f3581aed0e5a81568afb0ffa7dbc94fa47146d3345ce0cc932b85b323cb9044",
+      "size": 20812,
+      "size_human": "20.3 KB",
+      "modified": "2026-03-18T21:22:56.012172"
+    },
+    "55_equidia_data_scraper.py": {
+      "sha256": "8108eaeeb7d527bf5bfa98d7096a3e5ae2ff73bcbb0ea7474957c3920db3a653",
+      "size": 24114,
+      "size_human": "23.5 KB",
+      "modified": "2026-03-18T21:23:33.097337"
+    },
+    "56_timeform_scraper.py": {
+      "sha256": "dd4d011e27511b4a8d9ca6af99d2c415e4f1961b516070136694475a251c8e9d",
+      "size": 30025,
+      "size_human": "29.3 KB",
+      "modified": "2026-03-18T21:13:54.159441"
+    },
+    "57_sporting_life_scraper.py": {
+      "sha256": "e24ab8142338f950d36f7bee8c44c94dce8f5aed62c15e0394e46576be03938b",
+      "size": 23320,
+      "size_human": "22.8 KB",
+      "modified": "2026-03-18T21:24:23.105964"
+    },
+    "58_at_the_races_scraper.py": {
+      "sha256": "a6ab811cc145b8039874993a502ee940921d0f8b905dd105cef6ace56ce0c5a1",
+      "size": 26596,
+      "size_human": "26.0 KB",
+      "modified": "2026-03-18T21:25:17.523906"
+    },
+    "59_racing_tv_scraper.py": {
+      "sha256": "710f976a7a7117242ca770f2abfee5f974988bbda93e3cf9f81722dd2f9570b5",
+      "size": 18733,
+      "size_human": "18.3 KB",
+      "modified": "2026-03-18T17:01:09.760240"
+    },
+    "60_oddschecker_scraper.py": {
+      "sha256": "baa048045c4c4600343f4e8c6debf4de852d1d7fe2a50ee1c1f19f8f175d4750",
+      "size": 25171,
+      "size_human": "24.6 KB",
+      "modified": "2026-03-18T21:14:36.517300"
+    },
+    "61_equibase_scraper.py": {
+      "sha256": "06b9d2e4b273fc901f13fc519ea7b2497c8f239b8bf76b0c2a5c977ae93f2fa6",
+      "size": 23881,
+      "size_human": "23.3 KB",
+      "modified": "2026-03-18T21:26:09.283450"
+    },
+    "62_horse_racing_nation_scraper.py": {
+      "sha256": "5e205acfb70fb9080ecbf6f3d0be3cc8fc711ba6c3b1df25bf041903e1a16984",
+      "size": 13238,
+      "size_human": "12.9 KB",
+      "modified": "2026-03-18T17:07:22.709820"
+    },
+    "63_daily_racing_form_scraper.py": {
+      "sha256": "7cf9af7d5861d386eef5c98585711cedda7f4bc7964359f9172e25e89fdd3c9a",
+      "size": 13849,
+      "size_human": "13.5 KB",
+      "modified": "2026-03-18T17:08:01.471072"
+    },
+    "64_punters_scraper.py": {
+      "sha256": "e4508fb984c7c33fd71e8f50ba66e6114def069e99643072b5923a9068e05e38",
+      "size": 23357,
+      "size_human": "22.8 KB",
+      "modified": "2026-03-18T21:26:57.504161"
+    },
+    "65_racenet_scraper.py": {
+      "sha256": "90fb83f4c7c60f4ee97725ea2e07abf6310d50e22252230b2ddb98ef9f530b92",
+      "size": 25912,
+      "size_human": "25.3 KB",
+      "modified": "2026-03-18T21:27:52.168647"
+    },
+    "66_hkjc_scraper.py": {
+      "sha256": "bae532226bce7bc40648ec1a6d5b82527e997af9008f78267dc317733886ed8a",
+      "size": 36034,
+      "size_human": "35.2 KB",
+      "modified": "2026-03-18T21:16:21.131540"
+    },
+    "67_jra_scraper.py": {
+      "sha256": "c85db9c6a048ba885473d98a322412264afac8ae114a9e90cb27ddc44be15132",
+      "size": 15180,
+      "size_human": "14.8 KB",
+      "modified": "2026-03-18T17:11:19.860240"
+    },
+    "68_betfair_exchange_scraper.py": {
+      "sha256": "3dc36cd92e04a2881d7a981a2727c65b5033d231dfd42a90e6c43dde73a4cdda",
+      "size": 28527,
+      "size_human": "27.9 KB",
+      "modified": "2026-03-18T21:28:50.374485"
+    },
+    "69_oddsportal_scraper.py": {
+      "sha256": "f7126fb5fda535e3b8105f81a2ea68f01f5695ff600aa0184385430ac6c0dda8",
+      "size": 14039,
+      "size_human": "13.7 KB",
+      "modified": "2026-03-18T20:50:32.808988"
+    },
+    "70_betexplorer_scraper.py": {
+      "sha256": "49420ba416fef45ab5e4579e3b3c67b7bd8d21f3701e596bbbec10b59be6cb81",
+      "size": 14532,
+      "size_human": "14.2 KB",
+      "modified": "2026-03-18T20:51:11.399240"
+    },
+    "71_allbreedpedigree_scraper.py": {
+      "sha256": "07f5fadedb6a3244104e13095243c4cbeeac2b0b3676da1ba82faece0b8ad717",
+      "size": 13542,
+      "size_human": "13.2 KB",
+      "modified": "2026-03-18T20:51:58.003402"
+    },
+    "72_tattersalls_scraper.py": {
+      "sha256": "8625442fb2826f500dc63e2a05297c31636cf59ee004f68f7ec2bf43eafd8c02",
+      "size": 16106,
+      "size_human": "15.7 KB",
+      "modified": "2026-03-18T20:52:54.087901"
+    },
+    "73_goffs_scraper.py": {
+      "sha256": "65282065e70a18e227aa398a9fe72782ec09062a364acb4a7f519df98e76b877",
+      "size": 18908,
+      "size_human": "18.5 KB",
+      "modified": "2026-03-18T20:53:43.072103"
+    },
+    "74_arqana_scraper.py": {
+      "sha256": "fe969b28a2524d442bab5f1832238d60109338f868693ce392886df6a5100414",
+      "size": 14584,
+      "size_human": "14.2 KB",
+      "modified": "2026-03-18T20:57:50.879535"
+    },
+    "75_keeneland_scraper.py": {
+      "sha256": "cf145ba2eba3a8fc17b6485e583054f2444965ac5896b3c6ead986c37845caa5",
+      "size": 14651,
+      "size_human": "14.3 KB",
+      "modified": "2026-03-18T20:58:53.626251"
+    },
+    "76_usta_trot_scraper.py": {
+      "sha256": "4a016c02ff3296f6b9de172b37269cb1c877772b85e78c8b863c2222689a3772",
+      "size": 18055,
+      "size_human": "17.6 KB",
+      "modified": "2026-03-18T21:00:01.394809"
+    },
+    "77_kaggle_datasets.py": {
+      "sha256": "621e0511447e0fc0871413e5185182d46de41fa5f570b16c04326dcf4d87180f",
+      "size": 15522,
+      "size_human": "15.2 KB",
+      "modified": "2026-03-18T21:01:08.525453"
+    },
+    "78_goingstick_scraper.py": {
+      "sha256": "b085549f769a5aa335f5157d49c63aebd40a6385b30785c5de4b5b960c715652",
+      "size": 20545,
+      "size_human": "20.1 KB",
+      "modified": "2026-03-18T21:02:31.573178"
+    },
+    "79_trainer_stats_scraper.py": {
+      "sha256": "2840f750145e239fcedf2553f1eab9f949763b955d47133347c4de19d9cbe4af",
+      "size": 18843,
+      "size_human": "18.4 KB",
+      "modified": "2026-03-18T21:04:11.185713"
+    },
+    "80_france_galop_scraper.py": {
+      "sha256": "c795aafff4a957189028bedfaaabd262e9a3cbfabf25ae1a5a7594e665838244",
+      "size": 48914,
+      "size_human": "47.8 KB",
+      "modified": "2026-03-18T21:17:55.448461"
+    },
+    "81_pronosoft_scraper.py": {
+      "sha256": "caf3fdf1790b9b4aff3379ed0f0072c65170a080171e0c7dd97b8d7b7cf7f32e",
+      "size": 19129,
+      "size_human": "18.7 KB",
+      "modified": "2026-03-18T21:24:30.939049"
+    },
+    "82_turf_fr_scraper.py": {
+      "sha256": "4b0a6b7b0b188e78ed866297d97f66097e146ce97a9986c32add7c3462de7ee8",
+      "size": 18551,
+      "size_human": "18.1 KB",
+      "modified": "2026-03-18T21:25:39.485685"
+    },
+    "83_letrot_scraper.py": {
+      "sha256": "22806763d39841f8401c8ddb61bc07a87fcb957a54542296de1b51a92a00119f",
+      "size": 17878,
+      "size_human": "17.5 KB",
+      "modified": "2026-03-18T21:26:34.039044"
+    },
+    "84_turfoo_scraper.py": {
+      "sha256": "e31a30237b5b55efaa610e12bd72161d44b68b5339ad3a5c87f4080bb2f80bc0",
+      "size": 19066,
+      "size_human": "18.6 KB",
+      "modified": "2026-03-18T21:27:29.575251"
+    },
+    "85_racing_and_sports_scraper.py": {
+      "sha256": "d68d0ed0d72967c9d0715bd2d327c9f2629feef3169baa5dee6323d76cd22998",
+      "size": 17698,
+      "size_human": "17.3 KB",
+      "modified": "2026-03-18T21:28:37.423028"
+    },
+    "86_smartform_scraper.py": {
+      "sha256": "5db4c3e85ccb8f51f36c7596699d7798784e45b8c75931fb0de18cc15abd9626",
+      "size": 19277,
+      "size_human": "18.8 KB",
+      "modified": "2026-03-18T21:29:38.303851"
+    },
+    "87_bloodstock_scraper.py": {
+      "sha256": "d6403131f16ebeb9a3e41604bf2af3d2e8e32d6319f67f7ec0b5c87701d269f2",
+      "size": 16228,
+      "size_human": "15.8 KB",
+      "modified": "2026-03-18T21:30:32.466561"
+    },
+    "88_weatherbys_scraper.py": {
+      "sha256": "a632cb4fbc1d86e30113b5313b0c57d20155ae5acd628bcd187ba05ab6fac11e",
+      "size": 16682,
+      "size_human": "16.3 KB",
+      "modified": "2026-03-18T21:31:23.121308"
+    },
+    "89_singapore_pools_scraper.py": {
+      "sha256": "8ab6d672857d1accb04f917bdfe678b2580a650a406133cc64321b1520680783",
+      "size": 17385,
+      "size_human": "17.0 KB",
+      "modified": "2026-03-18T21:32:17.112027"
+    },
+    "90_korea_racing_scraper.py": {
+      "sha256": "56b2cf51c37e9002fb4e1feb7339ce5634a9ffc758f458de2e9dad487e741ad1",
+      "size": 19110,
+      "size_human": "18.7 KB",
+      "modified": "2026-03-18T21:33:11.975851"
+    },
+    "audit_02.py": {
+      "sha256": "cce7d0b979816ce721872b812adfc3136cd3a19574ecdf7d14b5380651ef95cc",
+      "size": 17993,
+      "size_human": "17.6 KB",
+      "modified": "2026-03-18T13:16:36.161551"
+    },
+    "audit_data_integrity.py": {
+      "sha256": "5b209ed65a74d8036aaaa54e613037435152214ec924e46ad07b70f13e276fe4",
+      "size": 19842,
+      "size_human": "19.4 KB",
+      "modified": "2026-03-18T14:31:57.832911"
+    },
+    "betting/__init__.py": {
+      "sha256": "9bc8d840f73b51d51f11ffb8c41ab3cc9313674ae6f5a7ae77b771df1baed311",
+      "size": 622,
+      "size_human": "622.0 B",
+      "modified": "2026-03-18T13:16:36.161551"
+    },
+    "betting/kelly_optimizer.py": {
+      "sha256": "c582e3ca6352b2d8c967b2498e67af09fce4dd0bd700cfdefbdb28c1dc6d35d2",
+      "size": 7583,
+      "size_human": "7.4 KB",
+      "modified": "2026-03-18T13:16:36.161551"
+    },
+    "betting/roi_tracker.py": {
+      "sha256": "35663c92d33538f5b46303bfa0eadfd8eb9047792474338c0220c7b473708220",
+      "size": 14783,
+      "size_human": "14.4 KB",
+      "modified": "2026-03-18T13:16:36.161551"
+    },
+    "betting/ticket_optimizer.py": {
+      "sha256": "72a63034f80236828e416a60339e61f5e5cd033f4fa56f55c7333d42bd1a1b7a",
+      "size": 9755,
+      "size_human": "9.5 KB",
+      "modified": "2026-03-18T13:16:36.161551"
+    },
+    "betting/value_hunter.py": {
+      "sha256": "99dea20a67d7a0130978c0a5871968c4b37f36838b1738f1eba1f1fdf88137c3",
+      "size": 6769,
+      "size_human": "6.6 KB",
+      "modified": "2026-03-18T13:16:36.161551"
+    },
+    "comblage_trous.py": {
+      "sha256": "38a267f0714024ee6f026c1f2b238c454f9f012f9a4a4b6a86b2cbd33cb0fe02",
+      "size": 17184,
+      "size_human": "16.8 KB",
+      "modified": "2026-03-18T14:39:34.084919"
+    },
+    "data_master/courses_master.jsonl": {
+      "sha256": "4c806984228d8a57bba49c54c49c288c42179f63153c68258672c2419d478477",
+      "size": 393854413,
+      "size_human": "375.6 MB",
+      "modified": "2026-03-18T17:15:20.831567"
+    },
+    "data_master/partants_master.jsonl": {
+      "sha256": "0c2f292fa3a98e282184cf3aac76d3e2d6210f7468bfab533fb1c9facd590f1e",
+      "size": 17721641452,
+      "size_human": "16.5 GB",
+      "modified": "2026-03-18T17:28:24.844285"
+    },
+    "deduplication.py": {
+      "sha256": "a5626544a57f643d343d24c207ca5edc482bf7a4e6207e7ad701145269eac3a2",
+      "size": 6478,
+      "size_human": "6.3 KB",
+      "modified": "2026-03-18T14:38:26.351929"
+    },
+    "enrichissement_meteo_nasa.py": {
+      "sha256": "81f6672a374d243b39e5d4443ef2fb0cbc8a90bec5f09ba9b1497d16ea4b27c3",
+      "size": 15414,
+      "size_human": "15.1 KB",
+      "modified": "2026-03-18T13:16:36.169660"
+    },
+    "entity_resolution.py": {
+      "sha256": "2b2ff48fb9dc2ba0e1f09f16c49a7ef43b53b4b608239cedabc5d7e726654c58",
+      "size": 13476,
+      "size_human": "13.2 KB",
+      "modified": "2026-03-18T13:16:36.169660"
+    },
+    "export_triple_format.py": {
+      "sha256": "2034a5f68310a3a03732647ab7a54b8ee5aee1cfa73367ffadab3b08895da1b2",
+      "size": 13448,
+      "size_human": "13.1 KB",
+      "modified": "2026-03-19T06:27:56.075438"
+    },
+    "feat_cheval_distance_affinity.py": {
+      "sha256": "d93a7a8a16016a1dae1dd00ab7fd03f00222a5f93d3dd05de43baa9f12acaf9e",
+      "size": 5705,
+      "size_human": "5.6 KB",
+      "modified": "2026-03-18T14:46:12.487497"
+    },
+    "feat_cheval_hippodrome_affinity.py": {
+      "sha256": "ba7b7ea0ff344ab7f73b3da82190d3a3973ef5b71246a7738323af111bc689a3",
+      "size": 3645,
+      "size_human": "3.6 KB",
+      "modified": "2026-03-18T14:45:49.812130"
+    },
+    "feat_cheval_jockey_affinity.py": {
+      "sha256": "015d8c1dc06ee5165ee6eca787479d2cc79e352eb437d7e565c821c51a26e4db",
+      "size": 4460,
+      "size_human": "4.4 KB",
+      "modified": "2026-03-18T14:45:31.408890"
+    },
+    "feat_cheval_terrain_affinity.py": {
+      "sha256": "7fff8d31edf2326e75162603ecd884392334b11f804179d32e28acd12ebe62ce",
+      "size": 3690,
+      "size_human": "3.6 KB",
+      "modified": "2026-03-18T14:46:25.292622"
+    },
+    "feat_croisements.py": {
+      "sha256": "ea6eb41c50e0080e5b4e43f8d84f59c1eae0d04636c4a5c3b6fa8c547b6e1695",
+      "size": 7463,
+      "size_human": "7.3 KB",
+      "modified": "2026-03-18T13:16:36.169660"
+    },
+    "feat_entraineur_hippodrome.py": {
+      "sha256": "a82462673e0f289e74727b6e0140e3286728c5e3e676c73cbd5dbdee4b28029c",
+      "size": 3376,
+      "size_human": "3.3 KB",
+      "modified": "2026-03-18T14:46:53.791655"
+    },
+    "feat_field_strength.py": {
+      "sha256": "7ad4c01c01d33b7702e3c091325ba68fdc96f99c2e1eae85f036b6fa6e5e8abd",
+      "size": 4729,
+      "size_human": "4.6 KB",
+      "modified": "2026-03-18T14:48:57.903713"
+    },
+    "feat_historique.py": {
+      "sha256": "3cc22d6856ae04598be69215fe4d613598ab8ee27c5887ce4ef269c95c9269ef",
+      "size": 9247,
+      "size_human": "9.0 KB",
+      "modified": "2026-03-18T13:16:36.169660"
+    },
+    "feat_interactions.py": {
+      "sha256": "85bbe745056bf9fa8cb561cf1812bc4c38fd0e7c4f9278a30069b2a99db69a4d",
+      "size": 11243,
+      "size_human": "11.0 KB",
+      "modified": "2026-03-18T13:16:36.169660"
+    },
+    "feat_jockey.py": {
+      "sha256": "2baf31b8729df6d81d9c0fc4db6359239e4e77397becfb66673fa836c4c469fe",
+      "size": 9627,
+      "size_human": "9.4 KB",
+      "modified": "2026-03-18T13:16:36.169660"
+    },
+    "feat_jockey_entraineur_combo.py": {
+      "sha256": "a8442e9dba62f0d1ea8b8fafa80600bdccaae4dc2cd178b24acb36a8a3550db4",
+      "size": 3649,
+      "size_human": "3.6 KB",
+      "modified": "2026-03-18T14:46:40.286324"
+    },
+    "feat_meteo_terrain_interaction.py": {
+      "sha256": "e6acc6d6f56dd8a1e1716dadd1af112bffbbe971664f01347e8d95567776a632",
+      "size": 5203,
+      "size_human": "5.1 KB",
+      "modified": "2026-03-18T14:47:55.962998"
+    },
+    "feat_pedigree.py": {
+      "sha256": "df8704659de83b28f152f2dd5e834346ffd3757e4192d468facdc51ba4ef8a92",
+      "size": 10424,
+      "size_human": "10.2 KB",
+      "modified": "2026-03-18T13:16:36.169660"
+    },
+    "feat_pedigree_discipline_match.py": {
+      "sha256": "b897a83ae30f736d2179bc2328aabab1492e066fe889016e51e370084c9a584c",
+      "size": 8371,
+      "size_human": "8.2 KB",
+      "modified": "2026-03-18T14:48:34.783880"
+    },
+    "feat_sequences.py": {
+      "sha256": "e11093be46b9fd4921465d097270add7e6f1cc15ef039011a93559e5d94bf61b",
+      "size": 8418,
+      "size_human": "8.2 KB",
+      "modified": "2026-03-18T13:16:36.169660"
+    },
+    "feat_temporel.py": {
+      "sha256": "189ca043cd0f8a1ecacbffbbdcee3c46bfbde07656f6258e5bcf0927c15f8370",
+      "size": 8098,
+      "size_human": "7.9 KB",
+      "modified": "2026-03-18T13:16:36.169660"
+    },
+    "feat_value_betting.py": {
+      "sha256": "8250aab3b7e1959c68cdb872b002fa78c8859bd94772c8b2d0473f601fde9c74",
+      "size": 6319,
+      "size_human": "6.2 KB",
+      "modified": "2026-03-18T14:47:31.283671"
+    },
+    "feature_builders/__init__.py": {
+      "sha256": "0f6e689a1a30d12c091b9b3eab03d109a7aadce5d3f1d71cacea1856e5bda994",
+      "size": 1858,
+      "size_human": "1.8 KB",
+      "modified": "2026-03-18T13:16:36.169660"
+    },
+    "feature_builders/canalturf_builder.py": {
+      "sha256": "dfce6ea93f82a6d9cba01268590e8bd1b942ca9839565d7babb083990888fa69",
+      "size": 9129,
+      "size_human": "8.9 KB",
+      "modified": "2026-03-18T14:43:47.001061"
+    },
+    "feature_builders/cheval_features.py": {
+      "sha256": "ae8374ccf10cc95b79066831cf19671c9779fa4166fca568474d7f5e929c10cd",
+      "size": 13094,
+      "size_human": "12.8 KB",
+      "modified": "2026-03-18T13:16:36.169660"
+    },
+    "feature_builders/class_change_features.py": {
+      "sha256": "52df3d969acafccd30bce41fca46a8b56a7f5d4cd9b9eb714ea9dae20da97220",
+      "size": 10832,
+      "size_human": "10.6 KB",
+      "modified": "2026-03-18T19:37:07.423956"
+    },
+    "feature_builders/combo_features.py": {
+      "sha256": "fe27d492e34de316af4cfbed4358d221141a0b52841a6dece8c24d8da0573610",
+      "size": 11022,
+      "size_human": "10.8 KB",
+      "modified": "2026-03-18T19:37:01.661390"
+    },
+    "feature_builders/course_features.py": {
+      "sha256": "367196c64a2e30e77b60417ab09d760ec9bc23ffc95064171d98bccbe7327ad9",
+      "size": 12389,
+      "size_human": "12.1 KB",
+      "modified": "2026-03-18T13:16:36.169660"
+    },
+    "feature_builders/enrichissement_builder.py": {
+      "sha256": "f08f7d9be7fbbcb41be4f6c5d80387f98bc587aeb857373cf2d1b9072cc70992",
+      "size": 9788,
+      "size_human": "9.6 KB",
+      "modified": "2026-03-18T14:42:32.134195"
+    },
+    "feature_builders/equipement_features.py": {
+      "sha256": "ffdb9c0b54556e339d7aca535ad8cefdbdb9fe30cd1b798b55932b75f588cd62",
+      "size": 9657,
+      "size_human": "9.4 KB",
+      "modified": "2026-03-18T19:36:58.540292"
+    },
+    "feature_builders/field_strength_builder.py": {
+      "sha256": "da4141b430581d0e404ebb71aa5f5a136697ab83f53ca5bd56a475d8c30757eb",
+      "size": 14812,
+      "size_human": "14.5 KB",
+      "modified": "2026-03-18T13:16:36.169660"
+    },
+    "feature_builders/geny_builder.py": {
+      "sha256": "f63b515a447e5a76d4dd1951eb9305e9a77efc64fbb5b83608e51945b380d4c4",
+      "size": 11173,
+      "size_human": "10.9 KB",
+      "modified": "2026-03-18T14:44:58.643059"
+    },
+    "feature_builders/interaction_features.py": {
+      "sha256": "cd6ab7b7e6b31d57dd232b59588fb04aa6c89d7d08a2c8f7123f07f9533a9365",
+      "size": 8326,
+      "size_human": "8.1 KB",
+      "modified": "2026-03-18T19:37:10.676390"
+    },
+    "feature_builders/jockey_features.py": {
+      "sha256": "05fecf6a4e1ec6f176b6ff7efeaa1292015ae3174edf526fa4247f07959aa353",
+      "size": 7937,
+      "size_human": "7.8 KB",
+      "modified": "2026-03-18T13:16:36.169660"
+    },
+    "feature_builders/marche_features.py": {
+      "sha256": "ee67fb90921af90a84fab13fb2a2cd67586b4fe8dde36354db6e0d4259bbe3c0",
+      "size": 5336,
+      "size_human": "5.2 KB",
+      "modified": "2026-03-18T13:16:36.169660"
+    },
+    "feature_builders/master_feature_builder.py": {
+      "sha256": "7809bd2ba4098188f7490e1156565f59c750b03b7ed5bf5ad1d952a32016770f",
+      "size": 14601,
+      "size_human": "14.3 KB",
+      "modified": "2026-03-18T13:16:36.169660"
+    },
+    "feature_builders/meteo_features.py": {
+      "sha256": "f56ccccb02e5d2013c91a4656941c89d1dbfac93d61c7592b5c283f9dc5141bb",
+      "size": 8661,
+      "size_human": "8.5 KB",
+      "modified": "2026-03-18T19:37:09.703641"
+    },
+    "feature_builders/musique_features.py": {
+      "sha256": "c104ded833383805f825f5072a95c541385f4c3239d59f0f1c9394577cef383c",
+      "size": 11426,
+      "size_human": "11.2 KB",
+      "modified": "2026-03-18T19:36:53.745994"
+    },
+    "feature_builders/pace_profile_builder.py": {
+      "sha256": "f31f2af3ff48f3a8fd4ac82a65943d56ccd45132ad94040ac4d58a588eb288fa",
+      "size": 11241,
+      "size_human": "11.0 KB",
+      "modified": "2026-03-18T13:16:36.169660"
+    },
+    "feature_builders/pedigree_advanced_builder.py": {
+      "sha256": "7f4fc5e22865362e1cf150c6038a2290f9f689d11053dfeae32bcf323eced712",
+      "size": 11596,
+      "size_human": "11.3 KB",
+      "modified": "2026-03-18T14:43:17.103054"
+    },
+    "feature_builders/pedigree_features.py": {
+      "sha256": "5de2f7585825b9248b0d38fa19739002ed8dbaaf4a4472018daac42d4df87df8",
+      "size": 5248,
+      "size_human": "5.1 KB",
+      "modified": "2026-03-18T13:16:36.169660"
+    },
+    "feature_builders/perf_detaillees_builder.py": {
+      "sha256": "628575decf381d2501e4ebdde526d5be5cf5c505311e2b9b2edeb3556cc02e11",
+      "size": 12712,
+      "size_human": "12.4 KB",
+      "modified": "2026-03-18T14:40:30.024555"
+    },
+    "feature_builders/poids_features.py": {
+      "sha256": "32826507d0f282f2a50f09794d157e1df3fcce2c9d1d522ddd8c5f270aceddb3",
+      "size": 8924,
+      "size_human": "8.7 KB",
+      "modified": "2026-03-18T19:36:59.912260"
+    },
+    "feature_builders/precomputed_entity_joiner.py": {
+      "sha256": "054cffabcb0bc2cb8c2d9baa66e20566e0547b325efd18760ca47b83c8b015d8",
+      "size": 11241,
+      "size_human": "11.0 KB",
+      "modified": "2026-03-18T19:37:05.643601"
+    },
+    "feature_builders/precomputed_partant_joiner.py": {
+      "sha256": "fcef79ec4598ab5882f47e8bf3abe560b1c9f763ff258779c4e2e6be90b630d4",
+      "size": 8255,
+      "size_human": "8.1 KB",
+      "modified": "2026-03-18T19:37:03.946308"
+    },
+    "feature_builders/profil_cheval_features.py": {
+      "sha256": "ce752a387f34ee695f14afcc5dfcae1bc6e05ec2cdf1f6a6561f5c747c71dc16",
+      "size": 9772,
+      "size_human": "9.5 KB",
+      "modified": "2026-03-18T19:36:56.732600"
+    },
+    "feature_builders/racing_post_builder.py": {
+      "sha256": "56d5ffb9e65f66f3c2470eff9b42447df793032a9b0c8451e7f7f471d74e9e90",
+      "size": 9739,
+      "size_human": "9.5 KB",
+      "modified": "2026-03-18T14:41:32.348201"
+    },
+    "feature_builders/reunions_builder.py": {
+      "sha256": "e7f2382c519cbc8c7a6bd39e479a7d4d46c52e260a28dba4d369714bd6c2e534",
+      "size": 9259,
+      "size_human": "9.0 KB",
+      "modified": "2026-03-18T14:42:02.166577"
+    },
+    "feature_builders/smarkets_builder.py": {
+      "sha256": "86279c9758e5b305ad5ce0e4a1e5db6be42f532b620076fc8ecacc4258cd39b4",
+      "size": 9709,
+      "size_human": "9.5 KB",
+      "modified": "2026-03-18T14:41:02.787973"
+    },
+    "feature_builders/temps_features.py": {
+      "sha256": "159a74918bf0b8230b5e6885a70ec76d0e4014a518897d75d79bba009e9c5026",
+      "size": 11378,
+      "size_human": "11.1 KB",
+      "modified": "2026-03-18T19:36:55.489223"
+    },
+    "feature_builders/track_bias_detector.py": {
+      "sha256": "6284ec0b1264861841bf304124a311703ab81371fcdd56d5f006b622c682e982",
+      "size": 19722,
+      "size_human": "19.3 KB",
+      "modified": "2026-03-18T13:16:36.169660"
+    },
+    "feature_builders/turfostats_builder.py": {
+      "sha256": "1b9badc6ee3a0ce651ceabd49e1e8912bd76bcb2c7b9c8a5dcbe8090ac6a2321",
+      "size": 9834,
+      "size_human": "9.6 KB",
+      "modified": "2026-03-18T14:44:20.445710"
+    },
+    "feature_engineering.py": {
+      "sha256": "47422476a56748db2da540afaaa281edad857e2160ed5ea584bf990316f21c2f",
+      "size": 6411,
+      "size_human": "6.3 KB",
+      "modified": "2026-03-18T13:16:36.185397"
+    },
+    "fetch_openmeteo_missing.py": {
+      "sha256": "4fcebab97971da00e2e2b332a7a9c15a24ee9d3a2c5d0059f68c82261151cb96",
+      "size": 6994,
+      "size_human": "6.8 KB",
+      "modified": "2026-03-18T13:16:36.185397"
+    },
+    "fill_empty_fields.py": {
+      "sha256": "4e72900f309998c8370807370d82bb1cb65c54ea5f193c00177c9da568b8b44e",
+      "size": 22548,
+      "size_human": "22.0 KB",
+      "modified": "2026-03-18T13:16:36.186357"
+    },
+    "fix_14_consolidate.py": {
+      "sha256": "a3e9458d9a533cc4aeab0daa2b9d27f58f527b7bae9e5b94fb845e213395c84b",
+      "size": 1492,
+      "size_human": "1.5 KB",
+      "modified": "2026-03-18T13:16:36.186357"
+    },
+    "generate_labels.py": {
+      "sha256": "436e7aa0234ce453ebb4adce2459901bbd770d1c6546f181c60174dc334ee45c",
+      "size": 16440,
+      "size_human": "16.1 KB",
+      "modified": "2026-03-18T17:07:23.466799"
+    },
+    "hippodromes_db.py": {
+      "sha256": "9dcf767b0f5240cddf213a97f78f8aebb124ecf27d4073075c59d7501c3aba8a",
+      "size": 136304,
+      "size_human": "133.1 KB",
+      "modified": "2026-03-18T13:16:36.186357"
+    },
+    "labels/__init__.py": {
+      "sha256": "cb216114a79df93fb0ea33160b3046a26edf2c41823fe733870f385716478e3f",
+      "size": 77,
+      "size_human": "77.0 B",
+      "modified": "2026-03-18T13:16:36.186357"
+    },
+    "labels/label_builder.py": {
+      "sha256": "cb0ad124326fe87550a6b90b006dd1c4f7130e9ba51a87bd31e2fbce2ef03435",
+      "size": 9950,
+      "size_human": "9.7 KB",
+      "modified": "2026-03-18T13:16:36.186357"
+    },
+    "master_feature_builder.py": {
+      "sha256": "769cf81c1bb88fda96a17a95669f234c53361e83c8d217330a1ef89e063a15dd",
+      "size": 92320,
+      "size_human": "90.2 KB",
+      "modified": "2026-03-18T19:41:23.128981"
+    },
+    "mega_merge_all_sources.py": {
+      "sha256": "94f8c32f1ffd1a3cb2e6ce0c914df1ed51d04762b745b022d1b7c00c85cefdff",
+      "size": 23216,
+      "size_human": "22.7 KB",
+      "modified": "2026-03-18T17:17:41.088704"
+    },
+    "mega_merge_courses.py": {
+      "sha256": "ae7495d2d40bbde75f770806cc752d349d3deb30d404a968239815cd598a4940",
+      "size": 16366,
+      "size_human": "16.0 KB",
+      "modified": "2026-03-18T13:16:36.186357"
+    },
+    "mega_merge_partants_master.py": {
+      "sha256": "4df0d66ef57d1a861b1b32925bd73943e8d0a48d93a652545a23d28621420a00",
+      "size": 13733,
+      "size_human": "13.4 KB",
+      "modified": "2026-03-18T17:25:21.525487"
+    },
+    "merge_02_02b.py": {
+      "sha256": "baf7a449ce7d10b40f19d29d71532c31f2679add30ffecad83e1d998f78ad7c6",
+      "size": 13020,
+      "size_human": "12.7 KB",
+      "modified": "2026-03-18T13:16:36.186357"
+    },
+    "merge_02_02b_courses_master.py": {
+      "sha256": "1043585d16a22d45fb6b6abee34d2c7594b2cf29496c36823d0796a378835b06",
+      "size": 3838,
+      "size_human": "3.7 KB",
+      "modified": "2026-03-18T14:38:46.492764"
+    },
+    "merge_all_pedigree.py": {
+      "sha256": "bd528743a9dbefa443b04d64d0836812dab2fe4695b2cbf854e9d0020442fe6a",
+      "size": 15673,
+      "size_human": "15.3 KB",
+      "modified": "2026-03-18T13:16:36.186357"
+    },
+    "merge_equipements_master.py": {
+      "sha256": "ccf6b3824ef4aa020323c10a60ec4541d6380bf170570960e4f7b020701d197c",
+      "size": 4994,
+      "size_human": "4.9 KB",
+      "modified": "2026-03-18T13:16:36.186357"
+    },
+    "merge_marche_master.py": {
+      "sha256": "2d28e18b40f40e8fcc0bc52067cdd370a823dada1e6c5cbbf00788b517974bf5",
+      "size": 5482,
+      "size_human": "5.4 KB",
+      "modified": "2026-03-18T13:16:36.186357"
+    },
+    "merge_meteo.py": {
+      "sha256": "4c0a93387a6f52968a268593382a9f4b0f95f647e94518ad056a7adad4e22ae9",
+      "size": 18651,
+      "size_human": "18.2 KB",
+      "modified": "2026-03-18T17:21:42.786067"
+    },
+    "merge_meteo_master.py": {
+      "sha256": "22a915bf09a17a2652d1177c9a8ee6c1d77582f86e425c49d5a193cb5a4a3e2a",
+      "size": 10048,
+      "size_human": "9.8 KB",
+      "modified": "2026-03-18T13:16:36.186357"
+    },
+    "merge_pedigree_master.py": {
+      "sha256": "76053934076892a7aff39d5b6c8df5c013f620ad48ec2c5800006e9a066a2a7d",
+      "size": 18711,
+      "size_human": "18.3 KB",
+      "modified": "2026-03-18T13:16:36.186357"
+    },
+    "merge_performances_master.py": {
+      "sha256": "25bf46f5e63a34b812bdc7a34aa908687b36e11fdfa27364a8f9c64891c58a67",
+      "size": 10199,
+      "size_human": "10.0 KB",
+      "modified": "2026-03-18T13:16:36.186357"
+    },
+    "merge_rapports_21_38.py": {
+      "sha256": "b10f0c26e744cfced75d66519a72d271d21ce3c99d50f2808902f782db527f27",
+      "size": 8552,
+      "size_human": "8.4 KB",
+      "modified": "2026-03-18T17:16:54.532888"
+    },
+    "merge_rapports_master.py": {
+      "sha256": "12913eefcd5a404e74c1d104b1175ea7f95b27d00c9b2ec4fb58674376e8e8c7",
+      "size": 5801,
+      "size_human": "5.7 KB",
+      "modified": "2026-03-18T13:16:36.186357"
+    },
+    "merge_stats_externes_master.py": {
+      "sha256": "5150cc8ec8e619be8c55cb6f91705973612811c17627a47387d664dc38436d8f",
+      "size": 10551,
+      "size_human": "10.3 KB",
+      "modified": "2026-03-18T13:16:36.186357"
+    },
+    "models/__init__.py": {
+      "sha256": "cc85f6313cb719607564f23bb49d4021bd61352308273394f3327e28d2123620",
+      "size": 63,
+      "size_human": "63.0 B",
+      "modified": "2026-03-18T13:16:36.186357"
+    },
+    "models/baseline_models.py": {
+      "sha256": "20cd2feace5f98357ee2ccc8c3e2f1127fb6856067c274cb47b3f23eb4d264ac",
+      "size": 19047,
+      "size_human": "18.6 KB",
+      "modified": "2026-03-18T13:16:36.186357"
+    },
+    "models/calibration.py": {
+      "sha256": "8be2f9427af98eb39e0f3713de80b5f30821ded53afa097bd8539e189f542644",
+      "size": 14699,
+      "size_human": "14.4 KB",
+      "modified": "2026-03-18T13:16:36.186357"
+    },
+    "models/meta_selector.py": {
+      "sha256": "718be7e6c6470c6f3a64cdd133ceaf55fca963f7fbb023098a4579c0df04a158",
+      "size": 14352,
+      "size_human": "14.0 KB",
+      "modified": "2026-03-18T13:16:36.186357"
+    },
+    "models/monte_carlo.py": {
+      "sha256": "dbd6d55f8794cbae4a3119bf673bda3a3011fb618717ac6d69cf875d9c22ebca",
+      "size": 11662,
+      "size_human": "11.4 KB",
+      "modified": "2026-03-18T13:16:36.186357"
+    },
+    "models/outsider_detector.py": {
+      "sha256": "90fd52664442227a44f5a8df3e3c7766c43ad1e0e4531d2b8183b6e1a30b7cbc",
+      "size": 11465,
+      "size_human": "11.2 KB",
+      "modified": "2026-03-18T13:16:36.186357"
+    },
+    "models/stacking_ensemble.py": {
+      "sha256": "93cd1932a8b8375bad34b69518767c3f4ad7fcfca9b1f239fc7df90fb2b51102",
+      "size": 10364,
+      "size_human": "10.1 KB",
+      "modified": "2026-03-18T13:16:36.186357"
+    },
+    "monitor_pipeline.py": {
+      "sha256": "12f96e374a1207242c18f9e9793f07f6e1277454265d9111ded229f4d5c4f104",
+      "size": 13747,
+      "size_human": "13.4 KB",
+      "modified": "2026-03-18T17:06:10.838218"
+    },
+    "nettoyage_global.py": {
+      "sha256": "8223717245eb84f9c37f3d9de187fb3155a5aad9ce7000ab4842e74ebe1eee5e",
+      "size": 12363,
+      "size_human": "12.1 KB",
+      "modified": "2026-03-18T17:15:39.834997"
+    },
+    "organize_model_data.py": {
+      "sha256": "5c150676706facadbee5df8795519286d2105018e16bdbd51c26ff17c701c91d",
+      "size": 12875,
+      "size_human": "12.6 KB",
+      "modified": "2026-03-18T13:16:36.201231"
+    },
+    "organize_pipeline.py": {
+      "sha256": "12bf5674a6ed1fd12d3b02b336f017106b8c549b59e9641bf0f26ecf9de510e7",
+      "size": 20292,
+      "size_human": "19.8 KB",
+      "modified": "2026-03-18T13:16:36.201231"
+    },
+    "organize_project.py": {
+      "sha256": "da923a15e6b926de669235a2c8b0db1755651d164c599a0a4f0a25fd2028f67b",
+      "size": 22552,
+      "size_human": "22.0 KB",
+      "modified": "2026-03-18T16:59:26.681006"
+    },
+    "output/14_pedigree/pedigrees_pq.jsonl": {
+      "sha256": "2ab74d28d888af022e611966f97c631090fb1aba3dbe971ec305413393108c55",
+      "size": 13715570,
+      "size_human": "13.1 MB",
+      "modified": "2026-03-19T06:31:32.268716"
+    },
+    "output/21_rapports_definitifs/rapports_definitifs.jsonl": {
+      "sha256": "65b876aaacfcd53e8a357bc68d81cd3df76e587e88d079445a085818b2b9d152",
+      "size": 153910985,
+      "size_human": "146.8 MB",
+      "modified": "2026-03-18T13:06:27.023012"
+    },
+    "output/22_performances_detaillees/performances_detaillees.jsonl": {
+      "sha256": "cffc8e11f9cc5fbc7697484edc14c53c2619509b8872e68738f237f271a5f86c",
+      "size": 631826308,
+      "size_human": "602.6 MB",
+      "modified": "2026-03-18T13:10:49.919844"
+    },
+    "output/27_citations_enjeux/citations_enjeux.jsonl": {
+      "sha256": "c09f25f4d886363a262e2676c3b0999b679f5c5fc152fb25a2b2c7af5adfa454",
+      "size": 745254447,
+      "size_human": "710.7 MB",
+      "modified": "2026-03-18T20:55:09.164150"
+    },
+    "output/28_combinaisons_marche/combinaisons_marche.jsonl": {
+      "sha256": "d041a93e2a43337b457c78ec90bfaeeafff7b43311e94f6c8f88c40f418f2a82",
+      "size": 1479737256,
+      "size_human": "1.4 GB",
+      "modified": "2026-03-18T13:07:15.163334"
+    },
+    "output/37_racing_post/racing_post_fr.jsonl": {
+      "sha256": "f1616147793540cbeeed75668ae78ee86a5dc7134869ba4ae6c9bf96b8d31781",
+      "size": 3062397522,
+      "size_human": "2.9 GB",
+      "modified": "2026-03-19T06:31:36.785555"
+    },
+    "output/38_rapports_internet/rapports_internet.jsonl": {
+      "sha256": "a97397142bdbd23dc30df094ee5e3e99c4d28a84beeb16da1199807dd59f869d",
+      "size": 965260536,
+      "size_human": "920.5 MB",
+      "modified": "2026-03-18T13:07:34.422769"
+    },
+    "output/39_reunions_enrichies/reunions_enrichies.jsonl": {
+      "sha256": "92d268ca4b808ad64a689bc47955c2b31aa57bcf6c52d1180b113e9b3ceab4cd",
+      "size": 1031607079,
+      "size_human": "983.8 MB",
+      "modified": "2026-03-18T20:55:48.898149"
+    },
+    "output/41_sequences/sequences_performances.jsonl": {
+      "sha256": "13f831dee639250790bf2005b33d432098e9981641d89a4bc2f0dd6597b717a4",
+      "size": 2611201567,
+      "size_human": "2.4 GB",
+      "modified": "2026-03-18T20:14:51.349149"
+    },
+    "output/42_croisement_rp/croisement_rp_pmu.jsonl": {
+      "sha256": "45c7576a70413379d7e8e3137117237bc3e6b7d15eca812148a25edc3c7b206c",
+      "size": 98,
+      "size_human": "98.0 B",
+      "modified": "2026-03-19T04:31:10.228755"
+    },
+    "output/43_croisement_meteo/croisement_meteo_courses.jsonl": {
+      "sha256": "751719e3baf379280182fbdf7752fe1a738d3c829c8be2003b0d891aa64b7b46",
+      "size": 348,
+      "size_human": "348.0 B",
+      "modified": "2026-03-19T03:18:22.439377"
+    },
+    "output/44_croisement_pedigree/croisement_pedigree_partants.jsonl": {
+      "sha256": "ab44c5f68d57002b1f1da0231da50551547d46927743676e0f75948a48a6fe4a",
+      "size": 438,
+      "size_human": "438.0 B",
+      "modified": "2026-03-19T04:31:10.228755"
+    },
+    "output/45_graphe_gnn/edges_cheval_entraineur.jsonl": {
+      "sha256": "c3342b380923a37338784b4e43d353716ecb89dcbe464174d0e0e867850e563a",
+      "size": 321055942,
+      "size_human": "306.2 MB",
+      "modified": "2026-03-18T20:12:05.282090"
+    },
+    "output/45_graphe_gnn/edges_cheval_hippodrome.jsonl": {
+      "sha256": "159c51a2c523e4b1d55b79bd56ea10db9b9c9c005a27d2971302e8adcc810d72",
+      "size": 316338551,
+      "size_human": "301.7 MB",
+      "modified": "2026-03-18T20:12:05.282090"
+    },
+    "output/45_graphe_gnn/edges_cheval_jockey.jsonl": {
+      "sha256": "6906dbe499c00ca7f35ece0f541bc1e81ad072781cd039b9628a786347a46851",
+      "size": 307642845,
+      "size_human": "293.4 MB",
+      "modified": "2026-03-18T20:12:05.282090"
+    },
+    "output/45_graphe_gnn/graph_features_partants.jsonl": {
+      "sha256": "e1284b796a27f14e8723e9f9d3047b9152640c26dd7b0cc149c41083234b8157",
+      "size": 1296526389,
+      "size_human": "1.2 GB",
+      "modified": "2026-03-18T20:12:05.282090"
+    },
+    "output/45_graphe_gnn/node_features.jsonl": {
+      "sha256": "d670d97807d6aa40e079b1fc5fee1c13c0d0550931eaea1484b8e2ab93123c73",
+      "size": 3730035,
+      "size_human": "3.6 MB",
+      "modified": "2026-03-18T20:12:05.376287"
+    },
+    "output/46_track_bias_speed/track_bias_speed_class.jsonl": {
+      "sha256": "1dba8886a388d5d6bcaa5ac5b0b9508134202bb798b9cec6ef9710bb1702d570",
+      "size": 1338997128,
+      "size_human": "1.2 GB",
+      "modified": "2026-03-18T20:04:41.977740"
+    },
+    "output/48_conditions_texte/conditions_parsees.jsonl": {
+      "sha256": "ad6a5a4467d28a9ba27a540ff4cae3a21bcb191cbe55f8c4a94a3e4e900e36b3",
+      "size": 128904873,
+      "size_human": "122.9 MB",
+      "modified": "2026-03-18T20:11:41.058575"
+    },
+    "output/49_ecart_cotes/ecart_cotes_market.jsonl": {
+      "sha256": "45c7576a70413379d7e8e3137117237bc3e6b7d15eca812148a25edc3c7b206c",
+      "size": 98,
+      "size_human": "98.0 B",
+      "modified": "2026-03-19T04:31:10.228755"
+    },
+    "output/56_timeform/timeform_data.jsonl": {
+      "sha256": "b722c6f6c34ace8b8317e7623f52fe0511aff7b41f6755e907f939c767ffe377",
+      "size": 14008025,
+      "size_human": "13.4 MB",
+      "modified": "2026-03-19T04:25:04.906528"
+    },
+    "output/57_sporting_life/sporting_life_data.jsonl": {
+      "sha256": "c04b2c599083e48eb06d964e6d8bb2b92ae2224009102405c04279794f561a5c",
+      "size": 7758455,
+      "size_human": "7.4 MB",
+      "modified": "2026-03-19T04:56:05.852321"
+    },
+    "output/61_equibase/equibase_data.jsonl": {
+      "sha256": "8ed3d0d32666b9bc024dee291ad3661713f53094d85c3429456d1bbd6d51cf51",
+      "size": 74785,
+      "size_human": "73.0 KB",
+      "modified": "2026-03-18T20:09:59.716442"
+    },
+    "output/76_usta_trot/usta_trot_data.jsonl": {
+      "sha256": "e5164593f79106bfe715d502b1435817f412b878f747c2247a66833a903a7efd",
+      "size": 929475,
+      "size_human": "907.7 KB",
+      "modified": "2026-03-19T06:30:58.445754"
+    },
+    "output/89_singapore_pools/singapore_pools_data.jsonl": {
+      "sha256": "982cada219175c6b0c501d017984aa6880bed23a1d8b034e1f34dbcd5e59f59d",
+      "size": 159176,
+      "size_human": "155.4 KB",
+      "modified": "2026-03-19T00:10:52.508005"
+    },
+    "output/comblage/partants_combles.jsonl": {
+      "sha256": "367cc4490685b165d42d43e7152a4ada4e90d159c1c5893e7369c4c2ca8f0626",
+      "size": 5125903662,
+      "size_human": "4.8 GB",
+      "modified": "2026-03-18T17:16:33.732890"
+    },
+    "output/dedup/courses_dedup.jsonl": {
+      "sha256": "71b1dc84b24041c1caed3b24c214438ac20cee2f3f4785cf6b11ba444f61d262",
+      "size": 393854413,
+      "size_human": "375.6 MB",
+      "modified": "2026-03-18T17:15:12.692750"
+    },
+    "output/dedup/partants_dedup.jsonl": {
+      "sha256": "e9150f68847c87b4c4964b526ca3a3e7c05ef22652ebb2f8565b5359f2ee433e",
+      "size": 4934864960,
+      "size_human": "4.6 GB",
+      "modified": "2026-03-18T17:16:23.595696"
+    },
+    "output/dedup/pedigrees_dedup.jsonl": {
+      "sha256": "c8ef91b560115eac1d735ea999382c6dea67a14bca871beaaef8e359c6de6c03",
+      "size": 15392299,
+      "size_human": "14.7 MB",
+      "modified": "2026-03-18T17:16:25.841580"
+    },
+    "output/dedup/rapports_dedup.jsonl": {
+      "sha256": "fc5aff380323a0601e378443902483bc6cfd5d24755a047ad0810c1c56dce061",
+      "size": 136285625,
+      "size_human": "130.0 MB",
+      "modified": "2026-03-18T17:16:37.351808"
+    },
+    "output/features/class_change_features.jsonl": {
+      "sha256": "9d558e837d00014b32274bcc86a697a9722878ff81b3203129da11d8c97de770",
+      "size": 18559111008,
+      "size_human": "17.3 GB",
+      "modified": "2026-03-19T04:59:53.701957"
+    },
+    "output/features/combo_features.jsonl": {
+      "sha256": "69f377892113cd12421b78bd3a8b481f8624670c892a6619d5b3701f6b166063",
+      "size": 21270284098,
+      "size_human": "19.8 GB",
+      "modified": "2026-03-19T03:57:37.113442"
+    },
+    "output/features/equipement_features.jsonl": {
+      "sha256": "aad7414ddd539fcf9bdbf5a191df48de5e67766805b8c5d397b932801b7f72f7",
+      "size": 18917196449,
+      "size_human": "17.6 GB",
+      "modified": "2026-03-18T23:56:00.360259"
+    },
+    "output/features/features_matrix.jsonl": {
+      "sha256": "a42f9629a8abc8392d572e27298b1dde11d075561b753a2e8538dd62fde64ee1",
+      "size": 38483306117,
+      "size_human": "35.8 GB",
+      "modified": "2026-03-19T04:31:10.228755"
+    },
+    "output/features/interaction_features.jsonl": {
+      "sha256": "a497bcd084000f25897d2ff58c32b9033e4c1844d3540828d8019d3a864411f8",
+      "size": 24057039772,
+      "size_human": "22.4 GB",
+      "modified": "2026-03-19T05:46:04.435033"
+    },
+    "output/features/meteo_features.jsonl": {
+      "sha256": "ec63e525cc7bdf0478bbab8c710f04f9cb587340fee335017e120484b9cbfeff",
+      "size": 19772251068,
+      "size_human": "18.4 GB",
+      "modified": "2026-03-19T05:09:15.233573"
+    },
+    "output/features/musique_features.jsonl": {
+      "sha256": "b4bbbca6c9d1e50420ed2ad6bbd7cad0358b3cbefda1285fc0151e85cd2a7ed4",
+      "size": 19589817617,
+      "size_human": "18.2 GB",
+      "modified": "2026-03-18T21:26:33.391533"
+    },
+    "output/features/poids_features.jsonl": {
+      "sha256": "cbf390c81cef63103b1cf487aa749480cb7e5b18555a5538c5ce7fee423ac3c4",
+      "size": 20004917847,
+      "size_human": "18.6 GB",
+      "modified": "2026-03-19T00:53:18.736441"
+    },
+    "output/features/precomputed_entity_features.jsonl": {
+      "sha256": "af3700ccc1eae5c6492ba8c946c8e6cc98e9bb5531476129cc3c1c393cbf5753",
+      "size": 23285533179,
+      "size_human": "21.7 GB",
+      "modified": "2026-03-19T05:33:22.993529"
+    },
+    "output/features/precomputed_partant_features.jsonl": {
+      "sha256": "2ca129f766fc35370a4acf57297a0269f96d6c323c4a121c0c4372442eb164ad",
+      "size": 20988927284,
+      "size_human": "19.5 GB",
+      "modified": "2026-03-19T05:20:22.086927"
+    },
+    "output/features/profil_cheval_features.jsonl": {
+      "sha256": "dd5aca36f5f8c43c84ca528cabbbe69b383d3412d7af6870c117e17dcb21997f",
+      "size": 22641292507,
+      "size_human": "21.1 GB",
+      "modified": "2026-03-18T22:32:01.544483"
+    },
+    "output/features/temps_features.jsonl": {
+      "sha256": "658231258606f31d97c44ae56a4bac64956123223fef5b8c9396eecca4c5fdb2",
+      "size": 20887980447,
+      "size_human": "19.5 GB",
+      "modified": "2026-03-18T22:10:03.759729"
+    },
+    "output/labels/training_labels.jsonl": {
+      "sha256": "f68f9117b1a80c995312d0b97a24ede4ed7cbfc4293f6b301da3c2225aec894a",
+      "size": 1200001833,
+      "size_human": "1.1 GB",
+      "modified": "2026-03-19T06:25:33.749208"
+    },
+    "output/nettoyage/partants_nettoyes.jsonl": {
+      "sha256": "d374c01e0445b4b117499a07b82fc6f67f74d344aedc61348156d6391de72a37",
+      "size": 4974263099,
+      "size_human": "4.6 GB",
+      "modified": "2026-03-18T17:18:54.193205"
+    },
+    "parse_02b_letrot.py": {
+      "sha256": "dc685f5c297438c1e46fba4aaf1e8f362158851a1abdc72a3f7dc14e64fd7181",
+      "size": 18129,
+      "size_human": "17.7 KB",
+      "modified": "2026-03-18T13:16:36.201231"
+    },
+    "patch_brutes_geny.py": {
+      "sha256": "4c888a8e381fbd1d04f5268ba3e9b15850928c2986d239bf153371e0b09c6e32",
+      "size": 11368,
+      "size_human": "11.1 KB",
+      "modified": "2026-03-18T13:16:36.203101"
+    },
+    "patch_brutes_letrot.py": {
+      "sha256": "fe318d63b1804573c2f234f5b759107022358f4b5cbb2b631814d84ba2a2e31a",
+      "size": 13415,
+      "size_human": "13.1 KB",
+      "modified": "2026-03-18T13:16:36.203101"
+    },
+    "patch_brutes_pmu.py": {
+      "sha256": "162c7f75aff6ffd809db8b614a66e71df5b4ed67d087ef5d0a4d5f0d1f732e96",
+      "size": 12525,
+      "size_human": "12.2 KB",
+      "modified": "2026-03-18T13:16:36.203101"
+    },
+    "patch_condition_pmu.py": {
+      "sha256": "977f6e5bcb5b06abf9ecc1973b58e35316dfc82a3ec1a60c0253f3f2dbf47854",
+      "size": 13134,
+      "size_human": "12.8 KB",
+      "modified": "2026-03-18T13:16:36.203101"
+    },
+    "patch_terrain_equidia.py": {
+      "sha256": "8128b7075c01ef3e890c9ce645d2aace2cd75f821eb020aace48c1ea931260b6",
+      "size": 9698,
+      "size_human": "9.5 KB",
+      "modified": "2026-03-18T13:16:36.203101"
+    },
+    "pipeline/dag_visualizer.py": {
+      "sha256": "b777a72052dd0db193af7e4d2ad0f4eb26c075a6728b0b420ac554e87e34cc84",
+      "size": 9675,
+      "size_human": "9.4 KB",
+      "modified": "2026-03-19T06:29:34.460132"
+    },
+    "pipeline/phase_02_feature_engineering/15_track_bias_detector/data/hippodromes_db.py": {
+      "sha256": "0320e629469b531047311dff5a2d7901be9c9d058ffdfe9cdb837688c78dd942",
+      "size": 29,
+      "size_human": "29.0 B",
+      "modified": "2026-03-18T13:16:36.296374"
+    },
+    "post_course/__init__.py": {
+      "sha256": "a02c1b10e37345e199ee92dcfcc6985b429b100b02525dadb5c4280e9c338151",
+      "size": 517,
+      "size_human": "517.0 B",
+      "modified": "2026-03-18T13:16:36.537030"
+    },
+    "post_course/closing_line_analyzer.py": {
+      "sha256": "a336f2c86ba147293e2c90fd6da3f1d9ff6d1e4fa5a62fc8cde12b1bf7d9f05a",
+      "size": 14060,
+      "size_human": "13.7 KB",
+      "modified": "2026-03-18T13:16:36.537030"
+    },
+    "post_course/concept_drift_detector.py": {
+      "sha256": "747c509262ce0ca990a44d2aafadd49ba83f87d9b731409da129b2745165b1d6",
+      "size": 19036,
+      "size_human": "18.6 KB",
+      "modified": "2026-03-18T13:16:36.537030"
+    },
+    "post_course/feedback_learning_builder.py": {
+      "sha256": "9005d82d22710278fd0ed626f6fc18369445b7c6441f50e6d7dc236ac80bb71e",
+      "size": 13468,
+      "size_human": "13.2 KB",
+      "modified": "2026-03-18T13:16:36.537030"
+    },
+    "post_course/model_decay_detector.py": {
+      "sha256": "08d28a2d2d2c2e0f273a7ab9964a94c2bd21574d3bdcd0ad85cbb2130b52fc1b",
+      "size": 18727,
+      "size_human": "18.3 KB",
+      "modified": "2026-03-18T13:16:36.537030"
+    },
+    "post_course/post_race_reconciliation.py": {
+      "sha256": "19d59785c856de5df69b1e4b1ae347148f620a4cc2d1f288589809aca6ea5abb",
+      "size": 12469,
+      "size_human": "12.2 KB",
+      "modified": "2026-03-18T13:16:36.537030"
+    },
+    "post_course/prediction_archive_manager.py": {
+      "sha256": "536f6425d1dcaa055e19629df847293c60c7f205031790a0bb26cfd43ed0ae47",
+      "size": 10488,
+      "size_human": "10.2 KB",
+      "modified": "2026-03-18T13:16:36.537030"
+    },
+    "postprocess_equipements.py": {
+      "sha256": "9b5f894c9109b0ca3b650972417f661b6b48b51d630370528179868d690a8df6",
+      "size": 6006,
+      "size_human": "5.9 KB",
+      "modified": "2026-03-18T13:16:36.537030"
+    },
+    "postprocess_horse_stats.py": {
+      "sha256": "66ab65899992f68d082754ea8709533af0ed328a4f18c263d8d2ecb91db06776",
+      "size": 7258,
+      "size_human": "7.1 KB",
+      "modified": "2026-03-18T13:16:36.537030"
+    },
+    "postprocess_marche.py": {
+      "sha256": "53746e0ac8b76507600bd67b04009cb7da8ad5bb495b33f059464cc14e866582",
+      "size": 5294,
+      "size_human": "5.2 KB",
+      "modified": "2026-03-18T13:16:36.537030"
+    },
+    "postprocess_meteo.py": {
+      "sha256": "f71536c736f4b5e8e495c6448d43f16533ddbbe69da3741d2a8b1ac4c31b5452",
+      "size": 7808,
+      "size_human": "7.6 KB",
+      "modified": "2026-03-18T13:16:36.537030"
+    },
+    "postprocess_rapports.py": {
+      "sha256": "61123b7a701ae0cfb9fafbfb16e899090b9eb7a57ef9d722d166b2188625ff1b",
+      "size": 7487,
+      "size_human": "7.3 KB",
+      "modified": "2026-03-18T13:16:36.537030"
+    },
+    "quality/__init__.py": {
+      "sha256": "9f4f1e8392996a7b208667bd52ac842429302495a77c923eb297e7b496a034aa",
+      "size": 62,
+      "size_human": "62.0 B",
+      "modified": "2026-03-18T13:16:36.537030"
+    },
+    "quality/data_lineage_tracker.py": {
+      "sha256": "c93c85639626ceaa4ffc1b5e2809645e69d777c455cac9576a069f8d211f8f89",
+      "size": 11979,
+      "size_human": "11.7 KB",
+      "modified": "2026-03-18T13:16:36.537030"
+    },
+    "quality/dataset_split_manager.py": {
+      "sha256": "fbeb000f9d677e3fa65cf0378b9a83ce2ed46e2177105b41e4f15b44fc2d6f25",
+      "size": 15838,
+      "size_human": "15.5 KB",
+      "modified": "2026-03-18T13:16:36.537030"
+    },
+    "quality/feature_stability_monitor.py": {
+      "sha256": "556dcd4b7aaa8daef8165a83d33ca4127854531a91bf009d114d24cfc2d2c2a6",
+      "size": 13972,
+      "size_human": "13.6 KB",
+      "modified": "2026-03-18T13:16:36.549390"
+    },
+    "quality/label_quality_monitor.py": {
+      "sha256": "fb9b0ded1b4f73b0b47094f04cb3d734b52c8fca5e5d9ec06ea13faf25169f36",
+      "size": 21101,
+      "size_human": "20.6 KB",
+      "modified": "2026-03-18T13:16:36.549390"
+    },
+    "quality/leakage_detector.py": {
+      "sha256": "4b265cc350ef050e857e246282c951896cacf45549776e539408ba987f5d6170",
+      "size": 14195,
+      "size_human": "13.9 KB",
+      "modified": "2026-03-18T13:16:36.549390"
+    },
+    "quality/run_all_tests.py": {
+      "sha256": "a01bf5ab3910c9f0291bee9ae14706592825461b59ef164c9a046d5450861c02",
+      "size": 9129,
+      "size_human": "8.9 KB",
+      "modified": "2026-03-18T16:44:31.077853"
+    },
+    "quality/test_cross_source.py": {
+      "sha256": "7272d5e3388541f6c4325f71414c2773f0f0a59b4113380226ed1c37b8520669",
+      "size": 11352,
+      "size_human": "11.1 KB",
+      "modified": "2026-03-18T16:43:57.474685"
+    },
+    "quality/test_dates_valid.py": {
+      "sha256": "c497d5fde37a8ca41bd39501576b5c2c3b3f391edd21bdff4c90a6d328ed5ba7",
+      "size": 8899,
+      "size_human": "8.7 KB",
+      "modified": "2026-03-18T16:42:58.118993"
+    },
+    "quality/test_features_quality.py": {
+      "sha256": "d034fac8dd55efd09fbeab7ee3f4ca4343a92dc217b909b9453f686a2ca71589",
+      "size": 7827,
+      "size_human": "7.6 KB",
+      "modified": "2026-03-18T16:42:25.084234"
+    },
+    "quality/test_json_integrity.py": {
+      "sha256": "dcfe65d2c0d9f13717ce65e81cb105e419e11a4057b0c772dc99efbb7e16a3d8",
+      "size": 4473,
+      "size_human": "4.4 KB",
+      "modified": "2026-03-18T16:41:17.959078"
+    },
+    "quality/test_record_counts.py": {
+      "sha256": "1e42f34619964e2e610cf88c6eab1bc61464b4e36f327b85e99dae21b320542b",
+      "size": 5431,
+      "size_human": "5.3 KB",
+      "modified": "2026-03-18T16:41:59.953610"
+    },
+    "quality/test_values_range.py": {
+      "sha256": "a5f0ce5d31cd22380e42955e3fe0f631c6850cedae6e908d79b3d08c07349e33",
+      "size": 6785,
+      "size_human": "6.6 KB",
+      "modified": "2026-03-18T16:43:21.587517"
+    },
+    "quality/test_zero_bytes.py": {
+      "sha256": "e4e53293c987e8127f86c7d3bcb7dd251c4b18c325800620208927333caafb5a",
+      "size": 2608,
+      "size_human": "2.5 KB",
+      "modified": "2026-03-18T16:41:35.331375"
+    },
+    "remove_empty_fields.py": {
+      "sha256": "8ae43b6f4f92b33052a335f2798f5e5e0feaffb867fa564eeac584302296c011",
+      "size": 12377,
+      "size_human": "12.1 KB",
+      "modified": "2026-03-19T06:33:10.118763"
+    },
+    "renormaliser.py": {
+      "sha256": "7a0aca1af0be511e61f23622bdce10886c4290017bb612cb7456f702a8cc884e",
+      "size": 3872,
+      "size_human": "3.8 KB",
+      "modified": "2026-03-18T13:16:36.549390"
+    },
+    "run_pipeline.py": {
+      "sha256": "21bbf13a17059ff4e774144b4301772e151fc837ef3fae55b0219651e9858eeb",
+      "size": 25820,
+      "size_human": "25.2 KB",
+      "modified": "2026-03-18T16:59:04.708857"
+    },
+    "security/backup_checksums.py": {
+      "sha256": "eced3e64004b42e08b5bab5da6f66d6d7c317d1c4b47aa7e9e0fb0d8cdfafdab",
+      "size": 9738,
+      "size_human": "9.5 KB",
+      "modified": "2026-03-19T06:28:39.596893"
+    },
+    "setup.py": {
+      "sha256": "ede2c198781e5fcc10530d2783a642db2227bda36f36b5ddf05cce6eef620afc",
+      "size": 15138,
+      "size_human": "14.8 KB",
+      "modified": "2026-03-18T17:08:50.202456"
+    },
+    "test_endpoints.py": {
+      "sha256": "6fd6cdc4dc36544da71c208eb44c541c2950c3c66e5c4cdf92e0282ac05afede",
+      "size": 8633,
+      "size_human": "8.4 KB",
+      "modified": "2026-03-18T13:16:36.549390"
+    },
+    "verify_fusion.py": {
+      "sha256": "b7768a8de5a37010ed0897fa322747161727931aba0c984d2eb8e62151991060",
+      "size": 16047,
+      "size_human": "15.7 KB",
+      "modified": "2026-03-19T06:26:54.837692"
+    }
+  }
+}
