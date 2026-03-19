@@ -15,15 +15,17 @@ import re
 import time
 from datetime import datetime, timedelta
 
-import requests
+import cloudscraper
 from bs4 import BeautifulSoup
 
 SCRIPT_NAME = "58_at_the_races"
 OUTPUT_DIR = os.path.join("output", SCRIPT_NAME)
 CACHE_DIR = os.path.join(OUTPUT_DIR, "cache")
+HTML_CACHE_DIR = os.path.join(OUTPUT_DIR, "html_cache")
 CHECKPOINT_FILE = os.path.join(OUTPUT_DIR, ".checkpoint.json")
 
 os.makedirs(CACHE_DIR, exist_ok=True)
+os.makedirs(HTML_CACHE_DIR, exist_ok=True)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -44,7 +46,7 @@ BASE_URL = "https://www.attheraces.com"
 
 
 def new_session():
-    s = requests.Session()
+    s = cloudscraper.create_scraper()
     s.headers.update({
         "User-Agent": random.choice(USER_AGENTS),
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
@@ -82,7 +84,7 @@ def fetch_with_retry(session, url, max_retries=3, timeout=30):
                 time.sleep(5 * attempt)
                 continue
             return resp
-        except requests.RequestException as e:
+        except Exception as e:
             log.warning(f"  Network error: {e} (attempt {attempt}/{max_retries})")
             time.sleep(5 * attempt)
     log.error(f"  Failed after {max_retries} attempts: {url}")
@@ -280,6 +282,11 @@ def scrape_racecards(session, date_str):
     resp = fetch_with_retry(session, url)
     if not resp:
         return None
+
+    # Save raw HTML to cache
+    html_file = os.path.join(HTML_CACHE_DIR, f"{date_str}.html")
+    with open(html_file, "w", encoding="utf-8") as f:
+        f.write(resp.text)
 
     soup = BeautifulSoup(resp.text, "html.parser")
     records = []
