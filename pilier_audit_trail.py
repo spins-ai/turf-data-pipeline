@@ -129,8 +129,8 @@ class AuditTrail:
     def get_lineage(self, filename: str) -> list[dict]:
         """Retourne toute la chaîne de provenance d'un fichier.
 
-        Remonte récursivement : qui a produit ce fichier → quels étaient ses inputs
-        → qui a produit ces inputs → etc.
+        Remonte récursivement : qui a produit ce fichier -> quels étaient ses inputs
+        -> qui a produit ces inputs -> etc.
         """
         entries = self._load_entries()
 
@@ -584,7 +584,7 @@ def backfill_from_filesystem(audit: AuditTrail):
         with open(audit.audit_file, "a", encoding="utf-8", errors="replace") as f:
             f.write(json.dumps(entry, ensure_ascii=False) + "\n")
         count += 1
-        print(f"  + {script:<40s} → {', '.join(Path(o).name for o in existing_outputs)}")
+        print(f"  + {script:<40s} -> {', '.join(Path(o).name for o in existing_outputs)}")
 
     print(f"\n{count} entrées ajoutées au journal d'audit.")
     print(f"Journal : {audit.audit_file}")

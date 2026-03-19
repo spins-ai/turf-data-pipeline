@@ -6,17 +6,17 @@ enrichissement_champs.py
 Enrichit les 14 champs à faible taux de remplissage dans partants_master.jsonl.
 
 Champs traités :
-  1. commentaire_apres_course (0.5%)  → extrait depuis rapports_master
-  2. pays_entrainement (8.1%)         → lookup SIRE/IFCE + heuristique
-  3. poids_base_kg (8.7%)             → depuis poids_handicaps
-  4. surcharge_decharge_kg (8.7%)     → calcul poids_porte - poids_base
-  5. ecart_precedent (31.9%)          → calcul depuis historique cheval
-  6. reduction_km_ms (39.1%)          → calcul temps_ms / distance * 1000
-  7. temps_ms (39.1%)                 → depuis sectionals ou Racing Post
-  8. pere_mere (44.8%)                → depuis pedigree_master
-  9. poids_porte_kg (45.8%)           → depuis poids_handicaps
+  1. commentaire_apres_course (0.5%)  -> extrait depuis rapports_master
+  2. pays_entrainement (8.1%)         -> lookup SIRE/IFCE + heuristique
+  3. poids_base_kg (8.7%)             -> depuis poids_handicaps
+  4. surcharge_decharge_kg (8.7%)     -> calcul poids_porte - poids_base
+  5. ecart_precedent (31.9%)          -> calcul depuis historique cheval
+  6. reduction_km_ms (39.1%)          -> calcul temps_ms / distance * 1000
+  7. temps_ms (39.1%)                 -> depuis sectionals ou Racing Post
+  8. pere_mere (44.8%)                -> depuis pedigree_master
+  9. poids_porte_kg (45.8%)           -> depuis poids_handicaps
 
-Streaming JSONL → JSONL pour supporter les 2.9M lignes sans exploser la RAM.
+Streaming JSONL -> JSONL pour supporter les 2.9M lignes sans exploser la RAM.
 
 Usage:
     python enrichissement_champs.py
@@ -78,7 +78,7 @@ def build_pedigree_index() -> dict:
         if entry:
             idx[nom] = entry
 
-    print(f"    → {len(idx):,} chevaux indexés en {time.time()-t0:.1f}s")
+    print(f"    -> {len(idx):,} chevaux indexés en {time.time()-t0:.1f}s")
     return idx
 
 
@@ -103,7 +103,7 @@ def build_rapports_index() -> dict:
         if commentaires:
             idx[uid] = commentaires
 
-    print(f"    → {len(idx):,} courses avec commentaires en {time.time()-t0:.1f}s")
+    print(f"    -> {len(idx):,} courses avec commentaires en {time.time()-t0:.1f}s")
     return idx
 
 
@@ -149,7 +149,7 @@ def build_poids_index() -> dict:
                     idx[uid][int(num)] = entry
                     count += 1
 
-    print(f"    → {count:,} entrées poids en {time.time()-t0:.1f}s")
+    print(f"    -> {count:,} entrées poids en {time.time()-t0:.1f}s")
     return dict(idx)
 
 
@@ -185,7 +185,7 @@ def build_sectionals_index() -> dict:
                 except (ValueError, TypeError):
                     pass
 
-    print(f"    → {count:,} entrées sectionals en {time.time()-t0:.1f}s")
+    print(f"    -> {count:,} entrées sectionals en {time.time()-t0:.1f}s")
     return dict(idx)
 
 
@@ -203,7 +203,7 @@ def build_racing_post_index() -> dict:
         with open(RACING_POST_PATH, "r", encoding="utf-8", errors="replace") as f:
             data = json.load(f)
     except (json.JSONDecodeError, OSError):
-        print("    → Erreur lecture, skip")
+        print("    -> Erreur lecture, skip")
         return dict(idx)
 
     records = data if isinstance(data, list) else [data]
@@ -218,7 +218,7 @@ def build_racing_post_index() -> dict:
             except (ValueError, TypeError):
                 pass
 
-    print(f"    → {count:,} entrées Racing Post en {time.time()-t0:.1f}s")
+    print(f"    -> {count:,} entrées Racing Post en {time.time()-t0:.1f}s")
     return dict(idx)
 
 
@@ -249,7 +249,7 @@ def build_sire_pays_index() -> dict:
             if nom and pays:
                 idx[nom] = pays
 
-    print(f"    → {len(idx):,} chevaux avec pays entrainement en {time.time()-t0:.1f}s")
+    print(f"    -> {len(idx):,} chevaux avec pays entrainement en {time.time()-t0:.1f}s")
     return idx
 
 
@@ -281,7 +281,9 @@ def enrich_partant(
             pass
 
     # 1. commentaire_apres_course — depuis rapports
-    if not (partant.get("commentaire_apres_course") or "").strip():
+    val_comm = partant.get("commentaire_apres_course")
+    if isinstance(val_comm, dict): val_comm = str(val_comm)
+    if not (val_comm or "").strip() if isinstance(val_comm, str) else not val_comm:
         course_comms = rapports_idx.get(course_uid, {})
         if num_pmu_int is not None:
             comm = course_comms.get(str(num_pmu_int)) or course_comms.get(num_pmu_int)
@@ -293,7 +295,7 @@ def enrich_partant(
     if not (partant.get("pays_entrainement") or "").strip():
         pays = sire_pays_idx.get(nom_upper, "")
         if not pays:
-            # Heuristique : si pays_cheval = France et discipline trot → France
+            # Heuristique : si pays_cheval = France et discipline trot -> France
             pays_cheval = (partant.get("pays_cheval") or partant.get("pgr_pays_naissance") or "").strip()
             if pays_cheval.upper() in ("FRANCE", "FR"):
                 pays = "France"
@@ -417,7 +419,7 @@ def build_horse_history() -> dict:
     for nom, dates in history.items():
         sorted_history[nom] = sorted(dates)
 
-    print(f"    → {len(sorted_history):,} chevaux, {line_num:,} lignes en {time.time()-t0:.1f}s")
+    print(f"    -> {len(sorted_history):,} chevaux, {line_num:,} lignes en {time.time()-t0:.1f}s")
     return sorted_history
 
 

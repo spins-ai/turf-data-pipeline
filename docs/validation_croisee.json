@@ -1,0 +1,107 @@
+{
+  "results_pmu_letrot": {
+    "status": "OK",
+    "pmu_count": 2143257,
+    "letrot_count": 330877,
+    "common": 114981,
+    "mismatches": 0,
+    "match_rate": 100.0,
+    "examples": [],
+    "elapsed": 80.3
+  },
+  "odds_pmu_exchange": {
+    "status": "FAIL",
+    "pmu_count": 0,
+    "exchange_count": 0,
+    "common": 0,
+    "compared": 0,
+    "avg_diff_pct": 0,
+    "outliers_30pct": 0,
+    "match_rate": 0,
+    "examples": [],
+    "elapsed": 0.6
+  },
+  "pedigree": {
+    "status": "OK",
+    "pedigree_count": 275952,
+    "checked": 257587,
+    "mismatches_pere": 7946,
+    "mismatches_mere": 8109,
+    "match_rate": 96.88,
+    "examples_pere": [
+      {
+        "cheval": "RAVANELLO",
+        "pere_partants": "CYBELE DES ESSARTS",
+        "pere_pedigree": "INSERT GEDE"
+      },
+      {
+        "cheval": "SERGENT DU RIB",
+        "pere_partants": "HERMINE DU RIB",
+        "pere_pedigree": "BACCARAT DU PONT"
+      },
+      {
+        "cheval": "SOUMOULOU",
+        "pere_partants": "NOUVELLE PERLE",
+        "pere_pedigree": "FIRST DE RETZ"
+      },
+      {
+        "cheval": "SAGE DE GUERINIERE",
+        "pere_partants": "HALDANE",
+        "pere_pedigree": "GANYMEDE"
+      },
+      {
+        "cheval": "RAMSEY DU HAM",
+        "pere_partants": "UFANIA DU BUISSON",
+        "pere_pedigree": "INDY DE VIVE"
+      }
+    ],
+    "examples_mere": [
+      {
+        "cheval": "RAVANELLO",
+        "mere_partants": "INSERT GEDE",
+        "mere_pedigree": "CYBELE DES ESSARTS"
+      },
+      {
+        "cheval": "SERGENT DU RIB",
+        "mere_partants": "BACCARAT DU PONT",
+        "mere_pedigree": "HERMINE DU RIB"
+      },
+      {
+        "cheval": "SOUMOULOU",
+        "mere_partants": "FIRST DE RETZ",
+        "mere_pedigree": "NOUVELLE PERLE"
+      },
+      {
+        "cheval": "SAGE DE GUERINIERE",
+        "mere_partants": "GANYMEDE",
+        "mere_pedigree": "HALDANE"
+      },
+      {
+        "cheval": "RAMSEY DU HAM",
+        "mere_partants": "INDY DE VIVE",
+        "mere_pedigree": "UFANIA DU BUISSON"
+      }
+    ],
+    "elapsed": 84.7
+  },
+  "dates": {
+    "status": "OK",
+    "total_dates": 4700,
+    "future_dates": 0,
+    "invalid_dates": 0,
+    "abnormal_days": 0,
+    "avg_partants_per_day": 623.5,
+    "examples_future": [],
+    "examples_invalid": [],
+    "examples_abnormal": [],
+    "elapsed": 81.3
+  },
+  "nombre_partants": {
+    "status": "OK",
+    "courses_checked": 257788,
+    "mismatches": 0,
+    "match_rate": 100.0,
+    "examples": [],
+    "elapsed": 87.5
+  }
+}

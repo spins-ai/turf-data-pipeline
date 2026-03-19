@@ -168,23 +168,79 @@
 - [x] Log de tout ce qui a été comblé et comment ✅ FAIT session 2
 
 ## 4.5 ENRICHISSEMENT RESTANT (audit session 2 — taux réels mesurés)
-- [ ] commentaire_apres_course (0.5% rempli) → scraper les commentaires depuis France Galop, Equidia, Paris-Turf
-- [ ] taux_reclamation_euros (4.7% rempli) → normal si peu de courses à réclamer, vérifier complétude
-- [ ] pays_entrainement (8.1% rempli) → croiser avec SIRE/IFCE (17) + France Galop
-- [ ] poids_base_kg (8.7% rempli) → croiser avec poids_handicaps (10) + rapports définitifs
-- [ ] surcharge_decharge_kg (8.7% rempli) → calculer depuis poids_porte - poids_base
-- [ ] avis_entraineur (9.2% rempli) → scraper depuis PMU, Equidia, Paris-Turf
-- [ ] incident (15.6% rempli) → croiser avec rapports (21/38) + réunions enrichies (39)
-- [ ] handicap_valeur (21.4% rempli) → croiser avec poids_handicaps (10)
-- [ ] deferre (30.4% rempli) → croiser avec équipements (09) + scraping PMU détail
-- [ ] ecart_precedent (31.9% rempli) → calculer depuis résultats (04) par cheval
-- [ ] reduction_km_ms (39.1% rempli) → calculer depuis temps_ms / distance * 1000
-- [ ] temps_ms (39.1% rempli) → croiser avec sectionals (11) + Racing Post (37)
-- [ ] pere_mere (44.8% rempli) → croiser avec pedigree_master (1.4M chevaux)
-- [ ] poids_porte_kg (45.8% rempli) → croiser avec poids_handicaps (10) + PMU détail
-- [ ] Relancer mega_merge après enrichissement
-- [ ] Relancer features après enrichissement
-- [ ] Vérifier que tous les champs sont > 80% remplis
+### Enrichis avec succes (enrichissement_champs.py execute) :
+- [x] pays_entrainement : 8.1% -> 81.7% (+73.6%) via SIRE/IFCE
+- [x] ecart_precedent : 31.9% -> 95.1% (+63.2%) via calcul historique cheval
+- [x] pere_mere : 44.8% -> 57.4% (+12.6%) via pedigree_master
+
+### Encore a combler (besoin API payantes ou scraping avance) :
+- [ ] commentaire_apres_course (0.5%) -> besoin API PMU detail ou scraping France Galop avec Selenium
+- [ ] taux_reclamation_euros (4.7%) -> verifier si normal (peu de reclamer)
+- [ ] poids_base_kg (8.7%) -> besoin donnees PMU detaillees (champ pas expose dans API publique)
+- [ ] surcharge_decharge_kg (8.7%) -> depend de poids_base_kg
+- [ ] avis_entraineur (9.2%) -> besoin scraping PMU pages detail avec Selenium/Playwright
+- [ ] incident (15.6%) -> croiser rapports (21/38) + reunions (39) — script a ameliorer
+- [ ] handicap_valeur (21.4%) -> besoin donnees handicapeur officiel France Galop
+- [ ] deferre (30.4%) -> croiser equipements (09) + scraping PMU detail
+- [ ] reduction_km_ms (39.0%) -> depend de temps_ms (pas calculable sans temps)
+- [ ] temps_ms (39.0%) -> besoin sectionals detailles ou Racing Post UK (abonnement)
+- [ ] poids_porte_kg (45.8%) -> besoin API PMU detail ou poids_handicaps complete
+
+### Actions post-enrichissement :
+- [ ] Relancer mega_merge avec partants_master_enrichi.jsonl
+- [ ] Relancer features sur le fichier enrichi
+- [ ] Re-auditer les taux de remplissage
+- [ ] Verifier que les champs enrichis sont coherents
+
+## 4.6 SCRAPERS BLOQUES — A RESOUDRE
+### Sites FR bloques (Cloudflare/403) — besoin Selenium/Playwright :
+- [ ] 51 Zeturf (0 records) -> ajouter Selenium + headless Chrome
+- [ ] 52 Turfomania (0 records) -> idem
+- [ ] 53 Paris-Turf (0 records) -> idem
+- [ ] 54 TurfInfo (0 records) -> idem
+- [ ] 55 Equidia (0 records) -> idem
+
+### Sites UK bloques :
+- [ ] 58 ATR (0 records) -> Cloudflare, besoin proxy/Selenium
+- [ ] 59 Racing TV (0 records) -> login requis
+- [ ] 60 Oddschecker (0 records) -> JS rendering requis
+
+### Sites internationaux bloques :
+- [ ] 62 HRN (0 records) -> anti-bot
+- [ ] 64 Punters AU (0 records) -> Cloudflare
+- [ ] 65 Racenet AU (0 records) -> Cloudflare
+- [ ] 66 HKJC (0 records) -> JS rendering
+- [ ] 68 Betfair (0 records) -> API key requise
+- [ ] 69 OddsPortal (0 records) -> JS rendering
+
+### Solution globale scrapers bloques :
+- [ ] Installer Playwright (pip install playwright && playwright install)
+- [ ] Reecrire les scrapers bloques avec Playwright au lieu de requests+BS4
+- [ ] Configurer des proxys rotatifs pour eviter les bans IP
+- [ ] Obtenir API keys payantes (Betfair, Timeform Pro, Racing Post)
+
+## 4.8 TACHES REPORTEES (RAM insuffisante ou besoin correction)
+- [ ] Convert features_matrix.jsonl (36 GB) en Parquet — utiliser convert_features_parquet.py en chunks
+- [ ] Convert les 11 builders JSONL (253 GB) en Parquet — idem par chunks
+- [ ] Relancer remove_empty_fields en mode execute apres fix permissions output/
+- [ ] Relancer enrichissement_champs.py 2eme passe sur fichier enrichi
+- [ ] Relancer mega_merge avec partants_master_enrichi.jsonl
+- [ ] Relancer master_feature_builder sur le fichier enrichi
+- [ ] Copier output/ en local (supprimer junction Mac) pour permissions ecriture
+- [ ] Relancer scripts collecte (21,22,27,28,38,39) apres copie locale
+- [ ] Installer Playwright pour les 14 scrapers bloques (section 4.6)
+- [ ] Obtenir API Betfair pour cotes exchange
+- [ ] Obtenir abonnement Racing Post/Timeform Pro pour sectionals detailles
+- [ ] Exporter tous les data_master en triple format (JSON+CSV+Parquet)
+- [ ] Executer pilier_drift_detection.py
+- [ ] Executer pilier_golden_records.py
+- [ ] Executer pilier_coverage_matrix.py (si pas fini)
+- [ ] Executer organize_project.py --execute (reorganisation fichiers)
+
+## 4.7 CALCULS A 0% — BESOIN DONNEES SUPPLEMENTAIRES
+- [ ] 42 croisement Racing Post (0%) -> Racing Post data pas dans le bon format, refaire le mapping
+- [ ] 49 ecart cotes internet/national (0%) -> cles de jointure ne matchent pas, corriger le script
+- [ ] Builders avec 0% enrichis (smarkets, racing_post, reunions, enrichissement, canalturf, turfostats, geny) -> besoin donnees dans le bon format d'index
 
 # ┌─────────────────────────────────────────┐
 # │  ÉTAPE 5 — FUSION / CONSOLIDATION      │

@@ -233,7 +233,7 @@ def generate_markdown(partant_stats, course_stats, features_info, masters_info) 
     lines.append(f"| Jockeys uniques | {len(partant_stats['jockeys']):,} |")
     lines.append(f"| Entraîneurs uniques | {len(partant_stats['entraineurs']):,} |")
     lines.append(f"| Hippodromes | {len(partant_stats['hippodromes']):,} |")
-    lines.append(f"| Plage de dates | {date_min} → {date_max} |")
+    lines.append(f"| Plage de dates | {date_min} -> {date_max} |")
     lines.append(f"| Nombre de jours | {len(dates):,} |")
     lines.append(f"| Champs partants | {len(partant_stats['all_keys'])} |")
     lines.append(f"")
@@ -341,7 +341,7 @@ def main():
     print(f"  Hippodromes: {len(partant_stats['hippodromes']):,}")
     dates = sorted(partant_stats["dates"])
     if dates:
-        print(f"  Dates:       {dates[0]} → {dates[-1]} ({len(dates):,} jours)")
+        print(f"  Dates:       {dates[0]} -> {dates[-1]} ({len(dates):,} jours)")
 
     # Champs les plus vides
     print(f"\n--- 15 champs les moins remplis ---")
