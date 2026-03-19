@@ -81,7 +81,23 @@
       "Bash(python3:*)",
       "Bash(du -sh \"/Users/quentinherve/models hybride/output/\"*)",
       "Bash(gh auth:*)",
-      "Bash(git --version)"
+      "Bash(git --version)",
+      "Bash(ls -lh /c/Users/celia/turf-data-pipeline/.claude/worktrees/naughty-bardeen/pipeline/phase_01_infrastructure/*/data/*.json*)",
+      "Bash(xargs ls:*)",
+      "Bash(find /c/Users/celia/turf-data-pipeline -type f -name *.jsonl)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git config:*)",
+      "Bash(git push:*)",
+      "Bash(ls feat_cheval_*.py feat_jockey_*.py feat_entraineur_*.py feat_value_*.py feat_meteo_terrain_*.py feat_pedigree_discipline_*.py feat_field_*.py)",
+      "Bash(powershell.exe -Command \"Get-ChildItem \\([Environment]::GetFolderPath\\(''Desktop''\\)\\)\")",
+      "Bash(ping -n 3 1.1.1.1)",
+      "Bash(netsh interface:*)",
+      "Bash(powershell.exe -Command \"\\(New-Object Net.WebClient\\).DownloadFile\\(''http://speedtest.tele2.net/1MB.zip'',''C:\\\\Users\\\\celia\\\\speedtest.zip''\\); \\(Get-Item ''C:\\\\Users\\\\celia\\\\speedtest.zip''\\).Length\")",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -File \"C:\\\\Users\\\\celia\\\\speedtest.ps1\")",
+      "Bash(ls /c/Python*/python.exe)",
+      "Bash(ls \"/c/Users/celia/AppData/Local/Programs/Python/\"*/python.exe)",
+      "Bash(powershell.exe -Command \"\\(Get-Command python\\).Source\")"
     ]
   }
 }
