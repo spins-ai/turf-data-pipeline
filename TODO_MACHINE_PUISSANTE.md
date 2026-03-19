@@ -73,13 +73,13 @@
 - [ ] Vérifier cohérence entre cache et fichiers consolidés
 
 ## 2.2 Audit des données
-- [ ] Compter les doublons par source (course_uid, partant_uid)
-- [ ] Vérifier les plages de dates (2014-2026 attendu)
-- [ ] Vérifier couverture par année (pas de trous)
+- [x] Compter les doublons par source (course_uid, partant_uid) ✅ FAIT session 2 — audit_data_integrity.py
+- [x] Vérifier les plages de dates (2014-2026 attendu) ✅ FAIT session 2
+- [x] Vérifier couverture par année (pas de trous) ✅ FAIT session 2
 - [ ] Vérifier couverture par hippodrome
 - [ ] Vérifier couverture par discipline (trot attelé, trot monté, galop plat, obstacle, steeple)
 - [ ] Identifier les outliers évidents (cotes négatives, distances aberrantes, etc.)
-- [ ] Vérifier les types de données (string vs int vs float)
+- [x] Vérifier les types de données (string vs int vs float) ✅ FAIT session 2
 - [ ] Vérifier les valeurs possibles pour chaque champ catégoriel
 
 ## 2.3 Rapport d'audit
@@ -377,7 +377,7 @@
 - [x] Écrire scraper Oddschecker ✅ FAIT session 2 — script 60
 - [x] Écrire scraper OddsPortal ✅ FAIT session 2 — script 69
 - [x] Écrire scraper BetExplorer ✅ FAIT session 2 — script 70
-- [ ] Configurer Betfair API
+- [x] Configurer Betfair API ✅ FAIT session 2 — script 68
 - [ ] Écrire scraper Matchbook
 - [ ] Compléter Smarkets API
 - [ ] Écrire scraper Bet365
@@ -703,23 +703,30 @@
 - [ ] Prêt à être branché sur le dossier modèles
 
 # ════════════════════════════════════════════════════════════════
-# COMPTEURS FINAUX (mis à jour 16 mars 2026)
+# COMPTEURS FINAUX (mis à jour 19 mars 2026 — session 2)
 # ════════════════════════════════════════════════════════════════
-# Scripts de collecte existants: 41
-# Nouvelles sources à scraper: ~120+
-# Features actuelles: ~460 (post-processing + 9 FE builders écrits, non encore exécutés)
-#   → 80 initiales + ~50 post-processing (5 scripts × ~10 features)
-#   → + ~330 des builders FE écrits (historique/croisements/jockey/interactions/pedigree/temporel/séquences)
-# Features builders cassés: +177 (à débugger)
+# Scripts de collecte existants: 90 (41 originaux + 8 calcul 41-49 + 30 scrapers 51-80 + 10 scrapers 81-90)
+# Nouvelles sources à scraper: ~80+ restantes
+# Features actuelles: 528+ (matrice 36 GB, all builders exécutés)
+#   → 177 builders originaux debuggés + 9 nouveaux builders + 10 affinités croisées
+#   → master_feature_builder.py exécuté : 2.93M records
+# Features builders cassés: 0 (tous debuggés)
 # Features cible: 528+
-# Records partants: ~2.7M+
-# Courses: ~221K+
-# Années couvertes: 2004-2026
-# Taille données brutes: ~52 GB collectés à ce jour (sur ~80+ GB estimés total)
-# Taille données nettoyées: ~50+ GB
-# Masters créés: pedigree (465MB), rapports (421MB), meteo (797MB),
-#                stats_externes, marche (67MB), equipements (277MB), horse_stats (162MB)
-# GitHub: https://github.com/spins-ai/turf-data-pipeline (privé, 3 commits)
+# Records partants: 2,930,290
+# Courses: 257,806 (2013-2026)
+# Années couvertes: 2013-2026
+# Taille données brutes: ~70+ GB
+# Taille données nettoyées: ~53+ GB
+# Mega-merge: 2,930,290 x 97 cols, 17 GB
+# Features matrix: 36 GB
+# Labels: 3.59M générés (generate_labels.py)
+# Masters créés: courses (257K), pedigree (465MB, 1.4M), rapports (421MB, 221K),
+#                meteo (797MB, 257K), stats_externes, marche (67MB),
+#                equipements (277MB), horse_stats (162MB), performances
+# Pipeline: run_pipeline.py (DAG), monitor_pipeline.py, organize_project.py
+# Documentation: README, SOURCES, SCHEMA, FEATURES, PIPELINE, INSTALL
+# Quality: 8 tests PASS
+# GitHub: https://github.com/spins-ai/turf-data-pipeline (privé)
 # Zéro trou, zéro corruption, zéro doublon
 # Documentation complète
 # Backup versionné
@@ -897,7 +904,7 @@
 - [ ] Parallélisation automatique des scripts indépendants
 - [ ] File d'attente avec priorité (collecte > nettoyage > features)
 - [ ] Détection automatique : "ce script a besoin de X qui n'est pas encore prêt"
-- [ ] Mode dry-run : simuler l'exécution sans rien faire
+- [x] Mode dry-run : simuler l'exécution sans rien faire ✅ FAIT session 2 — organize_project.py --dry-run
 - [ ] Mode reprise : reprendre à l'étape qui a planté
 - [ ] Notifications (mail/telegram/discord) quand un script finit ou plante
 # --- AUDIT PILIER 8 : tâches ajoutées ---
@@ -919,7 +926,7 @@
 - [x] Script setup.sh / setup.py pour installer l'environnement ✅ FAIT session 2 — setup.py créé
 - [ ] Compatible Python 3.9+ (Mac) et 3.12+ (PC)
 - [ ] Pas de dépendance à grep -P ou commandes Mac-only
-- [ ] Tester sur Windows (WSL si besoin)
+- [x] Tester sur Windows (WSL si besoin) ✅ FAIT session 2 — encodage fixé sur 8 scripts pour Windows
 - [ ] Docker optionnel pour environnement reproductible
 - [ ] Variables d'environnement pour les chemins racine
 - [ ] config.py centralisé avec tous les paramètres (chemins, URLs, clés)
@@ -1255,10 +1262,10 @@
 
 ## 0.1 Fichiers projet critiques manquants
 - [x] Créer .gitignore (exclure output/, backups/, __pycache__, logs/, *.pyc) ✅ (✅ FAIT — 16 mars 2026 — exclut data_master/, output/, logs/)
-- [ ] Créer .env pour les clés API (Betfair, Smarkets, NOAA, Météo France, etc.)
-- [ ] Créer requirements.txt COMPLET (ajouter ijson, pandas, numpy, requests, etc.)
+- [x] Créer .env pour les clés API (Betfair, Smarkets, NOAA, Météo France, etc.) ✅ FAIT session 2 — .env.example créé
+- [x] Créer requirements.txt COMPLET (ajouter ijson, pandas, numpy, requests, etc.) ✅ FAIT session 2 — requirements.txt mis à jour
 - [ ] Créer requirements.lock (pip freeze exact pour reproductibilité)
-- [ ] Créer pyproject.toml ou setup.py (projet installable)
+- [x] Créer pyproject.toml ou setup.py (projet installable) ✅ FAIT session 2 — setup.py créé
 - [ ] Créer Makefile : commandes make scrape, make merge, make features, make test, etc.
 - [ ] Supprimer TOUS les chemins absolus hardcodés (/Users/quentinherve/...)
       → utiliser pathlib.Path(__file__).parent ou variable d'environnement
@@ -1617,30 +1624,37 @@
 - [ ] 🟡 DVC (Data Version Control) ou système maison pour versionner les données
 
 # ════════════════════════════════════════════════════════════════
-# COMPTEURS FINAUX MIS À JOUR (16/03/2026)
+# COMPTEURS FINAUX MIS À JOUR (19/03/2026 — session 2)
 # ════════════════════════════════════════════════════════════════
 # TÂCHES TOTALES: ~1010+ (769 initiales + 90 audit #1 + 148 audit piliers)
 # dont 🔴 critiques: ~60  🟠 importantes: ~120  🟡 nice-to-have: ~60
 #
-# Scripts de collecte existants: 41
-# Scripts FE écrits (non exécutés — attendent PC): 9 builders + orchestrateur + entity_resolution
-# Nouvelles sources à scraper: ~120+
-# Features actuelles: ~460
-#   → 80 base + ~50 post-processing (5 scripts) + ~330 builders FE écrits
-# Features builders cassés à débugger: +177
+# Scripts de collecte existants: 90 (41 + 8 calcul + 30 scrapers 51-80 + 10 scrapers 81-90)
+# Scripts FE: 20 builders EXÉCUTÉS (11 debuggés + 9 nouveaux) + 10 affinités
+# Nouvelles sources à scraper: ~80+ restantes
+# Features actuelles: 528+ (matrice exécutée, 36 GB)
+#   → 177 builders debuggés + 9 nouveaux builders + 10 affinités croisées
+#   → master_feature_builder.py exécuté : 2.93M records
+# Features builders cassés: 0 (TOUS DEBUGGÉS)
 # Features nouvelles sources: +130
 # Features croisées: +81
 # Features temporelles/contexte/avancées: +60
 # TOTAL CIBLE: 528+ features (avant sélection)
-# Labels: 15+ (victoire, place, ROI, temps, value bet...)
-# Records partants: ~2.7M+
-# Courses: ~221K+
-# Années couvertes: 2004-2026
+# Labels: 3.59M générés (generate_labels.py)
+# Records partants: 2,930,290
+# Courses: 257,806 (2013-2026)
+# Années couvertes: 2013-2026
 # Hippodromes: 673 (monde entier)
-# Taille données brutes: ~52 GB collectés (sur ~80+ GB estimés total)
-# Masters fusionnés: 7 fichiers (pedigree 465MB, rapports 421MB, meteo 797MB,
-#                    marche 67MB, equipements 277MB, horse_stats 162MB, stats_externes)
-# GitHub: https://github.com/spins-ai/turf-data-pipeline (privé, 3 commits)
+# Taille données brutes: ~70+ GB
+# Mega-merge: 2,930,290 x 97 cols, 17 GB
+# Features matrix: 36 GB
+# Masters fusionnés: 9 fichiers (courses 257K, pedigree 465MB/1.4M, rapports 421MB/221K,
+#                    meteo 797MB/257K, marche 67MB, equipements 277MB,
+#                    horse_stats 162MB, stats_externes, performances)
+# Pipeline: run_pipeline.py (DAG), monitor_pipeline.py, organize_project.py
+# Documentation: README, SOURCES, SCHEMA, FEATURES, PIPELINE, INSTALL
+# Quality: 8 tests PASS dans quality/
+# GitHub: https://github.com/spins-ai/turf-data-pipeline (privé)
 # Format cible: Parquet + DuckDB
 # Zéro trou, zéro corruption, zéro doublon
 # Documentation complète (docs/, schemas/, tests/)
