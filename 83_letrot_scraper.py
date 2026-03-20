@@ -145,7 +145,7 @@ def scrape_race_page(session, date_str, hippo_id, race_num):
         "hippodrome_id": hippo_id,
         "numero_course": race_num,
         "url": url,
-        "scraped_at": datetime.utcnow().isoformat(),
+        "scraped_at": datetime.now().isoformat(),
     }
     title = soup.find("h1") or soup.find("h2")
     if title:
@@ -177,7 +177,7 @@ def scrape_race_page(session, date_str, hippo_id, race_num):
                     "type": "partant",
                     "hippodrome_id": hippo_id,
                     "numero_course": race_num,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 for j, cell in enumerate(cells):
                     key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -198,7 +198,7 @@ def scrape_race_page(session, date_str, hippo_id, race_num):
                     "hippodrome_id": hippo_id,
                     "numero_course": race_num,
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except (json.JSONDecodeError, UnicodeDecodeError):
                 pass
@@ -216,7 +216,7 @@ def scrape_race_page(session, date_str, hippo_id, race_num):
                     "hippodrome_id": hippo_id,
                     "numero_course": race_num,
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except json.JSONDecodeError:
                 pass
@@ -233,7 +233,7 @@ def scrape_race_page(session, date_str, hippo_id, race_num):
                 "hippodrome_id": hippo_id,
                 "numero_course": race_num,
                 "data": data,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
         except json.JSONDecodeError:
             pass
@@ -254,7 +254,7 @@ def scrape_race_page(session, date_str, hippo_id, race_num):
                 "tag": el.name,
                 "text": el.get_text(strip=True)[:200],
                 "attributes": data_attrs,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
 
     # Sauvegarder cache
