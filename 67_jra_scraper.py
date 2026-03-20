@@ -150,7 +150,7 @@ def scrape_race_calendar(session, date_str):
                 "type": "race_link",
                 "text": text,
                 "url": href if href.startswith("http") else BASE_URL + href,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
 
     with open(cache_file, "w", encoding="utf-8") as f:
@@ -208,7 +208,7 @@ def scrape_results(session, date_str):
                 "date": date_str,
                 "source": "jra",
                 "type": "result",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for j, cell in enumerate(cells):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -248,7 +248,7 @@ def scrape_results(session, date_str):
                     "content": text[:500],
                     "distance": dist_match.group(1) if dist_match else "",
                     "surface": surface,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     with open(cache_file, "w", encoding="utf-8") as f:
@@ -309,7 +309,7 @@ def scrape_horse_stats(session, date_str):
                 "date": date_str,
                 "source": "jra",
                 "type": table_type,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for j, cell in enumerate(cells):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"

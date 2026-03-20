@@ -145,7 +145,7 @@ def scrape_meetings(session, date_str):
                     "type": "race_link",
                     "text": text,
                     "url": full_url,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     # Extract meeting sections
@@ -159,7 +159,7 @@ def scrape_meetings(session, date_str):
                     "source": "oddschecker",
                     "type": "meeting",
                     "meeting_name": title_el.get_text(strip=True),
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 href = title_el.get("href")
                 if href:
@@ -261,7 +261,7 @@ def scrape_race_odds(session, race_url, date_str):
                 "race_time": race_time,
                 "horse_name": horse_name,
                 "url": race_url,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
 
             # Extract odds for each bookmaker
@@ -342,7 +342,7 @@ def scrape_race_odds(session, race_url, date_str):
                     "type": "market_mover",
                     "race_name": race_name,
                     "content": text[:400],
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     # Extract data attributes from odds cells
@@ -364,7 +364,7 @@ def scrape_race_odds(session, race_url, date_str):
             "odds_decimal": el.get("data-odig"),
             "odds_display": el.get_text(strip=True),
             "bookmaker": el.get("data-bk", ""),
-            "scraped_at": datetime.utcnow().isoformat(),
+            "scraped_at": datetime.now().isoformat(),
         })
 
     # --- Historical odds movements timeline ---
@@ -387,7 +387,7 @@ def scrape_race_odds(session, race_url, date_str):
                             "type": "odds_history_entry",
                             "race_name": race_name,
                             "url": race_url,
-                            "scraped_at": datetime.utcnow().isoformat(),
+                            "scraped_at": datetime.now().isoformat(),
                         }
                         for j, cell in enumerate(cells):
                             key = hist_headers[j] if j < len(hist_headers) and hist_headers[j] else f"col_{j}"
@@ -403,7 +403,7 @@ def scrape_race_odds(session, race_url, date_str):
                         "race_name": race_name,
                         "content": text[:2500],
                         "url": race_url,
-                        "scraped_at": datetime.utcnow().isoformat(),
+                        "scraped_at": datetime.now().isoformat(),
                     })
 
     # --- Market percentage / overround calculation ---
@@ -425,7 +425,7 @@ def scrape_race_odds(session, race_url, date_str):
             "overround": round(market_pct - 100, 2),
             "num_runners_priced": len(all_best_decimals),
             "url": race_url,
-            "scraped_at": datetime.utcnow().isoformat(),
+            "scraped_at": datetime.now().isoformat(),
         })
 
     # --- Extract ALL data-* attributes from odds cells comprehensively ---
@@ -452,7 +452,7 @@ def scrape_race_odds(session, race_url, date_str):
                 "tag": el.name,
                 "text": el.get_text(strip=True)[:200],
                 "attributes": data_attrs,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
 
     # --- Embedded JSON data from scripts ---
@@ -470,7 +470,7 @@ def scrape_race_odds(session, race_url, date_str):
                     "race_name": race_name,
                     "var_name": m.group(1),
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except json.JSONDecodeError:
                 pass
@@ -485,7 +485,7 @@ def scrape_race_odds(session, race_url, date_str):
                     "type": "embedded_json_parse",
                     "race_name": race_name,
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except (json.JSONDecodeError, UnicodeDecodeError):
                 pass
@@ -500,7 +500,7 @@ def scrape_race_odds(session, race_url, date_str):
                 "race_name": race_name,
                 "data_id": script.get("id", ""),
                 "data": data,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
         except json.JSONDecodeError:
             pass
@@ -518,7 +518,7 @@ def scrape_race_odds(session, race_url, date_str):
                     "type": "tip_prediction",
                     "race_name": race_name,
                     "content": text[:1500],
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     # --- Extract betting offers / promotions metadata ---
@@ -534,7 +534,7 @@ def scrape_race_odds(session, race_url, date_str):
                     "type": "betting_offer",
                     "race_name": race_name,
                     "content": text[:400],
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     with open(cache_file, "w", encoding="utf-8") as f:

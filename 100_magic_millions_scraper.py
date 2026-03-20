@@ -159,7 +159,7 @@ def scrape_sale_results_page(session, page_url, sale_name, year):
                 "sale_name": sale_name,
                 "year": year,
                 "url": page_url,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for j, cell in enumerate(cells):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -192,7 +192,7 @@ def scrape_sale_results_page(session, page_url, sale_name, year):
                     "year": year,
                     "text": text[:2500],
                     "url": page_url,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
 
                 # Extract horse name
@@ -252,7 +252,7 @@ def scrape_sale_results_page(session, page_url, sale_name, year):
                     "year": year,
                     "contenu": text[:1500],
                     "url": page_url,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     # -- Sale statistics / summaries --
@@ -270,7 +270,7 @@ def scrape_sale_results_page(session, page_url, sale_name, year):
                     "year": year,
                     "contenu": text[:1500],
                     "url": page_url,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 # Extract summary stats
                 avg_match = re.search(r'(?:average|avg)[:\s]*\$?\s*([\d,]+)', text, re.IGNORECASE)
@@ -304,7 +304,7 @@ def scrape_sale_results_page(session, page_url, sale_name, year):
                     "year": year,
                     "var_name": m.group(1),
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except json.JSONDecodeError:
                 pass
@@ -318,7 +318,7 @@ def scrape_sale_results_page(session, page_url, sale_name, year):
                     "year": year,
                     "var_name": m.group(1),
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except json.JSONDecodeError:
                 pass
@@ -333,7 +333,7 @@ def scrape_sale_results_page(session, page_url, sale_name, year):
                 "year": year,
                 "data_id": script.get("id", ""),
                 "data": data,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
         except json.JSONDecodeError:
             pass
@@ -353,7 +353,7 @@ def scrape_sale_results_page(session, page_url, sale_name, year):
                 "tag": el.name,
                 "text": el.get_text(strip=True)[:200],
                 "attributes": data_attrs,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
 
     with open(cache_file, "w", encoding="utf-8", errors="replace") as f:
@@ -384,7 +384,7 @@ def scrape_lot_detail(session, lot_url, sale_name, year):
         "sale_name": sale_name,
         "year": year,
         "url": lot_url,
-        "scraped_at": datetime.utcnow().isoformat(),
+        "scraped_at": datetime.now().isoformat(),
     }
 
     # Horse name
@@ -417,7 +417,7 @@ def scrape_lot_detail(session, lot_url, sale_name, year):
                 "url": lot_url,
                 "horse_name": record.get("horse_name", ""),
                 "table_data": table_data,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
 
     # Key info fields

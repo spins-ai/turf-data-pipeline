@@ -317,7 +317,7 @@ def main():
                 "lat": lat,
                 "lon": lon,
                 "country": country,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
             done_hippos.add(hippo_name)
             continue
@@ -354,7 +354,7 @@ def main():
                             "datatype": obs.get("datatype", ""),
                             "value": obs.get("value"),
                             "attributes": obs.get("attributes", ""),
-                            "scraped_at": datetime.utcnow().isoformat(),
+                            "scraped_at": datetime.now().isoformat(),
                         }
                         append_jsonl(output_file, record)
                         total_records += 1

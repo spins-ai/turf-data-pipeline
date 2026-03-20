@@ -120,7 +120,7 @@ def extract_embedded_json(soup, date_str, source="turfinfo"):
                     "type": "json_ld",
                     "ld_type": ld.get("@type", "") if isinstance(ld, dict) else "array",
                     "data": ld if isinstance(ld, dict) else ld[:20],
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except (json.JSONDecodeError, TypeError):
                 pass
@@ -139,7 +139,7 @@ def extract_embedded_json(soup, date_str, source="turfinfo"):
                             "source": source,
                             "type": "embedded_json",
                             "data": data,
-                            "scraped_at": datetime.utcnow().isoformat(),
+                            "scraped_at": datetime.now().isoformat(),
                         })
                     except json.JSONDecodeError:
                         pass
@@ -153,7 +153,7 @@ def extract_embedded_json(soup, date_str, source="turfinfo"):
                                 "source": source,
                                 "type": "embedded_json_array",
                                 "data": data[:30],
-                                "scraped_at": datetime.utcnow().isoformat(),
+                                "scraped_at": datetime.now().isoformat(),
                             })
                     except json.JSONDecodeError:
                         pass
@@ -178,7 +178,7 @@ def extract_data_attributes(soup, date_str, source="turfinfo"):
                 "source": source,
                 "type": "data_attribute",
                 "tag": el.name,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for attr_name, attr_val in data_attrs.items():
                 clean_name = attr_name.replace("data-", "").replace("-", "_")
@@ -207,7 +207,7 @@ def extract_comments_analyses(soup, date_str, source="turfinfo"):
                     "type": "commentaire_course",
                     "contenu": text[:2000],
                     "classes_css": classes,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 author_el = el.find(["span", "strong", "a"],
                                      class_=lambda c: c and any(kw in " ".join(c).lower()
@@ -233,7 +233,7 @@ def extract_musique_detaillee(soup, date_str, source="turfinfo"):
                     "type": "musique_detaillee",
                     "contenu": text,
                     "classes_css": classes,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 # Parse musique codes
                 musique_match = re.search(r'([0-9DATap]{4,})', text)
@@ -279,7 +279,7 @@ def scrape_programme_day(session, date_str):
                 "date": date_str,
                 "source": "turfinfo",
                 "type": "reunion",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             title = div.find(["h2", "h3", "h4", "strong"])
             if title:
@@ -320,7 +320,7 @@ def scrape_programme_day(session, date_str):
                     "date": date_str,
                     "source": "turfinfo",
                     "type": "info_course",
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 for j, cell in enumerate(cells):
                     key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -405,7 +405,7 @@ def scrape_course_detail(session, course_url, date_str):
                 "nom_prix": nom_prix,
                 "conditions": conditions,
                 "url_course": course_url,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for j, cell in enumerate(cells):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -441,7 +441,7 @@ def scrape_course_detail(session, course_url, date_str):
                     "contenu": text,
                     "conditions": conditions,
                     "url_course": course_url,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     with open(cache_file, "w", encoding="utf-8") as f:

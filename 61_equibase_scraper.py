@@ -123,7 +123,7 @@ def extract_embedded_json(soup, date_str, source="equibase"):
                     "type": "json_ld",
                     "ld_type": ld.get("@type", "") if isinstance(ld, dict) else "array",
                     "data": ld if isinstance(ld, dict) else ld[:20],
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except (json.JSONDecodeError, TypeError):
                 pass
@@ -142,7 +142,7 @@ def extract_embedded_json(soup, date_str, source="equibase"):
                             "source": source,
                             "type": "embedded_json",
                             "data": data,
-                            "scraped_at": datetime.utcnow().isoformat(),
+                            "scraped_at": datetime.now().isoformat(),
                         })
                     except json.JSONDecodeError:
                         pass
@@ -156,7 +156,7 @@ def extract_embedded_json(soup, date_str, source="equibase"):
                                 "source": source,
                                 "type": "embedded_json_array",
                                 "data": data[:30],
-                                "scraped_at": datetime.utcnow().isoformat(),
+                                "scraped_at": datetime.now().isoformat(),
                             })
                     except json.JSONDecodeError:
                         pass
@@ -181,7 +181,7 @@ def extract_data_attributes(soup, date_str, source="equibase"):
                 "source": source,
                 "type": "data_attribute",
                 "tag": el.name,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for attr_name, attr_val in data_attrs.items():
                 clean_name = attr_name.replace("data-", "").replace("-", "_")
@@ -213,7 +213,7 @@ def extract_trainer_jockey_stats(soup, date_str, source="equibase"):
                             "date": date_str,
                             "source": source,
                             "type": "trainer_jockey_stats",
-                            "scraped_at": datetime.utcnow().isoformat(),
+                            "scraped_at": datetime.now().isoformat(),
                         }
                         for j, cell in enumerate(cells):
                             key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -228,7 +228,7 @@ def extract_trainer_jockey_stats(soup, date_str, source="equibase"):
                         "type": "connection_stats",
                         "content": text[:500],
                         "classes_css": classes,
-                        "scraped_at": datetime.utcnow().isoformat(),
+                        "scraped_at": datetime.now().isoformat(),
                     }
                     # Parse win percentages
                     pcts = re.findall(r'(\d{1,3})\s*%', text)
@@ -258,7 +258,7 @@ def extract_workout_data(soup, date_str, source="equibase"):
                             "date": date_str,
                             "source": source,
                             "type": "workout",
-                            "scraped_at": datetime.utcnow().isoformat(),
+                            "scraped_at": datetime.now().isoformat(),
                         }
                         for j, cell in enumerate(cells):
                             key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -279,7 +279,7 @@ def extract_workout_data(soup, date_str, source="equibase"):
                         "type": "workout_data",
                         "content": text[:500],
                         "classes_css": classes,
-                        "scraped_at": datetime.utcnow().isoformat(),
+                        "scraped_at": datetime.now().isoformat(),
                     })
     return records
 
@@ -300,7 +300,7 @@ def extract_comments(soup, date_str, source="equibase"):
                     "type": "chart_comment",
                     "content": text[:2000],
                     "classes_css": classes,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
     return records
 
@@ -338,7 +338,7 @@ def scrape_entries(session, date_str):
                 "type": "entry_link",
                 "track": text,
                 "url": href if href.startswith("http") else BASE_URL + href,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
 
     # Extract entries tables
@@ -359,7 +359,7 @@ def scrape_entries(session, date_str):
                 "date": date_str,
                 "source": "equibase",
                 "type": "entry",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for j, cell in enumerate(cells):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -411,7 +411,7 @@ def scrape_results(session, date_str):
                 "date": date_str,
                 "source": "equibase",
                 "type": "result",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for j, cell in enumerate(cells):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -456,7 +456,7 @@ def scrape_charts(session, date_str):
                 "type": "chart_link",
                 "track": text,
                 "url": href if href.startswith("http") else BASE_URL + href,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
 
     # Extract chart tables with speed/beyer figures
@@ -477,7 +477,7 @@ def scrape_charts(session, date_str):
                 "date": date_str,
                 "source": "equibase",
                 "type": "chart_entry",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for j, cell in enumerate(cells):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -501,7 +501,7 @@ def scrape_charts(session, date_str):
                     "type": "speed_figure",
                     "value": text,
                     "classes": classes,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     with open(cache_file, "w", encoding="utf-8") as f:

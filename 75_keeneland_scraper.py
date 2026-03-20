@@ -162,7 +162,7 @@ def scrape_sale_results_page(session, sale_code, year, page=1):
                 "year": year,
                 "page": page,
                 "type": "sale_result",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for j, cell in enumerate(cells):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -191,7 +191,7 @@ def scrape_sale_results_page(session, sale_code, year, page=1):
                 "sale_code": sale_code,
                 "year": year,
                 "type": "sale_card",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
 
             # Hip number
@@ -276,7 +276,7 @@ def scrape_racing_results(session, date_str):
                 "source": "keeneland",
                 "date": date_str,
                 "type": "racing_entry",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for j, cell in enumerate(cells):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"

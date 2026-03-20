@@ -73,7 +73,7 @@ class ZeTurfPlaywright(PlaywrightScraperBase):
                 "date": date_str,
                 "source": "zeturf",
                 "type": "reunion_course",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             title_el = section.query_selector("h2, h3, h4, a")
             if title_el:
@@ -100,7 +100,7 @@ class ZeTurfPlaywright(PlaywrightScraperBase):
                     "source": "zeturf",
                     "type": "pronostic",
                     "contenu": text,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
         # --- Embedded JSON from scripts ---
@@ -122,7 +122,7 @@ class ZeTurfPlaywright(PlaywrightScraperBase):
                 "type": "cote_data",
                 "odds": el.get_attribute("data-odds"),
                 "text": (el.inner_text() or "").strip()[:200],
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
 
         # --- Commentaires de course ---
@@ -139,7 +139,7 @@ class ZeTurfPlaywright(PlaywrightScraperBase):
                     "source": "zeturf",
                     "type": "commentaire_course",
                     "contenu": text[:2500],
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
         # --- Cotes par type de pari ---
@@ -158,7 +158,7 @@ class ZeTurfPlaywright(PlaywrightScraperBase):
                         "source": "zeturf",
                         "type": "cote_par_pari",
                         "contenu": text,
-                        "scraped_at": datetime.utcnow().isoformat(),
+                        "scraped_at": datetime.now().isoformat(),
                     })
 
         self.save_cache(cache_key, records)
@@ -217,7 +217,7 @@ class ZeTurfPlaywright(PlaywrightScraperBase):
                     "nom_prix": nom_prix,
                     "contenu": text[:2500],
                     "url_course": course_url,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
         # Historique forme
@@ -236,7 +236,7 @@ class ZeTurfPlaywright(PlaywrightScraperBase):
                     "nom_prix": nom_prix,
                     "contenu": text[:1500],
                     "url_course": course_url,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
         # Embedded JSON
@@ -257,7 +257,7 @@ class ZeTurfPlaywright(PlaywrightScraperBase):
                     "type": "video_metadata",
                     "nom_prix": nom_prix,
                     "media_url": src,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
         self.save_cache(cache_key, records)

@@ -130,7 +130,7 @@ def scrape_sg_pools_results(session, date_str):
                 "date": date_str,
                 "source": "singapore_pools",
                 "type": "race_result",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             title_el = section.find(["h2", "h3", "h4", "a", "strong"])
             if title_el:
@@ -157,7 +157,7 @@ def scrape_sg_pools_results(session, date_str):
                     "date": date_str,
                     "source": "singapore_pools",
                     "type": "result_table",
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 for j, cell in enumerate(cells):
                     key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -183,7 +183,7 @@ def scrape_sg_pools_results(session, date_str):
                     "type": "dividend",
                     "contenu": text[:2500],
                     "css_class": classes,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     # --- Race conditions ---
@@ -198,7 +198,7 @@ def scrape_sg_pools_results(session, date_str):
                     "source": "singapore_pools",
                     "type": "race_conditions",
                     "contenu": text[:1500],
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     # --- Odds data ---
@@ -209,7 +209,7 @@ def scrape_sg_pools_results(session, date_str):
             "type": "odds_data",
             "odds": el.get("data-odds"),
             "text": el.get_text(strip=True),
-            "scraped_at": datetime.utcnow().isoformat(),
+            "scraped_at": datetime.now().isoformat(),
         })
 
     # --- JSON embedded ---
@@ -224,7 +224,7 @@ def scrape_sg_pools_results(session, date_str):
                     "source": "singapore_pools",
                     "type": "embedded_json_parse",
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except (json.JSONDecodeError, UnicodeDecodeError):
                 pass
@@ -238,7 +238,7 @@ def scrape_sg_pools_results(session, date_str):
                     "type": "embedded_window_data",
                     "var_name": m.group(1),
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except json.JSONDecodeError:
                 pass
@@ -251,7 +251,7 @@ def scrape_sg_pools_results(session, date_str):
                     "type": "embedded_var_array",
                     "var_name": m.group(1),
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except json.JSONDecodeError:
                 pass
@@ -265,7 +265,7 @@ def scrape_sg_pools_results(session, date_str):
                 "type": "script_application_json",
                 "data_id": script.get("id", ""),
                 "data": data,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
         except json.JSONDecodeError:
             pass
@@ -284,7 +284,7 @@ def scrape_sg_pools_results(session, date_str):
                 "tag": el.name,
                 "text": el.get_text(strip=True)[:200],
                 "attributes": data_attrs,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
 
     with open(cache_file, "w", encoding="utf-8") as f:
@@ -325,7 +325,7 @@ def scrape_sg_pools_racecard(session, date_str):
                     "date": date_str,
                     "source": "singapore_pools",
                     "type": "racecard_runner",
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 for j, cell in enumerate(cells):
                     key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -344,7 +344,7 @@ def scrape_sg_pools_racecard(session, date_str):
                     "source": "singapore_pools",
                     "type": "racecard_embedded_json",
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except (json.JSONDecodeError, UnicodeDecodeError):
                 pass
@@ -358,7 +358,7 @@ def scrape_sg_pools_racecard(session, date_str):
                 "type": "racecard_script_json",
                 "data_id": script.get("id", ""),
                 "data": data,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
         except json.JSONDecodeError:
             pass

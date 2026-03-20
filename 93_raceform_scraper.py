@@ -148,7 +148,7 @@ def scrape_raceform_day(session, date_str):
                     "source": "raceform",
                     "type": "race_entry",
                     "url": url,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 for j, cell in enumerate(cells):
                     key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -167,7 +167,7 @@ def scrape_raceform_day(session, date_str):
                         "source": "raceform",
                         "type": "race_header",
                         "contenu": text[:800],
-                        "scraped_at": datetime.utcnow().isoformat(),
+                        "scraped_at": datetime.now().isoformat(),
                     }
                     # Extract going
                     going_match = re.search(r'(?:going|ground)[:\s]*([A-Za-z\s\-/]+)',
@@ -193,7 +193,7 @@ def scrape_raceform_day(session, date_str):
                         "source": "raceform",
                         "type": "form_comment",
                         "contenu": text[:2500],
-                        "scraped_at": datetime.utcnow().isoformat(),
+                        "scraped_at": datetime.now().isoformat(),
                     })
 
         # -- Horse profile links --
@@ -206,7 +206,7 @@ def scrape_raceform_day(session, date_str):
                     "type": "horse_link",
                     "horse_name": a.get_text(strip=True),
                     "horse_url": href if href.startswith("http") else BASE_URL + href,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
         # -- Embedded JSON --
@@ -221,7 +221,7 @@ def scrape_raceform_day(session, date_str):
                         "type": "embedded_data",
                         "var_name": m.group(1),
                         "data": data,
-                        "scraped_at": datetime.utcnow().isoformat(),
+                        "scraped_at": datetime.now().isoformat(),
                     })
                 except json.JSONDecodeError:
                     pass
@@ -235,7 +235,7 @@ def scrape_raceform_day(session, date_str):
                     "type": "script_json",
                     "data_id": script.get("id", ""),
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except json.JSONDecodeError:
                 pass
@@ -254,7 +254,7 @@ def scrape_raceform_day(session, date_str):
                     "tag": el.name,
                     "text": el.get_text(strip=True)[:200],
                     "attributes": data_attrs,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
         smart_pause(1.0, 0.5)

@@ -218,7 +218,7 @@ def scrape_going_report_page(session, source_name, page_url):
                 "sub_source": source_name,
                 "type": "going_table",
                 "url": page_url,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for j, cell in enumerate(cells):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -243,7 +243,7 @@ def scrape_going_report_page(session, source_name, page_url):
                     "type": "going_report",
                     "contenu": text[:2500],
                     "url": page_url,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 parsed = parse_going_text(text)
                 record.update(parsed)
@@ -279,7 +279,7 @@ def scrape_going_report_page(session, source_name, page_url):
                 "time": time_match.group(1),
                 "contenu": text[:500],
                 "url": page_url,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             parsed = parse_going_text(text)
             record.update(parsed)
@@ -297,7 +297,7 @@ def scrape_going_report_page(session, source_name, page_url):
                     "type": "embedded_data",
                     "var_name": m.group(1),
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except json.JSONDecodeError:
                 pass
@@ -311,7 +311,7 @@ def scrape_going_report_page(session, source_name, page_url):
                 "type": "script_json",
                 "data_id": script.get("id", ""),
                 "data": data,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
         except json.JSONDecodeError:
             pass
@@ -329,7 +329,7 @@ def scrape_going_report_page(session, source_name, page_url):
                     "type": "report_link",
                     "link_text": link_text,
                     "link_url": href if href.startswith("http") else page_url.split("/")[0] + "//" + page_url.split("/")[2] + href,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     with open(cache_file, "w", encoding="utf-8", errors="replace") as f:

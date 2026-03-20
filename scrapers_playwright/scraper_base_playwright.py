@@ -201,7 +201,7 @@ class PlaywrightScraperBase:
     def screenshot_on_error(self, label="error"):
         """Save a debug screenshot when something goes wrong."""
         try:
-            ts = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+            ts = datetime.now().strftime("%Y%m%d_%H%M%S")
             safe_label = re.sub(r'[^a-zA-Z0-9_-]', '_', label)[:60]
             path = os.path.join(self.screenshot_dir,
                                 f"{safe_label}_{ts}.png")
@@ -243,7 +243,7 @@ class PlaywrightScraperBase:
                     "date": date_str,
                     "source": source,
                     "type": record_type,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 for j, val in enumerate(values):
                     key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -269,7 +269,7 @@ class PlaywrightScraperBase:
                         "type": "script_json",
                         "script_type": stype,
                         "data": data,
-                        "scraped_at": datetime.utcnow().isoformat(),
+                        "scraped_at": datetime.now().isoformat(),
                     })
                 except (json.JSONDecodeError, ValueError):
                     pass
@@ -291,7 +291,7 @@ class PlaywrightScraperBase:
                         "type": "embedded_window_data",
                         "var_name": m.group(1),
                         "data": data,
-                        "scraped_at": datetime.utcnow().isoformat(),
+                        "scraped_at": datetime.now().isoformat(),
                     })
                 except json.JSONDecodeError:
                     pass
@@ -333,7 +333,7 @@ class PlaywrightScraperBase:
                 "tag": el.evaluate("el => el.tagName.toLowerCase()"),
                 "text": text,
                 "attributes": attrs,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
         return records
 

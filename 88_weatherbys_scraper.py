@@ -136,7 +136,7 @@ def scrape_weatherbys_stallion_book(session, year):
                     "year": str(year),
                     "source": "weatherbys",
                     "type": "stallion_book",
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 for j, cell in enumerate(cells):
                     key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -161,7 +161,7 @@ def scrape_weatherbys_stallion_book(session, year):
                     "type": "stallion_detail",
                     "contenu": text[:2500],
                     "css_class": classes,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     # --- JSON embedded ---
@@ -176,7 +176,7 @@ def scrape_weatherbys_stallion_book(session, year):
                     "source": "weatherbys",
                     "type": "embedded_json_parse",
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except (json.JSONDecodeError, UnicodeDecodeError):
                 pass
@@ -190,7 +190,7 @@ def scrape_weatherbys_stallion_book(session, year):
                     "type": "embedded_window_data",
                     "var_name": m.group(1),
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except json.JSONDecodeError:
                 pass
@@ -203,7 +203,7 @@ def scrape_weatherbys_stallion_book(session, year):
                     "type": "embedded_var_array",
                     "var_name": m.group(1),
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except json.JSONDecodeError:
                 pass
@@ -217,7 +217,7 @@ def scrape_weatherbys_stallion_book(session, year):
                 "type": "script_application_json",
                 "data_id": script.get("id", ""),
                 "data": data,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
         except json.JSONDecodeError:
             pass
@@ -236,7 +236,7 @@ def scrape_weatherbys_stallion_book(session, year):
                 "tag": el.name,
                 "text": el.get_text(strip=True)[:200],
                 "attributes": data_attrs,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
 
     with open(cache_file, "w", encoding="utf-8") as f:
@@ -276,7 +276,7 @@ def scrape_weatherbys_pedigree_search(session, letter):
                     "letter": letter,
                     "source": "weatherbys",
                     "type": "pedigree_entry",
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 for j, cell in enumerate(cells):
                     key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -298,7 +298,7 @@ def scrape_weatherbys_pedigree_search(session, letter):
                     "source": "weatherbys",
                     "type": "pedigree_list",
                     "name": text,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 if li.get("href"):
                     href = li["href"]
@@ -317,7 +317,7 @@ def scrape_weatherbys_pedigree_search(session, letter):
                     "source": "weatherbys",
                     "type": "pedigree_embedded_json",
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except (json.JSONDecodeError, UnicodeDecodeError):
                 pass
@@ -331,7 +331,7 @@ def scrape_weatherbys_pedigree_search(session, letter):
                 "type": "pedigree_script_json",
                 "data_id": script.get("id", ""),
                 "data": data,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
         except json.JSONDecodeError:
             pass

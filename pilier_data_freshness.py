@@ -179,7 +179,7 @@ def find_most_recent_date(filepath: Path, sample_size: int = 500) -> dict:
 
 def scan_file_freshness(filepath: Path, stale_days: int) -> dict:
     """Analyse la fraicheur d'un fichier."""
-    now = datetime.utcnow()
+    now = datetime.now()
     stat = filepath.stat()
 
     mod_time = datetime.utcfromtimestamp(stat.st_mtime)
@@ -247,7 +247,7 @@ def scan_directory(directory: Path, stale_days: int, prefix: str = "") -> list[d
 
 def generate_dashboard(results: list[dict], stale_days: int) -> dict:
     """Genere le dashboard de fraicheur."""
-    now = datetime.utcnow()
+    now = datetime.now()
 
     total_files = len(results)
     stale_files = [r for r in results if r.get("file_stale")]

@@ -149,7 +149,7 @@ def scrape_sc_day(session, date_str):
                     "discipline": "trot",
                     "country": "CA",
                     "url": url,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 for j, cell in enumerate(cells):
                     key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -179,7 +179,7 @@ def scrape_sc_day(session, date_str):
                         "source": "standardbred_ca",
                         "type": "meeting_info",
                         "contenu": text[:400],
-                        "scraped_at": datetime.utcnow().isoformat(),
+                        "scraped_at": datetime.now().isoformat(),
                     }
                     records.append(record)
 
@@ -205,7 +205,7 @@ def scrape_sc_day(session, date_str):
                         "type": link_type,
                         "name": name,
                         "profile_url": href if href.startswith("http") else BASE_URL + href,
-                        "scraped_at": datetime.utcnow().isoformat(),
+                        "scraped_at": datetime.now().isoformat(),
                     })
 
         # -- Pedigree info --
@@ -220,7 +220,7 @@ def scrape_sc_day(session, date_str):
                         "source": "standardbred_ca",
                         "type": "pedigree_info",
                         "contenu": text[:1500],
-                        "scraped_at": datetime.utcnow().isoformat(),
+                        "scraped_at": datetime.now().isoformat(),
                     })
 
         # -- Stakes info --
@@ -235,7 +235,7 @@ def scrape_sc_day(session, date_str):
                         "source": "standardbred_ca",
                         "type": "stakes_info",
                         "contenu": text[:400],
-                        "scraped_at": datetime.utcnow().isoformat(),
+                        "scraped_at": datetime.now().isoformat(),
                     }
                     purse_match = re.search(r'\$\s*([\d,]+)', text)
                     if purse_match:
@@ -254,7 +254,7 @@ def scrape_sc_day(session, date_str):
                         "type": "embedded_data",
                         "var_name": m.group(1),
                         "data": data,
-                        "scraped_at": datetime.utcnow().isoformat(),
+                        "scraped_at": datetime.now().isoformat(),
                     })
                 except json.JSONDecodeError:
                     pass
@@ -268,7 +268,7 @@ def scrape_sc_day(session, date_str):
                     "type": "script_json",
                     "data_id": script.get("id", ""),
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except json.JSONDecodeError:
                 pass

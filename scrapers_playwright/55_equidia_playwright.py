@@ -62,7 +62,7 @@ class EquidiaPlaywright(PlaywrightScraperBase):
                 "type": "terrain",
                 "etat_terrain": m.group(2).strip(),
                 "contexte": text[:200],
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             pm = self.PENETRO_REGEX.search(text)
             if pm:
@@ -101,7 +101,7 @@ class EquidiaPlaywright(PlaywrightScraperBase):
                 "date": date_str,
                 "source": "equidia",
                 "type": "reunion",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             title_el = section.query_selector("h2, h3, h4, strong")
             if title_el:
@@ -146,7 +146,7 @@ class EquidiaPlaywright(PlaywrightScraperBase):
                     "source": "equidia",
                     "type": "terrain_detail",
                     "contenu": text[:500],
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 pm = self.PENETRO_REGEX.search(text)
                 if pm:
@@ -163,7 +163,7 @@ class EquidiaPlaywright(PlaywrightScraperBase):
                 "date": date_str,
                 "source": "equidia",
                 "type": "video_metadata",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for attr in ["src", "data-src", "data-video-id", "data-video-url",
                           "data-race-id", "data-duration", "data-title",
@@ -193,7 +193,7 @@ class EquidiaPlaywright(PlaywrightScraperBase):
                     "source": "equidia",
                     "type": "commentaire",
                     "contenu": text[:2000],
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
         # --- Tables ---
@@ -284,7 +284,7 @@ class EquidiaPlaywright(PlaywrightScraperBase):
                     "contenu": text[:500],
                     "conditions": conditions,
                     "url_course": course_url,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 pm = self.PENETRO_REGEX.search(text)
                 if pm:
@@ -307,7 +307,7 @@ class EquidiaPlaywright(PlaywrightScraperBase):
                     "contenu": text,
                     "conditions": conditions,
                     "url_course": course_url,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
         # Replay URLs
@@ -321,7 +321,7 @@ class EquidiaPlaywright(PlaywrightScraperBase):
                     "nom_prix": nom_prix,
                     "video_src": src,
                     "conditions": conditions,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
         # Embedded JSON

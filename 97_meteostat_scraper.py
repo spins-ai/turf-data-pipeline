@@ -331,7 +331,7 @@ def main():
                         "wpgt": obs.get("wpgt"),
                         "pres": obs.get("pres"),
                         "tsun": obs.get("tsun"),
-                        "scraped_at": datetime.utcnow().isoformat(),
+                        "scraped_at": datetime.now().isoformat(),
                     }
                     append_jsonl(output_file, record)
                     total_records += 1
@@ -363,7 +363,7 @@ def main():
                             "pres": obs.get("pres"),
                             "tsun": obs.get("tsun"),
                             "coco": obs.get("coco"),
-                            "scraped_at": datetime.utcnow().isoformat(),
+                            "scraped_at": datetime.now().isoformat(),
                         }
                         append_jsonl(output_file, record)
                         total_records += 1

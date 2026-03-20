@@ -123,7 +123,7 @@ def extract_embedded_json(soup, date_str, source="sporting_life"):
                     "type": "json_ld",
                     "ld_type": ld.get("@type", "") if isinstance(ld, dict) else "array",
                     "data": ld if isinstance(ld, dict) else ld[:20],
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except (json.JSONDecodeError, TypeError):
                 pass
@@ -142,7 +142,7 @@ def extract_embedded_json(soup, date_str, source="sporting_life"):
                             "source": source,
                             "type": "embedded_json",
                             "data": data,
-                            "scraped_at": datetime.utcnow().isoformat(),
+                            "scraped_at": datetime.now().isoformat(),
                         })
                     except json.JSONDecodeError:
                         pass
@@ -156,7 +156,7 @@ def extract_embedded_json(soup, date_str, source="sporting_life"):
                                 "source": source,
                                 "type": "embedded_json_array",
                                 "data": data[:30],
-                                "scraped_at": datetime.utcnow().isoformat(),
+                                "scraped_at": datetime.now().isoformat(),
                             })
                     except json.JSONDecodeError:
                         pass
@@ -181,7 +181,7 @@ def extract_data_attributes(soup, date_str, source="sporting_life"):
                 "source": source,
                 "type": "data_attribute",
                 "tag": el.name,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for attr_name, attr_val in data_attrs.items():
                 clean_name = attr_name.replace("data-", "").replace("-", "_")
@@ -210,7 +210,7 @@ def extract_comments_and_tips(soup, date_str, source="sporting_life"):
                     "type": "race_comment",
                     "content": text[:2000],
                     "classes_css": classes,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 author_el = el.find(["span", "strong", "a"],
                                      class_=lambda c: c and any(kw in " ".join(c).lower()
@@ -237,7 +237,7 @@ def extract_form_history(soup, date_str, source="sporting_life"):
                     "type": "form_history",
                     "content": text,
                     "classes_css": classes,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 # Parse form figures
                 form_match = re.search(r'([0-9PFU/-]{3,})', text)
@@ -280,7 +280,7 @@ def scrape_racecards(session, date_str):
                     "type": "meeting_link",
                     "text": text,
                     "url": href if href.startswith("http") else BASE_URL + href,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     # Extract race card tables (runners, jockeys, trainers, odds)
@@ -301,7 +301,7 @@ def scrape_racecards(session, date_str):
                 "date": date_str,
                 "source": "sporting_life",
                 "type": "racecard_runner",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for j, cell in enumerate(cells):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -327,7 +327,7 @@ def scrape_racecards(session, date_str):
                 "source": "sporting_life",
                 "type": "runner_card",
                 "horse_name": horse_name,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
 
             # Jockey
@@ -397,7 +397,7 @@ def scrape_results(session, date_str):
                 "date": date_str,
                 "source": "sporting_life",
                 "type": "result",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for j, cell in enumerate(cells):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -422,7 +422,7 @@ def scrape_results(session, date_str):
                     "source": "sporting_life",
                     "type": "result_section",
                     "content": text[:800],
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     with open(cache_file, "w", encoding="utf-8") as f:
@@ -462,7 +462,7 @@ def scrape_tips(session, date_str):
                     "source": "sporting_life",
                     "type": "tip",
                     "content": text[:1200],
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
 
                 # Extract horse name from tip
@@ -486,7 +486,7 @@ def scrape_tips(session, date_str):
                     "ld_type": ld.get("@type"),
                     "name": ld.get("name", ""),
                     "description": (ld.get("description", "") or "")[:500],
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
         except (json.JSONDecodeError, TypeError):
             pass

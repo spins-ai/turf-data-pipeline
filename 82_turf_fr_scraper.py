@@ -130,7 +130,7 @@ def scrape_turf_fr_day(session, date_str):
             record = {
                 "date": date_str,
                 "source": "turf-fr",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             title_el = section.find(["h2", "h3", "h4", "a", "strong"])
             if title_el:
@@ -154,7 +154,7 @@ def scrape_turf_fr_day(session, date_str):
                     "date": date_str,
                     "source": "turf-fr",
                     "type": "pronostic_table",
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 for j, cell in enumerate(cells):
                     key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -179,7 +179,7 @@ def scrape_turf_fr_day(session, date_str):
                     "type": "pronostic",
                     "contenu": text,
                     "css_class": classes,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     # --- Résultats et rapports ---
@@ -194,7 +194,7 @@ def scrape_turf_fr_day(session, date_str):
                     "source": "turf-fr",
                     "type": "resultat_rapport",
                     "contenu": text[:2500],
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     # --- Commentaires/analyses ---
@@ -209,7 +209,7 @@ def scrape_turf_fr_day(session, date_str):
                     "source": "turf-fr",
                     "type": "commentaire",
                     "contenu": text[:2500],
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     # --- Cotes depuis data-attributes ---
@@ -220,7 +220,7 @@ def scrape_turf_fr_day(session, date_str):
             "type": "cote_data",
             "odds": el.get("data-odds"),
             "text": el.get_text(strip=True),
-            "scraped_at": datetime.utcnow().isoformat(),
+            "scraped_at": datetime.now().isoformat(),
         })
 
     # --- JSON embarqués ---
@@ -235,7 +235,7 @@ def scrape_turf_fr_day(session, date_str):
                     "source": "turf-fr",
                     "type": "embedded_json_parse",
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except (json.JSONDecodeError, UnicodeDecodeError):
                 pass
@@ -249,7 +249,7 @@ def scrape_turf_fr_day(session, date_str):
                     "type": "embedded_window_data",
                     "var_name": m.group(1),
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except json.JSONDecodeError:
                 pass
@@ -262,7 +262,7 @@ def scrape_turf_fr_day(session, date_str):
                     "type": "embedded_var_array",
                     "var_name": m.group(1),
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except json.JSONDecodeError:
                 pass
@@ -276,7 +276,7 @@ def scrape_turf_fr_day(session, date_str):
                 "type": "script_application_json",
                 "data_id": script.get("id", ""),
                 "data": data,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
         except json.JSONDecodeError:
             pass
@@ -295,7 +295,7 @@ def scrape_turf_fr_day(session, date_str):
                 "tag": el.name,
                 "text": el.get_text(strip=True)[:200],
                 "attributes": data_attrs,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
 
     with open(cache_file, "w", encoding="utf-8") as f:
@@ -337,7 +337,7 @@ def scrape_turf_fr_resultats(session, date_str):
                     "date": date_str,
                     "source": "turf-fr",
                     "type": "resultat_table",
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 for j, cell in enumerate(cells):
                     key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -355,7 +355,7 @@ def scrape_turf_fr_resultats(session, date_str):
                     "source": "turf-fr",
                     "type": "rapport_gains",
                     "contenu": text[:2500],
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     # --- JSON embarqué ---
@@ -370,7 +370,7 @@ def scrape_turf_fr_resultats(session, date_str):
                     "source": "turf-fr",
                     "type": "resultats_embedded_json",
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except (json.JSONDecodeError, UnicodeDecodeError):
                 pass
@@ -384,7 +384,7 @@ def scrape_turf_fr_resultats(session, date_str):
                 "type": "resultats_script_json",
                 "data_id": script.get("id", ""),
                 "data": data,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
         except json.JSONDecodeError:
             pass

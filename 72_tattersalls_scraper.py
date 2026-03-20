@@ -151,7 +151,7 @@ def scrape_sales_catalogue(session, year, sale_type):
                 "sale_type": sale_type,
                 "source": "tattersalls",
                 "type": "lot",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
 
             # Numero de lot
@@ -213,7 +213,7 @@ def scrape_sales_catalogue(session, year, sale_type):
                 "sale_type": sale_type,
                 "source": "tattersalls",
                 "type": "table_row",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for j, cell in enumerate(cells):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -242,7 +242,7 @@ def scrape_sales_catalogue(session, year, sale_type):
                     "source": "tattersalls",
                     "type": "sale_summary",
                     "contenu": text,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     with open(cache_file, "w", encoding="utf-8") as f:
@@ -273,7 +273,7 @@ def scrape_lot_detail(session, lot_url, year, sale_type):
         "source": "tattersalls",
         "type": "lot_detail",
         "url_lot": lot_url,
-        "scraped_at": datetime.utcnow().isoformat(),
+        "scraped_at": datetime.now().isoformat(),
     }
 
     # Nom du cheval

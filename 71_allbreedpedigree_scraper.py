@@ -172,7 +172,7 @@ def scrape_pedigree(session, horse_name, horse_url=None):
         "nom_cheval": horse_name,
         "url": horse_url,
         "source": "allbreedpedigree",
-        "scraped_at": datetime.utcnow().isoformat(),
+        "scraped_at": datetime.now().isoformat(),
     }
 
     # --- Extraire le nom complet ---
@@ -294,7 +294,7 @@ def main():
                     "query": args.search,
                     "source": "allbreedpedigree",
                     **r,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
         else:
             log.info("    Aucun resultat.")

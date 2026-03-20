@@ -68,7 +68,7 @@ class AuditTrail:
     ):
         """Enregistre une étape de transformation dans le journal."""
         entry = {
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "timestamp": datetime.now().isoformat() + "Z",
             "script": script_name,
             "step": step_name or script_name,
             "inputs": inputs or [],

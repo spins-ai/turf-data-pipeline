@@ -154,7 +154,7 @@ def scrape_going_page(session, page_url, course_name, date_str=None):
                 "type": "going_reading",
                 "course": course_name,
                 "url": page_url,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             if date_str:
                 record["date"] = date_str
@@ -186,7 +186,7 @@ def scrape_going_page(session, page_url, course_name, date_str=None):
                     "type": "going_description",
                     "course": course_name,
                     "contenu": text[:800],
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 if date_str:
                     record["date"] = date_str
@@ -210,7 +210,7 @@ def scrape_going_page(session, page_url, course_name, date_str=None):
                     "type": "rail_movement",
                     "course": course_name,
                     "contenu": text[:400],
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 if date_str:
                     record["date"] = date_str
@@ -232,7 +232,7 @@ def scrape_going_page(session, page_url, course_name, date_str=None):
                     "type": "watering",
                     "course": course_name,
                     "contenu": text[:400],
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 if date_str:
                     record["date"] = date_str
@@ -252,7 +252,7 @@ def scrape_going_page(session, page_url, course_name, date_str=None):
                     "type": "stalls_position",
                     "course": course_name,
                     "contenu": text[:400],
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     # -- Embedded JSON --
@@ -267,7 +267,7 @@ def scrape_going_page(session, page_url, course_name, date_str=None):
                     "course": course_name,
                     "var_name": m.group(1),
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except json.JSONDecodeError:
                 pass
@@ -280,7 +280,7 @@ def scrape_going_page(session, page_url, course_name, date_str=None):
                     "course": course_name,
                     "var_name": m.group(1),
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except json.JSONDecodeError:
                 pass
@@ -294,7 +294,7 @@ def scrape_going_page(session, page_url, course_name, date_str=None):
                 "course": course_name,
                 "data_id": script.get("id", ""),
                 "data": data,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
         except json.JSONDecodeError:
             pass
@@ -313,7 +313,7 @@ def scrape_going_page(session, page_url, course_name, date_str=None):
                 "tag": el.name,
                 "text": el.get_text(strip=True)[:200],
                 "attributes": data_attrs,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
 
     with open(cache_file, "w", encoding="utf-8", errors="replace") as f:

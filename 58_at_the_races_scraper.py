@@ -125,7 +125,7 @@ def extract_embedded_json(soup, date_str, source="at_the_races"):
                     "type": "json_ld",
                     "ld_type": ld.get("@type", "") if isinstance(ld, dict) else "array",
                     "data": ld if isinstance(ld, dict) else ld[:20],
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except (json.JSONDecodeError, TypeError):
                 pass
@@ -144,7 +144,7 @@ def extract_embedded_json(soup, date_str, source="at_the_races"):
                             "source": source,
                             "type": "embedded_json",
                             "data": data,
-                            "scraped_at": datetime.utcnow().isoformat(),
+                            "scraped_at": datetime.now().isoformat(),
                         })
                     except json.JSONDecodeError:
                         pass
@@ -158,7 +158,7 @@ def extract_embedded_json(soup, date_str, source="at_the_races"):
                                 "source": source,
                                 "type": "embedded_json_array",
                                 "data": data[:30],
-                                "scraped_at": datetime.utcnow().isoformat(),
+                                "scraped_at": datetime.now().isoformat(),
                             })
                     except json.JSONDecodeError:
                         pass
@@ -183,7 +183,7 @@ def extract_data_attributes(soup, date_str, source="at_the_races"):
                 "source": source,
                 "type": "data_attribute",
                 "tag": el.name,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for attr_name, attr_val in data_attrs.items():
                 clean_name = attr_name.replace("data-", "").replace("-", "_")
@@ -212,7 +212,7 @@ def extract_verdicts_comments(soup, date_str, source="at_the_races"):
                     "type": "verdict",
                     "content": text[:2000],
                     "classes_css": classes,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 author_el = el.find(["span", "strong", "a"],
                                      class_=lambda c: c and any(kw in " ".join(c).lower()
@@ -243,7 +243,7 @@ def extract_sectionals(soup, date_str, source="at_the_races"):
                             "date": date_str,
                             "source": source,
                             "type": "sectional_time",
-                            "scraped_at": datetime.utcnow().isoformat(),
+                            "scraped_at": datetime.now().isoformat(),
                         }
                         for j, cell in enumerate(cells):
                             key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -258,7 +258,7 @@ def extract_sectionals(soup, date_str, source="at_the_races"):
                         "type": "sectional_data",
                         "content": text,
                         "classes_css": classes,
-                        "scraped_at": datetime.utcnow().isoformat(),
+                        "scraped_at": datetime.now().isoformat(),
                     }
                     # Parse time values
                     times = re.findall(r'(\d{1,2}[.:]\d{2}[.:]\d{2}|\d{1,2}[.:]\d{2})', text)
@@ -309,7 +309,7 @@ def scrape_racecards(session, date_str):
                     "type": "race_link",
                     "text": text,
                     "url": href if href.startswith("http") else BASE_URL + href,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     # Extract runner tables
@@ -330,7 +330,7 @@ def scrape_racecards(session, date_str):
                 "date": date_str,
                 "source": "at_the_races",
                 "type": "racecard_runner",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for j, cell in enumerate(cells):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -356,7 +356,7 @@ def scrape_racecards(session, date_str):
                 "source": "at_the_races",
                 "type": "runner_card",
                 "horse_name": horse_name,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
 
             # Jockey
@@ -445,7 +445,7 @@ def scrape_results(session, date_str):
                 "source": "at_the_races",
                 "type": "result",
                 "race_name": race_name,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for j, cell in enumerate(cells):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -477,7 +477,7 @@ def scrape_results(session, date_str):
                     "source": "at_the_races",
                     "type": "result_section",
                     "content": text[:800],
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     with open(cache_file, "w", encoding="utf-8") as f:
@@ -552,7 +552,7 @@ def scrape_form_guide(session, race_url, date_str):
                 "type": "form_detail",
                 "race_name": race_name,
                 "url": race_url,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             record.update(conditions)
             for j, cell in enumerate(cells):
@@ -572,7 +572,7 @@ def scrape_form_guide(session, race_url, date_str):
                     "type": "form_comment",
                     "race_name": race_name,
                     "content": text[:1500],
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     with open(cache_file, "w", encoding="utf-8") as f:

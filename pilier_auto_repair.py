@@ -614,7 +614,7 @@ def run_all_repairs(
 ) -> dict:
     """Execute toutes les reparations."""
     report = {
-        "generated_at": datetime.utcnow().isoformat() + "Z",
+        "generated_at": datetime.now().isoformat() + "Z",
         "dry_run": dry_run,
         "repairs": [],
         "summary": {

@@ -136,7 +136,7 @@ def scrape_kra_results(session, date_str, track="seoul"):
                 "track": track,
                 "source": "kra",
                 "type": "race_section",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             title_el = section.find(["h2", "h3", "h4", "a", "strong", "span"])
             if title_el:
@@ -164,7 +164,7 @@ def scrape_kra_results(session, date_str, track="seoul"):
                     "track": track,
                     "source": "kra",
                     "type": "result_table",
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 for j, cell in enumerate(cells):
                     key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -200,7 +200,7 @@ def scrape_kra_results(session, date_str, track="seoul"):
                     "type": "dividend",
                     "contenu": text[:2500],
                     "css_class": classes,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     # --- Race conditions ---
@@ -216,7 +216,7 @@ def scrape_kra_results(session, date_str, track="seoul"):
                     "source": "kra",
                     "type": "race_conditions",
                     "contenu": text[:1500],
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     # --- JSON embedded ---
@@ -232,7 +232,7 @@ def scrape_kra_results(session, date_str, track="seoul"):
                     "source": "kra",
                     "type": "embedded_json_parse",
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except (json.JSONDecodeError, UnicodeDecodeError):
                 pass
@@ -247,7 +247,7 @@ def scrape_kra_results(session, date_str, track="seoul"):
                     "type": "embedded_window_data",
                     "var_name": m.group(1),
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except json.JSONDecodeError:
                 pass
@@ -261,7 +261,7 @@ def scrape_kra_results(session, date_str, track="seoul"):
                     "type": "embedded_var_array",
                     "var_name": m.group(1),
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except json.JSONDecodeError:
                 pass
@@ -276,7 +276,7 @@ def scrape_kra_results(session, date_str, track="seoul"):
                 "type": "script_application_json",
                 "data_id": script.get("id", ""),
                 "data": data,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
         except json.JSONDecodeError:
             pass
@@ -296,7 +296,7 @@ def scrape_kra_results(session, date_str, track="seoul"):
                 "tag": el.name,
                 "text": el.get_text(strip=True)[:200],
                 "attributes": data_attrs,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
 
     with open(cache_file, "w", encoding="utf-8") as f:
@@ -339,7 +339,7 @@ def scrape_kra_racecard(session, date_str, track="seoul"):
                     "track": track,
                     "source": "kra",
                     "type": "racecard_runner",
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 for j, cell in enumerate(cells):
                     key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -359,7 +359,7 @@ def scrape_kra_racecard(session, date_str, track="seoul"):
                     "source": "kra",
                     "type": "horse_form",
                     "contenu": text[:1500],
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     # --- JSON embedded ---
@@ -375,7 +375,7 @@ def scrape_kra_racecard(session, date_str, track="seoul"):
                     "source": "kra",
                     "type": "racecard_embedded_json",
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except (json.JSONDecodeError, UnicodeDecodeError):
                 pass
@@ -390,7 +390,7 @@ def scrape_kra_racecard(session, date_str, track="seoul"):
                 "type": "racecard_script_json",
                 "data_id": script.get("id", ""),
                 "data": data,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
         except json.JSONDecodeError:
             pass

@@ -214,7 +214,7 @@ def scrape_going_day_bha(session, date_str):
                 "source": "bha",
                 "date": date_str,
                 "type": "going_report",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for j, cell in enumerate(cells):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -242,7 +242,7 @@ def scrape_going_day_bha(session, date_str):
                     "date": date_str,
                     "type": "going_element",
                     "contenu": text,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 going_val = parse_going_value(text)
                 if going_val is not None:
@@ -285,7 +285,7 @@ def scrape_going_day_rp(session, date_str):
                 "source": "racing_post",
                 "date": date_str,
                 "type": "going_racecard",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
 
             # Titre (hippodrome)
@@ -353,7 +353,7 @@ def scrape_goodtosoft(session, racecourse):
                 "source": "goodtosoft",
                 "racecourse": racecourse,
                 "type": "going_history",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for j, cell in enumerate(cells):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -385,7 +385,7 @@ def scrape_goodtosoft(session, racecourse):
             "going_data": el.get("data-going"),
             "date_data": el.get("data-date", ""),
             "text": el.get_text(strip=True),
-            "scraped_at": datetime.utcnow().isoformat(),
+            "scraped_at": datetime.now().isoformat(),
         })
 
     with open(cache_file, "w", encoding="utf-8") as f:
@@ -423,7 +423,7 @@ def scrape_going_changes(session, date_str):
                         "date": date_str,
                         "type": "going_change",
                         "contenu": text,
-                        "scraped_at": datetime.utcnow().isoformat(),
+                        "scraped_at": datetime.now().isoformat(),
                     }
 
                     # Extraire heure

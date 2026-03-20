@@ -125,7 +125,7 @@ def extract_embedded_json(soup, date_str, source="punters_au"):
                     "type": "json_ld",
                     "ld_type": ld.get("@type", "") if isinstance(ld, dict) else "array",
                     "data": ld if isinstance(ld, dict) else ld[:20],
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except (json.JSONDecodeError, TypeError):
                 pass
@@ -144,7 +144,7 @@ def extract_embedded_json(soup, date_str, source="punters_au"):
                             "source": source,
                             "type": "embedded_json",
                             "data": data,
-                            "scraped_at": datetime.utcnow().isoformat(),
+                            "scraped_at": datetime.now().isoformat(),
                         })
                     except json.JSONDecodeError:
                         pass
@@ -158,7 +158,7 @@ def extract_embedded_json(soup, date_str, source="punters_au"):
                                 "source": source,
                                 "type": "embedded_json_array",
                                 "data": data[:30],
-                                "scraped_at": datetime.utcnow().isoformat(),
+                                "scraped_at": datetime.now().isoformat(),
                             })
                     except json.JSONDecodeError:
                         pass
@@ -183,7 +183,7 @@ def extract_data_attributes(soup, date_str, source="punters_au"):
                 "source": source,
                 "type": "data_attribute",
                 "tag": el.name,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for attr_name, attr_val in data_attrs.items():
                 clean_name = attr_name.replace("data-", "").replace("-", "_")
@@ -211,7 +211,7 @@ def extract_comments(soup, date_str, source="punters_au"):
                     "type": "comment",
                     "content": text[:2000],
                     "classes_css": classes,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
     return records
 
@@ -232,7 +232,7 @@ def extract_track_conditions_detail(soup, date_str, source="punters_au"):
                     "type": "track_condition_detail",
                     "content": text,
                     "classes_css": classes,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 # Parse track rating (e.g., Good 4, Heavy 8)
                 rating_match = re.search(r'(Good|Soft|Heavy|Firm|Synthetic)\s*(\d+)?', text, re.I)
@@ -262,7 +262,7 @@ def extract_speed_maps(soup, date_str, source="punters_au"):
                             "date": date_str,
                             "source": source,
                             "type": "speed_map",
-                            "scraped_at": datetime.utcnow().isoformat(),
+                            "scraped_at": datetime.now().isoformat(),
                         }
                         for j, cell in enumerate(cells):
                             key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -277,7 +277,7 @@ def extract_speed_maps(soup, date_str, source="punters_au"):
                         "type": "speed_map_data",
                         "content": text[:500],
                         "classes_css": classes,
-                        "scraped_at": datetime.utcnow().isoformat(),
+                        "scraped_at": datetime.now().isoformat(),
                     })
     return records
 
@@ -330,7 +330,7 @@ def scrape_form_guide(session, date_str):
                         "track": track_name,
                         "text": text,
                         "url": href if href.startswith("http") else BASE_URL + href,
-                        "scraped_at": datetime.utcnow().isoformat(),
+                        "scraped_at": datetime.now().isoformat(),
                     })
 
     # Extract form guide tables
@@ -351,7 +351,7 @@ def scrape_form_guide(session, date_str):
                 "date": date_str,
                 "source": "punters_au",
                 "type": "form_entry",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for j, cell in enumerate(cells):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -403,7 +403,7 @@ def scrape_results(session, date_str):
                 "date": date_str,
                 "source": "punters_au",
                 "type": "result",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for j, cell in enumerate(cells):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -421,7 +421,7 @@ def scrape_results(session, date_str):
                     "source": "punters_au",
                     "type": "track_condition",
                     "value": text,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     with open(cache_file, "w", encoding="utf-8") as f:
@@ -473,7 +473,7 @@ def scrape_tips(session, date_str):
                     "horse": horse,
                     "race": race,
                     "content": text[:500],
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     # Extract tips from tables
@@ -494,7 +494,7 @@ def scrape_tips(session, date_str):
                 "date": date_str,
                 "source": "punters_au",
                 "type": "tip_table",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for j, cell in enumerate(cells):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"

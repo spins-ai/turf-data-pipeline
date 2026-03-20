@@ -123,7 +123,7 @@ def extract_embedded_json(soup, date_str, source="racenet_au"):
                     "type": "json_ld",
                     "ld_type": ld.get("@type", "") if isinstance(ld, dict) else "array",
                     "data": ld if isinstance(ld, dict) else ld[:20],
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except (json.JSONDecodeError, TypeError):
                 pass
@@ -142,7 +142,7 @@ def extract_embedded_json(soup, date_str, source="racenet_au"):
                             "source": source,
                             "type": "embedded_json",
                             "data": data,
-                            "scraped_at": datetime.utcnow().isoformat(),
+                            "scraped_at": datetime.now().isoformat(),
                         })
                     except json.JSONDecodeError:
                         pass
@@ -156,7 +156,7 @@ def extract_embedded_json(soup, date_str, source="racenet_au"):
                                 "source": source,
                                 "type": "embedded_json_array",
                                 "data": data[:30],
-                                "scraped_at": datetime.utcnow().isoformat(),
+                                "scraped_at": datetime.now().isoformat(),
                             })
                     except json.JSONDecodeError:
                         pass
@@ -181,7 +181,7 @@ def extract_data_attributes(soup, date_str, source="racenet_au"):
                 "source": source,
                 "type": "data_attribute",
                 "tag": el.name,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for attr_name, attr_val in data_attrs.items():
                 clean_name = attr_name.replace("data-", "").replace("-", "_")
@@ -209,7 +209,7 @@ def extract_comments(soup, date_str, source="racenet_au"):
                     "type": "comment",
                     "content": text[:2000],
                     "classes_css": classes,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
     return records
 
@@ -230,7 +230,7 @@ def extract_form_detailed(soup, date_str, source="racenet_au"):
                     "type": "form_detailed",
                     "content": text,
                     "classes_css": classes,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 form_match = re.search(r'([0-9xX]{3,})', text)
                 if form_match:
@@ -260,7 +260,7 @@ def extract_track_distance_stats(soup, date_str, source="racenet_au"):
                             "date": date_str,
                             "source": source,
                             "type": "track_distance_stats",
-                            "scraped_at": datetime.utcnow().isoformat(),
+                            "scraped_at": datetime.now().isoformat(),
                         }
                         for j, cell in enumerate(cells):
                             key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -275,7 +275,7 @@ def extract_track_distance_stats(soup, date_str, source="racenet_au"):
                         "type": "track_distance_stats_text",
                         "content": text[:500],
                         "classes_css": classes,
-                        "scraped_at": datetime.utcnow().isoformat(),
+                        "scraped_at": datetime.now().isoformat(),
                     }
                     pcts = re.findall(r'(\d{1,3})\s*%', text)
                     if pcts:
@@ -305,7 +305,7 @@ def extract_tips_consensus(soup, date_str, source="racenet_au"):
                             "date": date_str,
                             "source": source,
                             "type": "tips_consensus",
-                            "scraped_at": datetime.utcnow().isoformat(),
+                            "scraped_at": datetime.now().isoformat(),
                         }
                         for j, cell in enumerate(cells):
                             key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -320,7 +320,7 @@ def extract_tips_consensus(soup, date_str, source="racenet_au"):
                         "type": "tips_consensus_text",
                         "content": text[:500],
                         "classes_css": classes,
-                        "scraped_at": datetime.utcnow().isoformat(),
+                        "scraped_at": datetime.now().isoformat(),
                     })
     return records
 
@@ -359,7 +359,7 @@ def scrape_race_cards(session, date_str):
                 "type": "meeting_link",
                 "text": text,
                 "url": href if href.startswith("http") else BASE_URL + href,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
 
     # Extract race card tables
@@ -380,7 +380,7 @@ def scrape_race_cards(session, date_str):
                 "date": date_str,
                 "source": "racenet_au",
                 "type": "race_card",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for j, cell in enumerate(cells):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -425,7 +425,7 @@ def scrape_race_cards(session, date_str):
                     "trainer": trainer,
                     "barrier": barrier,
                     "weight": weight,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     with open(cache_file, "w", encoding="utf-8") as f:
@@ -472,7 +472,7 @@ def scrape_results(session, date_str):
                 "date": date_str,
                 "source": "racenet_au",
                 "type": "result",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for j, cell in enumerate(cells):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -490,7 +490,7 @@ def scrape_results(session, date_str):
                     "source": "racenet_au",
                     "type": "track_info",
                     "value": text,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     with open(cache_file, "w", encoding="utf-8") as f:
@@ -547,7 +547,7 @@ def scrape_stats(session, date_str):
                 "date": date_str,
                 "source": "racenet_au",
                 "type": table_type,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for j, cell in enumerate(cells):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"

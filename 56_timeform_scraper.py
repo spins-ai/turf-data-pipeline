@@ -136,7 +136,7 @@ def scrape_timeform_racecards(session, date_str):
                     "type": "race_link",
                     "text": text,
                     "url": href if href.startswith("http") else BASE_URL + href,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     # Extract race cards with ratings from tables
@@ -157,7 +157,7 @@ def scrape_timeform_racecards(session, date_str):
                 "date": date_str,
                 "source": "timeform",
                 "type": "racecard_entry",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for j, cell in enumerate(cells):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -172,7 +172,7 @@ def scrape_timeform_racecards(session, date_str):
             "type": "tf_rating",
             "rating": el.get("data-rating"),
             "horse": el.get("data-horse", el.get_text(strip=True)),
-            "scraped_at": datetime.utcnow().isoformat(),
+            "scraped_at": datetime.now().isoformat(),
         })
 
     # Extract speed figures from spans/divs with relevant classes
@@ -187,7 +187,7 @@ def scrape_timeform_racecards(session, date_str):
                     "type": "speed_figure",
                     "value": text,
                     "classes": classes,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     # --- Extract embedded JSON data from scripts ---
@@ -203,7 +203,7 @@ def scrape_timeform_racecards(session, date_str):
                     "source": "timeform",
                     "type": "embedded_json_parse",
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except (json.JSONDecodeError, UnicodeDecodeError):
                 pass
@@ -218,7 +218,7 @@ def scrape_timeform_racecards(session, date_str):
                     "type": "embedded_window_data",
                     "var_name": m.group(1),
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except json.JSONDecodeError:
                 pass
@@ -234,7 +234,7 @@ def scrape_timeform_racecards(session, date_str):
                 "script_type": script.get("type", ""),
                 "data_id": script.get("id", ""),
                 "data": data,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
         except json.JSONDecodeError:
             pass
@@ -253,7 +253,7 @@ def scrape_timeform_racecards(session, date_str):
                 "tag": el.name,
                 "text": el.get_text(strip=True)[:200],
                 "attributes": data_attrs,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
 
     # --- Extract pace/sectionals from class-based elements ---
@@ -269,7 +269,7 @@ def scrape_timeform_racecards(session, date_str):
                     "type": "pace_sectional",
                     "value": text,
                     "classes": classes,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     # --- Extract trainer/jockey stats tabs content ---
@@ -285,7 +285,7 @@ def scrape_timeform_racecards(session, date_str):
                     "type": "stats_tab_content",
                     "classes": classes,
                     "content": text[:2500],
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     with open(cache_file, "w", encoding="utf-8") as f:
@@ -327,7 +327,7 @@ def scrape_timeform_results(session, date_str):
                 "date": date_str,
                 "source": "timeform",
                 "type": "result",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for j, cell in enumerate(cells):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -345,7 +345,7 @@ def scrape_timeform_results(session, date_str):
                     "source": "timeform",
                     "type": "race_analysis",
                     "content": text[:1500],
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     # --- Extract race comments (in-running, post-race) ---
@@ -361,7 +361,7 @@ def scrape_timeform_results(session, date_str):
                     "type": "race_comment",
                     "classes": classes,
                     "content": text[:2500],
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     # --- Extract sectional times from results ---
@@ -381,7 +381,7 @@ def scrape_timeform_results(session, date_str):
                             "date": date_str,
                             "source": "timeform",
                             "type": "sectional_time",
-                            "scraped_at": datetime.utcnow().isoformat(),
+                            "scraped_at": datetime.now().isoformat(),
                         }
                         for j, cell in enumerate(cells):
                             key = sec_headers[j].lower().replace(" ", "_") if j < len(sec_headers) else f"col_{j}"
@@ -395,7 +395,7 @@ def scrape_timeform_results(session, date_str):
                         "source": "timeform",
                         "type": "sectional_text",
                         "content": text[:1500],
-                        "scraped_at": datetime.utcnow().isoformat(),
+                        "scraped_at": datetime.now().isoformat(),
                     })
 
     # --- Extract embedded JSON from results page ---
@@ -411,7 +411,7 @@ def scrape_timeform_results(session, date_str):
                     "type": "result_embedded_data",
                     "var_name": m.group(1),
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except json.JSONDecodeError:
                 pass
@@ -424,7 +424,7 @@ def scrape_timeform_results(session, date_str):
                 "source": "timeform",
                 "type": "result_script_json",
                 "data": data,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
         except json.JSONDecodeError:
             pass
@@ -440,7 +440,7 @@ def scrape_timeform_results(session, date_str):
                 "media_url": src,
                 "media_tag": el.name,
                 "poster": el.get("poster", ""),
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
 
     with open(cache_file, "w", encoding="utf-8") as f:
@@ -495,7 +495,7 @@ def scrape_race_detail(session, race_url, date_str):
                 "type": "runner_detail",
                 "race_name": race_name,
                 "url": race_url,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for j, cell in enumerate(cells):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -525,7 +525,7 @@ def scrape_race_detail(session, race_url, date_str):
                     "value": text,
                     "classes": classes,
                     "url": race_url,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     # --- Form history per horse (last 10+ races) ---
@@ -548,7 +548,7 @@ def scrape_race_detail(session, race_url, date_str):
                             "type": "form_history_entry",
                             "race_name": race_name,
                             "url": race_url,
-                            "scraped_at": datetime.utcnow().isoformat(),
+                            "scraped_at": datetime.now().isoformat(),
                         }
                         for j, cell in enumerate(cells):
                             key = form_headers[j] if j < len(form_headers) and form_headers[j] else f"col_{j}"
@@ -564,7 +564,7 @@ def scrape_race_detail(session, race_url, date_str):
                         "race_name": race_name,
                         "content": text[:2500],
                         "url": race_url,
-                        "scraped_at": datetime.utcnow().isoformat(),
+                        "scraped_at": datetime.now().isoformat(),
                     })
 
     # --- Stats by terrain/distance/course ---
@@ -582,7 +582,7 @@ def scrape_race_detail(session, race_url, date_str):
                     "classes": classes,
                     "content": text[:2500],
                     "url": race_url,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     # --- Race detail embedded JSON ---
@@ -599,7 +599,7 @@ def scrape_race_detail(session, race_url, date_str):
                     "race_name": race_name,
                     "var_name": m.group(1),
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except json.JSONDecodeError:
                 pass
@@ -613,7 +613,7 @@ def scrape_race_detail(session, race_url, date_str):
                 "type": "detail_script_json",
                 "race_name": race_name,
                 "data": data,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
         except json.JSONDecodeError:
             pass
@@ -632,7 +632,7 @@ def scrape_race_detail(session, race_url, date_str):
                     "race_name": race_name,
                     "content": text[:2500],
                     "url": race_url,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     with open(cache_file, "w", encoding="utf-8") as f:

@@ -137,7 +137,7 @@ class FranceGalopPlaywright(PlaywrightScraperBase):
                 "source": "france_galop",
                 "date": date_str,
                 "type": "reunion",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             title_el = section.query_selector("h2, h3, h4")
             if title_el:
@@ -256,7 +256,7 @@ class FranceGalopPlaywright(PlaywrightScraperBase):
                 "source": "france_galop",
                 "date": date_str,
                 "type": "resultat_card",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             title_el = card.query_selector("h3, h4, strong")
             if title_el:
@@ -303,7 +303,7 @@ class FranceGalopPlaywright(PlaywrightScraperBase):
                     "date": date_str,
                     "type": "commentaire_officiel",
                     "contenu": text[:4000],
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
         # --- Embedded JSON ---
@@ -407,7 +407,7 @@ class FranceGalopPlaywright(PlaywrightScraperBase):
                     "nom_prix": nom_prix,
                     "nom_cheval": name,
                     "url_fiche": href if href.startswith("http") else f"{self.BASE_URL}{href}",
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
         # Commentaires
@@ -426,7 +426,7 @@ class FranceGalopPlaywright(PlaywrightScraperBase):
                     "contenu": text[:4000],
                     "conditions": conditions,
                     "url_course": course_url,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
         # Embedded JSON

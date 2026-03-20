@@ -160,7 +160,7 @@ def scrape_race_results_day(session, date_str):
                 "source": "usta_trotting",
                 "date": date_str,
                 "type": "race_result",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for j, cell in enumerate(cells):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -189,7 +189,7 @@ def scrape_race_results_day(session, date_str):
                     "date": date_str,
                     "type": "race_header",
                     "contenu": text,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
 
                 # Extraire distance
@@ -235,7 +235,7 @@ def scrape_horse_profile(session, horse_name):
         "source": "usta_trotting",
         "type": "horse_profile",
         "horse_name": horse_name,
-        "scraped_at": datetime.utcnow().isoformat(),
+        "scraped_at": datetime.now().isoformat(),
     }
 
     # Extraire les infos de base
@@ -330,7 +330,7 @@ def scrape_driver_stats(session, year):
                 "source": "usta_trotting",
                 "year": year,
                 "type": "driver_stats",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for j, cell in enumerate(cells):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -384,7 +384,7 @@ def scrape_trainer_stats(session, year):
                 "source": "usta_trotting",
                 "year": year,
                 "type": "trainer_stats",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for j, cell in enumerate(cells):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"

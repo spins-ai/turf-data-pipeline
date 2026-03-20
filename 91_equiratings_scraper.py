@@ -135,7 +135,7 @@ def scrape_rankings_page(session, page_url):
                     "source": "equiratings",
                     "type": "ranking",
                     "url": page_url,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 for j, cell in enumerate(cells):
                     key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -166,7 +166,7 @@ def scrape_rankings_page(session, page_url):
                     "type": "profile_card",
                     "url": page_url,
                     "text": text[:1500],
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 if link:
                     record["detail_url"] = link["href"]
@@ -187,7 +187,7 @@ def scrape_rankings_page(session, page_url):
                     "type": "embedded_data",
                     "var_name": m.group(1),
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except json.JSONDecodeError:
                 pass
@@ -199,7 +199,7 @@ def scrape_rankings_page(session, page_url):
                     "type": "embedded_window",
                     "var_name": m.group(1),
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except json.JSONDecodeError:
                 pass
@@ -212,7 +212,7 @@ def scrape_rankings_page(session, page_url):
                 "type": "script_json",
                 "data_id": script.get("id", ""),
                 "data": data,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
         except json.JSONDecodeError:
             pass
@@ -230,7 +230,7 @@ def scrape_rankings_page(session, page_url):
                 "tag": el.name,
                 "text": el.get_text(strip=True)[:200],
                 "attributes": data_attrs,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
 
     # -- Extract analytics paragraphs --
@@ -245,7 +245,7 @@ def scrape_rankings_page(session, page_url):
                     "type": "analytics_text",
                     "contenu": text[:2500],
                     "url": page_url,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     with open(cache_file, "w", encoding="utf-8", errors="replace") as f:

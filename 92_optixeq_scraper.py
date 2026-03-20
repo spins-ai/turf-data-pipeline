@@ -139,7 +139,7 @@ def scrape_speed_figures_page(session, page_url, date_str=None):
                 "source": "optixeq",
                 "type": "speed_figure",
                 "url": page_url,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             if date_str:
                 record["date"] = date_str
@@ -172,7 +172,7 @@ def scrape_speed_figures_page(session, page_url, date_str=None):
                     "url": page_url,
                     "contenu": text[:2500],
                     "css_classes": classes,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 if date_str:
                     record["date"] = date_str
@@ -189,7 +189,7 @@ def scrape_speed_figures_page(session, page_url, date_str=None):
                     "type": "embedded_data",
                     "var_name": m.group(1),
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except json.JSONDecodeError:
                 pass
@@ -201,7 +201,7 @@ def scrape_speed_figures_page(session, page_url, date_str=None):
                     "type": "embedded_array",
                     "var_name": m.group(1),
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except json.JSONDecodeError:
                 pass
@@ -214,7 +214,7 @@ def scrape_speed_figures_page(session, page_url, date_str=None):
                 "type": "script_json",
                 "data_id": script.get("id", ""),
                 "data": data,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
         except json.JSONDecodeError:
             pass
@@ -232,7 +232,7 @@ def scrape_speed_figures_page(session, page_url, date_str=None):
                 "tag": el.name,
                 "text": el.get_text(strip=True)[:200],
                 "attributes": data_attrs,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
 
     # -- Track variant / bias grids --
@@ -254,7 +254,7 @@ def scrape_speed_figures_page(session, page_url, date_str=None):
                             "source": "optixeq",
                             "type": "track_variant",
                             "url": page_url,
-                            "scraped_at": datetime.utcnow().isoformat(),
+                            "scraped_at": datetime.now().isoformat(),
                         }
                         if date_str:
                             entry["date"] = date_str

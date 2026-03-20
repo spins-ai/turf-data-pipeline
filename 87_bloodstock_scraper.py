@@ -146,7 +146,7 @@ def scrape_bloodhorse_sires(session, year):
                     "year": str(year),
                     "source": "bloodhorse",
                     "type": "sire_ranking",
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 for j, cell in enumerate(cells):
                     key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -172,7 +172,7 @@ def scrape_bloodhorse_sires(session, year):
                     "type": "stallion_detail",
                     "contenu": text[:2500],
                     "css_class": classes,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     # --- JSON embedded ---
@@ -187,7 +187,7 @@ def scrape_bloodhorse_sires(session, year):
                     "source": "bloodhorse",
                     "type": "embedded_json_parse",
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except (json.JSONDecodeError, UnicodeDecodeError):
                 pass
@@ -201,7 +201,7 @@ def scrape_bloodhorse_sires(session, year):
                     "type": "embedded_window_data",
                     "var_name": m.group(1),
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except json.JSONDecodeError:
                 pass
@@ -214,7 +214,7 @@ def scrape_bloodhorse_sires(session, year):
                     "type": "embedded_var_array",
                     "var_name": m.group(1),
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except json.JSONDecodeError:
                 pass
@@ -228,7 +228,7 @@ def scrape_bloodhorse_sires(session, year):
                 "type": "script_application_json",
                 "data_id": script.get("id", ""),
                 "data": data,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
         except json.JSONDecodeError:
             pass
@@ -247,7 +247,7 @@ def scrape_bloodhorse_sires(session, year):
                 "tag": el.name,
                 "text": el.get_text(strip=True)[:200],
                 "attributes": data_attrs,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
 
     with open(cache_file, "w", encoding="utf-8") as f:
@@ -280,7 +280,7 @@ def scrape_tdn_breeding(session, page_num):
                 "page": page_num,
                 "source": "tdn",
                 "type": "breeding_article",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             title_el = article.find(["h2", "h3", "h4", "a"])
             if title_el:
@@ -316,7 +316,7 @@ def scrape_tdn_breeding(session, page_num):
                     "source": "tdn",
                     "type": "embedded_json_parse",
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except (json.JSONDecodeError, UnicodeDecodeError):
                 pass
@@ -330,7 +330,7 @@ def scrape_tdn_breeding(session, page_num):
                 "type": "script_application_json",
                 "data_id": script.get("id", ""),
                 "data": data,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
         except json.JSONDecodeError:
             pass

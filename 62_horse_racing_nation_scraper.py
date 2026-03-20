@@ -152,7 +152,7 @@ def scrape_entries(session, date_str):
                         "source": "horse_racing_nation",
                         "type": "entry",
                         "track": track_name,
-                        "scraped_at": datetime.utcnow().isoformat(),
+                        "scraped_at": datetime.now().isoformat(),
                     }
                     for j, cell in enumerate(cells):
                         key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -170,7 +170,7 @@ def scrape_entries(session, date_str):
                 "type": "entry_link",
                 "text": text,
                 "url": href if href.startswith("http") else BASE_URL + href,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
 
     with open(cache_file, "w", encoding="utf-8") as f:
@@ -212,7 +212,7 @@ def scrape_results(session, date_str):
                 "date": date_str,
                 "source": "horse_racing_nation",
                 "type": "result",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for j, cell in enumerate(cells):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -265,7 +265,7 @@ def scrape_news(session, date_str):
                     "title": title,
                     "url": link,
                     "summary": summary,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     with open(cache_file, "w", encoding="utf-8") as f:

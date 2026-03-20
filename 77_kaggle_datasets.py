@@ -204,7 +204,7 @@ def download_kaggle_dataset(dataset_ref, target_dir):
 
         # Marquer comme complet
         with open(marker, "w") as f:
-            f.write(datetime.utcnow().isoformat())
+            f.write(datetime.now().isoformat())
 
         log.info(f"    OK: {dataset_ref}")
         return ds_dir
@@ -262,7 +262,7 @@ def download_via_url(dataset_ref, target_dir):
             log.warning(f"    ZIP invalide pour {dataset_ref}")
 
         with open(marker, "w") as f:
-            f.write(datetime.utcnow().isoformat())
+            f.write(datetime.now().isoformat())
 
         log.info(f"    OK (URL): {dataset_ref}")
         return ds_dir
@@ -278,7 +278,7 @@ def inventory_dataset(ds_dir, dataset_ref):
         "source": "kaggle",
         "dataset_ref": dataset_ref,
         "type": "dataset_inventory",
-        "scraped_at": datetime.utcnow().isoformat(),
+        "scraped_at": datetime.now().isoformat(),
         "files": [],
         "total_size_bytes": 0,
         "total_rows_estimate": 0,
@@ -393,7 +393,7 @@ def main():
                 "dataset_ref": dataset_ref,
                 "type": "dataset_listing",
                 "url": f"https://www.kaggle.com/datasets/{dataset_ref}",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             append_jsonl(output_file, record)
             total_records += 1
@@ -419,7 +419,7 @@ def main():
                     "source": "kaggle",
                     "dataset_ref": dataset_ref,
                     "type": "download_failed",
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
                 total_records += 1
 

@@ -160,7 +160,7 @@ def scrape_programme_jour(session, date_str):
                 "source": "france_galop",
                 "date": date_str,
                 "type": "reunion",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
 
             title = section.find(["h2", "h3", "h4"])
@@ -198,7 +198,7 @@ def scrape_programme_jour(session, date_str):
                 "source": "france_galop",
                 "date": date_str,
                 "type": "course_programme",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for j, cell in enumerate(cells):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -261,7 +261,7 @@ def scrape_resultats_jour(session, date_str):
                 "source": "france_galop",
                 "date": date_str,
                 "type": "resultat_officiel",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for j, cell in enumerate(cells):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -306,7 +306,7 @@ def scrape_resultats_jour(session, date_str):
                 "source": "france_galop",
                 "date": date_str,
                 "type": "resultat_card",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
 
             # Nom du prix
@@ -355,7 +355,7 @@ def scrape_resultats_jour(session, date_str):
                     "date": date_str,
                     "type": "commentaire_officiel",
                     "contenu": text[:4000],
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     # --- Extraire les JSON embarques ---
@@ -370,7 +370,7 @@ def scrape_resultats_jour(session, date_str):
                     "date": date_str,
                     "type": "embedded_json_parse",
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except (json.JSONDecodeError, UnicodeDecodeError):
                 pass
@@ -384,7 +384,7 @@ def scrape_resultats_jour(session, date_str):
                     "type": "embedded_window_data",
                     "var_name": m.group(1),
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except json.JSONDecodeError:
                 pass
@@ -398,7 +398,7 @@ def scrape_resultats_jour(session, date_str):
                 "type": "script_application_json",
                 "data_id": script.get("id", ""),
                 "data": data,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
         except json.JSONDecodeError:
             pass
@@ -413,7 +413,7 @@ def scrape_resultats_jour(session, date_str):
                 "type": "pdf_resultat_link",
                 "pdf_url": href if href.startswith("http") else f"{BASE_URL}{href}",
                 "text": link.get_text(strip=True),
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
 
     # --- Extraire les data-attributes pertinents ---
@@ -430,7 +430,7 @@ def scrape_resultats_jour(session, date_str):
                 "tag": el.name,
                 "text": el.get_text(strip=True)[:200],
                 "attributes": data_attrs,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
 
     # --- Video/photo metadata ---
@@ -445,7 +445,7 @@ def scrape_resultats_jour(session, date_str):
                 "media_url": src if src.startswith("http") else f"{BASE_URL}{src}",
                 "media_tag": el.name,
                 "text": el.get_text(strip=True)[:100],
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
 
     with open(cache_file, "w", encoding="utf-8") as f:
@@ -481,7 +481,7 @@ def scrape_course_detail(session, course_url, date_str):
         "date": date_str,
         "type": "course_detail",
         "url": course_url,
-        "scraped_at": datetime.utcnow().isoformat(),
+        "scraped_at": datetime.now().isoformat(),
     }
 
     # Titre
@@ -530,7 +530,7 @@ def scrape_course_detail(session, course_url, date_str):
                 "type": "partant_detail",
                 "nom_prix": course_info.get("nom_prix", ""),
                 "url_course": course_url,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for j, cell in enumerate(cells):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -574,7 +574,7 @@ def scrape_course_detail(session, course_url, date_str):
                     "nom_prix": course_info.get("nom_prix", ""),
                     "contenu": text[:4000],
                     "url": course_url,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     # --- Stats par hippodrome/terrain/distance dans la page detail ---
@@ -597,7 +597,7 @@ def scrape_course_detail(session, course_url, date_str):
                             "type": "stats_detail_table",
                             "nom_prix": course_info.get("nom_prix", ""),
                             "url": course_url,
-                            "scraped_at": datetime.utcnow().isoformat(),
+                            "scraped_at": datetime.now().isoformat(),
                         }
                         for j, cell in enumerate(cells):
                             key = stat_headers[j] if j < len(stat_headers) and stat_headers[j] else f"col_{j}"
@@ -613,7 +613,7 @@ def scrape_course_detail(session, course_url, date_str):
                         "nom_prix": course_info.get("nom_prix", ""),
                         "contenu": text[:2500],
                         "url": course_url,
-                        "scraped_at": datetime.utcnow().isoformat(),
+                        "scraped_at": datetime.now().isoformat(),
                     })
 
     # --- Historique complet cheval (depuis la page course) ---
@@ -636,7 +636,7 @@ def scrape_course_detail(session, course_url, date_str):
                             "type": "historique_forme",
                             "nom_prix": course_info.get("nom_prix", ""),
                             "url": course_url,
-                            "scraped_at": datetime.utcnow().isoformat(),
+                            "scraped_at": datetime.now().isoformat(),
                         }
                         for j, cell in enumerate(cells):
                             key = form_headers[j] if j < len(form_headers) and form_headers[j] else f"col_{j}"
@@ -652,7 +652,7 @@ def scrape_course_detail(session, course_url, date_str):
                         "nom_prix": course_info.get("nom_prix", ""),
                         "contenu": text[:2500],
                         "url": course_url,
-                        "scraped_at": datetime.utcnow().isoformat(),
+                        "scraped_at": datetime.now().isoformat(),
                     })
 
     # --- JSON embarque dans la page detail ---
@@ -668,7 +668,7 @@ def scrape_course_detail(session, course_url, date_str):
                     "type": "detail_embedded_json",
                     "nom_prix": course_info.get("nom_prix", ""),
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except (json.JSONDecodeError, UnicodeDecodeError):
                 pass
@@ -683,7 +683,7 @@ def scrape_course_detail(session, course_url, date_str):
                     "var_name": m.group(1),
                     "nom_prix": course_info.get("nom_prix", ""),
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except json.JSONDecodeError:
                 pass
@@ -697,7 +697,7 @@ def scrape_course_detail(session, course_url, date_str):
                 "type": "detail_script_json",
                 "nom_prix": course_info.get("nom_prix", ""),
                 "data": data,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
         except json.JSONDecodeError:
             pass
@@ -713,7 +713,7 @@ def scrape_course_detail(session, course_url, date_str):
                 "nom_prix": course_info.get("nom_prix", ""),
                 "pdf_url": href if href.startswith("http") else f"{BASE_URL}{href}",
                 "text": link.get_text(strip=True),
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
 
     # --- Video/photo arrivee ---
@@ -728,7 +728,7 @@ def scrape_course_detail(session, course_url, date_str):
                 "nom_prix": course_info.get("nom_prix", ""),
                 "media_url": src if src.startswith("http") else f"{BASE_URL}{src}",
                 "media_tag": el.name,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
 
     with open(cache_file, "w", encoding="utf-8") as f:
@@ -782,7 +782,7 @@ def scrape_classements(session, year, category="entraineurs"):
                 "year": year,
                 "category": category,
                 "type": f"classement_{category}",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for j, cell in enumerate(cells):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -836,7 +836,7 @@ def scrape_fiche_cheval(session, horse_url):
         "source": "france_galop",
         "type": "fiche_cheval",
         "url": horse_url,
-        "scraped_at": datetime.utcnow().isoformat(),
+        "scraped_at": datetime.now().isoformat(),
     }
 
     # Nom
@@ -1029,7 +1029,7 @@ def scrape_stats_hippodrome(session, hippodrome_name):
         "source": "france_galop",
         "type": "hippodrome_info",
         "hippodrome": hippodrome_name,
-        "scraped_at": datetime.utcnow().isoformat(),
+        "scraped_at": datetime.now().isoformat(),
     }
 
     h1 = soup.find("h1")
@@ -1062,7 +1062,7 @@ def scrape_stats_hippodrome(session, hippodrome_name):
                     "source": "france_galop",
                     "type": "hippodrome_stats",
                     "hippodrome": hippodrome_name,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 for j, cell in enumerate(cells):
                     key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"

@@ -158,7 +158,7 @@ def extract_embedded_json(soup, date_str, source="betfair_exchange"):
                     "type": "json_ld",
                     "ld_type": ld.get("@type", "") if isinstance(ld, dict) else "array",
                     "data": ld if isinstance(ld, dict) else ld[:20],
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except (json.JSONDecodeError, TypeError):
                 pass
@@ -179,7 +179,7 @@ def extract_embedded_json(soup, date_str, source="betfair_exchange"):
                                 "source": source,
                                 "type": "embedded_market_json",
                                 "data": data,
-                                "scraped_at": datetime.utcnow().isoformat(),
+                                "scraped_at": datetime.now().isoformat(),
                             })
                     except json.JSONDecodeError:
                         pass
@@ -193,7 +193,7 @@ def extract_embedded_json(soup, date_str, source="betfair_exchange"):
                                 "source": source,
                                 "type": "embedded_market_array",
                                 "data": data[:50],
-                                "scraped_at": datetime.utcnow().isoformat(),
+                                "scraped_at": datetime.now().isoformat(),
                             })
                     except json.JSONDecodeError:
                         pass
@@ -218,7 +218,7 @@ def extract_data_attributes(soup, date_str, source="betfair_exchange"):
                 "source": source,
                 "type": "data_attribute",
                 "tag": el.name,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for attr_name, attr_val in data_attrs.items():
                 clean_name = attr_name.replace("data-", "").replace("-", "_")
@@ -246,7 +246,7 @@ def extract_market_depth(soup, date_str, source="betfair_exchange"):
                     "type": "market_depth",
                     "content": text,
                     "classes_css": classes,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 # Parse price/size pairs
                 prices = re.findall(r'(\d+\.?\d*)', text)
@@ -272,7 +272,7 @@ def extract_volume_timeline(soup, date_str, source="betfair_exchange"):
                     "type": "volume_timeline",
                     "content": text[:300],
                     "classes_css": classes,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 # Parse monetary amounts
                 amounts = re.findall(r'[\$\xa3\u20ac]?([\d,]+\.?\d*)', text.replace(",", ""))
@@ -303,7 +303,7 @@ def extract_traded_prices(soup, date_str, source="betfair_exchange"):
                             "date": date_str,
                             "source": source,
                             "type": "traded_price",
-                            "scraped_at": datetime.utcnow().isoformat(),
+                            "scraped_at": datetime.now().isoformat(),
                         }
                         for j, cell in enumerate(cells):
                             key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -318,7 +318,7 @@ def extract_traded_prices(soup, date_str, source="betfair_exchange"):
                         "type": "traded_price_data",
                         "content": text,
                         "classes_css": classes,
-                        "scraped_at": datetime.utcnow().isoformat(),
+                        "scraped_at": datetime.now().isoformat(),
                     }
                     prices = re.findall(r'(\d+\.?\d*)', text)
                     if prices:
@@ -363,7 +363,7 @@ def scrape_exchange_markets(session, date_str):
                 "type": "market_link",
                 "text": text,
                 "url": href if href.startswith("http") else BASE_URL + href,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
 
     # Extract meeting/race sections
@@ -388,7 +388,7 @@ def scrape_exchange_markets(session, date_str):
                     "type": "market_event",
                     "event": event_name,
                     "race_time": race_time,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     with open(cache_file, "w", encoding="utf-8") as f:
@@ -436,7 +436,7 @@ def scrape_market_odds(session, date_str):
                 "date": date_str,
                 "source": "betfair_exchange",
                 "type": "odds",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for j, cell in enumerate(cells):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -484,7 +484,7 @@ def scrape_market_odds(session, date_str):
                     "back_odds": back_odds,
                     "lay_odds": lay_odds,
                     "matched_amount": matched_amount,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
 
                 # Parse numeric odds
@@ -550,7 +550,7 @@ def scrape_market_volume(session, date_str):
                     "market": market_name,
                     "content": text[:300],
                     "volume_parsed": volume,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     # Extract data from script tags (Betfair often embeds JSON market data)
@@ -568,7 +568,7 @@ def scrape_market_volume(session, date_str):
                             "source": "betfair_exchange",
                             "type": "embedded_market_data",
                             "data": data,
-                            "scraped_at": datetime.utcnow().isoformat(),
+                            "scraped_at": datetime.now().isoformat(),
                         })
                 except json.JSONDecodeError:
                     pass
@@ -584,7 +584,7 @@ def scrape_market_volume(session, date_str):
                             "source": "betfair_exchange",
                             "type": "embedded_array_data",
                             "data": data[:50],  # Limit array size
-                            "scraped_at": datetime.utcnow().isoformat(),
+                            "scraped_at": datetime.now().isoformat(),
                         })
                 except json.JSONDecodeError:
                     pass

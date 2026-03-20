@@ -174,7 +174,7 @@ def scrape_catalogue(session, sale_url, sale_name):
                 "vente": sale_name,
                 "url_vente": sale_url,
                 "type": "lot_vente",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for j, cell in enumerate(cells):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -190,7 +190,7 @@ def scrape_catalogue(session, sale_url, sale_name):
                 "vente": sale_name,
                 "url_vente": sale_url,
                 "type": "lot_card",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
 
             # Numero de lot
@@ -263,7 +263,7 @@ def scrape_lot_detail(session, lot_url):
         "source": "arqana",
         "type": "lot_detail",
         "url": lot_url,
-        "scraped_at": datetime.utcnow().isoformat(),
+        "scraped_at": datetime.now().isoformat(),
     }
 
     # Nom

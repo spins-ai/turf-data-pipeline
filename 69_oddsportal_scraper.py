@@ -143,7 +143,7 @@ def scrape_daily_results(session, date_str):
                 "date": date_str,
                 "source": "oddsportal",
                 "type": "event",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
 
             # Nom de l'evenement / course
@@ -176,7 +176,7 @@ def scrape_daily_results(session, date_str):
                     "date": date_str,
                     "source": "oddsportal",
                     "type": "odds_row",
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 for j, cell in enumerate(cells):
                     key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -200,7 +200,7 @@ def scrape_daily_results(session, date_str):
             "odd_value": el.get("data-odd"),
             "bookmaker": el.get("data-bk", ""),
             "text": el.get_text(strip=True),
-            "scraped_at": datetime.utcnow().isoformat(),
+            "scraped_at": datetime.now().isoformat(),
         })
 
     # --- Extraire les odds history (mouvements) ---
@@ -213,7 +213,7 @@ def scrape_daily_results(session, date_str):
                 "source": "oddsportal",
                 "type": "odds_movement",
                 "contenu": text[:500],
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
 
     # Sauvegarder cache
@@ -269,7 +269,7 @@ def scrape_event_detail(session, event_url, date_str):
                 "type": "odds_comparison",
                 "nom_course": nom_course,
                 "url_event": event_url,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for j, cell in enumerate(cells):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -289,7 +289,7 @@ def scrape_event_detail(session, event_url, date_str):
                 "nom_course": nom_course,
                 "label": " ".join(span.get("class", [])),
                 "odds_value": odds_match.group(1),
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
 
     with open(cache_file, "w", encoding="utf-8") as f:

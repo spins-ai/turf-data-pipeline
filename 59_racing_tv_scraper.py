@@ -136,7 +136,7 @@ def scrape_racecards(session, date_str):
                     "type": "race_link",
                     "text": text,
                     "url": href if href.startswith("http") else BASE_URL + href,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     # Extract race card tables
@@ -157,7 +157,7 @@ def scrape_racecards(session, date_str):
                 "date": date_str,
                 "source": "racing_tv",
                 "type": "racecard_entry",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for j, cell in enumerate(cells):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -175,7 +175,7 @@ def scrape_racecards(session, date_str):
                     "source": "racing_tv",
                     "type": "meeting_schedule",
                     "content": text[:400],
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 # Extract course name
                 course_el = section.find(["h2", "h3", "h4", "a"])
@@ -228,7 +228,7 @@ def scrape_results(session, date_str):
                 "source": "racing_tv",
                 "type": "result",
                 "race_name": race_name,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for j, cell in enumerate(cells):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -271,7 +271,7 @@ def scrape_replays(session, date_str):
                 "date": date_str,
                 "source": "racing_tv",
                 "type": "replay_metadata",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
 
             # Race title
@@ -323,7 +323,7 @@ def scrape_replays(session, date_str):
                     "type": "replay_link",
                     "text": text,
                     "url": href if href.startswith("http") else BASE_URL + href,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     with open(cache_file, "w", encoding="utf-8") as f:
@@ -396,7 +396,7 @@ def scrape_race_detail(session, race_url, date_str):
                 "type": "race_detail",
                 "race_name": race_name,
                 "url": race_url,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             record.update(conditions)
             for j, cell in enumerate(cells):

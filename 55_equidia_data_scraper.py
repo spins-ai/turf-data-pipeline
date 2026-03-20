@@ -120,7 +120,7 @@ def extract_embedded_json(soup, date_str, source="equidia"):
                     "type": "json_ld",
                     "ld_type": ld.get("@type", "") if isinstance(ld, dict) else "array",
                     "data": ld if isinstance(ld, dict) else ld[:20],
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except (json.JSONDecodeError, TypeError):
                 pass
@@ -139,7 +139,7 @@ def extract_embedded_json(soup, date_str, source="equidia"):
                             "source": source,
                             "type": "embedded_json",
                             "data": data,
-                            "scraped_at": datetime.utcnow().isoformat(),
+                            "scraped_at": datetime.now().isoformat(),
                         })
                     except json.JSONDecodeError:
                         pass
@@ -153,7 +153,7 @@ def extract_embedded_json(soup, date_str, source="equidia"):
                                 "source": source,
                                 "type": "embedded_json_array",
                                 "data": data[:30],
-                                "scraped_at": datetime.utcnow().isoformat(),
+                                "scraped_at": datetime.now().isoformat(),
                             })
                     except json.JSONDecodeError:
                         pass
@@ -178,7 +178,7 @@ def extract_data_attributes(soup, date_str, source="equidia"):
                 "source": source,
                 "type": "data_attribute",
                 "tag": el.name,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for attr_name, attr_val in data_attrs.items():
                 clean_name = attr_name.replace("data-", "").replace("-", "_")
@@ -206,7 +206,7 @@ def extract_comments_analyses(soup, date_str, source="equidia"):
                     "type": "commentaire",
                     "contenu": text[:2000],
                     "classes_css": classes,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 records.append(record)
     return records
@@ -228,7 +228,7 @@ def extract_terrain_piste_detail(soup, date_str, source="equidia"):
                     "type": "terrain_detail",
                     "contenu": text[:500],
                     "classes_css": classes,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 # Parse penetrometre value
                 pene_match = re.search(r'p[eé]n[eé]trom[eè]tre\s*:?\s*(\d+[.,]?\d*)', text, re.I)
@@ -254,7 +254,7 @@ def extract_video_metadata(soup, date_str, source="equidia"):
             "source": source,
             "type": "video_detail",
             "tag": el.name,
-            "scraped_at": datetime.utcnow().isoformat(),
+            "scraped_at": datetime.now().isoformat(),
         }
         for attr in ["src", "data-src", "data-video-id", "data-video-url",
                       "data-race-id", "data-duration", "data-title",
@@ -309,7 +309,7 @@ def scrape_equidia_day(session, date_str):
                 "date": date_str,
                 "source": "equidia",
                 "type": "reunion",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             title = div.find(["h2", "h3", "h4", "strong"])
             if title:
@@ -350,7 +350,7 @@ def scrape_equidia_day(session, date_str):
                 "type": "terrain",
                 "etat_terrain": terrain_match.group(2).strip(),
                 "contexte": text[:200],
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
 
     # --- Extraire les vidéos / replays (métadonnées uniquement) ---
@@ -361,7 +361,7 @@ def scrape_equidia_day(session, date_str):
                 "date": date_str,
                 "source": "equidia",
                 "type": "video_metadata",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             # URL de la vidéo ou du replay
             href = el.get("href") or el.get("src") or el.get("data-src")
@@ -392,7 +392,7 @@ def scrape_equidia_day(session, date_str):
                     "date": date_str,
                     "source": "equidia",
                     "type": "stats_course",
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 for j, cell in enumerate(cells):
                     key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -482,7 +482,7 @@ def scrape_course_detail(session, course_url, date_str):
                 "nom_prix": nom_prix,
                 "conditions": conditions,
                 "url_course": course_url,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for j, cell in enumerate(cells):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -504,7 +504,7 @@ def scrape_course_detail(session, course_url, date_str):
                     "contenu": text,
                     "conditions": conditions,
                     "url_course": course_url,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     # Replay metadata (URLs vidéo, durées)
@@ -518,7 +518,7 @@ def scrape_course_detail(session, course_url, date_str):
                 "nom_prix": nom_prix,
                 "video_src": src,
                 "conditions": conditions,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
 
     with open(cache_file, "w", encoding="utf-8") as f:

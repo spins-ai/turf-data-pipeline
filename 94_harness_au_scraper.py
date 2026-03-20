@@ -153,7 +153,7 @@ def scrape_harness_day(session, date_str):
                     "discipline": "trot",
                     "country": "AU",
                     "url": url,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 for j, cell in enumerate(cells):
                     key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -177,7 +177,7 @@ def scrape_harness_day(session, date_str):
                         "source": "harness_au",
                         "type": "meeting_info",
                         "contenu": text[:400],
-                        "scraped_at": datetime.utcnow().isoformat(),
+                        "scraped_at": datetime.now().isoformat(),
                     }
                     # Extract venue
                     venue_match = re.search(r'([A-Z][a-z]+(?:\s[A-Z][a-z]+)*)', text)
@@ -203,7 +203,7 @@ def scrape_harness_day(session, date_str):
                         "type": link_type,
                         "name": name,
                         "profile_url": href if href.startswith("http") else BASE_URL + href,
-                        "scraped_at": datetime.utcnow().isoformat(),
+                        "scraped_at": datetime.now().isoformat(),
                     })
 
         # -- Race details (distance, stake, class) --
@@ -218,7 +218,7 @@ def scrape_harness_day(session, date_str):
                         "source": "harness_au",
                         "type": "race_conditions",
                         "contenu": text[:400],
-                        "scraped_at": datetime.utcnow().isoformat(),
+                        "scraped_at": datetime.now().isoformat(),
                     }
                     dist_match = re.search(r'(\d{4,5})\s*m', text)
                     if dist_match:
@@ -240,7 +240,7 @@ def scrape_harness_day(session, date_str):
                         "source": "harness_au",
                         "type": "sectional_time",
                         "contenu": text[:500],
-                        "scraped_at": datetime.utcnow().isoformat(),
+                        "scraped_at": datetime.now().isoformat(),
                     })
 
         # -- Embedded JSON --
@@ -255,7 +255,7 @@ def scrape_harness_day(session, date_str):
                         "type": "embedded_data",
                         "var_name": m.group(1),
                         "data": data,
-                        "scraped_at": datetime.utcnow().isoformat(),
+                        "scraped_at": datetime.now().isoformat(),
                     })
                 except json.JSONDecodeError:
                     pass
@@ -269,7 +269,7 @@ def scrape_harness_day(session, date_str):
                     "type": "script_json",
                     "data_id": script.get("id", ""),
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except json.JSONDecodeError:
                 pass

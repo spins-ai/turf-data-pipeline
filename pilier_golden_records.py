@@ -401,7 +401,7 @@ def main():
 
     # Sauvegarder le rapport
     report = {
-        "generated_at": datetime.utcnow().isoformat() + "Z",
+        "generated_at": datetime.now().isoformat() + "Z",
         "entity_type": args.entity,
         "summary": {
             "total_golden_records": len(golden),

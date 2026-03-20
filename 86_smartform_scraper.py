@@ -130,7 +130,7 @@ def scrape_smartform_day(session, date_str):
             record = {
                 "date": date_str,
                 "source": "smartform",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             title_el = section.find(["h2", "h3", "h4", "a", "strong"])
             if title_el:
@@ -157,7 +157,7 @@ def scrape_smartform_day(session, date_str):
                     "date": date_str,
                     "source": "smartform",
                     "type": "runner_table",
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 for j, cell in enumerate(cells):
                     key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -183,7 +183,7 @@ def scrape_smartform_day(session, date_str):
                     "type": "speed_rating",
                     "contenu": text,
                     "css_class": classes,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     # --- Form strings / horse history ---
@@ -199,7 +199,7 @@ def scrape_smartform_day(session, date_str):
                     "type": "form_history",
                     "contenu": text[:1500],
                     "css_class": classes,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     # --- Sectional times ---
@@ -220,7 +220,7 @@ def scrape_smartform_day(session, date_str):
                             "date": date_str,
                             "source": "smartform",
                             "type": "sectional_time",
-                            "scraped_at": datetime.utcnow().isoformat(),
+                            "scraped_at": datetime.now().isoformat(),
                         }
                         for j, cell in enumerate(cells):
                             key = sub_headers[j] if j < len(sub_headers) and sub_headers[j] else f"col_{j}"
@@ -234,7 +234,7 @@ def scrape_smartform_day(session, date_str):
                         "source": "smartform",
                         "type": "sectional_text",
                         "contenu": text[:1500],
-                        "scraped_at": datetime.utcnow().isoformat(),
+                        "scraped_at": datetime.now().isoformat(),
                     })
 
     # --- Tips / analysis ---
@@ -249,7 +249,7 @@ def scrape_smartform_day(session, date_str):
                     "source": "smartform",
                     "type": "analysis",
                     "contenu": text[:2500],
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     # --- JSON embedded ---
@@ -264,7 +264,7 @@ def scrape_smartform_day(session, date_str):
                     "source": "smartform",
                     "type": "embedded_json_parse",
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except (json.JSONDecodeError, UnicodeDecodeError):
                 pass
@@ -278,7 +278,7 @@ def scrape_smartform_day(session, date_str):
                     "type": "embedded_window_data",
                     "var_name": m.group(1),
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except json.JSONDecodeError:
                 pass
@@ -291,7 +291,7 @@ def scrape_smartform_day(session, date_str):
                     "type": "embedded_var_array",
                     "var_name": m.group(1),
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except json.JSONDecodeError:
                 pass
@@ -305,7 +305,7 @@ def scrape_smartform_day(session, date_str):
                 "type": "script_application_json",
                 "data_id": script.get("id", ""),
                 "data": data,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
         except json.JSONDecodeError:
             pass
@@ -324,7 +324,7 @@ def scrape_smartform_day(session, date_str):
                 "tag": el.name,
                 "text": el.get_text(strip=True)[:200],
                 "attributes": data_attrs,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
 
     with open(cache_file, "w", encoding="utf-8") as f:
@@ -363,7 +363,7 @@ def scrape_smartform_results(session, date_str):
                     "date": date_str,
                     "source": "smartform",
                     "type": "result_table",
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 for j, cell in enumerate(cells):
                     key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -381,7 +381,7 @@ def scrape_smartform_results(session, date_str):
                     "source": "smartform",
                     "type": "results_embedded_json",
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except (json.JSONDecodeError, UnicodeDecodeError):
                 pass
@@ -395,7 +395,7 @@ def scrape_smartform_results(session, date_str):
                 "type": "results_script_json",
                 "data_id": script.get("id", ""),
                 "data": data,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
         except json.JSONDecodeError:
             pass

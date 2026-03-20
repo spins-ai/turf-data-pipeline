@@ -135,7 +135,7 @@ def scrape_entries(session, date_str):
                 "type": "track_link",
                 "track": text,
                 "url": href if href.startswith("http") else BASE_URL + href,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
 
     # Extract entries/PP tables
@@ -156,7 +156,7 @@ def scrape_entries(session, date_str):
                 "date": date_str,
                 "source": "drf",
                 "type": "entry",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for j, cell in enumerate(cells):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -202,7 +202,7 @@ def scrape_results(session, date_str):
                 "date": date_str,
                 "source": "drf",
                 "type": "result",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for j, cell in enumerate(cells):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -263,7 +263,7 @@ def scrape_past_performances(session, date_str):
                         "source": "drf",
                         "type": "past_performance",
                         "horse": horse_name,
-                        "scraped_at": datetime.utcnow().isoformat(),
+                        "scraped_at": datetime.now().isoformat(),
                     }
                     for j, cell in enumerate(cells):
                         key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -282,7 +282,7 @@ def scrape_past_performances(session, date_str):
                     "type": "speed_figure",
                     "value": text,
                     "classes": classes,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     with open(cache_file, "w", encoding="utf-8") as f:

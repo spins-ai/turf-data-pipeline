@@ -142,7 +142,7 @@ def scrape_zeturf_day(session, date_str):
             record = {
                 "date": date_str,
                 "source": "zeturf",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
 
             # Titre / nom du prix
@@ -172,7 +172,7 @@ def scrape_zeturf_day(session, date_str):
                     "date": date_str,
                     "source": "zeturf",
                     "type": "cote_partant",
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 for j, cell in enumerate(cells):
                     key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -198,7 +198,7 @@ def scrape_zeturf_day(session, date_str):
                     "source": "zeturf",
                     "type": "pronostic",
                     "contenu": text,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     # --- Extraire les cotes depuis les data-attributes ---
@@ -209,7 +209,7 @@ def scrape_zeturf_day(session, date_str):
             "type": "cote_data",
             "odds": el.get("data-odds"),
             "text": el.get_text(strip=True),
-            "scraped_at": datetime.utcnow().isoformat(),
+            "scraped_at": datetime.now().isoformat(),
         })
 
     # --- Extraire les commentaires de course ---
@@ -224,7 +224,7 @@ def scrape_zeturf_day(session, date_str):
                     "source": "zeturf",
                     "type": "commentaire_course",
                     "contenu": text[:2500],
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     # --- Extraire les JSON embarques dans les scripts ---
@@ -240,7 +240,7 @@ def scrape_zeturf_day(session, date_str):
                     "source": "zeturf",
                     "type": "embedded_json_parse",
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except (json.JSONDecodeError, UnicodeDecodeError):
                 pass
@@ -255,7 +255,7 @@ def scrape_zeturf_day(session, date_str):
                     "type": "embedded_window_data",
                     "var_name": m.group(1),
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except json.JSONDecodeError:
                 pass
@@ -269,7 +269,7 @@ def scrape_zeturf_day(session, date_str):
                     "type": "embedded_var_array",
                     "var_name": m.group(1),
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except json.JSONDecodeError:
                 pass
@@ -284,7 +284,7 @@ def scrape_zeturf_day(session, date_str):
                 "type": "script_application_json",
                 "data_id": script.get("id", ""),
                 "data": data,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
         except json.JSONDecodeError:
             pass
@@ -303,7 +303,7 @@ def scrape_zeturf_day(session, date_str):
                 "tag": el.name,
                 "text": el.get_text(strip=True)[:200],
                 "attributes": data_attrs,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
 
     # --- Extraire les cotes detaillees par type de pari ---
@@ -321,7 +321,7 @@ def scrape_zeturf_day(session, date_str):
                         "type": "cote_par_pari",
                         "bet_type_class": bet_type,
                         "contenu": text,
-                        "scraped_at": datetime.utcnow().isoformat(),
+                        "scraped_at": datetime.now().isoformat(),
                     })
 
     # Sauvegarder cache
@@ -377,7 +377,7 @@ def scrape_course_detail(session, course_url, date_str):
                 "type": "partant_detail",
                 "nom_prix": nom_prix,
                 "url_course": course_url,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for j, cell in enumerate(cells):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -398,7 +398,7 @@ def scrape_course_detail(session, course_url, date_str):
                     "nom_prix": nom_prix,
                     "contenu": text[:2500],
                     "url_course": course_url,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     # --- Historique forme du cheval (dernieres courses) ---
@@ -423,7 +423,7 @@ def scrape_course_detail(session, course_url, date_str):
                             "type": "historique_forme",
                             "nom_prix": nom_prix,
                             "url_course": course_url,
-                            "scraped_at": datetime.utcnow().isoformat(),
+                            "scraped_at": datetime.now().isoformat(),
                         }
                         for j, cell in enumerate(cells):
                             key = sub_headers[j] if j < len(sub_headers) and sub_headers[j] else f"col_{j}"
@@ -440,7 +440,7 @@ def scrape_course_detail(session, course_url, date_str):
                         "nom_prix": nom_prix,
                         "contenu": text[:1500],
                         "url_course": course_url,
-                        "scraped_at": datetime.utcnow().isoformat(),
+                        "scraped_at": datetime.now().isoformat(),
                     })
 
     # --- JSON embarque dans la page detail ---
@@ -456,7 +456,7 @@ def scrape_course_detail(session, course_url, date_str):
                     "type": "detail_embedded_json",
                     "nom_prix": nom_prix,
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except (json.JSONDecodeError, UnicodeDecodeError):
                 pass
@@ -471,7 +471,7 @@ def scrape_course_detail(session, course_url, date_str):
                     "var_name": m.group(1),
                     "nom_prix": nom_prix,
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except json.JSONDecodeError:
                 pass
@@ -486,7 +486,7 @@ def scrape_course_detail(session, course_url, date_str):
                 "data_id": script.get("id", ""),
                 "nom_prix": nom_prix,
                 "data": data,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
         except json.JSONDecodeError:
             pass
@@ -503,7 +503,7 @@ def scrape_course_detail(session, course_url, date_str):
                 "media_url": src,
                 "media_tag": el.name,
                 "poster": el.get("poster", ""),
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
 
     with open(cache_file, "w", encoding="utf-8") as f:

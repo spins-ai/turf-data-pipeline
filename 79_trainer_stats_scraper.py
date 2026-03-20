@@ -184,7 +184,7 @@ def scrape_trainer_list(session, source_key):
             trainer = {
                 "source": source_key,
                 "type": "trainer_list",
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
             for j, cell in enumerate(cells):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
@@ -210,7 +210,7 @@ def scrape_trainer_list(session, source_key):
                     "type": "trainer_link",
                     "nom": text,
                     "url_profil": full_url,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
     with open(cache_file, "w", encoding="utf-8") as f:
@@ -241,7 +241,7 @@ def scrape_trainer_profile(session, trainer_url, trainer_name, source_key):
         "type": "trainer_profile",
         "nom": trainer_name,
         "url": trainer_url,
-        "scraped_at": datetime.utcnow().isoformat(),
+        "scraped_at": datetime.now().isoformat(),
     }
 
     # Extraire toutes les paires cle/valeur

@@ -433,7 +433,7 @@ def analyze_drift_streaming(filepath: Path, threshold: float = DEFAULT_KS_THRESH
 def run_drift_detection(files: list[Path], threshold: float) -> dict:
     """Execute la detection de drift sur plusieurs fichiers."""
     report = {
-        "generated_at": datetime.utcnow().isoformat() + "Z",
+        "generated_at": datetime.now().isoformat() + "Z",
         "threshold": threshold,
         "files": {},
     }

@@ -271,7 +271,7 @@ def process_file(filepath: str, filename: str) -> tuple:
             "paris_types": [],
             "replay_disponible": bool(race.get("videoUrl")),
             "course_trackee": False,
-            "timestamp_collecte": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "timestamp_collecte": datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
             "url_source": f"https://www.letrot.com/courses/{date_course}/{num_hippodrome}/{num_course}",
         }
 
@@ -389,7 +389,7 @@ def process_file(filepath: str, filename: str) -> tuple:
                 "proba_implicite": None,
                 "record": p.get("record", ""),
                 "allocation_partant": p.get("allocation", 0),
-                "timestamp_collecte": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "timestamp_collecte": datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
             }
             partants.append(partant_record)
 

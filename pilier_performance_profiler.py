@@ -184,7 +184,7 @@ class PerformanceProfiler:
             mem_peak = max(mem_before, mem_after)
 
             profile_result = {
-                "timestamp": datetime.utcnow().isoformat() + "Z",
+                "timestamp": datetime.now().isoformat() + "Z",
                 "script": func_name,
                 "status": status,
                 "error": error_msg,
@@ -252,7 +252,7 @@ class PerformanceProfiler:
         duration = time.time() - t0
 
         profile_result = {
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "timestamp": datetime.now().isoformat() + "Z",
             "script": script.name,
             "mode": "subprocess",
             "status": status,
@@ -278,7 +278,7 @@ class PerformanceProfiler:
             by_script[name].append(entry)
 
         report = {
-            "generated_at": datetime.utcnow().isoformat() + "Z",
+            "generated_at": datetime.now().isoformat() + "Z",
             "total_runs": len(history),
             "scripts": {},
         }

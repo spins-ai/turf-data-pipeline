@@ -84,7 +84,7 @@ class PredictionRecord:
 
     def __post_init__(self) -> None:
         if self.timestamp is None:
-            self.timestamp = datetime.utcnow().isoformat()
+            self.timestamp = datetime.now().isoformat()
 
 
 # ===========================================================================

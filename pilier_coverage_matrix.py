@@ -239,7 +239,7 @@ def generate_markdown(matrix_data: dict) -> str:
     lines = []
     lines.append("# Matrice de couverture : Source x Annee")
     lines.append("")
-    lines.append(f"Genere le {datetime.utcnow().strftime('%Y-%m-%d %H:%M')} UTC")
+    lines.append(f"Genere le {datetime.now().strftime('%Y-%m-%d %H:%M')} UTC")
     lines.append("")
 
     if not years:
@@ -345,7 +345,7 @@ def main():
     json_path = Path(args.json_output) if args.json_output else REPORT_JSON
     json_path.parent.mkdir(parents=True, exist_ok=True)
     report = {
-        "generated_at": datetime.utcnow().isoformat() + "Z",
+        "generated_at": datetime.now().isoformat() + "Z",
         "n_sources": len(all_sources),
         "years": matrix_data["years"],
         "matrix": matrix_data["sources"],

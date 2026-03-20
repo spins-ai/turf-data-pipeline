@@ -98,7 +98,7 @@ class OddscheckerPlaywright(PlaywrightScraperBase):
                     "type": "race_link",
                     "text": text,
                     "url": full_url,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
         # Meeting sections
@@ -114,7 +114,7 @@ class OddscheckerPlaywright(PlaywrightScraperBase):
                     "source": "oddschecker",
                     "type": "meeting",
                     "meeting_name": (title_el.inner_text() or "").strip(),
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 href = title_el.get_attribute("href")
                 if href:
@@ -218,7 +218,7 @@ class OddscheckerPlaywright(PlaywrightScraperBase):
                 "race_time": race_time,
                 "horse_name": horse,
                 "url": race_url,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             }
 
             odds_by_bk = {}
@@ -265,7 +265,7 @@ class OddscheckerPlaywright(PlaywrightScraperBase):
                 "overround": round(mkt_pct - 100, 2),
                 "num_runners_priced": len(all_best),
                 "url": race_url,
-                "scraped_at": datetime.utcnow().isoformat(),
+                "scraped_at": datetime.now().isoformat(),
             })
 
         # --- Market movers ---
@@ -282,7 +282,7 @@ class OddscheckerPlaywright(PlaywrightScraperBase):
                     "type": "market_mover",
                     "race_name": race_name,
                     "content": text[:400],
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
         # --- Tips / predictions ---
@@ -299,7 +299,7 @@ class OddscheckerPlaywright(PlaywrightScraperBase):
                     "type": "tip_prediction",
                     "race_name": race_name,
                     "content": text[:1500],
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
         # --- Embedded JSON ---
@@ -320,7 +320,7 @@ class OddscheckerPlaywright(PlaywrightScraperBase):
                     "race_name": race_name,
                     "content": text[:2500],
                     "url": race_url,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
 
         self.save_cache(cache_key, records)
