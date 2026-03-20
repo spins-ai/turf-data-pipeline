@@ -51,6 +51,10 @@ def extract_keys_from_file(filepath, key_fields):
                         if kf in record and record[kf] is not None:
                             keys[kf].add(str(record[kf]))
         else:
+            # Skip files > 500 MB to avoid RAM explosion
+            file_size = os.path.getsize(filepath)
+            if file_size > 500 * 1024 * 1024:
+                return None, 0, f"Skipped (too large: {file_size / 1024**3:.1f} GB)"
             with open(filepath, "r", encoding="utf-8") as f:
                 data = json.load(f)
             records = []
@@ -74,10 +78,14 @@ def extract_keys_from_file(filepath, key_fields):
     return dict(keys), record_count, None
 
 
+SKIP_DIRS = {"cache_corrupted", "cache", ".git", "__pycache__", "node_modules"}
+
+
 def find_matching_files(output_dir, patterns):
     """Find files matching any of the given patterns."""
     matches = []
-    for root, _dirs, filenames in os.walk(output_dir):
+    for root, dirs, filenames in os.walk(output_dir):
+        dirs[:] = [d for d in dirs if d not in SKIP_DIRS]
         for fname in sorted(filenames):
             if not (fname.endswith(".json") or fname.endswith(".jsonl")):
                 continue
@@ -158,7 +166,8 @@ def cross_validate_group(output_dir, group_name, config):
 def check_duplicate_ids(output_dir):
     """Check for duplicate IDs within individual files."""
     issues = []
-    for root, _dirs, filenames in os.walk(output_dir):
+    for root, dirs, filenames in os.walk(output_dir):
+        dirs[:] = [d for d in dirs if d not in SKIP_DIRS]
         for fname in sorted(filenames):
             if not (fname.endswith(".json") or fname.endswith(".jsonl")):
                 continue
@@ -183,6 +192,10 @@ def check_duplicate_ids(output_dir):
                                 if key in record and record[key] is not None:
                                     id_fields[key].append(str(record[key]))
                 else:
+                    # Skip files > 500 MB
+                    file_size = os.path.getsize(filepath)
+                    if file_size > 500 * 1024 * 1024:
+                        continue
                     with open(filepath, "r", encoding="utf-8") as f:
                         data = json.load(f)
                     records = []

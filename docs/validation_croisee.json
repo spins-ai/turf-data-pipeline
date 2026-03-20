@@ -1,13 +1,13 @@
 {
   "results_pmu_letrot": {
     "status": "OK",
-    "pmu_count": 2143257,
-    "letrot_count": 330877,
-    "common": 114981,
+    "pmu_count": 2094968,
+    "letrot_count": 330140,
+    "common": 114244,
     "mismatches": 0,
     "match_rate": 100.0,
     "examples": [],
-    "elapsed": 80.3
+    "elapsed": 75.9
   },
   "odds_pmu_exchange": {
     "status": "FAIL",
@@ -19,15 +19,15 @@
     "outliers_30pct": 0,
     "match_rate": 0,
     "examples": [],
-    "elapsed": 0.6
+    "elapsed": 0.5
   },
   "pedigree": {
     "status": "OK",
     "pedigree_count": 275952,
-    "checked": 257587,
-    "mismatches_pere": 7946,
-    "mismatches_mere": 8109,
-    "match_rate": 96.88,
+    "checked": 255865,
+    "mismatches_pere": 7991,
+    "mismatches_mere": 8158,
+    "match_rate": 96.84,
     "examples_pere": [
       {
         "cheval": "RAVANELLO",
@@ -82,7 +82,7 @@
         "mere_pedigree": "UFANIA DU BUISSON"
       }
     ],
-    "elapsed": 84.7
+    "elapsed": 81.5
   },
   "dates": {
     "status": "OK",
@@ -90,18 +90,79 @@
     "future_dates": 0,
     "invalid_dates": 0,
     "abnormal_days": 0,
-    "avg_partants_per_day": 623.5,
+    "avg_partants_per_day": 615.2,
     "examples_future": [],
     "examples_invalid": [],
     "examples_abnormal": [],
-    "elapsed": 81.3
+    "elapsed": 73.1
   },
   "nombre_partants": {
     "status": "OK",
-    "courses_checked": 257788,
-    "mismatches": 0,
-    "match_rate": 100.0,
-    "examples": [],
-    "elapsed": 87.5
+    "courses_checked": 255095,
+    "mismatches": 6992,
+    "match_rate": 97.26,
+    "examples": [
+      {
+        "course_uid": "c30b75c51997ffac",
+        "declare": 23,
+        "reel": 46,
+        "diff": 23
+      },
+      {
+        "course_uid": "616dc30c3fbabe10",
+        "declare": 22,
+        "reel": 2,
+        "diff": -20
+      },
+      {
+        "course_uid": "a90ffcfdc9601d8d",
+        "declare": 22,
+        "reel": 42,
+        "diff": 20
+      },
+      {
+        "course_uid": "90800120db99f4e6",
+        "declare": 20,
+        "reel": 1,
+        "diff": -19
+      },
+      {
+        "course_uid": "af8eada55a66557f",
+        "declare": 20,
+        "reel": 39,
+        "diff": 19
+      },
+      {
+        "course_uid": "4160f008cc8f40cb",
+        "declare": 20,
+        "reel": 1,
+        "diff": -19
+      },
+      {
+        "course_uid": "c607827e7dbb4f18",
+        "declare": 19,
+        "reel": 38,
+        "diff": 19
+      },
+      {
+        "course_uid": "6df8a891a600f6cd",
+        "declare": 23,
+        "reel": 5,
+        "diff": -18
+      },
+      {
+        "course_uid": "ca299cbad41e7135",
+        "declare": 23,
+        "reel": 5,
+        "diff": -18
+      },
+      {
+        "course_uid": "64582a6bc87e915c",
+        "declare": 18,
+        "reel": 36,
+        "diff": 18
+      }
+    ],
+    "elapsed": 73.0
   }
 }

@@ -545,6 +545,16 @@ def main():
                     )
                     logger.info("Jointure partants : colonnes DQ ajoutees")
 
+    # Map column names to expected names if needed
+    col_map = {
+        "position": "y_rang",
+        "is_winner": "y_gagnant",
+        "is_place": "y_place",
+    }
+    for old_col, new_col in col_map.items():
+        if old_col in df.columns and new_col not in df.columns:
+            df[new_col] = df[old_col]
+
     logger.info("Charge: %d lignes, %d colonnes", len(df), len(df.columns))
 
     monitor = LabelQualityMonitor()

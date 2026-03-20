@@ -99,60 +99,58 @@ def safe_stdev(values):
 # Chargement
 # -----------------------------------------------------------------------
 
-def load_partants():
-    """Charge les partants depuis le premier fichier disponible."""
+def stream_and_group_courses():
+    """Charge les partants en streaming et regroupe par course_uid.
+    Ne garde que les champs necessaires pour reduire la RAM."""
+    courses = defaultdict(list)
+    total = 0
+
     for fpath in PARTANTS_FILES:
         if not fpath.exists():
             continue
 
         print(f"  Source: {fpath}")
-        records = []
         t0 = time.time()
 
         if str(fpath).endswith(".jsonl"):
-            with open(fpath, "r", encoding="utf-8", errors="replace", buffering=1024*1024) as f:
-                while True:
+            with open(fpath, "r", encoding="utf-8", errors="replace", buffering=1048576) as f:
+                line = f.readline()
+                while line:
+                    stripped = line.strip()
+                    if stripped:
+                        try:
+                            p = json.loads(stripped)
+                            cuid = p.get("course_uid")
+                            if cuid:
+                                total += 1
+                                # Ne garder que les champs utilises
+                                courses[cuid].append({
+                                    "hippodrome": (p.get("hippodrome_normalise") or p.get("hippodrome") or "").lower().strip(),
+                                    "discipline": (p.get("discipline") or "").upper().strip(),
+                                    "distance": safe_int(p.get("distance")),
+                                    "terrain": (p.get("type_piste") or p.get("meteo_type_piste") or "").lower().strip(),
+                                    "position_arrivee": safe_int(p.get("position_arrivee")),
+                                    "cote_finale": safe_float(p.get("cote_finale")),
+                                    "rang_cote": safe_int(p.get("rang_cote")),
+                                    "is_gagnant": p.get("is_gagnant"),
+                                    "num_pmu": safe_int(p.get("num_pmu")),
+                                    "gains_prix_euros": safe_float(p.get("gains_prix_euros")),
+                                })
+                                if total % 500000 == 0:
+                                    print(f"    {total:,} partants traites ...")
+                        except json.JSONDecodeError:
+                            pass
                     line = f.readline()
-                    if not line:
-                        break
-                    line = line.strip()
-                    if not line:
-                        continue
-                    try:
-                        records.append(json.loads(line))
-                    except json.JSONDecodeError:
-                        continue
         else:
-            with open(fpath, "r", encoding="utf-8", errors="replace") as f:
-                data = json.load(f)
-            if isinstance(data, list):
-                records = data
+            print(f"  [SKIP] JSON trop gros, utiliser JSONL")
+            continue
 
         dt = time.time() - t0
-        print(f"  -> {len(records):,} partants charges ({dt:.1f}s)")
-        return records
+        print(f"  -> {total:,} partants en {len(courses):,} courses ({dt:.1f}s)")
+        return courses, total
 
     print("  [ERREUR] Aucun fichier partants trouve!")
-    return []
-
-
-# -----------------------------------------------------------------------
-# Regroupement par course_uid, puis par hippodrome
-# -----------------------------------------------------------------------
-
-def build_course_data(partants):
-    """Regroupe les partants par course_uid pour reconstituer les courses."""
-    print(f"\n  Regroupement par course ...")
-    t0 = time.time()
-
-    courses = defaultdict(list)
-    for p in partants:
-        cuid = p.get("course_uid")
-        if cuid:
-            courses[cuid].append(p)
-
-    print(f"  -> {len(courses):,} courses reconstituees ({time.time() - t0:.1f}s)")
-    return courses
+    return courses, 0
 
 
 def build_hippo_profiles(courses_dict):
@@ -183,13 +181,13 @@ def build_hippo_profiles(courses_dict):
 
         # Info course (depuis le premier partant)
         p0 = partants_course[0]
-        hippo = (p0.get("hippodrome_normalise") or p0.get("hippodrome") or "").lower().strip()
+        hippo = p0.get("hippodrome", "")
         if not hippo:
             continue
 
-        discipline = (p0.get("discipline") or "").upper().strip()
-        distance = safe_int(p0.get("distance"))
-        terrain = (p0.get("type_piste") or p0.get("meteo_type_piste") or "").lower().strip()
+        discipline = p0.get("discipline", "")
+        distance = p0.get("distance")
+        terrain = p0.get("terrain", "")
         nb_partants = len(partants_course)
 
         data = hippo_data[hippo]
@@ -209,11 +207,11 @@ def build_hippo_profiles(courses_dict):
         cotes_course = []
 
         for p in partants_course:
-            pos = safe_int(p.get("position_arrivee"))
-            cote = safe_float(p.get("cote_finale"))
-            rang_cote = safe_int(p.get("rang_cote"))
+            pos = p.get("position_arrivee")
+            cote = p.get("cote_finale")
+            rang_cote = p.get("rang_cote")
             is_gagnant = p.get("is_gagnant") or (pos == 1 if pos else False)
-            num_pmu = safe_int(p.get("num_pmu"))
+            num_pmu = p.get("num_pmu")
 
             if cote is not None and cote > 0:
                 cotes_course.append((cote, p))
@@ -244,7 +242,7 @@ def build_hippo_profiles(courses_dict):
 
         # Pace bias : le gagnant partait-il devant ? (heuristique via num_pmu bas)
         if gagnant is not None and nb_partants >= 5:
-            gagnant_num = safe_int(gagnant.get("num_pmu"))
+            gagnant_num = gagnant.get("num_pmu")
             if gagnant_num is not None:
                 # "Front runner" = premier tiers du champ
                 seuil = max(nb_partants // 3, 1)
@@ -388,20 +386,15 @@ def main():
     print("BUILD COURSE PROFILES — Profils par hippodrome")
     print("=" * 70)
 
-    # 1. Charger
-    print("\n[1] Chargement des partants ...")
-    partants = load_partants()
-    if not partants:
+    # 1+2. Charger et regrouper en streaming
+    print("\n[1] Chargement streaming + regroupement par course ...")
+    courses_dict, total_partants = stream_and_group_courses()
+    if total_partants == 0:
         print("[ERREUR] Aucun partant. Abandon.")
         return
 
-    # 2. Regrouper par course
-    print("\n[2] Regroupement par course ...")
-    courses_dict = build_course_data(partants)
-    del partants
-
     # 3. Construire profils par hippodrome
-    print("\n[3] Construction des profils ...")
+    print("\n[2] Construction des profils ...")
     hippo_data = build_hippo_profiles(courses_dict)
     del courses_dict
 

@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """
-Script 84 — Scraping Turfoo.fr
-Source : turfoo.fr (stats chevaux, pronostics, analyses FR)
-Collecte : fiches chevaux, stats performance, pronostics, analyses détaillées
-CRITIQUE pour : Horse Stats Features, Pronostics Model, Performance History
+Script 84 — Scraping Turfoo.fr (corrigé)
+Source : turfoo.fr — pronostics, résultats, stats chevaux
+URLs réelles:
+  /programmes-courses/DDMMYY/reunion{N}-{nom}/courses/
+  /programmes-courses/DDMMYY/reunion{N}-{nom}/course{N}-{titre}/
+  /resultats-pmu/tierce/archives/
+Utilise cloudscraper pour contourner Cloudflare.
 """
 
 import argparse
@@ -15,7 +18,7 @@ import re
 import time
 from datetime import datetime, timedelta
 
-import requests
+import cloudscraper
 from bs4 import BeautifulSoup
 
 SCRIPT_NAME = "84_turfoo"
@@ -32,26 +35,17 @@ logging.basicConfig(
 )
 log = logging.getLogger(__name__)
 
-USER_AGENTS = [
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15",
-    "Mozilla/5.0 (X11; Linux x86_64; rv:122.0) Gecko/20100101 Firefox/122.0",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
-]
-
 BASE_URL = "https://www.turfoo.fr"
 
 
 def new_session():
-    s = requests.Session()
+    s = cloudscraper.create_scraper(
+        browser={"browser": "chrome", "platform": "windows", "desktop": True}
+    )
     s.headers.update({
-        "User-Agent": random.choice(USER_AGENTS),
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "fr-FR,fr;q=0.9,en-US;q=0.8",
-        "Accept-Encoding": "gzip, deflate, br",
+        "Accept-Language": "fr-FR,fr;q=0.9",
         "DNT": "1",
-        "Connection": "keep-alive",
+        "Referer": BASE_URL,
     })
     return s
 
@@ -68,23 +62,22 @@ def fetch_with_retry(session, url, max_retries=3, timeout=30):
         try:
             resp = session.get(url, timeout=timeout)
             if resp.status_code == 429:
-                wait = 60 * attempt
-                log.warning(f"  429 Too Many Requests, pause {wait}s...")
-                time.sleep(wait)
+                time.sleep(60 * attempt)
                 continue
             if resp.status_code == 403:
-                log.warning(f"  403 Forbidden sur {url}, pause 60s...")
-                time.sleep(60)
+                log.warning(f"  403 sur {url}, pause 30s...")
+                time.sleep(30)
                 continue
+            if resp.status_code == 404:
+                return None
             if resp.status_code != 200:
-                log.warning(f"  HTTP {resp.status_code} sur {url} (essai {attempt}/{max_retries})")
+                log.warning(f"  HTTP {resp.status_code} sur {url} (essai {attempt})")
                 time.sleep(5 * attempt)
                 continue
             return resp
-        except requests.RequestException as e:
-            log.warning(f"  Erreur réseau: {e} (essai {attempt}/{max_retries})")
+        except Exception as e:
+            log.warning(f"  Erreur: {e} (essai {attempt})")
             time.sleep(5 * attempt)
-    log.error(f"  Échec après {max_retries} essais: {url}")
     return None
 
 
@@ -105,245 +98,139 @@ def save_checkpoint(data):
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
-def scrape_turfoo_day(session, date_str):
-    """Scraper les pronostics et analyses Turfoo pour un jour donné."""
-    cache_file = os.path.join(CACHE_DIR, f"day_{date_str}.json")
+def date_to_turfoo(dt):
+    """Convertir datetime en format Turfoo: YYMMDD."""
+    return dt.strftime("%y%m%d")
+
+
+def get_reunions(session, dt):
+    """Lister les réunions d'un jour sur Turfoo."""
+    date_str = date_to_turfoo(dt)
+    date_iso = dt.strftime("%Y-%m-%d")
+    cache_file = os.path.join(CACHE_DIR, f"index_{date_iso}.json")
+
     if os.path.exists(cache_file):
         with open(cache_file, "r", encoding="utf-8") as f:
             return json.load(f)
 
-    dt = datetime.strptime(date_str, "%Y-%m-%d")
-    date_url = dt.strftime("%d-%m-%Y")
-    url = f"{BASE_URL}/pronostic-courses/{date_url}"
+    url = f"{BASE_URL}/programmes-courses/{date_str}/"
     resp = fetch_with_retry(session, url)
     if not resp:
-        return None
+        return []
 
     soup = BeautifulSoup(resp.text, "html.parser")
-    records = []
+    reunions = []
 
-    # --- Extraire les réunions et courses ---
-    for section in soup.find_all(["div", "section", "article"], class_=True):
-        classes = " ".join(section.get("class", []))
-        if any(kw in classes.lower() for kw in ["race", "course", "reunion", "programme",
-                                                  "prono", "quinte", "meeting"]):
-            record = {
-                "date": date_str,
-                "source": "turfoo",
-                "scraped_at": datetime.utcnow().isoformat(),
-            }
-            title_el = section.find(["h2", "h3", "h4", "a", "strong"])
-            if title_el:
-                record["titre"] = title_el.get_text(strip=True)
-            link = section.find("a", href=True)
-            if link:
-                href = link["href"]
-                record["url_course"] = href if href.startswith("http") else f"{BASE_URL}{href}"
-            records.append(record)
-
-    # --- Tables de pronostics/stats ---
-    for table in soup.find_all("table"):
-        rows = table.find_all("tr")
-        headers = []
-        if rows:
-            headers = [th.get_text(strip=True).lower().replace(" ", "_")
-                       for th in rows[0].find_all(["th", "td"])]
-        for row in rows[1:]:
-            cells = [td.get_text(strip=True) for td in row.find_all(["td", "th"])]
-            if cells and len(cells) >= 2:
-                partant = {
-                    "date": date_str,
-                    "source": "turfoo",
-                    "type": "pronostic_table",
-                    "scraped_at": datetime.utcnow().isoformat(),
-                }
-                for j, cell in enumerate(cells):
-                    key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
-                    partant[key] = cell
-                for cell in cells:
-                    cote_match = re.search(r'(\d+[.,]\d+)', cell)
-                    if cote_match:
-                        partant["cote"] = cote_match.group(1).replace(",", ".")
-                        break
-                records.append(partant)
-
-    # --- Pronostics textuels ---
-    for div in soup.find_all(["div", "span", "p", "li"], class_=True):
-        classes = " ".join(div.get("class", []))
-        text = div.get_text(strip=True)
-        if any(kw in classes.lower() for kw in ["prono", "tip", "favori", "selection",
-                                                  "base", "complement", "analyse"]):
-            if text and 5 < len(text) < 500:
-                records.append({
-                    "date": date_str,
-                    "source": "turfoo",
-                    "type": "pronostic",
-                    "contenu": text,
-                    "css_class": classes,
-                    "scraped_at": datetime.utcnow().isoformat(),
-                })
-
-    # --- Analyses détaillées / fiches chevaux ---
-    for div in soup.find_all(["div", "p", "article", "section"], class_=True):
-        classes = " ".join(div.get("class", []))
-        text = div.get_text(strip=True)
-        if any(kw in classes.lower() for kw in ["analyse", "fiche", "comment", "avis",
-                                                  "editorial", "recap", "stat", "perf"]):
-            if text and 20 < len(text) < 3000:
-                records.append({
-                    "date": date_str,
-                    "source": "turfoo",
-                    "type": "analyse_detail",
-                    "contenu": text[:2500],
-                    "css_class": classes,
-                    "scraped_at": datetime.utcnow().isoformat(),
-                })
-
-    # --- Stats chevaux (musique, historique) ---
-    for div in soup.find_all(["div", "section", "table"], class_=True):
-        classes = " ".join(div.get("class", []))
-        if any(kw in classes.lower() for kw in ["musique", "historique", "palmares",
-                                                  "performances", "form", "derniers"]):
-            sub_table = div.find("table")
-            if sub_table:
-                rows = sub_table.find_all("tr")
-                sub_headers = []
-                if rows:
-                    sub_headers = [th.get_text(strip=True).lower().replace(" ", "_")
-                                   for th in rows[0].find_all(["th", "td"])]
-                for row in rows[1:]:
-                    cells = [td.get_text(strip=True) for td in row.find_all(["td", "th"])]
-                    if cells and len(cells) >= 2:
-                        entry = {
-                            "date": date_str,
-                            "source": "turfoo",
-                            "type": "stats_cheval",
-                            "scraped_at": datetime.utcnow().isoformat(),
-                        }
-                        for j, cell in enumerate(cells):
-                            key = sub_headers[j] if j < len(sub_headers) and sub_headers[j] else f"col_{j}"
-                            entry[key] = cell
-                        records.append(entry)
-            else:
-                text = div.get_text(strip=True)
-                if text and 10 < len(text) < 2000:
-                    records.append({
-                        "date": date_str,
-                        "source": "turfoo",
-                        "type": "stats_cheval_text",
-                        "contenu": text[:1500],
-                        "scraped_at": datetime.utcnow().isoformat(),
-                    })
-
-    # --- Cotes depuis data-attributes ---
-    for el in soup.find_all(attrs={"data-odds": True}):
-        records.append({
-            "date": date_str,
-            "source": "turfoo",
-            "type": "cote_data",
-            "odds": el.get("data-odds"),
-            "text": el.get_text(strip=True),
-            "scraped_at": datetime.utcnow().isoformat(),
-        })
-
-    # --- JSON embarqués ---
-    for script in soup.find_all("script"):
-        script_text = script.string or ""
-        for m in re.finditer(r'JSON\.parse\s*\(\s*[\'"](.+?)[\'"]\s*\)', script_text, re.DOTALL):
-            try:
-                raw = m.group(1).encode().decode('unicode_escape')
-                data = json.loads(raw)
-                records.append({
-                    "date": date_str,
-                    "source": "turfoo",
-                    "type": "embedded_json_parse",
-                    "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
-                })
-            except (json.JSONDecodeError, UnicodeDecodeError):
-                pass
-        for m in re.finditer(r'window\[?[\'"]?(__\w+|raceData|courseData|horseData|statsData)[\'"]?\]?\s*=\s*(\{.+?\});',
-                             script_text, re.DOTALL):
-            try:
-                data = json.loads(m.group(2))
-                records.append({
-                    "date": date_str,
-                    "source": "turfoo",
-                    "type": "embedded_window_data",
-                    "var_name": m.group(1),
-                    "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
-                })
-            except json.JSONDecodeError:
-                pass
-        for m in re.finditer(r'(?:var|let|const)\s+(\w+)\s*=\s*(\[[\s\S]{50,}?\]);', script_text):
-            try:
-                data = json.loads(m.group(2))
-                records.append({
-                    "date": date_str,
-                    "source": "turfoo",
-                    "type": "embedded_var_array",
-                    "var_name": m.group(1),
-                    "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
-                })
-            except json.JSONDecodeError:
-                pass
-
-    for script in soup.find_all("script", {"type": "application/json"}):
-        try:
-            data = json.loads(script.string or "")
-            records.append({
-                "date": date_str,
-                "source": "turfoo",
-                "type": "script_application_json",
-                "data_id": script.get("id", ""),
-                "data": data,
-                "scraped_at": datetime.utcnow().isoformat(),
+    # Chercher les liens vers les réunions
+    pattern = re.compile(rf'/programmes-courses/{date_str}/reunion(\d+)-([^/]+)/courses/')
+    for a in soup.find_all("a", href=True):
+        m = pattern.search(a["href"])
+        if m:
+            reunions.append({
+                "num": m.group(1),
+                "slug": m.group(2),
+                "url": a["href"],
             })
-        except json.JSONDecodeError:
-            pass
 
-    # --- Data-attributes pertinents ---
-    for el in soup.find_all(attrs=lambda attrs: attrs and any(
-            k.startswith("data-") and any(kw in k for kw in
-            ["cote", "odd", "cheval", "horse", "runner", "race", "prono", "stat"])
-            for k in attrs)):
-        data_attrs = {k: v for k, v in el.attrs.items() if k.startswith("data-")}
-        if data_attrs:
-            records.append({
-                "date": date_str,
-                "source": "turfoo",
-                "type": "data_attributes",
-                "tag": el.name,
-                "text": el.get_text(strip=True)[:200],
-                "attributes": data_attrs,
-                "scraped_at": datetime.utcnow().isoformat(),
-            })
+    # Dédupliquer
+    seen = set()
+    unique = []
+    for r in reunions:
+        key = (r["num"], r["slug"])
+        if key not in seen:
+            seen.add(key)
+            unique.append(r)
 
     with open(cache_file, "w", encoding="utf-8") as f:
-        json.dump(records, f, ensure_ascii=False, indent=2)
+        json.dump(unique, f, ensure_ascii=False)
+    return unique
 
-    return records
 
+def get_courses(session, dt, reunion):
+    """Lister les courses d'une réunion."""
+    date_str = date_to_turfoo(dt)
+    date_iso = dt.strftime("%Y-%m-%d")
+    num = reunion["num"]
+    slug = reunion["slug"]
+    cache_file = os.path.join(CACHE_DIR, f"courses_{date_iso}_R{num}.json")
 
-def scrape_turfoo_resultats(session, date_str):
-    """Scraper les résultats Turfoo pour un jour donné."""
-    cache_file = os.path.join(CACHE_DIR, f"resultats_{date_str}.json")
     if os.path.exists(cache_file):
         with open(cache_file, "r", encoding="utf-8") as f:
             return json.load(f)
 
-    dt = datetime.strptime(date_str, "%Y-%m-%d")
-    date_url = dt.strftime("%d-%m-%Y")
-    url = f"{BASE_URL}/resultats-courses/{date_url}"
+    url = f"{BASE_URL}/programmes-courses/{date_str}/reunion{num}-{slug}/courses/"
+    if not url.startswith("http"):
+        url = BASE_URL + url
     resp = fetch_with_retry(session, url)
     if not resp:
-        return None
+        return []
+
+    soup = BeautifulSoup(resp.text, "html.parser")
+    courses = []
+
+    # Pattern: /programmes-courses/200326/reunion1-vincennes/course3-prix-de-trappes/
+    pattern = re.compile(rf'/programmes-courses/{date_str}/reunion{num}-{re.escape(slug)}/course(\d+)-([^/]+)/')
+    for a in soup.find_all("a", href=True):
+        m = pattern.search(a["href"])
+        if m:
+            courses.append({
+                "num": m.group(1),
+                "slug": m.group(2),
+                "url": a["href"],
+            })
+
+    seen = set()
+    unique = []
+    for c in courses:
+        if c["num"] not in seen:
+            seen.add(c["num"])
+            unique.append(c)
+
+    with open(cache_file, "w", encoding="utf-8") as f:
+        json.dump(unique, f, ensure_ascii=False)
+    return unique
+
+
+def scrape_course(session, dt, reunion, course):
+    """Scraper une course individuelle sur Turfoo."""
+    date_iso = dt.strftime("%Y-%m-%d")
+    date_str = date_to_turfoo(dt)
+    r_num = reunion["num"]
+    c_num = course["num"]
+    cache_file = os.path.join(CACHE_DIR, f"race_{date_iso}_R{r_num}C{c_num}.json")
+
+    if os.path.exists(cache_file):
+        with open(cache_file, "r", encoding="utf-8") as f:
+            return json.load(f)
+
+    url = course["url"]
+    if not url.startswith("http"):
+        url = BASE_URL + url
+    resp = fetch_with_retry(session, url)
+    if not resp:
+        return []
 
     soup = BeautifulSoup(resp.text, "html.parser")
     records = []
 
+    # Course info
+    info = {
+        "date": date_iso,
+        "source": "turfoo",
+        "type": "course",
+        "reunion_num": r_num,
+        "reunion_slug": reunion["slug"],
+        "course_num": c_num,
+        "course_slug": course["slug"],
+        "url": url,
+        "scraped_at": datetime.now().isoformat(),
+    }
+    h1 = soup.find("h1")
+    if h1:
+        info["titre"] = h1.get_text(strip=True)
+    records.append(info)
+
+    # Tables (partants, pronostics, résultats)
     for table in soup.find_all("table"):
         rows = table.find_all("tr")
         headers = []
@@ -356,15 +243,35 @@ def scrape_turfoo_resultats(session, date_str):
             cells = [td.get_text(strip=True) for td in row.find_all(["td", "th"])]
             if cells and len(cells) >= 2:
                 entry = {
-                    "date": date_str,
+                    "date": date_iso,
                     "source": "turfoo",
-                    "type": "resultat_table",
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "type": "partant",
+                    "reunion_num": r_num,
+                    "course_num": c_num,
+                    "scraped_at": datetime.now().isoformat(),
                 }
                 for j, cell in enumerate(cells):
                     key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
                     entry[key] = cell
                 records.append(entry)
+
+    # Pronostics textuels
+    for div in soup.find_all(["div", "span", "p", "li"], class_=True):
+        classes = " ".join(div.get("class", []))
+        text = div.get_text(strip=True)
+        if any(kw in classes.lower() for kw in ["prono", "tip", "favori", "selection",
+                                                  "base", "complement", "analyse"]):
+            if text and 5 < len(text) < 500:
+                records.append({
+                    "date": date_iso,
+                    "source": "turfoo",
+                    "type": "pronostic",
+                    "reunion_num": r_num,
+                    "course_num": c_num,
+                    "contenu": text,
+                    "css_class": classes,
+                    "scraped_at": datetime.now().isoformat(),
+                })
 
     # JSON embarqué
     for script in soup.find_all("script"):
@@ -374,11 +281,11 @@ def scrape_turfoo_resultats(session, date_str):
                 raw = m.group(1).encode().decode('unicode_escape')
                 data = json.loads(raw)
                 records.append({
-                    "date": date_str,
+                    "date": date_iso,
                     "source": "turfoo",
-                    "type": "resultats_embedded_json",
+                    "type": "embedded_json",
                     "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
+                    "scraped_at": datetime.now().isoformat(),
                 })
             except (json.JSONDecodeError, UnicodeDecodeError):
                 pass
@@ -386,38 +293,35 @@ def scrape_turfoo_resultats(session, date_str):
     for script in soup.find_all("script", {"type": "application/json"}):
         try:
             data = json.loads(script.string or "")
-            records.append({
-                "date": date_str,
-                "source": "turfoo",
-                "type": "resultats_script_json",
-                "data_id": script.get("id", ""),
-                "data": data,
-                "scraped_at": datetime.utcnow().isoformat(),
-            })
+            if data:
+                records.append({
+                    "date": date_iso,
+                    "source": "turfoo",
+                    "type": "script_json",
+                    "data": data,
+                    "scraped_at": datetime.now().isoformat(),
+                })
         except json.JSONDecodeError:
             pass
 
     with open(cache_file, "w", encoding="utf-8") as f:
         json.dump(records, f, ensure_ascii=False, indent=2)
-
     return records
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Script 84 — Turfoo Scraper (stats chevaux, pronostics, analyses)")
-    parser.add_argument("--start", type=str, default="2022-01-01",
-                        help="Date de début (YYYY-MM-DD)")
-    parser.add_argument("--end", type=str, default=None,
-                        help="Date de fin (YYYY-MM-DD), défaut=aujourd'hui")
-    parser.add_argument("--resume", action="store_true", default=True,
-                        help="Reprendre depuis le dernier checkpoint")
+    parser = argparse.ArgumentParser(description="Script 84 — Turfoo Scraper (cloudscraper)")
+    parser.add_argument("--start", type=str, default="2024-01-01")
+    parser.add_argument("--end", type=str, default=None)
+    parser.add_argument("--resume", action="store_true", default=True)
+    parser.add_argument("--max-days", type=int, default=0)
     args = parser.parse_args()
 
     start_date = datetime.strptime(args.start, "%Y-%m-%d")
-    end_date = datetime.strptime(args.end, "%Y-%m-%d") if args.end else datetime.now()
+    end_date = datetime.strptime(args.end, "%Y-%m-%d") if args.end else (datetime.now() - timedelta(days=1))
 
     log.info("=" * 60)
-    log.info("SCRIPT 84 — Turfoo Scraper")
+    log.info("SCRIPT 84 — Turfoo Scraper (cloudscraper)")
     log.info(f"  Période : {start_date.date()} → {end_date.date()}")
     log.info("=" * 60)
 
@@ -427,7 +331,7 @@ def main():
         resume_date = datetime.strptime(last_date, "%Y-%m-%d") + timedelta(days=1)
         if resume_date > start_date:
             start_date = resume_date
-            log.info(f"  Reprise au checkpoint : {start_date.date()}")
+            log.info(f"  Reprise checkpoint: {start_date.date()}")
 
     session = new_session()
     output_file = os.path.join(OUTPUT_DIR, "turfoo_data.jsonl")
@@ -437,41 +341,45 @@ def main():
     total_records = 0
 
     while current <= end_date:
-        date_str = current.strftime("%Y-%m-%d")
+        if args.max_days and day_count >= args.max_days:
+            break
 
-        records = scrape_turfoo_day(session, date_str)
-        if records:
-            for rec in records:
-                append_jsonl(output_file, rec)
-                total_records += 1
+        date_iso = current.strftime("%Y-%m-%d")
+        reunions = get_reunions(session, current)
+        smart_pause(1.0, 0.5)
 
-        smart_pause(1.5, 0.8)
-
-        resultats = scrape_turfoo_resultats(session, date_str)
-        if resultats:
-            for rec in resultats:
-                append_jsonl(output_file, rec)
-                total_records += 1
+        if not reunions:
+            log.debug(f"  {date_iso}: aucune réunion")
+        else:
+            log.info(f"  {date_iso}: {len(reunions)} réunions")
+            for reu in reunions:
+                courses = get_courses(session, current, reu)
+                smart_pause(0.8, 0.4)
+                for course in courses:
+                    records = scrape_course(session, current, reu, course)
+                    if records:
+                        for rec in records:
+                            append_jsonl(output_file, rec)
+                            total_records += 1
+                    smart_pause(1.0, 0.5)
 
         day_count += 1
+        if day_count % 10 == 0:
+            log.info(f"  === Jour {day_count}: {total_records} records ===")
+            save_checkpoint({"last_date": date_iso, "total_records": total_records})
 
-        if day_count % 30 == 0:
-            log.info(f"  {date_str} | jours={day_count} records={total_records}")
-            save_checkpoint({"last_date": date_str, "total_records": total_records})
-
-        if day_count % 80 == 0:
+        if day_count % 40 == 0:
             session.close()
             session = new_session()
             time.sleep(random.uniform(5, 15))
 
         current += timedelta(days=1)
-        smart_pause(1.0, 0.5)
 
-    save_checkpoint({"last_date": end_date.strftime("%Y-%m-%d"),
+    save_checkpoint({"last_date": (current - timedelta(days=1)).strftime("%Y-%m-%d"),
                      "total_records": total_records, "status": "done"})
 
     log.info("=" * 60)
-    log.info(f"TERMINÉ: {day_count} jours, {total_records} records → {output_file}")
+    log.info(f"TERMINÉ: {day_count} jours, {total_records} records")
     log.info("=" * 60)
 
 

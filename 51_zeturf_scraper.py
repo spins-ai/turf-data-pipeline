@@ -116,8 +116,14 @@ def scrape_zeturf_day(session, date_str):
         with open(cache_file, "r", encoding="utf-8") as f:
             return json.load(f)
 
-    url = f"https://www.zeturf.fr/fr/course/{date_str}"
+    # URL corrigée : /fr/resultats-et-rapports-du-jour avec date en paramètre
+    # Ou directement la page programme du jour
+    url = f"https://www.zeturf.fr/fr/programme?date={date_str}"
     resp = fetch_with_retry(session, url)
+    if not resp:
+        # Fallback: page résultats
+        url = f"https://www.zeturf.fr/fr/resultats-et-rapports-du-jour?date={date_str}"
+        resp = fetch_with_retry(session, url)
     if not resp:
         return None
 

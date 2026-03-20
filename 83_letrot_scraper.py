@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
-Script 83 — Scraping LeTrot.com (données officielles trot français)
-Source : letrot.com (programmes, résultats, statistiques officielles)
-Collecte : programmes courses trot, résultats officiels, stats chevaux/drivers/entraineurs
-CRITIQUE pour : Trot Features, Official Results, Driver/Trainer Stats
+Script 83 — Scraping LeTrot.com (corrigé)
+Source : letrot.com — site officiel du trot français
+Collecte : programmes, résultats, partants, stats
+URL réelle : /courses/YYYY-MM-DD  puis  /courses/YYYY-MM-DD/{hippo_id}/{num_course}
+Utilise cloudscraper pour contourner anti-bot.
 """
 
 import argparse
@@ -32,18 +33,18 @@ logging.basicConfig(
 )
 log = logging.getLogger(__name__)
 
-USER_AGENTS = [
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15",
-    "Mozilla/5.0 (X11; Linux x86_64; rv:122.0) Gecko/20100101 Firefox/122.0",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
-]
-
 BASE_URL = "https://www.letrot.com"
 
 
+USER_AGENTS = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:122.0) Gecko/20100101 Firefox/122.0",
+]
+
+
 def new_session():
+    """Crée une session requests avec headers réalistes."""
     s = requests.Session()
     s.headers.update({
         "User-Agent": random.choice(USER_AGENTS),
@@ -52,6 +53,7 @@ def new_session():
         "Accept-Encoding": "gzip, deflate, br",
         "DNT": "1",
         "Connection": "keep-alive",
+        "Referer": BASE_URL,
     })
     return s
 
@@ -64,7 +66,6 @@ def smart_pause(base=2.5, jitter=1.5):
 
 
 def fetch_with_retry(session, url, max_retries=3, timeout=30):
-    """GET avec retry automatique (3 essais puis skip)."""
     for attempt in range(1, max_retries + 1):
         try:
             resp = session.get(url, timeout=timeout)
@@ -74,15 +75,18 @@ def fetch_with_retry(session, url, max_retries=3, timeout=30):
                 time.sleep(wait)
                 continue
             if resp.status_code == 403:
-                log.warning(f"  403 Forbidden sur {url}, pause 60s...")
-                time.sleep(60)
+                log.warning(f"  403 Forbidden sur {url}, rotation session...")
+                time.sleep(30)
                 continue
+            if resp.status_code == 404:
+                log.debug(f"  404 Not Found: {url}")
+                return None
             if resp.status_code != 200:
                 log.warning(f"  HTTP {resp.status_code} sur {url} (essai {attempt}/{max_retries})")
                 time.sleep(5 * attempt)
                 continue
             return resp
-        except requests.RequestException as e:
+        except Exception as e:
             log.warning(f"  Erreur réseau: {e} (essai {attempt}/{max_retries})")
             time.sleep(5 * attempt)
     log.error(f"  Échec après {max_retries} essais: {url}")
@@ -106,185 +110,61 @@ def save_checkpoint(data):
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
-def scrape_letrot_programme(session, date_str):
-    """Scraper le programme des courses trot pour un jour donné."""
-    cache_file = os.path.join(CACHE_DIR, f"programme_{date_str}.json")
+def extract_race_links(soup, date_str):
+    """Extraire les liens vers les courses individuelles depuis la page du jour."""
+    links = set()
+    # Pattern: /courses/2026-03-19/1400/1
+    pattern = re.compile(rf'/courses/{re.escape(date_str)}/(\d+)/(\d+)')
+    for a in soup.find_all("a", href=True):
+        m = pattern.search(a["href"])
+        if m:
+            links.add((m.group(1), m.group(2)))
+    return sorted(links)
+
+
+def scrape_race_page(session, date_str, hippo_id, race_num):
+    """Scraper une course individuelle."""
+    cache_file = os.path.join(CACHE_DIR, f"race_{date_str}_{hippo_id}_{race_num}.json")
     if os.path.exists(cache_file):
         with open(cache_file, "r", encoding="utf-8") as f:
             return json.load(f)
 
-    dt = datetime.strptime(date_str, "%Y-%m-%d")
-    date_url = dt.strftime("%d-%m-%Y")
-    url = f"{BASE_URL}/fr/courses/programme/{date_url}"
+    url = f"{BASE_URL}/courses/{date_str}/{hippo_id}/{race_num}"
     resp = fetch_with_retry(session, url)
     if not resp:
-        return None
+        return []
 
     soup = BeautifulSoup(resp.text, "html.parser")
     records = []
 
-    # --- Extraire les réunions ---
-    for section in soup.find_all(["div", "section", "article"], class_=True):
-        classes = " ".join(section.get("class", []))
-        if any(kw in classes.lower() for kw in ["reunion", "meeting", "hippodrome",
-                                                  "course", "race", "programme"]):
-            record = {
-                "date": date_str,
-                "source": "letrot",
-                "type": "programme_reunion",
-                "scraped_at": datetime.utcnow().isoformat(),
-            }
-            title_el = section.find(["h2", "h3", "h4", "a", "strong"])
-            if title_el:
-                record["titre"] = title_el.get_text(strip=True)
-            link = section.find("a", href=True)
-            if link:
-                href = link["href"]
-                record["url_course"] = href if href.startswith("http") else f"{BASE_URL}{href}"
-            records.append(record)
-
-    # --- Tables de partants ---
-    for table in soup.find_all("table"):
-        rows = table.find_all("tr")
-        headers = []
-        if rows:
-            headers = [th.get_text(strip=True).lower().replace(" ", "_")
-                       for th in rows[0].find_all(["th", "td"])]
-        if len(headers) < 3:
-            continue
-        for row in rows[1:]:
-            cells = [td.get_text(strip=True) for td in row.find_all(["td", "th"])]
-            if cells and len(cells) >= 3:
-                partant = {
-                    "date": date_str,
-                    "source": "letrot",
-                    "type": "partant_programme",
-                    "scraped_at": datetime.utcnow().isoformat(),
-                }
-                for j, cell in enumerate(cells):
-                    key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
-                    partant[key] = cell
-                records.append(partant)
-
-    # --- Conditions de course ---
-    for div in soup.find_all(["div", "p", "section"], class_=True):
+    # --- Métadonnées de la course ---
+    course_info = {
+        "date": date_str,
+        "source": "letrot",
+        "type": "course_info",
+        "hippodrome_id": hippo_id,
+        "numero_course": race_num,
+        "url": url,
+        "scraped_at": datetime.utcnow().isoformat(),
+    }
+    title = soup.find("h1") or soup.find("h2")
+    if title:
+        course_info["titre"] = title.get_text(strip=True)
+    for div in soup.find_all(["div", "p", "span"], class_=True):
         classes = " ".join(div.get("class", []))
         if any(kw in classes.lower() for kw in ["condition", "detail", "info-course",
                                                   "distance", "allocation", "discipline"]):
             text = div.get_text(strip=True)
-            if text and 10 < len(text) < 2000:
-                records.append({
-                    "date": date_str,
-                    "source": "letrot",
-                    "type": "conditions_course",
-                    "contenu": text[:1500],
-                    "scraped_at": datetime.utcnow().isoformat(),
-                })
+            if text and 5 < len(text) < 1000:
+                course_info["conditions"] = course_info.get("conditions", "") + " " + text
+    records.append(course_info)
 
-    # --- JSON embarqués ---
-    for script in soup.find_all("script"):
-        script_text = script.string or ""
-        for m in re.finditer(r'JSON\.parse\s*\(\s*[\'"](.+?)[\'"]\s*\)', script_text, re.DOTALL):
-            try:
-                raw = m.group(1).encode().decode('unicode_escape')
-                data = json.loads(raw)
-                records.append({
-                    "date": date_str,
-                    "source": "letrot",
-                    "type": "embedded_json_parse",
-                    "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
-                })
-            except (json.JSONDecodeError, UnicodeDecodeError):
-                pass
-        for m in re.finditer(r'window\[?[\'"]?(__\w+|raceData|courseData|partants|runners|trotData)[\'"]?\]?\s*=\s*(\{.+?\});',
-                             script_text, re.DOTALL):
-            try:
-                data = json.loads(m.group(2))
-                records.append({
-                    "date": date_str,
-                    "source": "letrot",
-                    "type": "embedded_window_data",
-                    "var_name": m.group(1),
-                    "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
-                })
-            except json.JSONDecodeError:
-                pass
-        for m in re.finditer(r'(?:var|let|const)\s+(\w+)\s*=\s*(\[[\s\S]{50,}?\]);', script_text):
-            try:
-                data = json.loads(m.group(2))
-                records.append({
-                    "date": date_str,
-                    "source": "letrot",
-                    "type": "embedded_var_array",
-                    "var_name": m.group(1),
-                    "data": data,
-                    "scraped_at": datetime.utcnow().isoformat(),
-                })
-            except json.JSONDecodeError:
-                pass
-
-    for script in soup.find_all("script", {"type": "application/json"}):
-        try:
-            data = json.loads(script.string or "")
-            records.append({
-                "date": date_str,
-                "source": "letrot",
-                "type": "script_application_json",
-                "data_id": script.get("id", ""),
-                "data": data,
-                "scraped_at": datetime.utcnow().isoformat(),
-            })
-        except json.JSONDecodeError:
-            pass
-
-    # --- Data-attributes ---
-    for el in soup.find_all(attrs=lambda attrs: attrs and any(
-            k.startswith("data-") and any(kw in k for kw in
-            ["cheval", "horse", "runner", "race", "course", "driver", "trot", "distance"])
-            for k in attrs)):
-        data_attrs = {k: v for k, v in el.attrs.items() if k.startswith("data-")}
-        if data_attrs:
-            records.append({
-                "date": date_str,
-                "source": "letrot",
-                "type": "data_attributes",
-                "tag": el.name,
-                "text": el.get_text(strip=True)[:200],
-                "attributes": data_attrs,
-                "scraped_at": datetime.utcnow().isoformat(),
-            })
-
-    with open(cache_file, "w", encoding="utf-8") as f:
-        json.dump(records, f, ensure_ascii=False, indent=2)
-
-    return records
-
-
-def scrape_letrot_resultats(session, date_str):
-    """Scraper les résultats officiels du trot pour un jour donné."""
-    cache_file = os.path.join(CACHE_DIR, f"resultats_{date_str}.json")
-    if os.path.exists(cache_file):
-        with open(cache_file, "r", encoding="utf-8") as f:
-            return json.load(f)
-
-    dt = datetime.strptime(date_str, "%Y-%m-%d")
-    date_url = dt.strftime("%d-%m-%Y")
-    url = f"{BASE_URL}/fr/courses/resultats/{date_url}"
-    resp = fetch_with_retry(session, url)
-    if not resp:
-        return None
-
-    soup = BeautifulSoup(resp.text, "html.parser")
-    records = []
-
-    # --- Tables de résultats ---
+    # --- Tables de partants/résultats ---
     for table in soup.find_all("table"):
         rows = table.find_all("tr")
         headers = []
         if rows:
-            headers = [th.get_text(strip=True).lower().replace(" ", "_")
+            headers = [th.get_text(strip=True).lower().replace(" ", "_").replace("°", "")
                        for th in rows[0].find_all(["th", "td"])]
         if len(headers) < 2:
             continue
@@ -294,52 +174,17 @@ def scrape_letrot_resultats(session, date_str):
                 entry = {
                     "date": date_str,
                     "source": "letrot",
-                    "type": "resultat_officiel",
+                    "type": "partant",
+                    "hippodrome_id": hippo_id,
+                    "numero_course": race_num,
                     "scraped_at": datetime.utcnow().isoformat(),
                 }
                 for j, cell in enumerate(cells):
                     key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
                     entry[key] = cell
-                # Extraire temps de course
-                for cell in cells:
-                    temps_match = re.search(r"(\d+['']\d{2}[\"″]\d)", cell)
-                    if temps_match:
-                        entry["temps_course"] = temps_match.group(1)
-                        break
                 records.append(entry)
 
-    # --- Rapports de gains (rapports PMU trot) ---
-    for div in soup.find_all(["div", "section"], class_=True):
-        classes = " ".join(div.get("class", []))
-        if any(kw in classes.lower() for kw in ["rapport", "gain", "paiement", "dividende",
-                                                  "simple", "couple", "trio"]):
-            text = div.get_text(strip=True)
-            if text and 5 < len(text) < 3000:
-                records.append({
-                    "date": date_str,
-                    "source": "letrot",
-                    "type": "rapport_trot",
-                    "contenu": text[:2500],
-                    "scraped_at": datetime.utcnow().isoformat(),
-                })
-
-    # --- Statistiques driver/entraineur ---
-    for div in soup.find_all(["div", "section", "table"], class_=True):
-        classes = " ".join(div.get("class", []))
-        if any(kw in classes.lower() for kw in ["driver", "jockey", "entraineur", "trainer",
-                                                  "stats", "palmares", "classement"]):
-            text = div.get_text(strip=True)
-            if text and 10 < len(text) < 3000:
-                records.append({
-                    "date": date_str,
-                    "source": "letrot",
-                    "type": "stats_acteurs",
-                    "contenu": text[:2500],
-                    "css_class": classes,
-                    "scraped_at": datetime.utcnow().isoformat(),
-                })
-
-    # --- JSON embarqué ---
+    # --- JSON embarqué dans les scripts ---
     for script in soup.find_all("script"):
         script_text = script.string or ""
         for m in re.finditer(r'JSON\.parse\s*\(\s*[\'"](.+?)[\'"]\s*\)', script_text, re.DOTALL):
@@ -349,48 +194,115 @@ def scrape_letrot_resultats(session, date_str):
                 records.append({
                     "date": date_str,
                     "source": "letrot",
-                    "type": "resultats_embedded_json",
+                    "type": "embedded_json",
+                    "hippodrome_id": hippo_id,
+                    "numero_course": race_num,
                     "data": data,
                     "scraped_at": datetime.utcnow().isoformat(),
                 })
             except (json.JSONDecodeError, UnicodeDecodeError):
                 pass
+        for m in re.finditer(
+            r'window\[?[\'"]?(\w+)[\'"]?\]?\s*=\s*(\{[\s\S]+?\});',
+            script_text
+        ):
+            try:
+                data = json.loads(m.group(2))
+                records.append({
+                    "date": date_str,
+                    "source": "letrot",
+                    "type": "embedded_window",
+                    "var_name": m.group(1),
+                    "hippodrome_id": hippo_id,
+                    "numero_course": race_num,
+                    "data": data,
+                    "scraped_at": datetime.utcnow().isoformat(),
+                })
+            except json.JSONDecodeError:
+                pass
 
+    # --- application/json scripts ---
     for script in soup.find_all("script", {"type": "application/json"}):
         try:
             data = json.loads(script.string or "")
             records.append({
                 "date": date_str,
                 "source": "letrot",
-                "type": "resultats_script_json",
+                "type": "script_json",
                 "data_id": script.get("id", ""),
+                "hippodrome_id": hippo_id,
+                "numero_course": race_num,
                 "data": data,
                 "scraped_at": datetime.utcnow().isoformat(),
             })
         except json.JSONDecodeError:
             pass
 
+    # --- Data-attributes ---
+    for el in soup.find_all(attrs=lambda attrs: attrs and any(
+            k.startswith("data-") and any(kw in k for kw in
+            ["cheval", "horse", "runner", "race", "cote", "odd", "partant", "driver"])
+            for k in attrs)):
+        data_attrs = {k: v for k, v in el.attrs.items() if k.startswith("data-")}
+        if data_attrs:
+            records.append({
+                "date": date_str,
+                "source": "letrot",
+                "type": "data_attrs",
+                "hippodrome_id": hippo_id,
+                "numero_course": race_num,
+                "tag": el.name,
+                "text": el.get_text(strip=True)[:200],
+                "attributes": data_attrs,
+                "scraped_at": datetime.utcnow().isoformat(),
+            })
+
+    # Sauvegarder cache
     with open(cache_file, "w", encoding="utf-8") as f:
         json.dump(records, f, ensure_ascii=False, indent=2)
 
     return records
 
 
+def scrape_day(session, date_str):
+    """Scraper toutes les courses d'un jour via la page de listing."""
+    cache_index = os.path.join(CACHE_DIR, f"index_{date_str}.json")
+
+    if os.path.exists(cache_index):
+        with open(cache_index, "r", encoding="utf-8") as f:
+            return json.load(f)
+
+    # Essayer /courses/YYYY-MM-DD
+    url = f"{BASE_URL}/courses/{date_str}"
+    resp = fetch_with_retry(session, url)
+    race_links = []
+    if resp:
+        soup = BeautifulSoup(resp.text, "html.parser")
+        race_links = extract_race_links(soup, date_str)
+
+    with open(cache_index, "w", encoding="utf-8") as f:
+        json.dump(race_links, f)
+
+    return race_links
+
+
 def main():
-    parser = argparse.ArgumentParser(description="Script 83 — LeTrot Scraper (programmes, résultats, stats trot)")
-    parser.add_argument("--start", type=str, default="2022-01-01",
+    parser = argparse.ArgumentParser(description="Script 83 — LeTrot Scraper (courses trot)")
+    parser.add_argument("--start", type=str, default="2024-01-01",
                         help="Date de début (YYYY-MM-DD)")
     parser.add_argument("--end", type=str, default=None,
-                        help="Date de fin (YYYY-MM-DD), défaut=aujourd'hui")
+                        help="Date de fin (YYYY-MM-DD), défaut=hier")
     parser.add_argument("--resume", action="store_true", default=True,
                         help="Reprendre depuis le dernier checkpoint")
+    parser.add_argument("--max-days", type=int, default=0,
+                        help="Nombre max de jours à traiter (0=illimité)")
     args = parser.parse_args()
 
     start_date = datetime.strptime(args.start, "%Y-%m-%d")
-    end_date = datetime.strptime(args.end, "%Y-%m-%d") if args.end else datetime.now()
+    end_date = datetime.strptime(args.end, "%Y-%m-%d") if args.end else (datetime.now() - timedelta(days=1))
 
     log.info("=" * 60)
-    log.info("SCRIPT 83 — LeTrot Scraper (données officielles trot français)")
+    log.info("SCRIPT 83 — LeTrot Scraper (cloudscraper)")
     log.info(f"  Période : {start_date.date()} → {end_date.date()}")
     log.info("=" * 60)
 
@@ -408,43 +320,51 @@ def main():
     current = start_date
     day_count = 0
     total_records = 0
+    empty_days = 0
 
     while current <= end_date:
+        if args.max_days and day_count >= args.max_days:
+            log.info(f"  Max {args.max_days} jours atteint, arrêt.")
+            break
+
         date_str = current.strftime("%Y-%m-%d")
 
-        programme = scrape_letrot_programme(session, date_str)
-        if programme:
-            for rec in programme:
-                append_jsonl(output_file, rec)
-                total_records += 1
-
+        race_links = scrape_day(session, date_str)
         smart_pause(1.5, 0.8)
 
-        resultats = scrape_letrot_resultats(session, date_str)
-        if resultats:
-            for rec in resultats:
-                append_jsonl(output_file, rec)
-                total_records += 1
+        if not race_links:
+            empty_days += 1
+            log.debug(f"  {date_str}: aucune course trouvée")
+        else:
+            log.info(f"  {date_str}: {len(race_links)} courses trouvées")
+            for hippo_id, race_num in race_links:
+                records = scrape_race_page(session, date_str, hippo_id, race_num)
+                if records:
+                    for rec in records:
+                        append_jsonl(output_file, rec)
+                        total_records += 1
+                smart_pause(1.0, 0.5)
 
         day_count += 1
 
-        if day_count % 30 == 0:
-            log.info(f"  {date_str} | jours={day_count} records={total_records}")
-            save_checkpoint({"last_date": date_str, "total_records": total_records})
+        if day_count % 10 == 0:
+            log.info(f"  Progression: {day_count} jours, {total_records} records, {empty_days} jours vides")
+            save_checkpoint({"last_date": date_str, "total_records": total_records,
+                             "day_count": day_count})
 
-        if day_count % 80 == 0:
+        if day_count % 50 == 0:
             session.close()
             session = new_session()
             time.sleep(random.uniform(5, 15))
 
         current += timedelta(days=1)
-        smart_pause(1.0, 0.5)
 
-    save_checkpoint({"last_date": end_date.strftime("%Y-%m-%d"),
+    save_checkpoint({"last_date": (current - timedelta(days=1)).strftime("%Y-%m-%d"),
                      "total_records": total_records, "status": "done"})
 
     log.info("=" * 60)
     log.info(f"TERMINÉ: {day_count} jours, {total_records} records → {output_file}")
+    log.info(f"  Jours vides: {empty_days}")
     log.info("=" * 60)
 
 

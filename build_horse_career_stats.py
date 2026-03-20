@@ -99,42 +99,65 @@ def distance_category(dist):
 # Chargement des partants (streaming)
 # -----------------------------------------------------------------------
 
-def load_partants():
-    """Charge les partants depuis le premier fichier disponible."""
+def stream_and_group_partants():
+    """Charge les partants en streaming et regroupe par cheval directement.
+    Ne charge jamais tous les records en memoire - uniquement le dict par cheval."""
+    horse_races = defaultdict(list)
+    total = 0
+
     for fpath in INPUT_FILES:
         if not fpath.exists():
             continue
 
         print(f"  Source: {fpath}")
-        records = []
         t0 = time.time()
 
         if str(fpath).endswith(".jsonl"):
-            with open(fpath, "r", encoding="utf-8", errors="replace", buffering=1024*1024) as f:
-                while True:
+            with open(fpath, "r", encoding="utf-8", errors="replace", buffering=1048576) as f:
+                line = f.readline()
+                while line:
+                    stripped = line.strip()
+                    if stripped:
+                        try:
+                            p = json.loads(stripped)
+                            nom_raw = p.get("nom_cheval") or p.get("nom") or ""
+                            nom = normalize_name(nom_raw)
+                            if nom:
+                                total += 1
+                                horse_races[nom].append({
+                                    "date": p.get("date_reunion_iso", ""),
+                                    "pos": safe_int(p.get("position_arrivee")),
+                                    "win": bool(p.get("is_gagnant")) if p.get("is_gagnant") is not None else (safe_int(p.get("position_arrivee")) == 1 if safe_int(p.get("position_arrivee")) else None),
+                                    "place": bool(p.get("is_place")) if p.get("is_place") is not None else (safe_int(p.get("position_arrivee")) is not None and safe_int(p.get("position_arrivee")) <= 3),
+                                    "dist": safe_int(p.get("distance")),
+                                    "hippo": (p.get("hippodrome_normalise") or p.get("hippodrome") or "").lower().strip(),
+                                    "disc": (p.get("discipline") or "").upper().strip(),
+                                    "gains": safe_float(p.get("gains_prix_euros") or p.get("gains_carriere_euros")),
+                                    "cote": safe_float(p.get("cote_finale")),
+                                    "terrain": (p.get("type_piste") or p.get("meteo_type_piste") or "").lower().strip(),
+                                    "jockey": (p.get("jockey_driver") or "").strip(),
+                                    "entraineur": (p.get("entraineur") or "").strip(),
+                                    "red_km": safe_float(p.get("reduction_km_ms")),
+                                    "temps": safe_float(p.get("temps_ms")),
+                                    "nb_partants": safe_int(p.get("nb_partants")),
+                                    "nom_raw": (p.get("nom_cheval") or p.get("nom") or "").strip(),
+                                })
+                                if total % 500000 == 0:
+                                    print(f"    {total:,} partants traites ...")
+                        except json.JSONDecodeError:
+                            pass
                     line = f.readline()
-                    if not line:
-                        break
-                    line = line.strip()
-                    if not line:
-                        continue
-                    try:
-                        records.append(json.loads(line))
-                    except json.JSONDecodeError:
-                        continue
         else:
-            with open(fpath, "r", encoding="utf-8", errors="replace") as f:
-                data = json.load(f)
-            if isinstance(data, list):
-                records = data
-            del data
+            # JSON trop gros, skip
+            print(f"  [SKIP] JSON trop gros, utiliser JSONL")
+            continue
 
         dt = time.time() - t0
-        print(f"  -> {len(records):,} partants charges ({dt:.1f}s)")
-        return records
+        print(f"  -> {total:,} partants groupes en {len(horse_races):,} chevaux ({dt:.1f}s)")
+        return horse_races, total
 
     print("  [ERREUR] Aucun fichier partants trouve!")
-    return []
+    return horse_races, 0
 
 
 # -----------------------------------------------------------------------
@@ -390,20 +413,15 @@ def main():
     print("BUILD HORSE CAREER STATS")
     print("=" * 70)
 
-    # 1. Charger
-    print("\n[1] Chargement des partants ...")
-    partants = load_partants()
-    if not partants:
+    # 1+2. Charger et regrouper en streaming (1 seule passe)
+    print("\n[1] Chargement streaming + regroupement par cheval ...")
+    horse_races, total_partants = stream_and_group_partants()
+    if total_partants == 0:
         print("[ERREUR] Aucun partant. Abandon.")
         return
 
-    # 2. Regrouper
-    print("\n[2] Construction des historiques par cheval ...")
-    horse_races = build_stats(partants)
-    del partants  # Liberer la RAM
-
     # 3. Calculer et ecrire
-    print(f"\n[3] Calcul des stats pour {len(horse_races):,} chevaux ...")
+    print(f"\n[2] Calcul des stats pour {len(horse_races):,} chevaux ...")
     os.makedirs(str(DATA_MASTER), exist_ok=True)
     tmp_path = OUTPUT_FILE.with_suffix(".jsonl.tmp")
 

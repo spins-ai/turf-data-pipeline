@@ -373,24 +373,107 @@ def main():
         sys.exit(1)
 
     suffix = features_path.suffix.lower()
-    if suffix == ".parquet":
-        df = pd.read_parquet(features_path)
-    elif suffix == ".csv":
-        df = pd.read_csv(features_path)
-    elif suffix == ".json":
-        df = pd.read_json(features_path)
-    else:
-        logger.error("Format non supporte: %s", suffix)
-        sys.exit(1)
 
-    logger.info("Charge: %d lignes, %d colonnes", len(df), len(df.columns))
-
+    # For large Parquet files, use column-batch processing to limit RAM
+    COLUMN_BATCH_SIZE = 50  # Process 50 columns at a time
     monitor = FeatureStabilityMonitor(
         psi_threshold=args.psi_threshold,
         ref_end=args.ref_end,
     )
 
-    report = monitor.generate_report(df)
+    if suffix == ".parquet":
+        import pyarrow.parquet as pq_reader
+        schema = pq_reader.read_schema(features_path)
+        all_cols = [f.name for f in schema]
+        logger.info("Schema: %d colonnes totales", len(all_cols))
+
+        # Find numeric columns by reading a small sample
+        date_col = monitor.date_col
+        sample_df = pd.read_parquet(features_path, columns=all_cols[:20] + ([date_col] if date_col not in all_cols[:20] else []))
+        # We need the date column
+        if date_col not in all_cols:
+            logger.error("Colonne date '%s' introuvable", date_col)
+            sys.exit(1)
+
+        # Read only the date column first to build ref/cur masks
+        logger.info("Lecture colonne date '%s' ...", date_col)
+        dates_df = pd.read_parquet(features_path, columns=[date_col])
+        dates = pd.to_datetime(dates_df[date_col])
+        n_rows = len(dates)
+        logger.info("Charge: %d lignes, %d colonnes disponibles", n_rows, len(all_cols))
+
+        # Determine ref/cur split
+        if args.ref_end:
+            ref_end_dt = pd.Timestamp(args.ref_end)
+        else:
+            mid_date = dates.min() + (dates.max() - dates.min()) / 2
+            ref_end_dt = mid_date
+        mask_ref = dates < ref_end_dt
+        mask_cur = dates >= ref_end_dt
+        logger.info("Periode reference : < %s (%d lignes)", ref_end_dt.date(), mask_ref.sum())
+        logger.info("Periode courante  : >= %s (%d lignes)", ref_end_dt.date(), mask_cur.sum())
+
+        # Process columns in batches
+        feature_cols = [c for c in all_cols if c not in EXCLUDE_COLS and c != date_col]
+        all_reports = []
+        n_unstable = 0
+
+        for batch_start in range(0, len(feature_cols), COLUMN_BATCH_SIZE):
+            batch_cols = feature_cols[batch_start:batch_start + COLUMN_BATCH_SIZE]
+            logger.info("Batch %d-%d / %d colonnes ...",
+                        batch_start + 1, batch_start + len(batch_cols), len(feature_cols))
+
+            # Read only this batch of columns
+            batch_df = pd.read_parquet(features_path, columns=batch_cols)
+
+            # Filter to numeric columns only
+            numeric_in_batch = batch_df.select_dtypes(include=[np.number]).columns.tolist()
+
+            for col in numeric_in_batch:
+                ref_vals = batch_df.loc[mask_ref, col].values.astype(float)
+                cur_vals = batch_df.loc[mask_cur, col].values.astype(float)
+                psi = compute_psi(ref_vals, cur_vals, monitor.n_bins)
+                is_unstable = psi > monitor.psi_threshold
+
+                report_item = FeatureStabilityReport(
+                    feature=col,
+                    psi=round(psi, 6),
+                    is_unstable=is_unstable,
+                    monthly_stats=[],  # Skip monthly stats to save RAM
+                )
+                all_reports.append(report_item)
+                if is_unstable:
+                    n_unstable += 1
+                    logger.warning("  INSTABLE: %s — PSI=%.4f (seuil=%.2f)", col, psi, monitor.psi_threshold)
+
+            del batch_df  # Free RAM
+
+        all_reports.sort(key=lambda r: r.psi, reverse=True)
+        logger.info("  %d/%d features instables (PSI > %.2f)", n_unstable, len(all_reports), monitor.psi_threshold)
+
+        report = {
+            "n_features": len(all_reports),
+            "n_unstable": n_unstable,
+            "psi_threshold": monitor.psi_threshold,
+            "unstable_features": [r.feature for r in all_reports if r.is_unstable],
+            "features": [
+                {"feature": r.feature, "psi": r.psi, "is_unstable": r.is_unstable}
+                for r in all_reports
+            ],
+        }
+
+    else:
+        # CSV/JSON — load fully (assumed to be small)
+        if suffix == ".csv":
+            df = pd.read_csv(features_path)
+        elif suffix == ".json":
+            df = pd.read_json(features_path)
+        else:
+            logger.error("Format non supporte: %s", suffix)
+            sys.exit(1)
+
+        logger.info("Charge: %d lignes, %d colonnes", len(df), len(df.columns))
+        report = monitor.generate_report(df)
 
     # Affichage resume
     print(f"\n{'='*70}")
@@ -401,16 +484,15 @@ def main():
     if report["unstable_features"]:
         print(f"\nFeatures instables (PSI > {args.psi_threshold}) :")
         for feat in report["unstable_features"]:
-            psi_val = next(f["psi"] for f in report["features"] if f["feature"] == feat)
+            psi_val = next((f["psi"] for f in report["features"] if f["feature"] == feat), 0)
             print(f"  ! {feat}: PSI={psi_val:.4f}")
 
     # Sauvegarder
-    if args.output:
-        output_path = Path(args.output)
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(output_path, "w", encoding="utf-8") as f:
-            json.dump(report, f, ensure_ascii=False, indent=2, default=str)
-        logger.info("Rapport sauve: %s", output_path)
+    output_path = Path(args.output) if args.output else Path("output/quality/feature_stability_report.json")
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(report, f, ensure_ascii=False, indent=2, default=str)
+    logger.info("Rapport sauve: %s", output_path)
 
     # Code de sortie
     if report["n_unstable"] > 0:

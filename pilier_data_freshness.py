@@ -77,43 +77,71 @@ def find_most_recent_date(filepath: Path, sample_size: int = 500) -> dict:
     most_recent_str = ""
     dates_found = 0
 
+    date_fields = date_fields + ("date_reunion_iso",)
+
     try:
-        with open(filepath, "r", encoding="utf-8", errors="replace") as f:
-            if filepath.suffix == ".jsonl":
-                lines = []
-                for line in f:
-                    line = line.strip()
-                    if line:
-                        lines.append(line)
-                    if len(lines) >= sample_size:
-                        break
+        file_size = filepath.stat().st_size
 
-                # Lire aussi les dernieres lignes (souvent les plus recentes)
-                f.seek(0)
-                all_lines = f.readlines()
-                tail = [l.strip() for l in all_lines[-sample_size:] if l.strip()]
-                lines = list(set(lines + tail))
+        if filepath.suffix == ".jsonl":
+            # Streaming: lire les N premieres lignes
+            with open(filepath, "r", encoding="utf-8", errors="replace", buffering=1048576) as f:
+                count = 0
+                line = f.readline()
+                while line and count < sample_size:
+                    stripped = line.strip()
+                    if stripped:
+                        try:
+                            rec = json.loads(stripped)
+                            for key in date_fields:
+                                val = rec.get(key)
+                                if val:
+                                    try:
+                                        dt = parse_date(val)
+                                        dates_found += 1
+                                        if most_recent is None or dt > most_recent:
+                                            most_recent = dt
+                                            most_recent_str = str(val)
+                                    except (ValueError, TypeError):
+                                        continue
+                        except json.JSONDecodeError:
+                            pass
+                        count += 1
+                    line = f.readline()
 
-                for line in lines:
-                    try:
-                        rec = json.loads(line)
-                    except json.JSONDecodeError:
-                        continue
-
-                    for key in date_fields:
-                        val = rec.get(key)
-                        if val:
+            # Lire les dernieres lignes en streaming inverse (tail)
+            # Pour les gros fichiers: lire les derniers 2 MB
+            tail_size = min(file_size, 2 * 1024 * 1024)
+            if tail_size > 0 and file_size > tail_size:
+                with open(filepath, "r", encoding="utf-8", errors="replace") as f:
+                    f.seek(file_size - tail_size)
+                    f.readline()  # skip partial line
+                    tail_count = 0
+                    for tline in f:
+                        stripped = tline.strip()
+                        if stripped and tail_count < sample_size:
                             try:
-                                dt = parse_date(val)
-                                dates_found += 1
-                                if most_recent is None or dt > most_recent:
-                                    most_recent = dt
-                                    most_recent_str = str(val)
-                            except (ValueError, TypeError):
-                                continue
+                                rec = json.loads(stripped)
+                                for key in date_fields:
+                                    val = rec.get(key)
+                                    if val:
+                                        try:
+                                            dt = parse_date(val)
+                                            dates_found += 1
+                                            if most_recent is None or dt > most_recent:
+                                                most_recent = dt
+                                                most_recent_str = str(val)
+                                        except (ValueError, TypeError):
+                                            continue
+                            except json.JSONDecodeError:
+                                pass
+                            tail_count += 1
 
-            elif filepath.suffix == ".json":
-                data = json.load(f)
+        elif filepath.suffix == ".json":
+            if file_size > 500_000_000:
+                pass  # Skip gros JSON
+            else:
+                with open(filepath, "r", encoding="utf-8", errors="replace") as f:
+                    data = json.load(f)
                 if isinstance(data, dict):
                     data = [data]
                 if not isinstance(data, list):
@@ -185,26 +213,30 @@ def scan_file_freshness(filepath: Path, stale_days: int) -> dict:
 
 
 def scan_directory(directory: Path, stale_days: int, prefix: str = "") -> list[dict]:
-    """Scanne un repertoire pour la fraicheur."""
+    """Scanne un repertoire pour la fraicheur. Utilise os.walk pour eviter cache_corrupted."""
     results = []
 
     if not directory.exists():
         return results
 
     extensions = {".json", ".jsonl", ".csv", ".parquet"}
+    skip_dirs = {"cache_corrupted", "cache", ".git", "__pycache__", "node_modules"}
 
-    for f in sorted(directory.rglob("*")):
-        if f.is_file() and f.suffix in extensions and not f.name.endswith(".tmp"):
-            try:
-                info = scan_file_freshness(f, stale_days)
-                info["source"] = prefix
-                results.append(info)
-            except Exception as e:
-                results.append({
-                    "path": str(f.relative_to(BASE_DIR)),
-                    "error": str(e),
-                    "source": prefix,
-                })
+    for root, dirs, filenames in os.walk(directory):
+        dirs[:] = [d for d in dirs if d not in skip_dirs]
+        for fname in sorted(filenames):
+            f = Path(root) / fname
+            if f.suffix in extensions and not f.name.endswith((".tmp", ".bak")):
+                try:
+                    info = scan_file_freshness(f, stale_days)
+                    info["source"] = prefix
+                    results.append(info)
+                except Exception as e:
+                    results.append({
+                        "path": str(f.relative_to(BASE_DIR)),
+                        "error": str(e),
+                        "source": prefix,
+                    })
 
     return results
 

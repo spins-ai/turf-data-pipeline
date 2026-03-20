@@ -38,37 +38,34 @@ REPORT_FILE = LOGS_DIR / "golden_records_report.json"
 # Chargement donnees
 # -----------------------------------------------------------------------
 
-def load_jsonl(filepath: Path) -> list[dict]:
-    records = []
-    with open(filepath, "r", encoding="utf-8", errors="replace") as f:
-        for line in f:
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                records.append(json.loads(line))
-            except json.JSONDecodeError:
-                continue
-    return records
-
-
-def load_json(filepath: Path) -> list[dict]:
-    with open(filepath, "r", encoding="utf-8", errors="replace") as f:
-        data = json.load(f)
-    if isinstance(data, list):
-        return data
-    if isinstance(data, dict):
-        return [data]
-    return []
-
-
-def load_data(filepath: Path) -> list[dict]:
+def stream_records(filepath: Path):
+    """Generateur streaming de records. Ne charge jamais tout en memoire."""
     suffix = filepath.suffix.lower()
+    file_size = filepath.stat().st_size
+
     if suffix == ".jsonl":
-        return load_jsonl(filepath)
+        with open(filepath, "r", encoding="utf-8", errors="replace", buffering=1048576) as f:
+            line = f.readline()
+            while line:
+                stripped = line.strip()
+                if stripped:
+                    try:
+                        yield json.loads(stripped)
+                    except json.JSONDecodeError:
+                        pass
+                line = f.readline()
     elif suffix == ".json":
-        return load_json(filepath)
-    return []
+        if file_size > 500_000_000:
+            return  # Skip gros JSON
+        try:
+            with open(filepath, "r", encoding="utf-8", errors="replace") as f:
+                data = json.load(f)
+            if isinstance(data, dict):
+                yield data
+            elif isinstance(data, list):
+                yield from data
+        except Exception:
+            pass
 
 
 # -----------------------------------------------------------------------
@@ -263,6 +260,7 @@ class GoldenRecordBuilder:
 def find_data_files() -> list[tuple]:
     """Trouve les fichiers de donnees avec leur nom de source."""
     files = []
+    skip_dirs = {"cache_corrupted", "cache", ".git", "__pycache__", "node_modules"}
 
     # data_master/
     if DATA_MASTER.exists():
@@ -270,14 +268,16 @@ def find_data_files() -> list[tuple]:
             if f.suffix in (".json", ".jsonl") and not f.name.endswith(".tmp"):
                 files.append((f, f"master/{f.stem}"))
 
-    # output/ subdirs
+    # output/ subdirs - os.walk avec skip_dirs pour eviter cache_corrupted
     if OUTPUT_DIR.exists():
         for subdir in OUTPUT_DIR.iterdir():
-            if not subdir.is_dir():
+            if not subdir.is_dir() or subdir.name in skip_dirs:
                 continue
-            for f in subdir.rglob("*"):
-                if f.suffix in (".json", ".jsonl"):
-                    files.append((f, f"output/{subdir.name}"))
+            for root, dirs, filenames in os.walk(subdir):
+                dirs[:] = [d for d in dirs if d not in skip_dirs]
+                for fname in filenames:
+                    if fname.endswith((".json", ".jsonl")) and not fname.endswith((".tmp", ".bak")):
+                        files.append((Path(root) / fname, f"output/{subdir.name}"))
 
     return files
 
@@ -308,28 +308,58 @@ def main():
     print(f"Fichiers trouves: {len(data_files)}")
     print("-" * 60)
 
-    # Ingerer
+    # Fichiers a exclure (trop gros, deja resumes dans les stats)
+    skip_names = {"partants_master", "partants_master_enrichi",
+                  "partants_master_enrichi_sl", "partants_master_enrichi_tf"}
+    # Limite par defaut pour eviter explosion RAM
+    effective_limit = args.limit if args.limit > 0 else 100000
+
+    # Ingerer en streaming
     for filepath, source_name in data_files:
+        # Skip les fichiers partants (17 GB chacun) - deja resumes dans stats
+        if filepath.stem in skip_names:
+            print(f"  {source_name}: [SKIP] trop gros, utiliser les stats derivees")
+            continue
+
+        # Skip fichiers > 2 GB
         try:
-            records = load_data(filepath)
-            if args.limit > 0:
-                records = records[:args.limit]
-
-            if not records:
+            if filepath.stat().st_size > 2_000_000_000:
+                print(f"  {source_name}: [SKIP] > 2 GB")
                 continue
+        except OSError:
+            continue
 
-            # Verifier si ce fichier contient des entites de ce type
-            sample = records[:10]
-            has_entity = any(
-                extract_entity_key(r, args.entity)
-                for r in sample
-            )
-            if not has_entity:
-                continue
+        try:
+            count = 0
+            has_entity = None  # None = pas encore teste
 
-            builder.ingest(records, source_name, args.entity)
-            n = builder.source_counts[source_name]
-            print(f"  {source_name}: {n} entites ingerees")
+            for rec in stream_records(filepath):
+                # Tester sur les 10 premiers si le fichier contient des entites
+                if has_entity is None:
+                    if count < 10:
+                        if extract_entity_key(rec, args.entity):
+                            has_entity = True
+                    else:
+                        has_entity = False
+
+                if has_entity is False:
+                    break
+
+                if count >= effective_limit:
+                    break
+
+                key = extract_entity_key(rec, args.entity)
+                if key:
+                    fields = extract_entity_fields(rec, args.entity, source_name)
+                    for field_name, field_info in fields.items():
+                        builder.entities[key][field_name].append(field_info)
+                    builder.source_counts[source_name] += 1
+
+                count += 1
+
+            n = builder.source_counts.get(source_name, 0)
+            if n > 0:
+                print(f"  {source_name}: {n} entites ingerees")
 
         except Exception as e:
             print(f"  {source_name}: ERREUR - {e}")

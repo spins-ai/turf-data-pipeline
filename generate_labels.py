@@ -2,7 +2,7 @@
 """
 generate_labels.py
 ==================
-Genere les labels d'entrainement a partir des donnees de resultats (04_resultats).
+Genere les labels d'entrainement a partir de partants_master.jsonl.
 
 Pour chaque partant, produit :
   - is_winner      : bool — a gagne la course
@@ -14,12 +14,12 @@ Pour chaque partant, produit :
 
 Cle de jointure : partant_uid ou (date + reunion + course + numPmu)
 
-Entree  : output/04_resultats/rapports_normalises.json (ou .parquet)
+Entree  : data_master/partants_master.jsonl (streaming, 17 GB)
 Sortie  : output/labels/training_labels.jsonl
 
 Usage :
     python generate_labels.py
-    python generate_labels.py --input output/04_resultats/rapports_normalises.json
+    python generate_labels.py --input data_master/partants_master.jsonl
     python generate_labels.py --format parquet
 """
 
@@ -31,6 +31,7 @@ import json
 import logging
 import math
 import sys
+import time
 from collections import defaultdict
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -47,15 +48,13 @@ except ImportError:
 # ===========================================================================
 
 BASE_DIR = Path(__file__).resolve().parent
-INPUT_DIR = BASE_DIR / "output" / "04_resultats"
 OUTPUT_DIR = BASE_DIR / "output" / "labels"
 LOG_DIR = BASE_DIR / "logs"
 
 # Fichiers d'entree possibles (tries par preference)
 INPUT_CANDIDATES = [
-    INPUT_DIR / "rapports_normalises.json",
-    INPUT_DIR / "rapports_normalises.parquet",
-    INPUT_DIR / "rapports_brut.json",
+    BASE_DIR / "data_master" / "partants_master.jsonl",
+    BASE_DIR / "data_master" / "partants_master_enrichi.jsonl",
 ]
 
 # Statuts consideres comme DNF
@@ -379,11 +378,11 @@ def print_stats(labels: List[Dict], logger: logging.Logger):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Generation des labels d'entrainement a partir des resultats"
+        description="Generation des labels d'entrainement a partir de partants_master"
     )
     parser.add_argument(
         "--input", type=str, default=None,
-        help="Chemin vers le fichier de resultats (JSON, JSONL, ou Parquet)"
+        help="Chemin vers le fichier de partants (JSONL)"
     )
     parser.add_argument(
         "--output-dir", type=str, default=str(OUTPUT_DIR),
@@ -400,57 +399,162 @@ def main():
     logger.info("generate_labels.py — Generation des labels d'entrainement")
     logger.info("=" * 70)
 
-    # Load data
+    # Find input
     input_path = find_input(args.input, logger)
-    data = load_data(input_path, logger)
-
-    if not data:
-        logger.error("Aucune donnee chargee.")
-        sys.exit(1)
-
-    # Group by course
-    par_course: Dict[str, List[Dict]] = defaultdict(list)
-    for record in data:
-        # Skip non-partants
-        if str(record.get("statut", "")).lower() == "non_partant":
-            continue
-
-        course_uid = record.get("course_uid", "")
-        if not course_uid:
-            # Build composite key for grouping
-            course_uid = "|".join([
-                str(record.get("date_reunion_iso", record.get("date", ""))),
-                str(record.get("numReunion", record.get("reunion", ""))),
-                str(record.get("numOrdre", record.get("numCourse", ""))),
-            ])
-        par_course[course_uid].append(record)
-
-    logger.info("Courses detectees : %d", len(par_course))
-
-    # Generate labels course by course
-    all_labels = []
-    for course_uid, records in par_course.items():
-        course_labels = generate_labels_for_course(records)
-        all_labels.extend(course_labels)
-
-    logger.info("Labels generes : %d", len(all_labels))
-
-    # Stats
-    print_stats(all_labels, logger)
-
-    # Save
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    fmt = args.format
-    if fmt in ("jsonl", "all"):
-        save_jsonl(all_labels, output_dir / "training_labels.jsonl", logger)
-    if fmt in ("csv", "all"):
-        save_csv(all_labels, output_dir / "training_labels.csv", logger)
-    if fmt in ("parquet", "all"):
-        save_parquet(all_labels, output_dir / "training_labels.parquet", logger)
+    # ── Phase 1 : streaming groupby par course_uid ──
+    # On lit partants_master.jsonl en streaming et on regroupe par course_uid
+    # Comme les records d'une meme course ne sont pas forcement contigus,
+    # on accumule par course_uid en memoire (dict of lists), mais seulement
+    # les champs necessaires pour les labels (pas tout le record de 140 champs)
+    logger.info("Phase 1 : Lecture streaming de %s ...", input_path.name)
+    t0 = time.time()
 
-    logger.info("Termine — %d labels dans %s", len(all_labels), output_dir)
+    KEEP_FIELDS = [
+        "partant_uid", "course_uid", "date_reunion_iso", "date",
+        "numReunion", "reunion", "numOrdre", "numCourse", "course",
+        "numPmu", "numero", "position_arrivee", "ordreArrivee",
+        "is_gagnant", "is_place", "cote_finale", "coteDirect",
+        "rapport_gagnant", "statut", "is_disqualifie",
+    ]
+
+    par_course: Dict[str, List[Dict]] = defaultdict(list)
+    total_read = 0
+    skipped_np = 0
+
+    with open(input_path, "r", encoding="utf-8", errors="replace", buffering=1048576) as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                record = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+
+            total_read += 1
+
+            # Skip non-partants
+            if str(record.get("statut", "")).lower() == "non_partant":
+                skipped_np += 1
+                continue
+
+            # Extract only needed fields
+            slim = {k: record[k] for k in KEEP_FIELDS if k in record}
+
+            course_uid = slim.get("course_uid", "")
+            if not course_uid:
+                course_uid = "|".join([
+                    str(slim.get("date_reunion_iso", slim.get("date", ""))),
+                    str(slim.get("numReunion", slim.get("reunion", ""))),
+                    str(slim.get("numOrdre", slim.get("numCourse", ""))),
+                ])
+            par_course[course_uid].append(slim)
+
+            if total_read % 500000 == 0:
+                elapsed = time.time() - t0
+                logger.info("  %d lignes lues (%.0f/s), %d courses ...",
+                            total_read, total_read / elapsed, len(par_course))
+
+    logger.info("Lecture terminee : %d partants, %d non-partants ignores, %d courses",
+                total_read, skipped_np, len(par_course))
+
+    # ── Phase 2 : generation des labels et ecriture streaming ──
+    logger.info("Phase 2 : Generation des labels ...")
+
+    jsonl_path = output_dir / "training_labels.jsonl"
+    jsonl_tmp = jsonl_path.with_suffix(".tmp")
+    csv_path = output_dir / "training_labels.csv"
+    csv_tmp = csv_path.with_suffix(".tmp")
+
+    fmt = args.format
+    all_labels_for_parquet = []  # Only if parquet requested
+    stats = {"total": 0, "winners": 0, "places": 0, "dnf": 0, "with_pos": 0, "with_roi": 0, "value": 0}
+    courses_count = 0
+
+    f_jsonl = None
+    f_csv = None
+    csv_writer_obj = None
+
+    if fmt in ("jsonl", "all"):
+        f_jsonl = open(jsonl_tmp, "w", encoding="utf-8")
+    if fmt in ("csv", "all"):
+        f_csv = open(csv_tmp, "w", newline="", encoding="utf-8")
+
+    try:
+        for course_uid, records in par_course.items():
+            course_labels = generate_labels_for_course(records)
+            courses_count += 1
+
+            for label in course_labels:
+                stats["total"] += 1
+                if label["is_winner"]:
+                    stats["winners"] += 1
+                if label["is_place"]:
+                    stats["places"] += 1
+                if label["is_dnf"]:
+                    stats["dnf"] += 1
+                if label["position"] is not None:
+                    stats["with_pos"] += 1
+                if label["roi_final_odds"] is not None:
+                    stats["with_roi"] += 1
+                if label["value_label"] is True:
+                    stats["value"] += 1
+
+                if f_jsonl:
+                    f_jsonl.write(json.dumps(label, ensure_ascii=False, default=str) + "\n")
+
+                if f_csv:
+                    if csv_writer_obj is None:
+                        csv_writer_obj = csv.DictWriter(f_csv, fieldnames=list(label.keys()), extrasaction="ignore")
+                        csv_writer_obj.writeheader()
+                    csv_writer_obj.writerow(label)
+
+                if fmt in ("parquet", "all"):
+                    all_labels_for_parquet.append(label)
+
+            if courses_count % 50000 == 0:
+                elapsed = time.time() - t0
+                logger.info("  %d courses traitees, %d labels ...", courses_count, stats["total"])
+
+    finally:
+        if f_jsonl:
+            f_jsonl.close()
+        if f_csv:
+            f_csv.close()
+
+    # Rename tmp files
+    if fmt in ("jsonl", "all") and jsonl_tmp.exists():
+        jsonl_tmp.replace(jsonl_path)
+        logger.info("Sauve : %s (%d lignes)", jsonl_path, stats["total"])
+    if fmt in ("csv", "all") and csv_tmp.exists():
+        csv_tmp.replace(csv_path)
+        logger.info("Sauve : %s (%d lignes)", csv_path, stats["total"])
+
+    # Parquet
+    if fmt in ("parquet", "all") and all_labels_for_parquet:
+        save_parquet(all_labels_for_parquet, output_dir / "training_labels.parquet", logger)
+
+    # Stats
+    total = stats["total"]
+    if total > 0:
+        logger.info("-" * 50)
+        logger.info("STATISTIQUES DES LABELS")
+        logger.info("-" * 50)
+        logger.info("  Total partants  : %d", total)
+        logger.info("  Gagnants        : %d (%.1f%%)", stats["winners"], stats["winners"] / total * 100)
+        logger.info("  Places (top 3)  : %d (%.1f%%)", stats["places"], stats["places"] / total * 100)
+        logger.info("  DNF             : %d (%.1f%%)", stats["dnf"], stats["dnf"] / total * 100)
+        logger.info("  Avec position   : %d (%.1f%%)", stats["with_pos"], stats["with_pos"] / total * 100)
+        logger.info("  Avec ROI        : %d", stats["with_roi"])
+        logger.info("  Value (EV+)     : %d", stats["value"])
+        logger.info("  Courses uniques : %d", courses_count)
+        logger.info("-" * 50)
+
+    elapsed = time.time() - t0
+    logger.info("Termine — %d labels, %d courses en %.0fs", total, courses_count, elapsed)
 
 
 if __name__ == "__main__":

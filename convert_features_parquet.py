@@ -85,6 +85,42 @@ def infer_parquet_schema(jsonl_path: Path, sample_lines: int = 1000) -> list[str
     return sorted(all_keys)
 
 
+def align_table_to_schema(table, target_schema):
+    """Align a table to match target schema: reorder columns, add missing as null, drop extra."""
+    columns = []
+    for field in target_schema:
+        if field.name in table.schema.names:
+            col = table.column(field.name)
+            # Cast if types differ
+            if col.type != field.type:
+                try:
+                    col = col.cast(field.type)
+                except (pa.lib.ArrowInvalid, pa.lib.ArrowNotImplementedError):
+                    col = pa.nulls(len(table), type=field.type)
+            columns.append(col)
+        else:
+            # Missing column: fill with nulls
+            columns.append(pa.nulls(len(table), type=field.type))
+    return pa.table(columns, schema=target_schema)
+
+
+def sanitize_df_for_arrow(df):
+    """Convert columns with mixed types (dict/list mixed with scalars) to JSON strings.
+
+    pa.Table.from_pandas() crashes on columns containing both dicts and strings.
+    Scans all object columns and converts any dict/list values to JSON strings.
+    """
+    for col in df.columns:
+        if df[col].dtype == object:
+            # Check if ANY value in the column is a dict or list
+            mask = df[col].apply(lambda x: isinstance(x, (dict, list)))
+            if mask.any():
+                df[col] = df[col].apply(
+                    lambda x: json.dumps(x, ensure_ascii=False) if isinstance(x, (dict, list)) else x
+                )
+    return df
+
+
 def convert_one_file(jsonl_path: Path, parquet_path: Path, chunk_size: int = 50_000):
     """Convertit un fichier JSONL en Parquet par chunks."""
     fname = jsonl_path.name
@@ -123,30 +159,37 @@ def convert_one_file(jsonl_path: Path, parquet_path: Path, chunk_size: int = 50_
             if len(chunk_buffer) >= chunk_size:
                 chunk_num += 1
                 df = pd.DataFrame(chunk_buffer)
-                table = pa.Table.from_pandas(df, preserve_index=False)
+                sanitize_df_for_arrow(df)
+                try:
+                    table = pa.Table.from_pandas(df, preserve_index=False)
+                except (pa.lib.ArrowTypeError, pa.lib.ArrowInvalid) as e:
+                    # Fallback: force all object columns to string
+                    for c in df.columns:
+                        if df[c].dtype == object:
+                            df[c] = df[c].apply(
+                                lambda x: json.dumps(x, ensure_ascii=False)
+                                if isinstance(x, (dict, list)) else
+                                (str(x) if x is not None else None)
+                            )
+                    table = pa.Table.from_pandas(df, preserve_index=False)
 
                 if writer is None:
+                    writer_schema = table.schema
                     writer = pq.ParquetWriter(
                         str(parquet_tmp),
-                        table.schema,
+                        writer_schema,
                         compression="zstd",
                         compression_level=3,
                     )
 
                 try:
-                    writer.write_table(table)
-                except pa.lib.ArrowInvalid:
-                    # Schema mismatch — re-align
-                    if writer is not None:
-                        writer.close()
-                    # Re-create writer with unified schema
-                    writer = pq.ParquetWriter(
-                        str(parquet_tmp),
-                        table.schema,
-                        compression="zstd",
-                        compression_level=3,
-                    )
-                    writer.write_table(table)
+                    # Align table to writer schema: reorder, add missing, drop extra
+                    aligned = align_table_to_schema(table, writer_schema)
+                    writer.write_table(aligned)
+                except (ValueError, pa.lib.ArrowInvalid) as e:
+                    print(f"    [WARN] Schema align failed chunk {chunk_num}: {e}")
+                    # Skip this chunk rather than crash
+                    pass
 
                 total_rows += len(chunk_buffer)
                 chunk_buffer = []
@@ -160,20 +203,33 @@ def convert_one_file(jsonl_path: Path, parquet_path: Path, chunk_size: int = 50_
     if chunk_buffer:
         chunk_num += 1
         df = pd.DataFrame(chunk_buffer)
-        table = pa.Table.from_pandas(df, preserve_index=False)
+        sanitize_df_for_arrow(df)
+        try:
+            table = pa.Table.from_pandas(df, preserve_index=False)
+        except (pa.lib.ArrowTypeError, pa.lib.ArrowInvalid) as e:
+            for c in df.columns:
+                if df[c].dtype == object:
+                    df[c] = df[c].apply(
+                        lambda x: json.dumps(x, ensure_ascii=False)
+                        if isinstance(x, (dict, list)) else
+                        (str(x) if x is not None else None)
+                    )
+            table = pa.Table.from_pandas(df, preserve_index=False)
 
         if writer is None:
+            writer_schema = table.schema
             writer = pq.ParquetWriter(
                 str(parquet_tmp),
-                table.schema,
+                writer_schema,
                 compression="zstd",
                 compression_level=3,
             )
 
         try:
-            writer.write_table(table)
-        except pa.lib.ArrowInvalid:
-            # Fallback: re-create with new schema
+            aligned = align_table_to_schema(table, writer_schema)
+            writer.write_table(aligned)
+        except (ValueError, pa.lib.ArrowInvalid) as e:
+            print(f"    [WARN] Schema align failed last chunk: {e}")
             pass
 
         total_rows += len(chunk_buffer)

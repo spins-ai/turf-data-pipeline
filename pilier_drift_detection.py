@@ -22,6 +22,7 @@ import argparse
 import json
 import math
 import os
+import random
 import sys
 from collections import Counter, defaultdict
 from datetime import datetime
@@ -37,46 +38,27 @@ DEFAULT_KS_THRESHOLD = 0.05  # p-value sous laquelle on alerte
 DEFAULT_CAT_DRIFT_RATIO = 0.10  # ratio de valeurs nouvelles/disparues
 
 
-def load_jsonl(filepath: Path) -> list[dict]:
-    """Charge un fichier JSONL."""
-    records = []
-    with open(filepath, "r", encoding="utf-8", errors="replace") as f:
-        for line in f:
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                records.append(json.loads(line))
-            except json.JSONDecodeError:
-                continue
-    return records
+# Max valeurs numeriques stockees par mois par champ (reservoir sampling)
+MAX_SAMPLES_PER_MONTH = 2000
 
 
-def load_json(filepath: Path) -> list[dict]:
-    """Charge un fichier JSON (liste ou objet unique)."""
-    with open(filepath, "r", encoding="utf-8", errors="replace") as f:
-        data = json.load(f)
-    if isinstance(data, list):
-        return data
-    if isinstance(data, dict):
-        return [data]
-    return []
-
-
-def load_data(filepath: Path) -> list[dict]:
-    """Charge un fichier JSON ou JSONL."""
-    suffix = filepath.suffix.lower()
-    if suffix == ".jsonl":
-        return load_jsonl(filepath)
-    elif suffix == ".json":
-        return load_json(filepath)
-    else:
-        return []
+def stream_jsonl_lines(filepath: Path):
+    """Generateur streaming de records JSONL."""
+    with open(filepath, "r", encoding="utf-8", errors="replace", buffering=1048576) as f:
+        line = f.readline()
+        while line:
+            stripped = line.strip()
+            if stripped:
+                try:
+                    yield json.loads(stripped)
+                except json.JSONDecodeError:
+                    pass
+            line = f.readline()
 
 
 def extract_date_field(record: dict) -> str:
     """Extrait un champ date et retourne YYYY-MM ou None."""
-    for key in ("date", "date_course", "date_reunion", "jour", "date_debut"):
+    for key in ("date_reunion_iso", "date", "date_course", "date_reunion", "jour", "date_debut"):
         val = record.get(key)
         if val and isinstance(val, str):
             # Formats: YYYY-MM-DD, DD/MM/YYYY, YYYY/MM/DD
@@ -203,39 +185,162 @@ def categorical_drift(values_a: list, values_b: list) -> dict:
 # Analyse principale
 # -----------------------------------------------------------------------
 
-def analyze_drift(records: list[dict], threshold: float = DEFAULT_KS_THRESHOLD) -> dict:
-    """Analyse le drift entre periodes mensuelles."""
-    # Grouper par mois
-    by_month = defaultdict(list)
-    no_date_count = 0
-    for rec in records:
-        month = extract_date_field(rec)
-        if month:
-            by_month[month].append(rec)
-        else:
-            no_date_count += 1
+def analyze_drift_streaming(filepath: Path, threshold: float = DEFAULT_KS_THRESHOLD) -> dict:
+    """Analyse le drift en streaming - jamais plus de ~200 MB en RAM."""
+    suffix = filepath.suffix.lower()
+    file_size = filepath.stat().st_size
 
-    months_sorted = sorted(by_month.keys())
+    # Skip fichiers JSON > 500 MB (ne peuvent pas etre streames)
+    if suffix == ".json" and file_size > 500_000_000:
+        return {"status": "skipped", "reason": "JSON trop gros (>500 MB)"}
+    if suffix == ".json":
+        # Petit JSON: charger normalement
+        try:
+            with open(filepath, "r", encoding="utf-8", errors="replace") as f:
+                data = json.load(f)
+            if isinstance(data, dict):
+                data = [data]
+            if not isinstance(data, list) or not data:
+                return {"status": "empty"}
+            records_iter = iter(data)
+        except Exception as e:
+            return {"status": "error", "error": str(e)}
+    elif suffix == ".jsonl":
+        records_iter = stream_jsonl_lines(filepath)
+    else:
+        return {"status": "unsupported_format"}
+
+    # Pass 1+2 combinee: lire 500 records pour classifier, puis continuer streaming
+    sample_records = []
+    field_types = {}
+    total_records = 0
+    no_date_count = 0
+
+    # Structure par mois: pour numeric -> reservoir sampling, pour categorical -> Counter
+    # month_data[month][field] = {"values": [...], "count": N} pour numeric
+    # month_data[month][field] = Counter() pour categorical
+    month_numeric = defaultdict(lambda: defaultdict(list))  # month -> field -> [sampled values]
+    month_cat = defaultdict(lambda: defaultdict(Counter))  # month -> field -> Counter
+    month_counts = Counter()  # month -> nb records
+    month_record_idx = defaultdict(int)  # pour reservoir sampling
+
+    classify_done = False
+
+    for rec in records_iter:
+        total_records += 1
+
+        # Accumuler les 500 premiers pour classifier
+        if total_records <= 500:
+            sample_records.append(rec)
+            if total_records == 500:
+                # Classifier les champs
+                all_fields = set()
+                for r in sample_records:
+                    all_fields.update(r.keys())
+                for field in sorted(all_fields):
+                    vals = [r.get(field) for r in sample_records]
+                    ftype = classify_field(vals)
+                    if ftype != "skip":
+                        field_types[field] = ftype
+                classify_done = True
+
+                # Rejouer les 500 premiers records
+                for r in sample_records:
+                    month = extract_date_field(r)
+                    if not month:
+                        continue
+                    month_counts[month] += 1
+                    for field, ftype in field_types.items():
+                        val = r.get(field)
+                        if val is None or val == "":
+                            continue
+                        if ftype == "numeric":
+                            try:
+                                fval = to_float(val)
+                                month_numeric[month][field].append(fval)
+                            except (ValueError, TypeError):
+                                pass
+                        elif ftype == "categorical":
+                            month_cat[month][field][str(val)] += 1
+                    month_record_idx[month] = month_counts[month]
+
+                sample_records = []  # Liberer la memoire
+                continue
+            else:
+                continue
+
+        # Apres classification: streaming pur
+        month = extract_date_field(rec)
+        if not month:
+            no_date_count += 1
+            continue
+
+        month_counts[month] += 1
+        month_record_idx[month] += 1
+        idx = month_record_idx[month]
+
+        for field, ftype in field_types.items():
+            val = rec.get(field)
+            if val is None or val == "":
+                continue
+            if ftype == "numeric":
+                try:
+                    fval = to_float(val)
+                except (ValueError, TypeError):
+                    continue
+                samples = month_numeric[month][field]
+                if len(samples) < MAX_SAMPLES_PER_MONTH:
+                    samples.append(fval)
+                else:
+                    # Reservoir sampling
+                    j = random.randint(0, idx - 1)
+                    if j < MAX_SAMPLES_PER_MONTH:
+                        samples[j] = fval
+            elif ftype == "categorical":
+                month_cat[month][field][str(val)] += 1
+
+        if total_records % 500000 == 0:
+            print(f"    {total_records:,} records traites ...")
+
+    # Si < 500 records, classifier maintenant
+    if not classify_done and sample_records:
+        all_fields = set()
+        for r in sample_records:
+            all_fields.update(r.keys())
+        for field in sorted(all_fields):
+            vals = [r.get(field) for r in sample_records]
+            ftype = classify_field(vals)
+            if ftype != "skip":
+                field_types[field] = ftype
+
+        for r in sample_records:
+            total_records_counted = True
+            month = extract_date_field(r)
+            if not month:
+                no_date_count += 1
+                continue
+            month_counts[month] += 1
+            for field, ftype in field_types.items():
+                val = r.get(field)
+                if val is None or val == "":
+                    continue
+                if ftype == "numeric":
+                    try:
+                        month_numeric[month][field].append(to_float(val))
+                    except (ValueError, TypeError):
+                        pass
+                elif ftype == "categorical":
+                    month_cat[month][field][str(val)] += 1
+        sample_records = []
+
+    months_sorted = sorted(month_counts.keys())
     if len(months_sorted) < 2:
         return {
             "status": "insufficient_data",
             "months_found": len(months_sorted),
+            "total_records": total_records,
             "no_date_records": no_date_count,
         }
-
-    # Detecter les champs a analyser (sur un echantillon)
-    sample = records[:500]
-    all_fields = set()
-    for rec in sample:
-        all_fields.update(rec.keys())
-
-    # Classifier les champs
-    field_types = {}
-    for field in sorted(all_fields):
-        vals = [rec.get(field) for rec in sample]
-        ftype = classify_field(vals)
-        if ftype != "skip":
-            field_types[field] = ftype
 
     # Comparer paires de mois consecutifs
     drift_results = []
@@ -243,26 +348,19 @@ def analyze_drift(records: list[dict], threshold: float = DEFAULT_KS_THRESHOLD) 
 
     for i in range(len(months_sorted) - 1):
         m_a, m_b = months_sorted[i], months_sorted[i + 1]
-        recs_a = by_month[m_a]
-        recs_b = by_month[m_b]
 
         pair_result = {
             "period_a": m_a,
             "period_b": m_b,
-            "count_a": len(recs_a),
-            "count_b": len(recs_b),
+            "count_a": month_counts[m_a],
+            "count_b": month_counts[m_b],
             "fields": {},
         }
 
         for field, ftype in field_types.items():
             if ftype == "numeric":
-                try:
-                    vals_a = [to_float(r[field]) for r in recs_a
-                              if field in r and r[field] is not None and r[field] != ""]
-                    vals_b = [to_float(r[field]) for r in recs_b
-                              if field in r and r[field] is not None and r[field] != ""]
-                except (ValueError, TypeError):
-                    continue
+                vals_a = month_numeric[m_a].get(field, [])
+                vals_b = month_numeric[m_b].get(field, [])
 
                 if len(vals_a) < 5 or len(vals_b) < 5:
                     continue
@@ -286,21 +384,32 @@ def analyze_drift(records: list[dict], threshold: float = DEFAULT_KS_THRESHOLD) 
                 }
 
             elif ftype == "categorical":
-                vals_a = [r.get(field) for r in recs_a]
-                vals_b = [r.get(field) for r in recs_b]
-                cat_result = categorical_drift(vals_a, vals_b)
+                counter_a = month_cat[m_a].get(field, Counter())
+                counter_b = month_cat[m_b].get(field, Counter())
+                set_a = set(counter_a.keys())
+                set_b = set(counter_b.keys())
 
-                is_drift = cat_result["drift_ratio"] > DEFAULT_CAT_DRIFT_RATIO
+                appeared = set_b - set_a
+                disappeared = set_a - set_b
+                stable = set_a & set_b
+                total_unique = len(set_a | set_b)
+                drift_ratio = (len(appeared) + len(disappeared)) / max(total_unique, 1)
+
+                is_drift = drift_ratio > DEFAULT_CAT_DRIFT_RATIO
                 if is_drift:
                     alert_count += 1
 
                 pair_result["fields"][field] = {
                     "type": "categorical",
                     "drift_detected": is_drift,
-                    **cat_result,
+                    "n_appeared": len(appeared),
+                    "n_disappeared": len(disappeared),
+                    "n_stable": len(stable),
+                    "drift_ratio": round(drift_ratio, 4),
+                    "appeared": sorted(list(appeared))[:20],
+                    "disappeared": sorted(list(disappeared))[:20],
                 }
 
-        # Ne garder que les paires avec du drift
         fields_with_drift = {
             k: v for k, v in pair_result["fields"].items()
             if v.get("drift_detected", False)
@@ -310,7 +419,7 @@ def analyze_drift(records: list[dict], threshold: float = DEFAULT_KS_THRESHOLD) 
 
     return {
         "status": "ok",
-        "total_records": len(records),
+        "total_records": total_records,
         "no_date_records": no_date_count,
         "months_analyzed": len(months_sorted),
         "month_range": f"{months_sorted[0]} -> {months_sorted[-1]}",
@@ -331,30 +440,32 @@ def run_drift_detection(files: list[Path], threshold: float) -> dict:
 
     for filepath in files:
         fname = filepath.name
-        print(f"  [DRIFT] Analyse: {fname}")
+        file_size_mb = filepath.stat().st_size / 1024 / 1024
+        print(f"  [DRIFT] Analyse: {fname} ({file_size_mb:.0f} MB)")
 
         try:
-            data = load_data(filepath)
+            result = analyze_drift_streaming(filepath, threshold)
         except Exception as e:
-            print(f"    ERREUR chargement: {e}")
+            print(f"    ERREUR: {e}")
             report["files"][fname] = {"status": "error", "error": str(e)}
             continue
 
-        if not data:
-            print(f"    Fichier vide ou format non supporte")
-            report["files"][fname] = {"status": "empty"}
-            continue
-
-        result = analyze_drift(data, threshold)
         report["files"][fname] = result
 
-        if result.get("status") == "ok":
+        status = result.get("status", "")
+        if status == "ok":
             n_alerts = result.get("total_alerts", 0)
             n_months = result.get("months_analyzed", 0)
             tag = "ALERTE" if n_alerts > 0 else "OK"
             print(f"    [{tag}] {n_months} mois, {n_alerts} alertes drift")
+        elif status == "skipped":
+            print(f"    [SKIP] {result.get('reason', '')}")
+        elif status == "empty":
+            print(f"    Fichier vide")
+        elif status == "insufficient_data":
+            print(f"    Donnees insuffisantes ({result.get('months_found', 0)} mois)")
         else:
-            print(f"    Donnees insuffisantes pour l'analyse")
+            print(f"    Status: {status}")
 
     return report
 

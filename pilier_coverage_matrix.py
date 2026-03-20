@@ -60,67 +60,91 @@ def extract_year(record: dict) -> str:
     return None
 
 
-def load_jsonl(filepath: Path) -> list[dict]:
-    """Charge un fichier JSONL."""
-    records = []
-    with open(filepath, "r", encoding="utf-8", errors="replace") as f:
-        for line in f:
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                records.append(json.loads(line))
-            except json.JSONDecodeError:
-                continue
-    return records
+def stream_jsonl_years(filepath: Path) -> tuple[Counter, int, int]:
+    """Compte les annees en streaming sans charger en memoire."""
+    year_counts = Counter()
+    total = 0
+    errors = 0
+    try:
+        with open(filepath, "r", encoding="utf-8", errors="replace", buffering=1048576) as f:
+            line = f.readline()
+            while line:
+                stripped = line.strip()
+                if stripped:
+                    try:
+                        rec = json.loads(stripped)
+                        total += 1
+                        year = extract_year(rec)
+                        year_counts[year if year else "N/A"] += 1
+                    except json.JSONDecodeError:
+                        errors += 1
+                line = f.readline()
+    except Exception:
+        errors += 1
+    return year_counts, total, errors
 
 
-def load_json(filepath: Path) -> list[dict]:
-    """Charge un fichier JSON."""
-    with open(filepath, "r", encoding="utf-8", errors="replace") as f:
-        data = json.load(f)
-    if isinstance(data, list):
-        return data
-    if isinstance(data, dict):
-        return [data]
-    return []
+def stream_json_years(filepath: Path) -> tuple[Counter, int, int]:
+    """Compte les annees pour un fichier JSON. Skip si > 500 MB."""
+    year_counts = Counter()
+    total = 0
+    errors = 0
+    file_size = filepath.stat().st_size
+    if file_size > 500_000_000:
+        # Trop gros pour charger en memoire, skip
+        return year_counts, 0, 0
+    try:
+        with open(filepath, "r", encoding="utf-8", errors="replace") as f:
+            data = json.load(f)
+        if isinstance(data, dict):
+            data = [data]
+        if isinstance(data, list):
+            for rec in data:
+                total += 1
+                year = extract_year(rec)
+                year_counts[year if year else "N/A"] += 1
+    except Exception:
+        errors += 1
+    return year_counts, total, errors
 
 
 def scan_output_sources(output_dir: Path) -> dict:
-    """Scanne les sous-dossiers output/ pour compter les records par annee."""
+    """Scanne les sous-dossiers output/ pour compter les records par annee. Streaming."""
     sources = {}
 
     if not output_dir.exists():
         return sources
+
+    skip_dirs = {"cache_corrupted", "cache", ".git", "__pycache__", "node_modules"}
 
     for subdir in sorted(output_dir.iterdir()):
         if not subdir.is_dir():
             continue
 
         source_name = subdir.name
+        if source_name in skip_dirs:
+            continue
+
         year_counts = Counter()
         total = 0
         errors = 0
 
-        for f in subdir.rglob("*"):
-            if f.suffix not in (".json", ".jsonl"):
-                continue
-            try:
-                if f.suffix == ".jsonl":
-                    records = load_jsonl(f)
-                else:
-                    records = load_json(f)
-
-                for rec in records:
-                    total += 1
-                    year = extract_year(rec)
-                    if year:
-                        year_counts[year] += 1
+        for root, dirs, filenames in os.walk(subdir):
+            dirs[:] = [dn for dn in dirs if dn not in skip_dirs]
+            for fname in filenames:
+                f = Path(root) / fname
+                if f.suffix not in (".json", ".jsonl") or fname.endswith(".bak"):
+                    continue
+                try:
+                    if f.suffix == ".jsonl":
+                        yc, t, e = stream_jsonl_years(f)
                     else:
-                        year_counts["N/A"] += 1
-            except Exception:
-                errors += 1
-                continue
+                        yc, t, e = stream_json_years(f)
+                    year_counts += yc
+                    total += t
+                    errors += e
+                except Exception:
+                    errors += 1
 
         if total > 0 or errors > 0:
             sources[source_name] = {
@@ -128,38 +152,28 @@ def scan_output_sources(output_dir: Path) -> dict:
                 "total": total,
                 "errors": errors,
             }
+            print(f"  {source_name}: {total} records, {errors} errors")
 
     return sources
 
 
 def scan_master_sources(master_dir: Path) -> dict:
-    """Scanne les fichiers data_master/."""
+    """Scanne les fichiers data_master/ en streaming."""
     sources = {}
 
     if not master_dir.exists():
         return sources
 
     for f in sorted(master_dir.iterdir()):
-        if f.suffix not in (".json", ".jsonl") or f.name.endswith(".tmp"):
+        if f.suffix not in (".json", ".jsonl") or f.name.endswith(".tmp") or f.name.endswith(".bak"):
             continue
 
         source_name = f.stem
-        year_counts = Counter()
-        total = 0
-
         try:
             if f.suffix == ".jsonl":
-                records = load_jsonl(f)
+                year_counts, total, _ = stream_jsonl_years(f)
             else:
-                records = load_json(f)
-
-            for rec in records:
-                total += 1
-                year = extract_year(rec)
-                if year:
-                    year_counts[year] += 1
-                else:
-                    year_counts["N/A"] += 1
+                year_counts, total, _ = stream_json_years(f)
         except Exception:
             sources[source_name] = {
                 "year_counts": {},
@@ -173,6 +187,7 @@ def scan_master_sources(master_dir: Path) -> dict:
             "total": total,
             "errors": 0,
         }
+        print(f"  {source_name}: {total} records")
 
     return sources
 

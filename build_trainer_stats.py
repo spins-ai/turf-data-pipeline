@@ -87,96 +87,67 @@ def safe_rate(count, total):
 
 
 # -----------------------------------------------------------------------
-# Chargement
+# Chargement streaming + regroupement
 # -----------------------------------------------------------------------
 
-def load_partants():
-    """Charge les partants depuis le premier fichier disponible."""
+def stream_and_group_trainers():
+    """Charge les partants en streaming et regroupe par entraineur directement."""
+    trainer_races = defaultdict(list)
+    total = 0
+
     for fpath in INPUT_FILES:
         if not fpath.exists():
             continue
 
         print(f"  Source: {fpath}")
-        records = []
         t0 = time.time()
 
         if str(fpath).endswith(".jsonl"):
-            with open(fpath, "r", encoding="utf-8", errors="replace", buffering=1024*1024) as f:
-                while True:
+            with open(fpath, "r", encoding="utf-8", errors="replace", buffering=1048576) as f:
+                line = f.readline()
+                while line:
+                    stripped = line.strip()
+                    if stripped:
+                        try:
+                            p = json.loads(stripped)
+                            entraineur_raw = (p.get("entraineur") or "").strip()
+                            if entraineur_raw:
+                                entraineur = normalize_actor(entraineur_raw)
+                                if entraineur:
+                                    total += 1
+                                    position = safe_int(p.get("position_arrivee"))
+                                    is_gagnant = p.get("is_gagnant")
+                                    is_place = p.get("is_place")
+                                    jockey_raw = (p.get("jockey_driver") or "").strip()
+                                    trainer_races[entraineur].append({
+                                        "date": p.get("date_reunion_iso", ""),
+                                        "pos": position,
+                                        "win": bool(is_gagnant) if is_gagnant is not None else (position == 1 if position else False),
+                                        "place": bool(is_place) if is_place is not None else (position is not None and position <= 3),
+                                        "dist": safe_int(p.get("distance")),
+                                        "hippo": (p.get("hippodrome_normalise") or p.get("hippodrome") or "").lower().strip(),
+                                        "disc": (p.get("discipline") or "").upper().strip(),
+                                        "gains": safe_float(p.get("gains_prix_euros")),
+                                        "jockey": normalize_actor(jockey_raw) if jockey_raw else "",
+                                        "cheval": (p.get("nom_cheval") or "").strip(),
+                                        "cote": safe_float(p.get("cote_finale")),
+                                        "entraineur_raw": entraineur_raw,
+                                    })
+                                    if total % 500000 == 0:
+                                        print(f"    {total:,} partants traites ...")
+                        except json.JSONDecodeError:
+                            pass
                     line = f.readline()
-                    if not line:
-                        break
-                    line = line.strip()
-                    if not line:
-                        continue
-                    try:
-                        records.append(json.loads(line))
-                    except json.JSONDecodeError:
-                        continue
         else:
-            with open(fpath, "r", encoding="utf-8", errors="replace") as f:
-                data = json.load(f)
-            if isinstance(data, list):
-                records = data
+            print(f"  [SKIP] JSON trop gros, utiliser JSONL")
+            continue
 
         dt = time.time() - t0
-        print(f"  -> {len(records):,} partants charges ({dt:.1f}s)")
-        return records
+        print(f"  -> {total:,} partants groupes en {len(trainer_races):,} entraineurs ({dt:.1f}s)")
+        return trainer_races, total
 
     print("  [ERREUR] Aucun fichier partants trouve!")
-    return []
-
-
-# -----------------------------------------------------------------------
-# Construction des stats
-# -----------------------------------------------------------------------
-
-def build_trainer_history(partants):
-    """Regroupe les courses par entraineur."""
-    print(f"\n  Regroupement par entraineur ...")
-    t0 = time.time()
-
-    trainer_races = defaultdict(list)
-
-    for p in partants:
-        entraineur_raw = (p.get("entraineur") or "").strip()
-        if not entraineur_raw:
-            continue
-
-        entraineur = normalize_actor(entraineur_raw)
-        if not entraineur:
-            continue
-
-        date_iso = p.get("date_reunion_iso", "")
-        position = safe_int(p.get("position_arrivee"))
-        is_gagnant = p.get("is_gagnant")
-        is_place = p.get("is_place")
-        distance = safe_int(p.get("distance"))
-        hippodrome = (p.get("hippodrome_normalise") or p.get("hippodrome") or "").lower().strip()
-        discipline = (p.get("discipline") or "").upper().strip()
-        gains = safe_float(p.get("gains_prix_euros"))
-        jockey_raw = (p.get("jockey_driver") or "").strip()
-        jockey = normalize_actor(jockey_raw) if jockey_raw else ""
-        nom_cheval = (p.get("nom_cheval") or "").strip()
-        cote = safe_float(p.get("cote_finale"))
-
-        trainer_races[entraineur].append({
-            "date": date_iso,
-            "pos": position,
-            "win": bool(is_gagnant) if is_gagnant is not None else (position == 1 if position else False),
-            "place": bool(is_place) if is_place is not None else (position is not None and position <= 3),
-            "dist": distance,
-            "hippo": hippodrome,
-            "disc": discipline,
-            "gains": gains,
-            "jockey": jockey,
-            "cheval": nom_cheval,
-            "cote": cote,
-            "entraineur_raw": entraineur_raw,
-        })
-
-    print(f"  -> {len(trainer_races):,} entraineurs uniques ({time.time() - t0:.1f}s)")
-    return trainer_races
+    return trainer_races, 0
 
 
 def compute_trainer_stats(entraineur, races):
@@ -339,20 +310,15 @@ def main():
     print("BUILD TRAINER STATS")
     print("=" * 70)
 
-    # 1. Charger
-    print("\n[1] Chargement des partants ...")
-    partants = load_partants()
-    if not partants:
+    # 1+2. Charger et regrouper en streaming
+    print("\n[1] Chargement streaming + regroupement par entraineur ...")
+    trainer_races, total_partants = stream_and_group_trainers()
+    if total_partants == 0:
         print("[ERREUR] Aucun partant. Abandon.")
         return
 
-    # 2. Regrouper
-    print("\n[2] Construction des historiques ...")
-    trainer_races = build_trainer_history(partants)
-    del partants
-
     # 3. Calculer et ecrire
-    print(f"\n[3] Calcul des stats pour {len(trainer_races):,} entraineurs ...")
+    print(f"\n[2] Calcul des stats pour {len(trainer_races):,} entraineurs ...")
     os.makedirs(str(DATA_MASTER), exist_ok=True)
     tmp_path = OUTPUT_FILE.with_suffix(".jsonl.tmp")
 

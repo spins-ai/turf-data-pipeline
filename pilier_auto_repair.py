@@ -53,6 +53,12 @@ def repair_truncated_json(filepath: Path, dry_run: bool = False) -> dict:
         "details": "",
     }
 
+    # Skip les gros fichiers JSON (> 500 MB) pour eviter de saturer la RAM
+    file_size = filepath.stat().st_size
+    if file_size > 500_000_000:
+        result["details"] = f"Skip (fichier trop gros: {file_size // 1_000_000} MB)"
+        return result
+
     try:
         with open(filepath, "r", encoding="utf-8", errors="replace") as f:
             content = f.read()
@@ -137,7 +143,7 @@ def repair_truncated_json(filepath: Path, dry_run: bool = False) -> dict:
 
 
 def repair_truncated_jsonl(filepath: Path, dry_run: bool = False) -> dict:
-    """Repare un fichier JSONL avec des lignes invalides."""
+    """Repare un fichier JSONL avec des lignes invalides. Streaming pour gros fichiers."""
     result = {
         "file": str(filepath.relative_to(BASE_DIR)),
         "type": "truncated_jsonl",
@@ -147,12 +153,67 @@ def repair_truncated_jsonl(filepath: Path, dry_run: bool = False) -> dict:
         "lines_removed": 0,
     }
 
+    file_size = filepath.stat().st_size
+    big_file = file_size > 500_000_000  # > 500 MB
+
+    if big_file:
+        # STREAMING: 2 passes pour eviter de charger en RAM
+        # Pass 1: compter les invalides
+        invalid_count = 0
+        try:
+            with open(filepath, "r", encoding="utf-8", errors="replace", buffering=1048576) as f:
+                line = f.readline()
+                while line:
+                    stripped = line.strip()
+                    if stripped:
+                        result["lines_total"] += 1
+                        try:
+                            json.loads(stripped)
+                            result["lines_valid"] += 1
+                        except json.JSONDecodeError:
+                            invalid_count += 1
+                    line = f.readline()
+        except Exception as e:
+            result["details"] = f"Erreur lecture: {e}"
+            return result
+
+        result["lines_removed"] = invalid_count
+        if invalid_count == 0:
+            result["details"] = "Toutes les lignes sont valides"
+            return result
+
+        result["details"] = f"{invalid_count} ligne(s) invalide(s) (fichier {file_size // 1_000_000} MB)"
+
+        if not dry_run:
+            backup = filepath.with_suffix(filepath.suffix + ".bak")
+            shutil.copy2(filepath, backup)
+            tmp = filepath.with_suffix(".tmp")
+            with open(filepath, "r", encoding="utf-8", errors="replace", buffering=1048576) as fin, \
+                 open(tmp, "w", encoding="utf-8", errors="replace", buffering=1048576) as fout:
+                line = fin.readline()
+                while line:
+                    stripped = line.strip()
+                    if stripped:
+                        try:
+                            json.loads(stripped)
+                            fout.write(stripped + "\n")
+                        except json.JSONDecodeError:
+                            pass
+                    line = fin.readline()
+            tmp.replace(filepath)
+            result["repaired"] = True
+            result["backup"] = str(backup.relative_to(BASE_DIR))
+        else:
+            result["would_repair"] = True
+        return result
+
+    # Petits fichiers: methode originale en memoire
     valid_lines = []
     invalid_count = 0
 
     try:
         with open(filepath, "r", encoding="utf-8", errors="replace") as f:
-            for i, line in enumerate(f):
+            for line in f:
                 line = line.strip()
                 if not line:
                     continue
@@ -227,6 +288,11 @@ def fix_encoding(filepath: Path, dry_run: bool = False) -> dict:
         "repaired": False,
     }
 
+    # Skip gros fichiers (> 500 MB) - deja en utf-8 avec errors=replace
+    if filepath.stat().st_size > 500_000_000:
+        result["details"] = f"Skip (fichier trop gros: {filepath.stat().st_size // 1_000_000} MB)"
+        return result
+
     detected = detect_encoding(filepath)
     result["detected_encoding"] = detected
 
@@ -267,7 +333,7 @@ def fix_encoding(filepath: Path, dry_run: bool = False) -> dict:
 # -----------------------------------------------------------------------
 
 def remove_duplicates_jsonl(filepath: Path, dry_run: bool = False) -> dict:
-    """Supprime les lignes dupliquees dans un fichier JSONL."""
+    """Supprime les lignes dupliquees dans un fichier JSONL. Streaming pour gros fichiers."""
     result = {
         "file": str(filepath.relative_to(BASE_DIR)),
         "type": "duplicates",
@@ -277,6 +343,78 @@ def remove_duplicates_jsonl(filepath: Path, dry_run: bool = False) -> dict:
         "lines_removed": 0,
     }
 
+    file_size = filepath.stat().st_size
+
+    # Pour les gros fichiers: streaming avec hash set uniquement (pas de stockage des lignes)
+    big_file = file_size > 500_000_000  # > 500 MB
+
+    if big_file:
+        # Pass 1: compter les doublons avec hash set
+        seen_hashes = set()
+        dup_count = 0
+        total = 0
+        try:
+            with open(filepath, "r", encoding="utf-8", errors="replace", buffering=1048576) as f:
+                line = f.readline()
+                while line:
+                    stripped = line.strip()
+                    if stripped:
+                        total += 1
+                        try:
+                            obj = json.loads(stripped)
+                            normalized = json.dumps(obj, sort_keys=True, ensure_ascii=False)
+                            h = hashlib.md5(normalized.encode("utf-8", errors="replace")).hexdigest()
+                        except json.JSONDecodeError:
+                            h = hashlib.md5(stripped.encode("utf-8", errors="replace")).hexdigest()
+                        if h in seen_hashes:
+                            dup_count += 1
+                        else:
+                            seen_hashes.add(h)
+                    line = f.readline()
+        except Exception as e:
+            result["details"] = f"Erreur lecture: {e}"
+            return result
+
+        result["lines_total"] = total
+        result["lines_unique"] = total - dup_count
+        result["lines_removed"] = dup_count
+
+        if dup_count == 0:
+            result["details"] = f"Aucun doublon ({file_size // 1_000_000} MB)"
+            return result
+
+        result["details"] = f"{dup_count} doublon(s) ({file_size // 1_000_000} MB)"
+
+        if not dry_run:
+            backup = filepath.with_suffix(filepath.suffix + ".bak")
+            shutil.copy2(filepath, backup)
+            # Pass 2: ecrire en streaming sans doublons
+            seen_hashes2 = set()
+            tmp = filepath.with_suffix(".tmp")
+            with open(filepath, "r", encoding="utf-8", errors="replace", buffering=1048576) as fin, \
+                 open(tmp, "w", encoding="utf-8", errors="replace", buffering=1048576) as fout:
+                line = fin.readline()
+                while line:
+                    stripped = line.strip()
+                    if stripped:
+                        try:
+                            obj = json.loads(stripped)
+                            normalized = json.dumps(obj, sort_keys=True, ensure_ascii=False)
+                            h = hashlib.md5(normalized.encode("utf-8", errors="replace")).hexdigest()
+                        except json.JSONDecodeError:
+                            h = hashlib.md5(stripped.encode("utf-8", errors="replace")).hexdigest()
+                        if h not in seen_hashes2:
+                            seen_hashes2.add(h)
+                            fout.write(stripped + "\n")
+                    line = fin.readline()
+            tmp.replace(filepath)
+            result["repaired"] = True
+            result["backup"] = str(backup.relative_to(BASE_DIR))
+        else:
+            result["would_repair"] = True
+        return result
+
+    # Petits fichiers: methode originale en memoire
     seen_hashes = set()
     unique_lines = []
 
@@ -287,16 +425,12 @@ def remove_duplicates_jsonl(filepath: Path, dry_run: bool = False) -> dict:
                 if not line:
                     continue
                 result["lines_total"] += 1
-
-                # Hash du contenu normalise (sans espaces)
                 try:
                     obj = json.loads(line)
                     normalized = json.dumps(obj, sort_keys=True, ensure_ascii=False)
                     h = hashlib.md5(normalized.encode("utf-8", errors="replace")).hexdigest()
                 except json.JSONDecodeError:
-                    # Garder les lignes invalides (sera traite par repair_truncated)
                     h = hashlib.md5(line.encode("utf-8", errors="replace")).hexdigest()
-
                 if h not in seen_hashes:
                     seen_hashes.add(h)
                     unique_lines.append(line)
@@ -316,7 +450,6 @@ def remove_duplicates_jsonl(filepath: Path, dry_run: bool = False) -> dict:
     if not dry_run:
         backup = filepath.with_suffix(filepath.suffix + ".bak")
         shutil.copy2(filepath, backup)
-
         with open(filepath, "w", encoding="utf-8", errors="replace") as f:
             for line in unique_lines:
                 f.write(line + "\n")
@@ -457,12 +590,17 @@ def find_data_files(specific_file: str = None) -> list[Path]:
         return []
 
     files = []
+    # Dossiers a ignorer (corrompus sur disque, WinError 1392)
+    # Ignorer les caches (centaines de milliers de petits fichiers)
+    skip_dirs = {"cache_corrupted", "cache", ".git", "__pycache__", "node_modules"}
     for d in [DATA_MASTER, OUTPUT_DIR]:
         if d.exists():
-            for f in d.rglob("*"):
-                if f.is_file() and f.suffix in (".json", ".jsonl"):
-                    if not f.name.endswith(".bak"):
-                        files.append(f)
+            for root, dirs, filenames in os.walk(d):
+                dirs[:] = [dn for dn in dirs if dn not in skip_dirs]
+                for fname in filenames:
+                    fpath = Path(root) / fname
+                    if fpath.suffix in (".json", ".jsonl") and not fname.endswith(".bak"):
+                        files.append(fpath)
     return sorted(files)
 
 
