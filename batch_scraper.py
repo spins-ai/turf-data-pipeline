@@ -261,7 +261,7 @@ def extract_page_data(soup, url, source_name, date_iso):
         st = sc.string or ""
         for m in re.finditer(r'JSON\.parse\s*\(\s*[\'"](.+?)[\'"]\s*\)', st, re.DOTALL):
             try:
-                raw = m.group(1).encode().decode('unicode_escape')
+                raw = m.group(1).encode("raw_unicode_escape").decode("unicode_escape")
                 data = json.loads(raw)
                 records.append({
                     "date": date_iso,
