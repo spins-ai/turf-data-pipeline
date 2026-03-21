@@ -389,8 +389,8 @@ def train_catboost(
         imp_pred_vals = model.get_feature_importance(train_pool, type="PredictionValuesChange")
         imp_prediction = dict(zip(feature_names, imp_pred_vals.tolist()))
         imp_prediction = dict(sorted(imp_prediction.items(), key=lambda x: -x[1]))
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug("PredictionValuesChange importance not available: %s", e)
 
     return {
         "model": model,
