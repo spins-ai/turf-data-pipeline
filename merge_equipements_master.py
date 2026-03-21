@@ -106,7 +106,7 @@ def main():
         r["_nb_sources"] = len(r.get("_sources", []))
 
     log.info(f"Sauvegarde equipements_master.json ({len(master_list)} records)...")
-    out = "data_master/equipements_master.json"
+    out = os.path.join(BASE_DIR, "data_master", "equipements_master.json")
     with open(out + ".tmp", "w", encoding="utf-8") as f:
         json.dump(master_list, f, ensure_ascii=False)
     os.replace(out + ".tmp", out)
@@ -119,7 +119,7 @@ def main():
         for col in df.columns:
             if df[col].apply(lambda x: isinstance(x, (list, dict))).any():
                 df[col] = df[col].apply(lambda x: json.dumps(x, ensure_ascii=False) if isinstance(x, (list, dict)) else x)
-        pq.write_table(pa.Table.from_pandas(df), "data_master/equipements_master.parquet", compression="zstd")
+        pq.write_table(pa.Table.from_pandas(df), os.path.join(BASE_DIR, "data_master", "equipements_master.parquet"), compression="zstd")
         log.info(f"  → {os.path.getsize('data_master/equipements_master.parquet')/1024/1024:.1f} MB")
     except Exception as e:
         log.warning(f"  Parquet: {e}")

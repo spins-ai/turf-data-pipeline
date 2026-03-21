@@ -198,7 +198,7 @@ def main():
     profiles_list = list(horse_profiles.values())
     for r in profiles_list:
         r["_nb_sources"] = len(r.get("_sources", []))
-    out1 = "data_master/horse_profiles_externes.json"
+    out1 = os.path.join(BASE_DIR, "data_master", "horse_profiles_externes.json")
     with open(out1 + ".tmp", "w", encoding="utf-8") as f:
         json.dump(profiles_list, f, ensure_ascii=False)
     os.replace(out1 + ".tmp", out1)
@@ -208,7 +208,7 @@ def main():
     courses_list = list(courses_ext.values())
     for r in courses_list:
         r["_nb_sources"] = len(r.get("_sources", []))
-    out2 = "data_master/courses_externes.json"
+    out2 = os.path.join(BASE_DIR, "data_master", "courses_externes.json")
     with open(out2 + ".tmp", "w", encoding="utf-8") as f:
         json.dump(courses_list, f, ensure_ascii=False)
     os.replace(out2 + ".tmp", out2)
@@ -218,7 +218,7 @@ def main():
     rp_list = list(racing_post.values())
     for r in rp_list:
         r["_nb_sources"] = len(r.get("_sources", []))
-    out3 = "data_master/racing_post_master.json"
+    out3 = os.path.join(BASE_DIR, "data_master", "racing_post_master.json")
     with open(out3 + ".tmp", "w", encoding="utf-8") as f:
         json.dump(rp_list, f, ensure_ascii=False)
     os.replace(out3 + ".tmp", out3)
@@ -236,7 +236,7 @@ def main():
             for col in df.columns:
                 if df[col].apply(lambda x: isinstance(x, (list, dict))).any():
                     df[col] = df[col].apply(lambda x: json.dumps(x, ensure_ascii=False) if isinstance(x, (list, dict)) else x)
-            pq_path = f"data_master/{name}.parquet"
+            pq_path = fos.path.join(BASE_DIR, "data_master", "{name}.parquet")
             pq.write_table(pa.Table.from_pandas(df), pq_path, compression="zstd")
             log.info(f"  → {name}.parquet: {os.path.getsize(pq_path)/1024/1024:.1f} MB")
     except Exception as e:

@@ -103,7 +103,7 @@ def main():
     stats_list = list(horse_stats.values())
     for r in stats_list:
         r["_nb_sources"] = len(r.get("_sources", []))
-    out_stats = "data_master/horse_stats_master.json"
+    out_stats = os.path.join(BASE_DIR, "data_master", "horse_stats_master.json")
     with open(out_stats + ".tmp", "w", encoding="utf-8") as f:
         json.dump(stats_list, f, ensure_ascii=False)
     os.replace(out_stats + ".tmp", out_stats)
@@ -133,7 +133,7 @@ def main():
 
     # Stream 22_performances et écrire directement en JSON
     perf_path = os.path.join(BASE_DIR, "output", "22_performances_detaillees", "performances_detaillees.json")
-    out = "data_master/performances_master.json"
+    out = os.path.join(BASE_DIR, "data_master", "performances_master.json")
     tmp = out + ".tmp"
     total = 0
     seen_keys = set()
@@ -213,7 +213,7 @@ def main():
                                 df[col] = df[col].apply(lambda x: json.dumps(x, ensure_ascii=False) if isinstance(x, (list, dict)) else x)
                         table = pa.Table.from_pandas(df)
                         if writer is None:
-                            writer = pq.ParquetWriter("data_master/performances_master.parquet", table.schema, compression="zstd")
+                            writer = pq.ParquetWriter(os.path.join(BASE_DIR, "data_master", "performances_master.parquet"), table.schema, compression="zstd")
                         writer.write_table(table)
                         chunk = []
             if chunk:
@@ -223,7 +223,7 @@ def main():
                         df[col] = df[col].apply(lambda x: json.dumps(x, ensure_ascii=False) if isinstance(x, (list, dict)) else x)
                 table = pa.Table.from_pandas(df)
                 if writer is None:
-                    writer = pq.ParquetWriter("data_master/performances_master.parquet", table.schema, compression="zstd")
+                    writer = pq.ParquetWriter(os.path.join(BASE_DIR, "data_master", "performances_master.parquet"), table.schema, compression="zstd")
                 writer.write_table(table)
             if writer:
                 writer.close()

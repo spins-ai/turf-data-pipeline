@@ -421,7 +421,7 @@ def main():
     # Sauvegarder en JSON
     log.info("Sauvegarde pedigree_master.json...")
     master_list = list(master.values())
-    output = "data_master/pedigree_master.json"
+    output = os.path.join(BASE_DIR, "data_master", "pedigree_master.json")
     with open(output, "w", encoding="utf-8") as f:
         json.dump(master_list, f, ensure_ascii=False, indent=None)
     size_mb = os.path.getsize(output) / 1024 / 1024
@@ -436,7 +436,7 @@ def main():
             all_keys.update(r.keys())
         all_keys = sorted(all_keys)
 
-        with open("data_master/pedigree_master.csv", "w", newline="", encoding="utf-8") as f:
+        with open(os.path.join(BASE_DIR, "data_master", "pedigree_master.csv"), "w", newline="", encoding="utf-8") as f:
             writer = csv.DictWriter(f, fieldnames=all_keys, extrasaction="ignore")
             writer.writeheader()
             for r in master_list:
@@ -448,7 +448,7 @@ def main():
                     else:
                         row[k] = v
                 writer.writerow(row)
-        csv_size = os.path.getsize("data_master/pedigree_master.csv") / 1024 / 1024
+        csv_size = os.path.getsize(os.path.join(BASE_DIR, "data_master", "pedigree_master.csv")) / 1024 / 1024
         log.info(f"  → pedigree_master.csv: {csv_size:.1f} MB")
     except Exception as e:
         log.warning(f"  CSV erreur: {e}")
@@ -466,8 +466,8 @@ def main():
             if df[col].apply(lambda x: isinstance(x, (list, dict))).any():
                 df[col] = df[col].apply(lambda x: json.dumps(x, ensure_ascii=False) if isinstance(x, (list, dict)) else x)
 
-        pq.write_table(pa.Table.from_pandas(df), "data_master/pedigree_master.parquet", compression="zstd")
-        pq_size = os.path.getsize("data_master/pedigree_master.parquet") / 1024 / 1024
+        pq.write_table(pa.Table.from_pandas(df), os.path.join(BASE_DIR, "data_master", "pedigree_master.parquet"), compression="zstd")
+        pq_size = os.path.getsize(os.path.join(BASE_DIR, "data_master", "pedigree_master.parquet")) / 1024 / 1024
         log.info(f"  → pedigree_master.parquet: {pq_size:.1f} MB")
     except ImportError:
         log.warning("  pyarrow non installé — Parquet skippé (pip install pyarrow)")
