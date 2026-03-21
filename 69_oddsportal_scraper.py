@@ -22,7 +22,7 @@ except ImportError:
 from bs4 import BeautifulSoup
 
 SCRIPT_NAME = "69_oddsportal"
-OUTPUT_DIR = os.path.join("output", SCRIPT_NAME)
+OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output", SCRIPT_NAME)
 CACHE_DIR = os.path.join(OUTPUT_DIR, "cache")
 HTML_CACHE_DIR = os.path.join(OUTPUT_DIR, "html_cache")
 CHECKPOINT_FILE = os.path.join(OUTPUT_DIR, ".checkpoint.json")

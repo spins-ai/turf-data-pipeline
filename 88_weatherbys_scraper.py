@@ -19,7 +19,7 @@ import requests
 from bs4 import BeautifulSoup
 
 SCRIPT_NAME = "88_weatherbys"
-OUTPUT_DIR = os.path.join("output", SCRIPT_NAME)
+OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output", SCRIPT_NAME)
 CACHE_DIR = os.path.join(OUTPUT_DIR, "cache")
 CHECKPOINT_FILE = os.path.join(OUTPUT_DIR, ".checkpoint.json")
 
