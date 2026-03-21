@@ -42,7 +42,7 @@ from typing import Dict, List, Optional, Set
 # Configuration
 # ---------------------------------------------------------------------------
 
-PYTHON = r"C:\Users\celia\AppData\Local\Programs\Python\Python312\python.exe"
+PYTHON = os.environ.get("PYTHON_EXE", sys.executable)
 BASE_DIR = Path(__file__).resolve().parent
 CHECKPOINT_FILE = BASE_DIR / "pipeline_checkpoint.json"
 MAX_WORKERS = 4  # parallelisme pour les phases paralleles

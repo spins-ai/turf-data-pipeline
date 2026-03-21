@@ -74,7 +74,7 @@ def get_ram_usage() -> Tuple[float, float, float]:
 
     # Fallback: parse /proc/meminfo on Linux
     try:
-        with open("/proc/meminfo", "r") as f:
+        with open("/proc/meminfo", "r", encoding="utf-8") as f:
             info = {}
             for line in f:
                 parts = line.split()
@@ -102,7 +102,7 @@ def get_cpu_usage() -> float:
     # Fallback: read /proc/stat on Linux (rough estimate)
     try:
         def read_stat():
-            with open("/proc/stat", "r") as f:
+            with open("/proc/stat", "r", encoding="utf-8") as f:
                 line = f.readline()
             vals = list(map(int, line.split()[1:]))
             idle = vals[3]

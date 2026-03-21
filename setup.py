@@ -341,7 +341,7 @@ def print_system_info():
                 pass
         else:
             try:
-                with open("/proc/cpuinfo", "r") as f:
+                with open("/proc/cpuinfo", "r", encoding="utf-8") as f:
                     for line in f:
                         if line.startswith("model name"):
                             info(f"CPU        : {line.split(':')[1].strip()}")
@@ -383,7 +383,7 @@ def print_system_info():
                 used_gb = (stat.ullTotalPhys - stat.ullAvailPhys) / (1024 ** 3)
                 info(f"RAM        : {used_gb:.1f} / {ram_gb:.1f} GB")
             else:
-                with open("/proc/meminfo", "r") as f:
+                with open("/proc/meminfo", "r", encoding="utf-8") as f:
                     for line in f:
                         if line.startswith("MemTotal"):
                             kb = int(line.split()[1])

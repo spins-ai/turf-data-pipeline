@@ -158,7 +158,7 @@ def scrape_arqana_results():
                     if lots:
                         log.info(f"  {year}/{sale_type}: {len(lots)} lots")
                         
-            except Exception as e:
+            except Exception:
                 pass
             
             smart_pause(1.5, 0.5)
