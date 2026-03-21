@@ -81,7 +81,7 @@ def extract_keys_from_file(filepath, key_fields):
     return dict(keys), record_count, None
 
 
-SKIP_DIRS = {"cache_corrupted", "cache", ".git", "__pycache__", "node_modules"}
+SKIP_DIRS = {"cache", "cache_corrupted", "html_cache", "html", ".git", "__pycache__", "node_modules"}
 
 
 def find_matching_files(output_dir, patterns):

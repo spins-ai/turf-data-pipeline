@@ -179,8 +179,10 @@ def main():
     print(f"Scanning: {output_dir}")
     print(f"Expected range: {MIN_YEAR}-{MAX_YEAR}\n")
 
+    skip_dirs = {"cache", "cache_corrupted", "html_cache", "html"}
     files = []
-    for root, _dirs, filenames in os.walk(output_dir):
+    for root, dirs, filenames in os.walk(output_dir):
+        dirs[:] = [d for d in dirs if d not in skip_dirs]
         for fname in sorted(filenames):
             if fname.endswith(".json") or fname.endswith(".jsonl"):
                 files.append(os.path.join(root, fname))

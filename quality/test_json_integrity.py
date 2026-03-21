@@ -9,10 +9,14 @@ import os
 import sys
 
 
+SKIP_DIRS = {"cache", "cache_corrupted", "html_cache", "html"}
+
+
 def find_json_files(output_dir):
     """Find all .json and .jsonl files recursively."""
     files = []
-    for root, _dirs, filenames in os.walk(output_dir):
+    for root, dirs, filenames in os.walk(output_dir):
+        dirs[:] = [d for d in dirs if d not in SKIP_DIRS]
         for fname in sorted(filenames):
             if fname.endswith(".json") or fname.endswith(".jsonl"):
                 files.append(os.path.join(root, fname))

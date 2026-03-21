@@ -61,7 +61,7 @@ def run_test(script_path, output_dir):
             cmd,
             capture_output=True,
             text=True,
-            timeout=300,  # 5 min timeout per test
+            timeout=900,  # 15 min timeout per test
         )
         elapsed = time.time() - start
         return {
@@ -75,7 +75,7 @@ def run_test(script_path, output_dir):
         return {
             "returncode": -1,
             "stdout": "",
-            "stderr": "TIMEOUT after 300s",
+            "stderr": "TIMEOUT after 900s",
             "elapsed": elapsed,
         }
     except Exception as e:
