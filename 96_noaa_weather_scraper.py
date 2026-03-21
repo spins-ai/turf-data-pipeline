@@ -28,6 +28,7 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
+from utils.scraping import smart_pause
 
 log = setup_logging("96_noaa_weather")
 
@@ -102,12 +103,6 @@ def new_session(api_token=""):
         headers["token"] = api_token
     s.headers.update(headers)
     return s
-
-
-def smart_pause(base=1.0, jitter=0.5):
-    """NOAA API rate limit: 5 requests/sec, 10000/day."""
-    pause = base + random.uniform(-jitter, jitter)
-    time.sleep(max(0.3, pause))
 
 
 def fetch_with_retry(session, url, params=None, max_retries=3, timeout=30):

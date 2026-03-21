@@ -28,6 +28,7 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
+from utils.scraping import smart_pause
 
 log = setup_logging("97_meteostat")
 
@@ -110,12 +111,6 @@ def new_session(api_key=""):
         headers["X-RapidAPI-Host"] = "meteostat.p.rapidapi.com"
     s.headers.update(headers)
     return s
-
-
-def smart_pause(base=1.5, jitter=0.5):
-    """Meteostat rate limit: depends on plan."""
-    pause = base + random.uniform(-jitter, jitter)
-    time.sleep(max(0.5, pause))
 
 
 def fetch_with_retry(session, url, params=None, max_retries=3, timeout=30):
