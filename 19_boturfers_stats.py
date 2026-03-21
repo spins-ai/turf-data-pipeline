@@ -67,7 +67,7 @@ def scrape_hippodrome_list(session):
     """Récupérer la liste de tous les hippodromes"""
     cache_file = os.path.join(CACHE_DIR, "hippodrome_list.json")
     if os.path.exists(cache_file):
-        with open(cache_file) as f:
+        with open(cache_file, encoding="utf-8") as f:
             return json.load(f)
 
     print(f"[{datetime.now():%H:%M:%S}] Fetching liste hippodromes Boturfers...")
@@ -131,7 +131,7 @@ def scrape_hippodrome_detail(session, hippo):
     cache_file = os.path.join(CACHE_DIR, f"hippo_{url_hash}.json")
 
     if os.path.exists(cache_file):
-        with open(cache_file) as f:
+        with open(cache_file, encoding="utf-8") as f:
             return json.load(f)
 
     resp = fetch_with_retry(session, hippo["url"])

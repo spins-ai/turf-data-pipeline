@@ -236,7 +236,7 @@ def download_via_url(dataset_ref, target_dir):
         kaggle_json = os.path.expanduser("~/.kaggle/kaggle.json")
         headers = {}
         if os.path.exists(kaggle_json):
-            with open(kaggle_json) as f:
+            with open(kaggle_json, encoding="utf-8") as f:
                 creds = json.load(f)
             from requests.auth import HTTPBasicAuth
             auth = HTTPBasicAuth(creds.get("username", ""), creds.get("key", ""))

@@ -115,7 +115,7 @@ def main():
     # Charger les dates de courses depuis nos données
     courses_file = "output/02_liste_courses/courses_normalisees.json"
     if os.path.exists(courses_file):
-        with open(courses_file) as f:
+        with open(courses_file, encoding="utf-8") as f:
             courses = json.load(f)
         
         # Extraire les dates et hippodromes uniques
@@ -138,7 +138,7 @@ def main():
         cache_file = os.path.join(CACHE_DIR, f"{hippo_name}.json")
         
         if os.path.exists(cache_file):
-            with open(cache_file) as f:
+            with open(cache_file, encoding="utf-8") as f:
                 hippo_data = json.load(f)
             daily_count = len(hippo_data.get("daily", {}))
             if daily_count >= 1000:  # Au moins ~3 ans de données

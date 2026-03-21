@@ -62,7 +62,7 @@ def load_horse_ids():
         "output/02b_liste_courses_2013/partants_normalises.json",
     ]:
         if os.path.exists(path):
-            with open(path) as f:
+            with open(path, encoding="utf-8") as f:
                 data = json.load(f)
             for p in data:
                 # Essayer différents champs d'ID
@@ -77,7 +77,7 @@ def scrape_horse(session, horse_id):
     """Scraper la fiche d'un cheval sur Canalturf"""
     cache_file = os.path.join(CACHE_DIR, f"{horse_id}.json")
     if os.path.exists(cache_file):
-        with open(cache_file) as f:
+        with open(cache_file, encoding="utf-8") as f:
             return json.load(f)
 
     url = f"https://www.canalturf.com/courses_fiche_cheval.php?idcheval={horse_id}"
@@ -174,7 +174,7 @@ def main():
     checkpoint_file = os.path.join(OUTPUT_DIR, ".checkpoint_24.json")
     start_idx = 0
     if os.path.exists(checkpoint_file):
-        with open(checkpoint_file) as f:
+        with open(checkpoint_file, encoding="utf-8") as f:
             cp = json.load(f)
         start_idx = cp.get("last_index", 0)
         log.info(f"Reprise au checkpoint: index {start_idx}")
@@ -183,7 +183,7 @@ def main():
     all_horses = []
     output_file = os.path.join(OUTPUT_DIR, "canalturf_chevaux.json")
     if os.path.exists(output_file) and start_idx > 0:
-        with open(output_file) as f:
+        with open(output_file, encoding="utf-8") as f:
             all_horses = json.load(f)
 
     collected = 0

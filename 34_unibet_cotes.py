@@ -170,7 +170,7 @@ def main():
     output_file = os.path.join(OUTPUT_DIR, "unibet_cotes.json")
     all_records = []
     if os.path.exists(output_file):
-        with open(output_file) as f:
+        with open(output_file, encoding="utf-8") as f:
             all_records = json.load(f)
     
     # Collecter les cotes actuelles

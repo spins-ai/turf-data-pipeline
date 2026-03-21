@@ -26,7 +26,8 @@ from datetime import datetime
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)-8s | %(message)s")
 log = logging.getLogger(__name__)
 
-DATA_DIR = "data_master"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(BASE_DIR, "data_master")
 INPUT = os.path.join(DATA_DIR, "partants_complets.json")
 OUTPUT = os.path.join(DATA_DIR, "features_matrix.json")
 
@@ -34,7 +35,7 @@ OUTPUT = os.path.join(DATA_DIR, "features_matrix.json")
 def load_partants():
     """Charge partants_complets.json"""
     log.info(f"Chargement {INPUT}...")
-    with open(INPUT) as f:
+    with open(INPUT, encoding="utf-8") as f:
         data = json.load(f)
     log.info(f"  → {len(data)} partants")
     return data
@@ -164,7 +165,7 @@ def main():
     # Sauvegarder
     log.info(f"\n💾 Sauvegarde {OUTPUT}...")
     tmp = OUTPUT + ".tmp"
-    with open(tmp, "w") as f:
+    with open(tmp, "w", encoding="utf-8") as f:
         json.dump(partants, f, ensure_ascii=False)
     os.replace(tmp, OUTPUT)
     size = os.path.getsize(OUTPUT) / 1024 / 1024

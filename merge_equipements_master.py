@@ -41,7 +41,7 @@ def load_json_safe(path, label):
         return []
     size = os.path.getsize(path) / 1024 / 1024
     try:
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             data = json.load(f)
         items = data if isinstance(data, list) else list(data.values()) if isinstance(data, dict) else []
         log.info(f"  {label}: {len(items)} records ({size:.0f} MB)")

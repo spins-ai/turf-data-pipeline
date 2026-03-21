@@ -40,7 +40,7 @@ def fetch_json(session, url, cache_name):
     """Récupérer un JSON avec cache"""
     cache_file = os.path.join(CACHE_DIR, f"{cache_name}.json")
     if os.path.exists(cache_file):
-        with open(cache_file) as f:
+        with open(cache_file, encoding="utf-8") as f:
             return json.load(f)
 
     try:

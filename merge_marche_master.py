@@ -58,7 +58,7 @@ def load_json_safe(path, label):
             log.warning(f"  {label}: trop gros et ijson échoue — skip")
             return []
     try:
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             data = json.load(f)
         items = data if isinstance(data, list) else list(data.values()) if isinstance(data, dict) else []
         log.info(f"  {label}: {len(items)} records ({size:.0f} MB)")

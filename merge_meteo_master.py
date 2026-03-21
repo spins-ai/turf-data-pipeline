@@ -33,7 +33,7 @@ def load_json_safe(path, label=""):
             log.warning(f"  {label}: fichier trop gros ({size_mb:.0f} MB) — skip")
             return []
         log.info(f"  {label}: chargement {size_mb:.0f} MB...")
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             data = json.load(f)
         items = data if isinstance(data, list) else list(data.values()) if isinstance(data, dict) else []
         log.info(f"  {label}: {len(items)} records")

@@ -64,7 +64,7 @@ def scrape_arqana_results():
     for year in range(2019, 2027):
         cache_file = os.path.join(CACHE_DIR, f"sales_list_{year}.json")
         if os.path.exists(cache_file):
-            with open(cache_file) as f:
+            with open(cache_file, encoding="utf-8") as f:
                 year_data = json.load(f)
                 all_records.extend(year_data)
                 log.info(f"  Cache {year}: {len(year_data)} lots")

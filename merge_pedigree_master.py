@@ -96,7 +96,7 @@ def load_source_02_partants():
     except ImportError:
         log.warning("  ijson non installé — fallback lecture directe (lent)...")
         # Fallback sans ijson : lire par chunks
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             data = json.load(f)
         for item in data:
             name = normalize_name(item.get("nom_cheval", item.get("nom", "")))
@@ -137,7 +137,7 @@ def load_source_02b():
             if fsize > 2000:  # Skip fichiers trop gros
                 continue
             try:
-                with open(fpath) as fh:
+                with open(fpath, encoding="utf-8") as fh:
                     data = json.load(fh)
                 items = data if isinstance(data, list) else []
                 for item in items:
@@ -171,7 +171,7 @@ def load_source_24_canalturf():
     if not os.path.exists(path):
         return records
     try:
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             data = json.load(f)
         for item in data:
             name = normalize_name(item.get("nom_cheval", item.get("id_canalturf", "")))

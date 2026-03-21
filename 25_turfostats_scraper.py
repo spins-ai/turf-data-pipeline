@@ -54,7 +54,7 @@ def scrape_programme_day(session, date_str):
     """Scraper le programme d'un jour"""
     cache_file = os.path.join(CACHE_DIR, f"programme_{date_str}.json")
     if os.path.exists(cache_file):
-        with open(cache_file) as f:
+        with open(cache_file, encoding="utf-8") as f:
             return json.load(f)
 
     url = f"https://www.turfostats.com/programme.php?date={date_str}"
@@ -117,7 +117,7 @@ def scrape_course_detail(session, course_url, course_id):
     """Scraper les détails d'une course (partants + stats)"""
     cache_file = os.path.join(CACHE_DIR, f"course_{course_id}.json")
     if os.path.exists(cache_file):
-        with open(cache_file) as f:
+        with open(cache_file, encoding="utf-8") as f:
             return json.load(f)
 
     try:

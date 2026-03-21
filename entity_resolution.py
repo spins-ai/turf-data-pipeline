@@ -76,7 +76,7 @@ def load_json(filename):
         log.warning(f"  ⚠️ {filename} non trouvé — ignoré")
         return []
     log.info(f"  Chargement {filename}...")
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         data = json.load(f)
     log.info(f"    → {len(data)} records")
     return data

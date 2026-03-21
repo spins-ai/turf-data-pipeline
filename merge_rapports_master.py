@@ -69,7 +69,7 @@ def load_json_dir(dirpath, label):
                 all_items.append(item)
         else:
             try:
-                with open(fpath) as f:
+                with open(fpath, encoding="utf-8") as f:
                     data = json.load(f)
                 items = data if isinstance(data, list) else list(data.values()) if isinstance(data, dict) else []
                 all_items.extend(items)

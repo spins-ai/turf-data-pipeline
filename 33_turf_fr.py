@@ -51,7 +51,7 @@ def scrape_day(date_str):
     global req_count
     cache_file = os.path.join(CACHE_DIR, f"{date_str}.json")
     if os.path.exists(cache_file):
-        with open(cache_file) as f:
+        with open(cache_file, encoding="utf-8") as f:
             return json.load(f)
     
     records = []

@@ -239,7 +239,7 @@ def search_horse(name):
     cache_file = os.path.join(CACHE_DIR, f"{safe_name}.json")
     if os.path.exists(cache_file):
         try:
-            with open(cache_file) as f:
+            with open(cache_file, encoding="utf-8") as f:
                 return json.load(f)
         except json.JSONDecodeError:
             os.remove(cache_file)
@@ -277,7 +277,7 @@ def main():
     ]:
         if os.path.exists(path):
             try:
-                with open(path) as f:
+                with open(path, encoding="utf-8") as f:
                     courses = json.load(f)
                 for c in courses:
                     for p in c.get("partants", []):
@@ -291,7 +291,7 @@ def main():
     sire_index = "output/17_sire_ifce/index_par_nom.json"
     if os.path.exists(sire_index):
         try:
-            with open(sire_index) as f:
+            with open(sire_index, encoding="utf-8") as f:
                 sire_data = json.load(f)
             for name in list(sire_data.keys())[:10000]:
                 horse_names.add(name.upper())
@@ -306,7 +306,7 @@ def main():
     start_idx = 0
     if os.path.exists(checkpoint_file):
         try:
-            with open(checkpoint_file) as f:
+            with open(checkpoint_file, encoding="utf-8") as f:
                 cp = json.load(f)
             start_idx = cp.get("last_index", 0)
         except:
@@ -314,7 +314,7 @@ def main():
 
     if os.path.exists(output_file) and start_idx > 0:
         try:
-            with open(output_file) as f:
+            with open(output_file, encoding="utf-8") as f:
                 all_records = json.load(f)
             log.info(f"  Reprise depuis index {start_idx} ({len(all_records)} records déjà)")
         except:

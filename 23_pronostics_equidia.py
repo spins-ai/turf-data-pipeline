@@ -82,7 +82,7 @@ def fetch_pronostics_api(date_str, numero_reunion, num_course):
     cache_key = f"api_{date_str}_R{numero_reunion}_C{num_course}"
     cache_file = os.path.join(CACHE_DIR, f"{cache_key}.json")
     if os.path.exists(cache_file):
-        with open(cache_file) as f:
+        with open(cache_file, encoding="utf-8") as f:
             return json.load(f)
 
     url = f"{BASE_URL}/{date_str}/R{numero_reunion}/C{num_course}/pronostics"
@@ -171,7 +171,7 @@ def parse_geny_pronostics():
         log.warning("  Pas de données Geny trouvées")
         return []
 
-    with open(geny_path) as f:
+    with open(geny_path, encoding="utf-8") as f:
         geny_data = json.load(f)
 
     records = []
@@ -238,7 +238,7 @@ def collect_cotes_probables(courses):
     start_idx = 0
     if os.path.exists(checkpoint_file):
         try:
-            with open(checkpoint_file) as f:
+            with open(checkpoint_file, encoding="utf-8") as f:
                 cp = json.load(f)
             start_idx = cp.get("source3_index", 0)
             if start_idx > 0:
@@ -272,7 +272,7 @@ def collect_cotes_probables(courses):
 
         if os.path.exists(cache_file_local):
             try:
-                with open(cache_file_local) as f:
+                with open(cache_file_local, encoding="utf-8") as f:
                     data = json.load(f)
                 if data:
                     records.append(data)
@@ -358,7 +358,7 @@ def load_courses():
     ]:
         if os.path.exists(path):
             try:
-                with open(path) as f:
+                with open(path, encoding="utf-8") as f:
                     data = json.load(f)
                 for c in data:
                     uid = c.get("course_uid", "")
@@ -387,7 +387,7 @@ def main():
     # Charger records existants v2
     if os.path.exists(output_file):
         try:
-            with open(output_file) as f:
+            with open(output_file, encoding="utf-8") as f:
                 existing = json.load(f)
             if isinstance(existing, list) and len(existing) > 0 and existing[0].get("source_prono"):
                 all_records = existing

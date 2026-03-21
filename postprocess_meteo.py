@@ -187,7 +187,7 @@ def main():
 
     path = "data_master/meteo_master.json"
     log.info(f"Chargement {path}...")
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         data = json.load(f)
     log.info(f"  → {len(data)} records")
 

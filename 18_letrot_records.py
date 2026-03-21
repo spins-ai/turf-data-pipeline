@@ -48,7 +48,7 @@ def fetch_hippodromes(session):
     cache_file = os.path.join(CACHE_DIR, "hippodromes_list.json")
 
     if os.path.exists(cache_file):
-        with open(cache_file) as f:
+        with open(cache_file, encoding="utf-8") as f:
             return json.load(f)
 
     print(f"[{datetime.now():%H:%M:%S}] Fetching liste hippodromes...")
@@ -96,7 +96,7 @@ def fetch_records_page(session, url, hippodrome_name):
     cache_file = os.path.join(CACHE_DIR, f"records_{url_hash}.json")
 
     if os.path.exists(cache_file):
-        with open(cache_file) as f:
+        with open(cache_file, encoding="utf-8") as f:
             return json.load(f)
 
     try:

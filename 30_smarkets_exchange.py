@@ -218,7 +218,7 @@ def main():
     default_start = (datetime.now() - timedelta(days=28)).strftime("%Y-%m-%d")
     last_date = default_start
     if os.path.exists(checkpoint_file):
-        with open(checkpoint_file) as f:
+        with open(checkpoint_file, encoding="utf-8") as f:
             cp = json.load(f)
         saved_date = cp.get("last_date", default_start)
         # Don't go further back than 4 weeks (API won't have data)
@@ -227,7 +227,7 @@ def main():
         log.info(f"Reprise depuis {last_date}")
 
     if os.path.exists(output_file):
-        with open(output_file) as f:
+        with open(output_file, encoding="utf-8") as f:
             all_records = json.load(f)
         log.info(f"Chargé {len(all_records)} records existants")
 
@@ -244,7 +244,7 @@ def main():
         cache_file = os.path.join(CACHE_DIR, f"week_{cache_key}.json")
 
         if os.path.exists(cache_file):
-            with open(cache_file) as f:
+            with open(cache_file, encoding="utf-8") as f:
                 week_records = json.load(f)
             all_records.extend(week_records)
             log.info(f"Semaine {cache_key} (cache): {len(week_records)} records")
