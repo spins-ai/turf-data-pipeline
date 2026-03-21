@@ -273,7 +273,7 @@ def main():
     horse_names = set()
 
     for path in [
-        "output/02_liste_courses/courses_normalisees.json",
+        os.path.join(BASE_DIR, "output", "02_liste_courses", "courses_normalisees.json"),
     ]:
         if os.path.exists(path):
             try:
@@ -288,7 +288,7 @@ def main():
                 log.warning(f"  Erreur chargement {path}: {e}")
 
     # Aussi depuis le SIRE
-    sire_index = "output/17_sire_ifce/index_par_nom.json"
+    sire_index = os.path.join(BASE_DIR, "output", "17_sire_ifce", "index_par_nom.json")
     if os.path.exists(sire_index):
         try:
             with open(sire_index, encoding="utf-8") as f:

@@ -36,8 +36,8 @@ def load_courses_references():
     courses = []
     KEEP = {"course_uid", "date_reunion_iso", "numero_reunion", "numero_course", "hippodrome_normalise", "discipline", "distance"}
     paths = [
-        "output/02_liste_courses/courses_normalisees.json",
-        "output/02b_liste_courses_2013/courses_normalisees.json",
+        os.path.join(BASE_DIR, "output", "02_liste_courses", "courses_normalisees.json"),
+        os.path.join(BASE_DIR, "output", "02b_liste_courses_2013", "courses_normalisees.json"),
     ]
     seen_uids = set()
     for path in paths:

@@ -41,8 +41,8 @@ log = logging.getLogger(__name__)
 def load_racing_post():
     """Charge les données Racing Post."""
     records = []
-    for path in ["output/37_racing_post/racing_post_fr.jsonl",
-                 "output/37_racing_post/racing_post_fr.json",
+    for path in [os.path.join(BASE_DIR, "output", "37_racing_post", "racing_post_fr.jsonl"),
+                 os.path.join(BASE_DIR, "output", "37_racing_post", "racing_post_fr.json"),
                  os.path.join(BASE_DIR, "data_master", "racing_post_master.json")]:
         if not os.path.exists(path):
             continue
@@ -77,8 +77,8 @@ def load_partants_light():
             "is_gagnant", "is_place", "cote_finale"}
     partants = []
     for path in [os.path.join(BASE_DIR, "data_master", "partants_master.jsonl"),
-                 "output/02_liste_courses/partants_normalises.jsonl",
-                 "output/02_liste_courses/partants_normalises.json"]:
+                 os.path.join(BASE_DIR, "output", "02_liste_courses", "partants_normalises.jsonl"),
+                 os.path.join(BASE_DIR, "output", "02_liste_courses", "partants_normalises.json")]:
         if not os.path.exists(path):
             continue
         log.info(f"Chargement partants: {path}")

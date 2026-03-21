@@ -46,7 +46,7 @@ def load_meteo_index():
     index = {}
 
     # Essayer meteo_master d'abord
-    for path in [os.path.join(BASE_DIR, "data_master", "meteo_master.json"), "output/13_meteo_historique/meteo_historique.json"]:
+    for path in [os.path.join(BASE_DIR, "data_master", "meteo_master.json"), os.path.join(BASE_DIR, "output", "13_meteo_historique", "meteo_historique.json")]:
         if not os.path.exists(path):
             continue
         log.info(f"Chargement météo: {path}")
@@ -69,7 +69,7 @@ def load_meteo_index():
         break
 
     # Compléter avec réunions enrichies
-    reu_path = "output/39_reunions_enrichies/reunions_enrichies.jsonl"
+    reu_path = os.path.join(BASE_DIR, "output", "39_reunions_enrichies", "reunions_enrichies.jsonl")
     if os.path.exists(reu_path):
         added = 0
         with open(reu_path, "r", encoding="utf-8") as f:
@@ -103,8 +103,8 @@ def load_partants_light():
             "discipline", "position_arrivee", "is_gagnant", "is_place",
             "type_piste", "numero_reunion", "numero_course"}
     partants = []
-    for path in ["output/02_liste_courses/partants_normalises.jsonl",
-                 "output/02_liste_courses/partants_normalises.json"]:
+    for path in [os.path.join(BASE_DIR, "output", "02_liste_courses", "partants_normalises.jsonl"),
+                 os.path.join(BASE_DIR, "output", "02_liste_courses", "partants_normalises.json")]:
         if not os.path.exists(path):
             continue
         log.info(f"Chargement partants: {path}")

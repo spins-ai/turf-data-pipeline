@@ -57,8 +57,8 @@ def load_partants():
     partants = []
 
     # JSONL d'abord
-    for path in ["output/02_liste_courses/partants_normalises.jsonl",
-                 "output/02_liste_courses/partants_normalises.json"]:
+    for path in [os.path.join(BASE_DIR, "output", "02_liste_courses", "partants_normalises.jsonl"),
+                 os.path.join(BASE_DIR, "output", "02_liste_courses", "partants_normalises.json")]:
         if not os.path.exists(path):
             continue
 

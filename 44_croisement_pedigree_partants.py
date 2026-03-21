@@ -68,8 +68,8 @@ def load_pedigree_index():
     """Charge le pedigree master et indexe par nom normalisé."""
     index = {}
     for path in [os.path.join(BASE_DIR, "data_master", "pedigree_master.json"),
-                 "output/14_pedigree/pedigrees_pq.jsonl",
-                 "output/14_pedigree/pedigrees_pq.json"]:
+                 os.path.join(BASE_DIR, "output", "14_pedigree", "pedigrees_pq.jsonl"),
+                 os.path.join(BASE_DIR, "output", "14_pedigree", "pedigrees_pq.json")]:
         if not os.path.exists(path):
             continue
         log.info(f"Chargement pedigree: {path}")
@@ -115,8 +115,8 @@ def load_partants():
             "pere", "mere", "pere_mere", "race", "type_piste",
             "numero_reunion", "numero_course"}
     partants = []
-    for path in ["output/02_liste_courses/partants_normalises.jsonl",
-                 "output/02_liste_courses/partants_normalises.json"]:
+    for path in [os.path.join(BASE_DIR, "output", "02_liste_courses", "partants_normalises.jsonl"),
+                 os.path.join(BASE_DIR, "output", "02_liste_courses", "partants_normalises.json")]:
         if not os.path.exists(path):
             continue
         log.info(f"Chargement partants: {path}")

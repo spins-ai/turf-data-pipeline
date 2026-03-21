@@ -207,8 +207,8 @@ def main():
 
     # Charger les courses
     courses = []
-    for path in ["output/02_liste_courses/courses_normalisees.jsonl",
-                 "output/02_liste_courses/courses_normalisees.json"]:
+    for path in [os.path.join(BASE_DIR, "output", "02_liste_courses", "courses_normalisees.jsonl"),
+                 os.path.join(BASE_DIR, "output", "02_liste_courses", "courses_normalisees.json")]:
         if not os.path.exists(path):
             continue
         log.info(f"Chargement: {path}")

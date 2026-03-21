@@ -59,8 +59,8 @@ def load_courses():
     seen = set()
     KEEP = {"course_uid", "date_reunion_iso", "numero_reunion", "numero_course", "hippodrome_normalise"}
     for path in [
-        "output/02_liste_courses/courses_normalisees.json",
-        "output/02b_liste_courses_2013/courses_normalisees.json",
+        os.path.join(BASE_DIR, "output", "02_liste_courses", "courses_normalisees.json"),
+        os.path.join(BASE_DIR, "output", "02b_liste_courses_2013", "courses_normalisees.json"),
     ]:
         if os.path.exists(path):
             with open(path, "r", encoding="utf-8", errors="replace") as f:

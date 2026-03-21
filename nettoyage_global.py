@@ -233,8 +233,8 @@ def main():
 
     # Trouver le fichier source
     source_path = None
-    for path in ["output/02_liste_courses/partants_normalises.jsonl",
-                 "output/02_liste_courses/partants_normalises.json"]:
+    for path in [os.path.join(BASE_DIR, "output", "02_liste_courses", "partants_normalises.jsonl"),
+                 os.path.join(BASE_DIR, "output", "02_liste_courses", "partants_normalises.json")]:
         if os.path.exists(path):
             source_path = path
             break

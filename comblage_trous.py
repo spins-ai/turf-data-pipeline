@@ -49,7 +49,7 @@ log = logging.getLogger(__name__)
 def load_reunions_meteo():
     """Index météo/terrain par (date, hippodrome) depuis réunions enrichies."""
     index = {}
-    for path in ["output/39_reunions_enrichies/reunions_enrichies.jsonl",
+    for path in [os.path.join(BASE_DIR, "output", "39_reunions_enrichies", "reunions_enrichies.jsonl"),
                  os.path.join(BASE_DIR, "data_master", "meteo_master.json")]:
         if not os.path.exists(path):
             continue
@@ -129,7 +129,7 @@ def load_hippodromes_db():
 def load_sire_ifce():
     """Charge les données SIRE/IFCE pour pays, éleveur, sexe."""
     index = {}
-    path = "output/17_sire_ifce/sire_ifce.json"
+    path = os.path.join(BASE_DIR, "output", "17_sire_ifce", "sire_ifce.json")
     if not os.path.exists(path):
         return index
 
@@ -359,9 +359,9 @@ def main():
 
     # Source
     source_path = None
-    for path in ["output/nettoyage/partants_nettoyes.jsonl",
-                 "output/02_liste_courses/partants_normalises.jsonl",
-                 "output/02_liste_courses/partants_normalises.json"]:
+    for path in [os.path.join(BASE_DIR, "output", "nettoyage", "partants_nettoyes.jsonl"),
+                 os.path.join(BASE_DIR, "output", "02_liste_courses", "partants_normalises.jsonl"),
+                 os.path.join(BASE_DIR, "output", "02_liste_courses", "partants_normalises.json")]:
         if os.path.exists(path):
             source_path = path
             break
