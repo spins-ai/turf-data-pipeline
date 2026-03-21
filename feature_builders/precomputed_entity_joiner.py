@@ -203,7 +203,7 @@ def build_precomputed_entity_features(partants: list, logger: logging.Logger = N
 
 def save_jsonl(records: list, path: str, logger: logging.Logger):
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w", encoding="utf-8") as f:
+    with open(path, "w", encoding="utf-8", newline="\n") as f:
         for r in records:
             f.write(json.dumps(r, ensure_ascii=False, default=str) + "\n")
     logger.info("Sauve JSONL: %s (%d)", path, len(records))

@@ -86,7 +86,7 @@ class AuditTrail:
                 size_mb = full_path.stat().st_size / (1024 * 1024)
                 entry["metrics"][f"size_mb_{Path(out_path).name}"] = round(size_mb, 1)
 
-        with open(self.audit_file, "a", encoding="utf-8", errors="replace") as f:
+        with open(self.audit_file, "a", encoding="utf-8", errors="replace", newline="\n") as f:
             f.write(json.dumps(entry, ensure_ascii=False) + "\n")
 
         return entry
@@ -580,7 +580,7 @@ def backfill_from_filesystem(audit: AuditTrail):
                 size_mb = full.stat().st_size / (1024 * 1024)
                 entry["metrics"][f"size_mb_{Path(out).name}"] = round(size_mb, 1)
 
-        with open(audit.audit_file, "a", encoding="utf-8", errors="replace") as f:
+        with open(audit.audit_file, "a", encoding="utf-8", errors="replace", newline="\n") as f:
             f.write(json.dumps(entry, ensure_ascii=False) + "\n")
         count += 1
         print(f"  + {script:<40s} -> {', '.join(Path(o).name for o in existing_outputs)}")

@@ -97,7 +97,7 @@ def main():
     )
 
     output_path = os.path.join(OUTPUT_DIR, "courses_master.jsonl")
-    with open(output_path, "w", encoding="utf-8") as f:
+    with open(output_path, "w", encoding="utf-8", newline="\n") as f:
         for record, _ in sorted_records:
             f.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
 

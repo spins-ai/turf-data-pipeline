@@ -99,7 +99,7 @@ def dedup_by_key(paths, key_field, output_name, description):
 
     # Écrire les résultats dédupliqués
     output_path = os.path.join(OUTPUT_DIR, output_name)
-    with open(output_path, "w", encoding="utf-8") as f:
+    with open(output_path, "w", encoding="utf-8", newline="\n") as f:
         for key in sorted(seen.keys()):
             record, _ = seen[key]
             f.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")

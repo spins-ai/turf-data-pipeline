@@ -98,7 +98,7 @@ def fetch_with_retry(session, url, max_retries=3, timeout=30):
 
 def append_jsonl(filepath, record):
     """Append a JSONL record (append mode)."""
-    with open(filepath, "a", encoding="utf-8") as f:
+    with open(filepath, "a", encoding="utf-8", newline="\n") as f:
         f.write(json.dumps(record, ensure_ascii=False) + "\n")
 
 

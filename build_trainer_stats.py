@@ -304,7 +304,7 @@ def main():
     written = 0
     t0 = time.time()
 
-    with open(tmp_path, "w", encoding="utf-8", errors="replace") as fout:
+    with open(tmp_path, "w", encoding="utf-8", errors="replace", newline="\n") as fout:
         for entraineur, races in trainer_races.items():
             stats = compute_trainer_stats(entraineur, races)
             fout.write(json.dumps(stats, ensure_ascii=False) + "\n")

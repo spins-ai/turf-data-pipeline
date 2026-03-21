@@ -267,7 +267,7 @@ def save_jsonl(data: List[Dict], path: Path, logger: logging.Logger):
     """Sauvegarde en JSONL (une ligne JSON par enregistrement)."""
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_suffix(".tmp")
-    with open(tmp, "w", encoding="utf-8") as f:
+    with open(tmp, "w", encoding="utf-8", newline="\n") as f:
         for record in data:
             f.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
     tmp.replace(path)
