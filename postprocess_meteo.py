@@ -151,7 +151,7 @@ def enrich_meteo(record):
             elif temp < 5: score += 2
             elif temp > 30: score += 2
             elif temp > 25: score += 1
-        except: pass
+        except (ValueError, TypeError): pass
 
     if wind is not None:
         try:
@@ -159,21 +159,21 @@ def enrich_meteo(record):
             if wind > 50: score += 3
             elif wind > 30: score += 2
             elif wind > 20: score += 1
-        except: pass
+        except (ValueError, TypeError): pass
 
     if humidity is not None:
         try:
             humidity = float(humidity)
             if humidity > 90: score += 2
             elif humidity > 80: score += 1
-        except: pass
+        except (ValueError, TypeError): pass
 
     if penetro is not None:
         try:
             penetro = float(penetro)
             if penetro > 5.0: score += 2
             elif penetro > 4.0: score += 1
-        except: pass
+        except (ValueError, TypeError): pass
 
     record["meteo_score"] = min(score, 10)
 

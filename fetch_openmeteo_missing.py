@@ -42,7 +42,7 @@ with open(os.path.join(BASE_DIR, 'output', '02_liste_courses', 'courses_normalis
                             if h not in hippo_dates:
                                 hippo_dates[h] = set()
                             hippo_dates[h].add(d)
-                    except:
+                    except (json.JSONDecodeError, ValueError):
                         pass
                     buf = []
 

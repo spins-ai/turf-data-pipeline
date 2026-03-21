@@ -48,7 +48,7 @@ def fetch_json(session, url, cache_name):
         if resp.status_code == 200:
             try:
                 data = resp.json()
-            except:
+            except (json.JSONDecodeError, ValueError):
                 data = {"html": resp.text[:5000], "status": resp.status_code}
 
             with open(cache_file, "w", encoding="utf-8") as f:

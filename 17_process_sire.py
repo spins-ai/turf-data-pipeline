@@ -19,7 +19,7 @@ def parse_date(d):
         return None
     try:
         return datetime.strptime(d.strip(), "%d/%m/%Y").strftime("%Y-%m-%d")
-    except:
+    except (ValueError, TypeError):
         return None
 
 def normalize_name(name):
@@ -76,7 +76,7 @@ def main():
                     today = datetime.now()
                     horse["age_ans"] = (today - birth).days / 365.25
                     horse["annee_naissance"] = birth.year
-                except:
+                except (ValueError, TypeError):
                     horse["age_ans"] = None
                     horse["annee_naissance"] = None
             else:

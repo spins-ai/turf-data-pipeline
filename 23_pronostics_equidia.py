@@ -126,7 +126,7 @@ def collect_api_pronostics(courses):
         try:
             dt = datetime.strptime(date_iso[:10], "%Y-%m-%d")
             date_api = dt.strftime("%d%m%Y")
-        except:
+        except (ValueError, TypeError):
             continue
 
         prono = fetch_pronostics_api(date_api, num_r, num_c)
@@ -243,7 +243,7 @@ def collect_cotes_probables(courses):
             start_idx = cp.get("source3_index", 0)
             if start_idx > 0:
                 log.info(f"  Reprise source 3 à index {start_idx}")
-        except:
+        except (json.JSONDecodeError, ValueError):
             pass
 
     filtered = [c for c in courses if c.get("date_reunion_iso", "") >= "2014-01-01"]
@@ -264,7 +264,7 @@ def collect_cotes_probables(courses):
         try:
             dt = datetime.strptime(date_iso[:10], "%Y-%m-%d")
             date_api = dt.strftime("%d%m%Y")
-        except:
+        except (ValueError, TypeError):
             continue
 
         cache_key = f"cotes_{date_api}_R{num_r}_C{num_c}"
@@ -278,7 +278,7 @@ def collect_cotes_probables(courses):
                     records.append(data)
                     cached += 1
                 continue
-            except:
+            except (json.JSONDecodeError, ValueError):
                 os.remove(cache_file_local)
 
         url = f"{BASE_URL}/{date_api}/R{num_r}/C{num_c}/participants"
@@ -392,7 +392,7 @@ def main():
             if isinstance(existing, list) and len(existing) > 0 and existing[0].get("source_prono"):
                 all_records = existing
                 log.info(f"  Reprise: {len(all_records)} records existants v2")
-        except:
+        except (json.JSONDecodeError, ValueError):
             pass
 
     existing_sources = set(r.get("source_prono", "") for r in all_records)

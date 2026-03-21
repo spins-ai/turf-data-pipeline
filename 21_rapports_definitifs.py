@@ -214,7 +214,7 @@ def main():
         try:
             dt = datetime.strptime(date_iso[:10], "%Y-%m-%d")
             date_api = dt.strftime("%d%m%Y")
-        except:
+        except (ValueError, TypeError):
             continue
 
         rapports_raw = fetch_rapports(date_api, num_r, num_c)

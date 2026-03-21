@@ -309,7 +309,7 @@ def main():
             with open(checkpoint_file, encoding="utf-8") as f:
                 cp = json.load(f)
             start_idx = cp.get("last_index", 0)
-        except:
+        except (json.JSONDecodeError, ValueError):
             start_idx = 0
 
     if os.path.exists(output_file) and start_idx > 0:
@@ -317,7 +317,7 @@ def main():
             with open(output_file, encoding="utf-8") as f:
                 all_records = json.load(f)
             log.info(f"  Reprise depuis index {start_idx} ({len(all_records)} records déjà)")
-        except:
+        except (json.JSONDecodeError, ValueError):
             all_records = []
 
     # Compter aussi les HTML déjà en cache (pas encore parsés)

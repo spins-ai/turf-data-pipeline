@@ -54,7 +54,7 @@ def load_json_safe(path, label):
                     if count % 200000 == 0:
                         log.info(f"  {label}: {count} records...")
             return items
-        except:
+        except Exception:
             log.warning(f"  {label}: trop gros et ijson échoue — skip")
             return []
     try:

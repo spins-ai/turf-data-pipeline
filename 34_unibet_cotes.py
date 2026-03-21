@@ -86,7 +86,7 @@ def get_event_odds(event_path):
         resp = session.get(url, params=params, timeout=15)
         if resp.status_code == 200:
             return resp.json()
-    except:
+    except Exception:
         pass
     return None
 
@@ -155,7 +155,7 @@ def scrape_unibet_daily():
                             try:
                                 data = json.loads(m)
                                 all_records.append({"source": "unibet_html", "data": data})
-                            except:
+                            except (json.JSONDecodeError, ValueError):
                                 pass
         except Exception as e:
             log.debug(f"  Erreur HTML: {e}")

@@ -336,7 +336,7 @@ def load_source_36():
                     if v and k != "name":
                         rec[k] = v
                 records[name] = rec
-            except:
+            except (json.JSONDecodeError, ValueError, OSError, IOError):
                 pass
 
     log.info(f"  36_pedigree_query: {len(records)} chevaux")
