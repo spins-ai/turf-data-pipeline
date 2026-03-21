@@ -321,6 +321,14 @@ def main():
                     stats["records_modifies"] += 1
                     stats["total_changes"] += changes
 
+                # Stats
+                hippo = cleaned.get("hippodrome_normalise", "")
+                if hippo:
+                    stats["hippos_normalisees"][hippo] += 1
+                disc = cleaned.get("discipline", "")
+                if disc:
+                    stats["disciplines_normalisees"][disc] += 1
+
                 fout.write(json.dumps(cleaned, ensure_ascii=False, default=str) + "\n")
 
                 if stats["total"] % 200000 == 0:
