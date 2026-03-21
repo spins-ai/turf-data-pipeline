@@ -103,12 +103,13 @@ def compute_graph_features(partants):
     output_file = os.path.join(OUTPUT_DIR, "graph_features_partants.jsonl")
     enriched = 0
 
-    # Fichiers edges
-    edges_cj = open(os.path.join(OUTPUT_DIR, "edges_cheval_jockey.jsonl"), "w", encoding="utf-8")
-    edges_ce = open(os.path.join(OUTPUT_DIR, "edges_cheval_entraineur.jsonl"), "w", encoding="utf-8")
-    edges_ch = open(os.path.join(OUTPUT_DIR, "edges_cheval_hippodrome.jsonl"), "w", encoding="utf-8")
-
-    with open(output_file, "w", encoding="utf-8") as fout:
+    # Fichiers edges (utiliser contextlib.ExitStack pour garantir la fermeture)
+    import contextlib
+    with contextlib.ExitStack() as stack:
+        edges_cj = stack.enter_context(open(os.path.join(OUTPUT_DIR, "edges_cheval_jockey.jsonl"), "w", encoding="utf-8"))
+        edges_ce = stack.enter_context(open(os.path.join(OUTPUT_DIR, "edges_cheval_entraineur.jsonl"), "w", encoding="utf-8"))
+        edges_ch = stack.enter_context(open(os.path.join(OUTPUT_DIR, "edges_cheval_hippodrome.jsonl"), "w", encoding="utf-8"))
+        fout = stack.enter_context(open(output_file, "w", encoding="utf-8"))
         for i, p in enumerate(partants):
             nom = (p.get("nom_cheval") or "").upper().strip()
             jockey = (p.get("jockey_driver") or "").strip()
@@ -228,10 +229,6 @@ def compute_graph_features(partants):
             if (i + 1) % 200000 == 0:
                 log.info(f"  {i+1}/{len(partants)} traités, {enriched} enrichis, "
                          f"{len(cheval_connections)} chevaux, {len(jockey_chevaux)} jockeys")
-
-    edges_cj.close()
-    edges_ce.close()
-    edges_ch.close()
 
     log.info(f"Graphe terminé: {enriched}/{len(partants)} enrichis")
     log.info(f"  Chevaux: {len(cheval_connections)}, Jockeys: {len(jockey_chevaux)}, "

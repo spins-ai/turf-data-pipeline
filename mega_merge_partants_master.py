@@ -281,19 +281,16 @@ def main():
     total_enriched = 0
     total_fields_added = 0
 
-    with open(output_file, "w", encoding="utf-8") as fout:
+    import contextlib
+    with contextlib.ExitStack() as stack:
+        fout = stack.enter_context(open(output_file, "w", encoding="utf-8"))
         if source_path.endswith(".jsonl"):
-            opener = open(source_path, "r", encoding="utf-8")
+            opener = stack.enter_context(open(source_path, "r", encoding="utf-8"))
+            records_iter = (json.loads(line.strip()) for line in opener if line.strip())
         else:
             # JSON → convertir en itérateur
             with open(source_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
-            opener = None
-
-        records_iter = None
-        if opener:
-            records_iter = (json.loads(line.strip()) for line in opener if line.strip())
-        else:
             records_iter = iter(data)
 
         for record in records_iter:
@@ -344,9 +341,7 @@ def main():
                 log.info(f"  {total} traités, {total_enriched} enrichis, "
                          f"+{total_fields_added} champs ajoutés")
 
-        if opener:
-            opener.close()
-        elif 'data' in dir():
+        if 'data' in dir():
             del data
 
     avg_fields = total_fields_added / max(total_enriched, 1)
