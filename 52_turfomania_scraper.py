@@ -35,6 +35,7 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
+from utils.scraping import smart_pause
 
 log = setup_logging("52_turfomania")
 
@@ -50,12 +51,6 @@ def new_session():
     s.headers.update({"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"})
     return s
 
-
-def smart_pause(base=2.5, jitter=1.5):
-    pause = base + random.uniform(-jitter, jitter)
-    if random.random() < 0.08:
-        pause += random.uniform(5, 15)
-    time.sleep(max(1.0, pause))
 
 
 def fetch_with_retry(session, url, max_retries=3, timeout=30):
