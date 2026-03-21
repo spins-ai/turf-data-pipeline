@@ -24,6 +24,9 @@ import sys
 from collections import defaultdict
 from typing import Optional
 
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from utils.loaders import load_json_or_jsonl
+
 # ===========================================================================
 # CONFIG
 # ===========================================================================
@@ -73,28 +76,6 @@ def setup_logging() -> logging.Logger:
 # ===========================================================================
 # HELPERS
 # ===========================================================================
-
-def load_json_or_jsonl(path: str, logger: logging.Logger) -> list:
-    if path.endswith(".jsonl") and os.path.exists(path):
-        records = []
-        with open(path, "r", encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if line:
-                    records.append(json.loads(line))
-        logger.info("Charge %d depuis %s", len(records), path)
-        return records
-    jsonl_path = path.replace(".json", ".jsonl")
-    if os.path.exists(jsonl_path):
-        return load_json_or_jsonl(jsonl_path, logger)
-    if os.path.exists(path):
-        with open(path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        logger.info("Charge %d depuis %s", len(data), path)
-        return data
-    logger.error("Fichier introuvable: %s", path)
-    sys.exit(1)
-
 
 def _norm_name(name) -> Optional[str]:
     if not name:

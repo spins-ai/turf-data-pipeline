@@ -27,6 +27,9 @@ import sys
 from collections import defaultdict
 from typing import Optional
 
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from utils.loaders import load_json_or_jsonl
+
 # ===========================================================================
 # CONFIG
 # ===========================================================================
@@ -113,32 +116,6 @@ def _consistency_score(positions: list) -> Optional[float]:
 # ===========================================================================
 # LOAD
 # ===========================================================================
-
-def load_jsonl(path: str, logger: logging.Logger) -> list:
-    records = []
-    with open(path, "r", encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if line:
-                records.append(json.loads(line))
-    logger.info("Charge %d enregistrements depuis %s", len(records), path)
-    return records
-
-
-def load_json_or_jsonl(path: str, logger: logging.Logger) -> list:
-    if path.endswith(".jsonl"):
-        return load_jsonl(path, logger)
-    jsonl_path = path.replace(".json", ".jsonl")
-    if os.path.exists(jsonl_path):
-        return load_jsonl(jsonl_path, logger)
-    if os.path.exists(path):
-        logger.info("Chargement JSON: %s", path)
-        with open(path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        logger.info("  %d entrees chargees", len(data))
-        return data
-    logger.error("Fichier introuvable: %s", path)
-    sys.exit(1)
 
 # ===========================================================================
 # BUILDER
