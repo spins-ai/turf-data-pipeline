@@ -23,24 +23,17 @@ import sys
 from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from utils.logging_setup import setup_logging
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_DIR = os.path.join(BASE_DIR, "output", "23_pronostics")
 CACHE_DIR = os.path.join(OUTPUT_DIR, "cache")
 HTML_DIR = os.path.join(OUTPUT_DIR, "html_raw")
 os.makedirs(CACHE_DIR, exist_ok=True)
 os.makedirs(HTML_DIR, exist_ok=True)
-os.makedirs("logs", exist_ok=True)
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)-8s | %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-    handlers=[
-        logging.FileHandler("logs/23_pronostics.log"),
-        logging.StreamHandler()
-    ]
-)
-log = logging.getLogger(__name__)
+log = setup_logging("23_pronostics_equidia")
 
 BASE_URL = "https://offline.turfinfo.api.pmu.fr/rest/client/7/programme"
 

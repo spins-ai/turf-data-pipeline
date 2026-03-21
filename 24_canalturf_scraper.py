@@ -13,8 +13,12 @@ import random
 import os
 import re
 import logging
+import sys
 from datetime import datetime
 from bs4 import BeautifulSoup
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from utils.logging_setup import setup_logging
 
 SCRIPT_NAME = "24_canalturf"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -22,12 +26,7 @@ OUTPUT_DIR = os.path.join(BASE_DIR, "output", SCRIPT_NAME)
 CACHE_DIR = os.path.join(OUTPUT_DIR, "cache")
 os.makedirs(CACHE_DIR, exist_ok=True)
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)-8s | %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
-log = logging.getLogger(__name__)
+log = setup_logging("24_canalturf_scraper")
 
 USER_AGENTS = [
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",

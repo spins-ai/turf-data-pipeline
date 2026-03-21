@@ -11,19 +11,18 @@ import time
 import random
 import os
 import logging
+import sys
 from datetime import datetime
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from utils.logging_setup import setup_logging
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_DIR = os.path.join(BASE_DIR, "output", "27_citations_enjeux")
 CACHE_DIR = os.path.join(OUTPUT_DIR, "cache")
 os.makedirs(CACHE_DIR, exist_ok=True)
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)-8s | %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
-log = logging.getLogger(__name__)
+log = setup_logging("27_citations_enjeux")
 
 BASE_URL = "https://offline.turfinfo.api.pmu.fr/rest/client/7/programme"
 

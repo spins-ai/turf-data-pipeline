@@ -10,15 +10,18 @@ import json
 import time
 import os
 import logging
+import sys
 from datetime import datetime, timedelta
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from utils.logging_setup import setup_logging
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_DIR = os.path.join(BASE_DIR, "output", "30_smarkets_exchange")
 CACHE_DIR = os.path.join(OUTPUT_DIR, "cache")
 os.makedirs(CACHE_DIR, exist_ok=True)
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)-8s | %(message)s")
-log = logging.getLogger(__name__)
+log = setup_logging("30_smarkets_exchange")
 
 BASE_URL = "https://api.smarkets.com/v3"
 
