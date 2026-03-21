@@ -155,7 +155,8 @@ def scrape_day(session, dt, output_programmes, output_participants, output_cours
                 try:
                     with open(cache_course, "r", encoding="utf-8") as f:
                         course_data = json.load(f)
-                except (json.JSONDecodeError, ValueError):
+                except (json.JSONDecodeError, ValueError, OSError):
+                    log.warning("  Cache corrompu: %s, re-téléchargement", cache_course)
                     os.remove(cache_course)
             if course_data is None:
                 course_data = api_get(session, f"/programmes/{date_pmu}/R{num_reunion}/C{num_course}")
@@ -206,7 +207,8 @@ def scrape_day(session, dt, output_programmes, output_participants, output_cours
                 try:
                     with open(cache_parts, "r", encoding="utf-8") as f:
                         parts_data = json.load(f)
-                except (json.JSONDecodeError, ValueError):
+                except (json.JSONDecodeError, ValueError, OSError):
+                    log.warning("  Cache corrompu: %s, re-téléchargement", cache_parts)
                     os.remove(cache_parts)
             if parts_data is None:
                 parts_data = api_get(session, f"/programmes/{date_pmu}/R{num_reunion}/C{num_course}/participants")
