@@ -15,6 +15,7 @@ import re
 import time
 from datetime import datetime, timedelta
 
+import requests
 try:
     import cloudscraper
 except ImportError:
