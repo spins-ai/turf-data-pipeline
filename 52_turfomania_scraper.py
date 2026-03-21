@@ -18,7 +18,10 @@ import re
 import time
 from datetime import datetime
 
-import cloudscraper
+try:
+    import cloudscraper
+except ImportError:
+    cloudscraper = None
 from bs4 import BeautifulSoup
 
 SCRIPT_NAME = "52_turfomania"
@@ -39,9 +42,13 @@ BASE_URL = "https://www.turfomania.fr"
 
 
 def new_session():
-    return cloudscraper.create_scraper(
-        browser={"browser": "chrome", "platform": "windows", "desktop": True}
-    )
+    if cloudscraper:
+        return cloudscraper.create_scraper(
+            browser={"browser": "chrome", "platform": "windows", "desktop": True}
+        )
+    s = requests.Session()
+    s.headers.update({"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"})
+    return s
 
 
 def smart_pause(base=2.5, jitter=1.5):

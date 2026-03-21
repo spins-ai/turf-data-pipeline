@@ -16,7 +16,8 @@ import logging
 from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 
-OUTPUT_DIR = "output/25_turfostats"
+SCRIPT_NAME = "25_turfostats"
+OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output", SCRIPT_NAME)
 CACHE_DIR = os.path.join(OUTPUT_DIR, "cache")
 os.makedirs(CACHE_DIR, exist_ok=True)
 

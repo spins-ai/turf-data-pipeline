@@ -15,7 +15,10 @@ import re
 import time
 from datetime import datetime, timedelta
 
-import cloudscraper
+try:
+    import cloudscraper
+except ImportError:
+    cloudscraper = None
 from bs4 import BeautifulSoup
 
 SCRIPT_NAME = "64_punters"
@@ -46,7 +49,7 @@ BASE_URL = "https://www.punters.com.au"
 
 
 def new_session():
-    s = cloudscraper.create_scraper()
+    s = cloudscraper.create_scraper() if cloudscraper else requests.Session()
     s.headers.update({
         "User-Agent": random.choice(USER_AGENTS),
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",

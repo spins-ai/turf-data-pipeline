@@ -16,7 +16,8 @@ import logging
 from datetime import datetime
 from bs4 import BeautifulSoup
 
-OUTPUT_DIR = "output/24_canalturf"
+SCRIPT_NAME = "24_canalturf"
+OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output", SCRIPT_NAME)
 CACHE_DIR = os.path.join(OUTPUT_DIR, "cache")
 os.makedirs(CACHE_DIR, exist_ok=True)
 

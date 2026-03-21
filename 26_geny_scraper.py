@@ -16,8 +16,10 @@ import logging
 from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 
-OUTPUT_DIR = "output/26_geny"
+SCRIPT_NAME = "26_geny"
+OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output", SCRIPT_NAME)
 CACHE_DIR = os.path.join(OUTPUT_DIR, "cache")
+CHECKPOINT_FILE = os.path.join(OUTPUT_DIR, ".checkpoint.json")
 os.makedirs(CACHE_DIR, exist_ok=True)
 
 logging.basicConfig(
@@ -55,7 +57,7 @@ def scrape_day(session, date_str):
     """Scraper la page partants d'un jour"""
     cache_file = os.path.join(CACHE_DIR, f"day_{date_str}.json")
     if os.path.exists(cache_file):
-        with open(cache_file) as f:
+        with open(cache_file, encoding="utf-8") as f:
             return json.load(f)
 
     url = f"https://www.geny.com/partants-pmu/{date_str}"
@@ -121,38 +123,80 @@ def scrape_day(session, date_str):
     if comments:
         result["commentaires_experts"] = comments[:10]
 
-    with open(cache_file, "w") as f:
+    with open(cache_file, "w", encoding="utf-8") as f:
         json.dump(result, f, ensure_ascii=False, indent=2)
 
     return result
 
+def append_jsonl(filepath, record):
+    with open(filepath, "a", encoding="utf-8") as f:
+        f.write(json.dumps(record, ensure_ascii=False) + "\n")
+
+
+def load_checkpoint():
+    if os.path.exists(CHECKPOINT_FILE):
+        with open(CHECKPOINT_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {}
+
+
+def save_checkpoint(data):
+    with open(CHECKPOINT_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
 def main():
+    import argparse
+    parser = argparse.ArgumentParser(description="Script 26 — Geny.com Scraper")
+    parser.add_argument("--start", type=str, default="2020-01-01",
+                        help="Date de début (YYYY-MM-DD)")
+    parser.add_argument("--end", type=str, default=None,
+                        help="Date de fin (YYYY-MM-DD), défaut=hier")
+    parser.add_argument("--resume", action="store_true", default=True,
+                        help="Reprendre depuis le dernier checkpoint")
+    parser.add_argument("--max-days", type=int, default=0,
+                        help="Nombre max de jours (0=illimité)")
+    args = parser.parse_args()
+
+    start_date = datetime.strptime(args.start, "%Y-%m-%d")
+    end_date = datetime.strptime(args.end, "%Y-%m-%d") if args.end else (datetime.now() - timedelta(days=1))
+
     log.info("=" * 60)
-    log.info("SCRIPT 26 — Geny.com Scraping")
+    log.info("SCRIPT 26 — Geny.com Scraper")
+    log.info(f"  Période : {start_date.date()} → {end_date.date()}")
     log.info("=" * 60)
+
+    checkpoint = load_checkpoint()
+    last_date = checkpoint.get("last_date")
+    if args.resume and last_date:
+        resume_date = datetime.strptime(last_date, "%Y-%m-%d") + timedelta(days=1)
+        if resume_date > start_date:
+            start_date = resume_date
+            log.info(f"  Reprise au checkpoint : {start_date.date()}")
 
     session = new_session()
+    output_file = os.path.join(OUTPUT_DIR, "geny_data.jsonl")
 
-    # Plage de dates
-    start_date = datetime(2020, 1, 1)
-    end_date = datetime(2026, 3, 14)
     current = start_date
-
-    all_data = []
     day_count = 0
+    total_records = 0
 
     while current <= end_date:
+        if args.max_days and day_count >= args.max_days:
+            log.info(f"  Max {args.max_days} jours atteint, arrêt.")
+            break
+
         date_str = current.strftime("%Y-%m-%d")
         data = scrape_day(session, date_str)
 
         if data:
-            all_data.append(data)
+            append_jsonl(output_file, data)
+            total_records += 1
 
         day_count += 1
         if day_count % 30 == 0:
-            log.info(f"  {date_str} | {len(all_data)} jours collectés")
-            with open(os.path.join(OUTPUT_DIR, "geny_data.json"), "w") as f:
-                json.dump(all_data, f, ensure_ascii=False)
+            log.info(f"  {date_str} | {total_records} jours collectés")
+            save_checkpoint({"last_date": date_str, "total_records": total_records})
 
         if day_count % 50 == 0:
             session.close()
@@ -162,12 +206,11 @@ def main():
         current += timedelta(days=1)
         smart_pause(2.0, 1.0)
 
-    log.info("Sauvegarde finale...")
-    with open(os.path.join(OUTPUT_DIR, "geny_data.json"), "w") as f:
-        json.dump(all_data, f, ensure_ascii=False)
+    save_checkpoint({"last_date": (current - timedelta(days=1)).strftime("%Y-%m-%d"),
+                     "total_records": total_records, "status": "done"})
 
     log.info("=" * 60)
-    log.info(f"TERMINÉ: {len(all_data)} jours collectés")
+    log.info(f"TERMINÉ: {total_records} jours collectés → {output_file}")
     log.info("=" * 60)
 
 if __name__ == "__main__":

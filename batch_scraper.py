@@ -16,7 +16,10 @@ import re
 import time
 from datetime import datetime
 
-import cloudscraper
+try:
+    import cloudscraper
+except ImportError:
+    cloudscraper = None
 import requests
 from bs4 import BeautifulSoup
 
@@ -144,7 +147,7 @@ ANTI_BOT_SITES = {
 
 
 def make_session(use_cloudscraper=False):
-    if use_cloudscraper:
+    if use_cloudscraper and cloudscraper:
         s = cloudscraper.create_scraper(
             browser={"browser": "chrome", "platform": "windows", "desktop": True}
         )
@@ -382,9 +385,14 @@ def main():
 
     # Anti-bot sites
     if args.include_antibot:
-        cs = cloudscraper.create_scraper(
-            browser={"browser": "chrome", "platform": "windows", "desktop": True}
-        )
+        if cloudscraper:
+            cs = cloudscraper.create_scraper(
+                browser={"browser": "chrome", "platform": "windows", "desktop": True}
+            )
+        else:
+            log.warning("cloudscraper non installé, fallback requests.Session()")
+            cs = requests.Session()
+            cs.headers.update(HEADERS)
         for name, config in sorted(ANTI_BOT_SITES.items()):
             if args.sites and name not in args.sites:
                 continue

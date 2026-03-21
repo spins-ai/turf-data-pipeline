@@ -18,7 +18,10 @@ import re
 import time
 from datetime import datetime, timedelta
 
-import cloudscraper
+try:
+    import cloudscraper
+except ImportError:
+    cloudscraper = None
 from bs4 import BeautifulSoup
 
 SCRIPT_NAME = "84_turfoo"
@@ -39,9 +42,12 @@ BASE_URL = "https://www.turfoo.fr"
 
 
 def new_session():
-    s = cloudscraper.create_scraper(
-        browser={"browser": "chrome", "platform": "windows", "desktop": True}
-    )
+    if cloudscraper:
+        s = cloudscraper.create_scraper(
+            browser={"browser": "chrome", "platform": "windows", "desktop": True}
+        )
+    else:
+        s = requests.Session()
     s.headers.update({
         "Accept-Language": "fr-FR,fr;q=0.9",
         "DNT": "1",
