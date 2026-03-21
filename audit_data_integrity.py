@@ -439,7 +439,7 @@ def main():
             if f.startswith(".checkpoint") and f.endswith(".json"):
                 cp_path = os.path.join(root, f)
                 try:
-                    with open(cp_path, "r") as fh:
+                    with open(cp_path, "r", encoding="utf-8") as fh:
                         cp = json.load(fh)
                     report_lines.append(f"- {cp_path}: {json.dumps(cp)[:200]}")
                 except Exception:

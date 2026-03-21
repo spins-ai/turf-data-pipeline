@@ -175,7 +175,7 @@ def main():
         return
 
     # Sauvegarder la page brute pour analyse
-    with open(os.path.join(OUTPUT_DIR, "page_brute.html"), "w") as f:
+    with open(os.path.join(OUTPUT_DIR, "page_brute.html"), "w", encoding="utf-8") as f:
         f.write(page_content)
 
     soup = BeautifulSoup(page_content, "html.parser")

@@ -146,25 +146,26 @@ def main():
             with open(tmp, "w", encoding="utf-8") as fout:
                 fout.write("[")
                 first = True
-                for item in ijson.items(open(perf_path, 'rb'), 'item'):
-                    key = make_partant_key(item)
-                    if not key or key in seen_keys:
-                        continue
-                    seen_keys.add(key)
-                    # Enrichir avec sectionals si dispo
-                    if key in sect_index:
-                        item.update(sect_index[key])
-                        item["_sources"] = ["22_performances", "11_sectionals"]
-                    else:
-                        item["_sources"] = ["22_performances"]
-                    item["_nb_sources"] = len(item["_sources"])
-                    if not first:
-                        fout.write(",")
-                    json.dump(item, fout, ensure_ascii=False)
-                    first = False
-                    total += 1
-                    if total % 100000 == 0:
-                        log.info(f"  Écrit {total} records...")
+                with open(perf_path, 'rb') as perf_fh:
+                    for item in ijson.items(perf_fh, 'item'):
+                        key = make_partant_key(item)
+                        if not key or key in seen_keys:
+                            continue
+                        seen_keys.add(key)
+                        # Enrichir avec sectionals si dispo
+                        if key in sect_index:
+                            item.update(sect_index[key])
+                            item["_sources"] = ["22_performances", "11_sectionals"]
+                        else:
+                            item["_sources"] = ["22_performances"]
+                        item["_nb_sources"] = len(item["_sources"])
+                        if not first:
+                            fout.write(",")
+                        json.dump(item, fout, ensure_ascii=False)
+                        first = False
+                        total += 1
+                        if total % 100000 == 0:
+                            log.info(f"  Écrit {total} records...")
 
                 # Ajouter les sectionals orphelins (pas dans 22_performances)
                 orphan_count = 0

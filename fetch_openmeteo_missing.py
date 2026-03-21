@@ -18,7 +18,7 @@ db = mod.HIPPODROMES_DB
 # Load courses to know which hippodromes need meteo
 print("Loading courses...")
 hippo_dates = {}
-with open('output/02_liste_courses/courses_normalisees.json', 'rb') as f:
+with open(os.path.join(BASE_DIR, 'output', '02_liste_courses', 'courses_normalisees.json'), 'rb') as f:
     f.read(1)
     buf = []
     depth = 0
@@ -161,7 +161,7 @@ for i, (h, info) in enumerate(sorted(to_fetch.items())):
                     }
 
                     cache_file = os.path.join(OUTPUT_DIR, f"{h}_{date_str}.json")
-                    with open(cache_file, 'w') as cf:
+                    with open(cache_file, 'w', encoding='utf-8') as cf:
                         json.dump(cache_entry, cf, ensure_ascii=False)
                     fetched += 1
 

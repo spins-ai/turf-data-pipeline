@@ -153,7 +153,7 @@ def main():
                     smart_pause(1, 0.5)
 
         # Sauver la page pour analyse manuelle
-        with open(os.path.join(OUTPUT_DIR, "page_principale.html"), "w") as f:
+        with open(os.path.join(OUTPUT_DIR, "page_principale.html"), "w", encoding="utf-8") as f:
             f.write(resp.text)
 
     # [4/4] Info Chevaux IFCE - explorer l'API

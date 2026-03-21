@@ -197,7 +197,7 @@ def load_source_08():
     for f in os.listdir(path):
         if f.endswith('.json') and not f.startswith('.'):
             try:
-                with open(os.path.join(path, f)) as fh:
+                with open(os.path.join(path, f), encoding="utf-8") as fh:
                     data = json.load(fh)
                 items = data if isinstance(data, list) else list(data.values()) if isinstance(data, dict) else []
                 for item in items:
@@ -225,7 +225,7 @@ def load_source_14():
     for f in os.listdir(path):
         if f.endswith('.json') and not f.startswith('.'):
             try:
-                with open(os.path.join(path, f)) as fh:
+                with open(os.path.join(path, f), encoding="utf-8") as fh:
                     data = json.load(fh)
                 items = data if isinstance(data, list) else list(data.values()) if isinstance(data, dict) else []
                 for item in items:
@@ -326,7 +326,7 @@ def load_source_36():
     for f in os.listdir(cache_dir):
         if f.endswith('.json'):
             try:
-                with open(os.path.join(cache_dir, f)) as fh:
+                with open(os.path.join(cache_dir, f), encoding="utf-8") as fh:
                     item = json.load(fh)
                 name = normalize_name(item.get("name", ""))
                 if not name:

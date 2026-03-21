@@ -77,7 +77,7 @@ def load_checkpoint() -> set[str]:
     """Charge les jours déjà patchés."""
     if CHECKPOINT_PATH.exists():
         try:
-            with open(CHECKPOINT_PATH, "r") as f:
+            with open(CHECKPOINT_PATH, "r", encoding="utf-8") as f:
                 return set(json.load(f))
         except Exception:
             pass
@@ -259,7 +259,7 @@ def renormaliser(logger: logging.Logger) -> None:
     result = subprocess.run(
         [sys.executable, "01_calendrier_reunions.py",
          "--date-debut", "2016-03-12", "--date-fin", "2026-03-12",
-         "--output", "output/01_calendrier_reunions"],
+         "--output", str(BASE_DIR / "output" / "01_calendrier_reunions")],
         capture_output=True, text=True, timeout=120,
     )
     for line in result.stdout.splitlines():
