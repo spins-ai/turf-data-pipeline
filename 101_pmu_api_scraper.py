@@ -157,6 +157,7 @@ def scrape_day(session, dt, output_programmes, output_participants, output_cours
                 # Extraire les infos de course
                 course_record = {
                     "date": date_iso,
+                    "source": "pmu_api",
                     "type": "course",
                     "num_reunion": num_reunion,
                     "num_course": num_course,
@@ -208,6 +209,7 @@ def scrape_day(session, dt, output_programmes, output_participants, output_cours
 
                     part_record = {
                         "date": date_iso,
+                        "source": "pmu_api",
                         "type": "participant",
                         "num_reunion": num_reunion,
                         "num_course": num_course,
