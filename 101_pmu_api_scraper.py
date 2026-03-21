@@ -96,10 +96,17 @@ def scrape_day(session, dt, output_programmes, output_participants, output_cours
 
     # Cache pour le programme du jour
     cache_prog = os.path.join(CACHE_DIR, f"prog_{date_iso}.json")
-    if os.path.exists(cache_prog):
-        with open(cache_prog, "r", encoding="utf-8") as f:
-            prog_data = json.load(f)
+    if os.path.exists(cache_prog) and os.path.getsize(cache_prog) > 2:
+        try:
+            with open(cache_prog, "r", encoding="utf-8") as f:
+                prog_data = json.load(f)
+        except (json.JSONDecodeError, ValueError):
+            log.warning(f"  Cache corrompu: {cache_prog}, re-téléchargement")
+            os.remove(cache_prog)
+            prog_data = None
     else:
+        prog_data = None
+    if prog_data is None:
         prog_data = api_get(session, f"/programmes/{date_pmu}")
         if not prog_data:
             return 0, 0, 0
@@ -143,10 +150,14 @@ def scrape_day(session, dt, output_programmes, output_participants, output_cours
 
             # --- Détails de la course ---
             cache_course = os.path.join(CACHE_DIR, f"course_{date_iso}_R{num_reunion}C{num_course}.json")
-            if os.path.exists(cache_course):
-                with open(cache_course, "r", encoding="utf-8") as f:
-                    course_data = json.load(f)
-            else:
+            course_data = None
+            if os.path.exists(cache_course) and os.path.getsize(cache_course) > 2:
+                try:
+                    with open(cache_course, "r", encoding="utf-8") as f:
+                        course_data = json.load(f)
+                except (json.JSONDecodeError, ValueError):
+                    os.remove(cache_course)
+            if course_data is None:
                 course_data = api_get(session, f"/programmes/{date_pmu}/R{num_reunion}/C{num_course}")
                 if course_data:
                     with open(cache_course, "w", encoding="utf-8") as f:
@@ -190,10 +201,14 @@ def scrape_day(session, dt, output_programmes, output_participants, output_cours
 
             # --- Participants ---
             cache_parts = os.path.join(CACHE_DIR, f"parts_{date_iso}_R{num_reunion}C{num_course}.json")
-            if os.path.exists(cache_parts):
-                with open(cache_parts, "r", encoding="utf-8") as f:
-                    parts_data = json.load(f)
-            else:
+            parts_data = None
+            if os.path.exists(cache_parts) and os.path.getsize(cache_parts) > 2:
+                try:
+                    with open(cache_parts, "r", encoding="utf-8") as f:
+                        parts_data = json.load(f)
+                except (json.JSONDecodeError, ValueError):
+                    os.remove(cache_parts)
+            if parts_data is None:
                 parts_data = api_get(session, f"/programmes/{date_pmu}/R{num_reunion}/C{num_course}/participants")
                 if parts_data:
                     with open(cache_parts, "w", encoding="utf-8") as f:
