@@ -21,12 +21,12 @@ Usage :
 import json
 import os
 import time
-import unicodedata
 import re
 from collections import defaultdict
 from pathlib import Path
 from datetime import datetime, timedelta
 
+from utils.normalize import strip_accents
 from utils.types import safe_int, safe_float
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -45,11 +45,6 @@ OUTPUT_FILE = DATA_MASTER / "jockey_stats.jsonl"
 # -----------------------------------------------------------------------
 # Helpers
 # -----------------------------------------------------------------------
-
-def strip_accents(text):
-    nfkd = unicodedata.normalize("NFKD", text)
-    return "".join(c for c in nfkd if not unicodedata.combining(c))
-
 
 def normalize_actor(name):
     """Normalise un nom de jockey pour le regroupement."""

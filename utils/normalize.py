@@ -80,5 +80,71 @@ def normalize_name(name: str | None, keep_digits: bool = True, strip_country: bo
     return " ".join(name.split())
 
 
+def strip_accents(text: str) -> str:
+    """Supprime les accents d'une chaine Unicode.
+
+    Parameters
+    ----------
+    text : str
+        Texte avec accents potentiels.
+
+    Returns
+    -------
+    str
+        Texte sans accents.
+
+    Examples
+    --------
+    >>> strip_accents("étoile du berger")
+    'etoile du berger'
+    """
+    nfkd = unicodedata.normalize("NFKD", text)
+    return "".join(c for c in nfkd if not unicodedata.combining(c))
+
+
+def normalize_date(date_str: str | None) -> str:
+    """Normalise une date au format ISO YYYY-MM-DD.
+
+    Gere les formats : YYYY-MM-DD, DD/MM/YYYY, DD-MM-YYYY.
+
+    Parameters
+    ----------
+    date_str : str or None
+        Date a normaliser.
+
+    Returns
+    -------
+    str
+        Date au format YYYY-MM-DD, ou "" si invalide.
+
+    Examples
+    --------
+    >>> normalize_date("25/12/2024")
+    '2024-12-25'
+    >>> normalize_date("2024-12-25T14:30:00")
+    '2024-12-25'
+    """
+    if not date_str:
+        return ""
+    date_str = str(date_str).strip()
+
+    # Deja au format ISO
+    m = re.match(r"^(\d{4})-(\d{2})-(\d{2})", date_str)
+    if m:
+        return m.group(0)
+
+    # Format DD/MM/YYYY
+    m = re.match(r"^(\d{2})/(\d{2})/(\d{4})", date_str)
+    if m:
+        return f"{m.group(3)}-{m.group(2)}-{m.group(1)}"
+
+    # Format DD-MM-YYYY
+    m = re.match(r"^(\d{2})-(\d{2})-(\d{4})", date_str)
+    if m:
+        return f"{m.group(3)}-{m.group(2)}-{m.group(1)}"
+
+    return date_str[:10] if len(date_str) >= 10 else ""
+
+
 # Alias pour import direct
 normalize_name_for_matching = normalize_name

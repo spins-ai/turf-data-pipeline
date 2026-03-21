@@ -21,9 +21,10 @@ import json
 import os
 import sys
 import time
-import unicodedata
 import re
 from pathlib import Path
+
+from utils.normalize import strip_accents
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_MASTER = BASE_DIR / "data_master"
@@ -48,12 +49,6 @@ def load_hippodromes_db():
 # -----------------------------------------------------------------------
 # Normalisation
 # -----------------------------------------------------------------------
-
-def strip_accents(text):
-    """Supprime les accents d'une chaine."""
-    nfkd = unicodedata.normalize("NFKD", text)
-    return "".join(c for c in nfkd if not unicodedata.combining(c))
-
 
 def normalize_raw(name):
     """Normalisation brute : minuscules, sans accents, sans ponctuation speciale."""

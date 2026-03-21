@@ -17,7 +17,7 @@ import time
 from collections import defaultdict
 from pathlib import Path
 
-from utils.normalize import normalize_name
+from utils.normalize import normalize_date, normalize_name
 
 BASE_DIR = Path(__file__).resolve().parent
 TF_INPUT = BASE_DIR / "output" / "56_timeform" / "timeform_data.jsonl"
@@ -36,22 +36,6 @@ logging.basicConfig(
     ],
 )
 log = logging.getLogger(__name__)
-
-
-def normalize_date(date_str):
-    """Normalise une date au format YYYY-MM-DD."""
-    if not date_str:
-        return ""
-    date_str = str(date_str).strip()
-    # Deja au bon format
-    m = re.match(r"^(\d{4})-(\d{2})-(\d{2})", date_str)
-    if m:
-        return m.group(0)
-    # Format DD/MM/YYYY
-    m = re.match(r"^(\d{2})/(\d{2})/(\d{4})", date_str)
-    if m:
-        return f"{m.group(3)}-{m.group(2)}-{m.group(1)}"
-    return date_str[:10]
 
 
 # ── Parsing Timeform records ──────────────────────────────────────────

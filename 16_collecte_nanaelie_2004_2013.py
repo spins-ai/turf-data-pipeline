@@ -32,12 +32,12 @@ import logging
 import re
 import sys
 import time
-import unicodedata
 from dataclasses import asdict, dataclass, field
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Optional
 
+from utils.normalize import strip_accents
 from utils.types import safe_int as _safe_int
 
 import requests
@@ -135,12 +135,6 @@ def create_session() -> requests.Session:
 
 def utc_now_iso() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-
-
-def strip_accents(text: str) -> str:
-    """Supprime les accents d'une chaine."""
-    nfkd = unicodedata.normalize("NFKD", text)
-    return "".join(c for c in nfkd if not unicodedata.category(c).startswith("M"))
 
 
 def normaliser_hippodrome(lieu: str) -> str:

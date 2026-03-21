@@ -22,9 +22,10 @@ Usage :
 import json
 import os
 import time
-import unicodedata
 import re
 from pathlib import Path
+
+from utils.normalize import strip_accents
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_MASTER = BASE_DIR / "data_master"
@@ -33,12 +34,6 @@ DATA_MASTER = BASE_DIR / "data_master"
 # -----------------------------------------------------------------------
 # Mapping des disciplines
 # -----------------------------------------------------------------------
-
-def strip_accents(text):
-    """Supprime les accents d'une chaine."""
-    nfkd = unicodedata.normalize("NFKD", text)
-    return "".join(c for c in nfkd if not unicodedata.combining(c))
-
 
 def _norm_key(val):
     """Normalise une valeur pour le lookup : minuscules, sans accents, sans tirets."""

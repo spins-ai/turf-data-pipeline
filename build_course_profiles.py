@@ -21,12 +21,12 @@ Usage :
 import json
 import os
 import time
-import unicodedata
 import re
 import math
 from collections import defaultdict
 from pathlib import Path
 
+from utils.normalize import strip_accents
 from utils.types import safe_int, safe_float
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -46,11 +46,6 @@ OUTPUT_FILE = DATA_MASTER / "course_profiles.jsonl"
 # -----------------------------------------------------------------------
 # Helpers
 # -----------------------------------------------------------------------
-
-def strip_accents(text):
-    nfkd = unicodedata.normalize("NFKD", text)
-    return "".join(c for c in nfkd if not unicodedata.combining(c))
-
 
 def safe_mean(values):
     clean = [v for v in values if v is not None]
