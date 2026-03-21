@@ -157,7 +157,56 @@ def scrape_course_detail(session, course_url, course_id):
 
     return result
 
+def export_cache_to_jsonl():
+    """Export cache to JSONL without scraping."""
+    jsonl_programmes = os.path.join(OUTPUT_DIR, "turfostats_programmes.jsonl")
+    jsonl_courses = os.path.join(OUTPUT_DIR, "turfostats_courses.jsonl")
+    log.info(f"Export cache → JSONL")
+    prog_count = 0
+    course_count = 0
+    with open(jsonl_programmes, "w", encoding="utf-8") as fp, \
+         open(jsonl_courses, "w", encoding="utf-8") as fc:
+        for fname in sorted(os.listdir(CACHE_DIR)):
+            if not fname.endswith(".json"):
+                continue
+            cache_path = os.path.join(CACHE_DIR, fname)
+            try:
+                with open(cache_path, encoding="utf-8") as fin:
+                    data = json.load(fin)
+            except Exception as e:
+                log.debug(f"  Erreur lecture cache {fname}: {e}")
+                continue
+
+            if fname.startswith("programme_"):
+                if isinstance(data, list):
+                    for entry in data:
+                        fp.write(json.dumps(entry, ensure_ascii=False) + "\n")
+                        prog_count += 1
+                else:
+                    fp.write(json.dumps(data, ensure_ascii=False) + "\n")
+                    prog_count += 1
+            elif fname.startswith("course_"):
+                fc.write(json.dumps(data, ensure_ascii=False) + "\n")
+                course_count += 1
+    log.info(f"  JSONL programmes: {prog_count} entrées → {jsonl_programmes}")
+    log.info(f"  JSONL courses: {course_count} entrées → {jsonl_courses}")
+    return prog_count, course_count
+
+
 def main():
+    import argparse
+    parser = argparse.ArgumentParser(description="Script 25 — Turfostats Stats Galop")
+    parser.add_argument("--export", action="store_true",
+                        help="Export cache to JSONL without scraping")
+    args = parser.parse_args()
+
+    if args.export:
+        log.info("=" * 60)
+        log.info("SCRIPT 25 — Export cache → JSONL (--export)")
+        log.info("=" * 60)
+        export_cache_to_jsonl()
+        return
+
     log.info("=" * 60)
     log.info("SCRIPT 25 — Turfostats Stats Galop")
     log.info("=" * 60)

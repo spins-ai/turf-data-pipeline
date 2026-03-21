@@ -150,7 +150,42 @@ def scrape_horse(session, horse_id):
 
     return horse
 
+def export_cache_to_jsonl():
+    """Export cache to JSONL without scraping."""
+    jsonl_file = os.path.join(OUTPUT_DIR, "canalturf_chevaux.jsonl")
+    log.info(f"Export cache → {jsonl_file}")
+    jsonl_count = 0
+    with open(jsonl_file, "w", encoding="utf-8") as fout:
+        for fname in sorted(os.listdir(CACHE_DIR)):
+            if not fname.endswith(".json"):
+                continue
+            cache_path = os.path.join(CACHE_DIR, fname)
+            try:
+                with open(cache_path, encoding="utf-8") as fin:
+                    record = json.load(fin)
+                if record and record.get("nom_cheval"):
+                    fout.write(json.dumps(record, ensure_ascii=False) + "\n")
+                    jsonl_count += 1
+            except Exception as e:
+                log.debug(f"  Erreur lecture cache {fname}: {e}")
+    log.info(f"  JSONL: {jsonl_count} fiches écrites → {jsonl_file}")
+    return jsonl_count
+
+
 def main():
+    import argparse
+    parser = argparse.ArgumentParser(description="Script 24 — Canalturf Fiches Chevaux")
+    parser.add_argument("--export", action="store_true",
+                        help="Export cache to JSONL without scraping")
+    args = parser.parse_args()
+
+    if args.export:
+        log.info("=" * 60)
+        log.info("SCRIPT 24 — Export cache → JSONL (--export)")
+        log.info("=" * 60)
+        export_cache_to_jsonl()
+        return
+
     log.info("=" * 60)
     log.info("SCRIPT 24 — Fiches chevaux Canalturf")
     log.info("=" * 60)

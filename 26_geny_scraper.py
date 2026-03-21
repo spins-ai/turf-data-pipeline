@@ -124,9 +124,33 @@ def scrape_day(session, date_str):
     return result
 
 
+def export_cache_to_jsonl():
+    """Export cache to JSONL without scraping."""
+    jsonl_file = os.path.join(OUTPUT_DIR, "geny_data.jsonl")
+    log.info(f"Export cache → {jsonl_file}")
+    jsonl_count = 0
+    with open(jsonl_file, "w", encoding="utf-8") as fout:
+        for fname in sorted(os.listdir(CACHE_DIR)):
+            if not fname.endswith(".json"):
+                continue
+            cache_path = os.path.join(CACHE_DIR, fname)
+            try:
+                with open(cache_path, encoding="utf-8") as fin:
+                    record = json.load(fin)
+                if record:
+                    fout.write(json.dumps(record, ensure_ascii=False) + "\n")
+                    jsonl_count += 1
+            except Exception as e:
+                log.debug(f"  Erreur lecture cache {fname}: {e}")
+    log.info(f"  JSONL: {jsonl_count} jours écrits → {jsonl_file}")
+    return jsonl_count
+
+
 def main():
     import argparse
     parser = argparse.ArgumentParser(description="Script 26 — Geny.com Scraper")
+    parser.add_argument("--export", action="store_true",
+                        help="Export cache to JSONL without scraping")
     parser.add_argument("--start", type=str, default="2020-01-01",
                         help="Date de début (YYYY-MM-DD)")
     parser.add_argument("--end", type=str, default=None,
@@ -136,6 +160,13 @@ def main():
     parser.add_argument("--max-days", type=int, default=0,
                         help="Nombre max de jours (0=illimité)")
     args = parser.parse_args()
+
+    if args.export:
+        log.info("=" * 60)
+        log.info("SCRIPT 26 — Export cache → JSONL (--export)")
+        log.info("=" * 60)
+        export_cache_to_jsonl()
+        return
 
     start_date = datetime.strptime(args.start, "%Y-%m-%d")
     end_date = datetime.strptime(args.end, "%Y-%m-%d") if args.end else (datetime.now() - timedelta(days=1))
