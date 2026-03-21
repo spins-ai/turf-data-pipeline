@@ -9,7 +9,6 @@ CRITIQUE pour : Value Hunter, Kelly, ROI Predictor, Ticket Optimizer
 import requests
 import json
 import time
-import random
 import os
 import logging
 import sys

@@ -14,7 +14,6 @@ v2 : multi-source + HTML brut sauvegardé + graceful shutdown
 import requests
 import json
 import time
-import random
 import os
 import re
 import logging

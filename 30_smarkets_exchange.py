@@ -7,7 +7,6 @@ CRITIQUE pour : Value Detection, Market Analysis, Outsider Detection
 
 import requests
 import json
-import time
 import os
 import logging
 import sys

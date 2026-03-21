@@ -8,7 +8,6 @@ CRITIQUE pour : LSTM, GRU, TFT, Rolling Stats, Pace Profile, Race Simulation
 import requests
 import json
 import time
-import random
 import os
 import logging
 import sys

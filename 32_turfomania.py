@@ -7,7 +7,6 @@ CRITIQUE pour : Features uniques (indice confiance, forme), Alternative predicti
 
 import requests
 import json
-import time
 import random
 import os
 import re

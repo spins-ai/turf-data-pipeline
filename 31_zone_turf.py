@@ -7,7 +7,6 @@ CRITIQUE pour : Crowd Wisdom, Consensus Pronostiqueurs, Features communautaires
 
 import requests
 import json
-import time
 import random
 import os
 import re

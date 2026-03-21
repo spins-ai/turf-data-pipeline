@@ -9,7 +9,6 @@ PATCH JSONL : append mode, ~15 MB RAM au lieu de 1.6 GB
 
 import requests
 import json
-import time
 import random
 import os
 import re

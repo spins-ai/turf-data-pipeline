@@ -7,7 +7,6 @@ CRITIQUE pour : Valeur commerciale cheval, breeding value, ROI éleveur
 
 import requests
 import json
-import time
 import random
 import os
 import re

@@ -7,7 +7,6 @@ CRITIQUE pour : Consensus experts, Stats adversaires, Features presse
 
 import requests
 import json
-import time
 import random
 import os
 import re
