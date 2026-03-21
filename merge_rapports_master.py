@@ -89,10 +89,10 @@ def main():
 
     # Sources par ordre de priorité (moins prioritaire en premier)
     sources = [
-        ("rapports_merged", "output/rapports_merged"),
-        ("38_rapports_internet", "output/38_rapports_internet"),
-        ("21_rapports", "output/21_rapports_definitifs"),
-        ("04_resultats", "output/04_resultats"),
+        ("rapports_merged", os.path.join(BASE_DIR, "output", "rapports_merged")),
+        ("38_rapports_internet", os.path.join(BASE_DIR, "output", "38_rapports_internet")),
+        ("21_rapports", os.path.join(BASE_DIR, "output", "21_rapports_definitifs")),
+        ("04_resultats", os.path.join(BASE_DIR, "output", "04_resultats")),
     ]
 
     for src_name, src_path in sources:

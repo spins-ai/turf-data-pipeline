@@ -84,7 +84,7 @@ def main():
     log.info("=== PARTIE 1 : Stats agrégées par cheval ===")
     horse_stats = {}
 
-    items_05 = load_json_safe("output/05_historique_chevaux/historique_chevaux.json", "05_historique")
+    items_05 = load_json_safe(os.path.join(BASE_DIR, "output", "05_historique_chevaux", "historique_chevaux.json"), "05_historique")
     for item in items_05:
         key = make_horse_key(item)
         if not key:
@@ -117,7 +117,7 @@ def main():
     # Charger sectionals en mémoire (243K records = ~300MB OK)
     log.info("  Chargement index sectionals...")
     sect_index = {}  # partant_key -> dict de champs sect_*
-    items_11 = load_json_safe("output/11_sectionals/sectionals.json", "11_sectionals")
+    items_11 = load_json_safe(os.path.join(BASE_DIR, "output", "11_sectionals", "sectionals.json"), "11_sectionals")
     for item in items_11:
         key = make_partant_key(item)
         if not key:
@@ -132,7 +132,7 @@ def main():
     log.info(f"  → {len(sect_index)} sectionals indexés")
 
     # Stream 22_performances et écrire directement en JSON
-    perf_path = "output/22_performances_detaillees/performances_detaillees.json"
+    perf_path = os.path.join(BASE_DIR, "output", "22_performances_detaillees", "performances_detaillees.json")
     out = "data_master/performances_master.json"
     tmp = out + ".tmp"
     total = 0

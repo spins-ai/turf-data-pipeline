@@ -60,7 +60,7 @@ def main():
     master = {}
 
     # 09_equipements (319 MB — œillères, déferré, changements)
-    items_09 = load_json_safe("output/09_equipements/equipements_historique.json", "09_equipements")
+    items_09 = load_json_safe(os.path.join(BASE_DIR, "output", "09_equipements", "equipements_historique.json"), "09_equipements")
     for item in items_09:
         key = make_key(item)
         if not key:
@@ -76,7 +76,7 @@ def main():
     log.info(f"  → Après 09_equipements: {len(master)} partants")
 
     # 10_poids_handicaps (141 MB)
-    items_10 = load_json_safe("output/10_poids_handicaps/poids_handicaps.json", "10_poids")
+    items_10 = load_json_safe(os.path.join(BASE_DIR, "output", "10_poids_handicaps", "poids_handicaps.json"), "10_poids")
     for item in items_10:
         key = make_key(item)
         if not key:

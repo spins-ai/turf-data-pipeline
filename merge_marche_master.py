@@ -89,10 +89,10 @@ def main():
     master = {}
 
     sources = [
-        ("30_smarkets", "output/30_smarkets_exchange"),
-        ("07_cotes", "output/07_cotes_marche"),
-        ("28_combinaisons", "output/28_combinaisons_marche"),
-        ("40_enrichissement", "output/40_enrichissement_partants"),
+        ("30_smarkets", os.path.join(BASE_DIR, "output", "30_smarkets_exchange")),
+        ("07_cotes", os.path.join(BASE_DIR, "output", "07_cotes_marche")),
+        ("28_combinaisons", os.path.join(BASE_DIR, "output", "28_combinaisons_marche")),
+        ("40_enrichissement", os.path.join(BASE_DIR, "output", "40_enrichissement_partants")),
     ]
 
     for src_name, src_path in sources:

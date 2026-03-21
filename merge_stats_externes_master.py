@@ -70,7 +70,7 @@ def main():
     horse_profiles = {}
 
     # 24_canalturf (profils chevaux)
-    items_24 = load_json_safe("output/24_canalturf/canalturf_chevaux.json", "24_canalturf")
+    items_24 = load_json_safe(os.path.join(BASE_DIR, "output", "24_canalturf", "canalturf_chevaux.json"), "24_canalturf")
     for item in items_24:
         nom = item.get("nom_cheval", "")
         key = normalize_name(nom)
@@ -91,7 +91,7 @@ def main():
     courses_ext = {}
 
     # 25_turfostats courses
-    items_25c = load_json_safe("output/25_turfostats/turfostats_courses.json", "25_courses")
+    items_25c = load_json_safe(os.path.join(BASE_DIR, "output", "25_turfostats", "turfostats_courses.json"), "25_courses")
     for item in items_25c:
         cid = item.get("id_course", "")
         if not cid:
@@ -103,7 +103,7 @@ def main():
                 courses_ext[key][f"turfo_{k}"] = v
 
     # 25_turfostats détails (partants par course)
-    items_25d = load_json_safe("output/25_turfostats/turfostats_details.json", "25_details")
+    items_25d = load_json_safe(os.path.join(BASE_DIR, "output", "25_turfostats", "turfostats_details.json"), "25_details")
     for item in items_25d:
         cid = item.get("id_course", "")
         if not cid:
@@ -118,7 +118,7 @@ def main():
     log.info(f"  → Courses turfostats: {len(courses_ext)}")
 
     # 26_geny (pronostics par date/réunion)
-    items_26 = load_json_safe("output/26_geny/geny_data.json", "26_geny")
+    items_26 = load_json_safe(os.path.join(BASE_DIR, "output", "26_geny", "geny_data.json"), "26_geny")
     geny_count = 0
     for item in items_26:
         date = item.get("date", "")
@@ -139,7 +139,7 @@ def main():
     # ── Partie C : Racing Post (5.6 GB — données internationales) ──
     log.info("=== PARTIE C : Racing Post (international) ===")
     racing_post = {}
-    rp_path = "output/37_racing_post/racing_post_data.json"
+    rp_path = os.path.join(BASE_DIR, "output", "37_racing_post", "racing_post_data.json")
     if os.path.exists(rp_path):
         size = os.path.getsize(rp_path) / 1024 / 1024
         log.info(f"  37_racing_post: {size:.0f} MB — streaming...")
@@ -171,7 +171,7 @@ def main():
             log.error(f"  37_racing_post streaming error: {e}")
     else:
         # Essayer les fichiers du dossier
-        rp_dir = "output/37_racing_post"
+        rp_dir = os.path.join(BASE_DIR, "output", "37_racing_post")
         if os.path.exists(rp_dir):
             for fname in sorted(os.listdir(rp_dir)):
                 if not fname.endswith('.json') or fname.startswith('.'):

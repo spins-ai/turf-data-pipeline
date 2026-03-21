@@ -66,10 +66,10 @@ def main():
     master = {}  # clé = course_uid ou date|hippo|R|C
 
     # 1. Météo historique (Open-Meteo)
-    for fname in os.listdir("output/13_meteo_historique"):
+    for fname in os.listdir(os.path.join(BASE_DIR, "output", "13_meteo_historique")):
         if not fname.endswith('.json') or fname.startswith('.'):
             continue
-        items = load_json_safe(f"output/13_meteo_historique/{fname}", f"13/{fname}")
+        items = load_json_safe(fos.path.join(BASE_DIR, "output", "13_meteo_historique", "{fname}"), f"13/{fname}")
         for item in items:
             key = make_course_key(item)
             if not key:
@@ -85,10 +85,10 @@ def main():
     log.info(f"  Après 13_meteo: {len(master)} courses")
 
     # 2. Météo France stations
-    for fname in os.listdir("output/35_meteo_france") if os.path.exists("output/35_meteo_france") else []:
+    for fname in os.listdir(os.path.join(BASE_DIR, "output", "35_meteo_france")) if os.path.exists(os.path.join(BASE_DIR, "output", "35_meteo_france")) else []:
         if not fname.endswith('.json') or fname.startswith('.'):
             continue
-        items = load_json_safe(f"output/35_meteo_france/{fname}", f"35/{fname}")
+        items = load_json_safe(fos.path.join(BASE_DIR, "output", "35_meteo_france", "{fname}"), f"35/{fname}")
         for item in items:
             key = make_course_key(item)
             if not key:
@@ -104,10 +104,10 @@ def main():
     log.info(f"  Après 35_meteo_france: {len(master)} courses")
 
     # 3. Réunions enrichies (météo + incidents + paris)
-    for fname in os.listdir("output/39_reunions_enrichies") if os.path.exists("output/39_reunions_enrichies") else []:
+    for fname in os.listdir(os.path.join(BASE_DIR, "output", "39_reunions_enrichies")) if os.path.exists(os.path.join(BASE_DIR, "output", "39_reunions_enrichies")) else []:
         if not fname.endswith('.json') or fname.startswith('.'):
             continue
-        fpath = f"output/39_reunions_enrichies/{fname}"
+        fpath = fos.path.join(BASE_DIR, "output", "39_reunions_enrichies", "{fname}")
         fsize = os.path.getsize(fpath) / 1024 / 1024
         if fsize > 3000:
             continue
@@ -127,11 +127,11 @@ def main():
     log.info(f"  Après 39_reunions: {len(master)} courses")
 
     # 4. Merge intermédiaire existant
-    if os.path.exists("output/meteo_complete"):
-        for fname in os.listdir("output/meteo_complete"):
+    if os.path.exists(os.path.join(BASE_DIR, "output", "meteo_complete")):
+        for fname in os.listdir(os.path.join(BASE_DIR, "output", "meteo_complete")):
             if not fname.endswith('.json') or fname.startswith('.'):
                 continue
-            items = load_json_safe(f"output/meteo_complete/{fname}", f"meteo_complete/{fname}")
+            items = load_json_safe(fos.path.join(BASE_DIR, "output", "meteo_complete", "{fname}"), f"meteo_complete/{fname}")
             for item in items:
                 key = make_course_key(item)
                 if not key:
@@ -148,7 +148,7 @@ def main():
 
     # 5. Pénétromètre et type_piste depuis courses_normalisees
     log.info("  Extraction penetrometre/type_piste depuis courses_normalisees...")
-    courses_path = "output/02_liste_courses/courses_normalisees.json"
+    courses_path = os.path.join(BASE_DIR, "output", "02_liste_courses", "courses_normalisees.json")
     if os.path.exists(courses_path):
         items = load_json_safe(courses_path, "02_courses")
         for item in items:

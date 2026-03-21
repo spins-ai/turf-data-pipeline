@@ -60,7 +60,7 @@ def load_source_02_partants():
                        'sire_vivant', 'sire_consommation', 'jument_pleine', 'age',
                        'pays_cheval', 'date_naissance']
 
-    filepath = "output/02_liste_courses/partants_enrichis.json"
+    filepath = os.path.join(BASE_DIR, "output", "02_liste_courses", "partants_enrichis.json")
     if not os.path.exists(filepath):
         log.warning("  partants_enrichis.json non trouvé")
         return records
@@ -167,7 +167,7 @@ def load_source_24_canalturf():
     """CanalTurf : père, mère, robe"""
     log.info("Chargement source 24_canalturf...")
     records = {}
-    path = "output/24_canalturf/canalturf_chevaux.json"
+    path = os.path.join(BASE_DIR, "output", "24_canalturf", "canalturf_chevaux.json")
     if not os.path.exists(path):
         return records
     try:
@@ -193,7 +193,7 @@ def load_source_08():
     """PMU pedigree : père, mère, père-mère"""
     log.info("Chargement source 08_pedigree...")
     records = {}
-    path = "output/08_pedigree"
+    path = os.path.join(BASE_DIR, "output", "08_pedigree")
     for f in os.listdir(path):
         if f.endswith('.json') and not f.startswith('.'):
             try:
@@ -221,7 +221,7 @@ def load_source_14():
     """Scraper pedigree détaillé"""
     log.info("Chargement source 14_pedigree...")
     records = {}
-    path = "output/14_pedigree"
+    path = os.path.join(BASE_DIR, "output", "14_pedigree")
     for f in os.listdir(path):
         if f.endswith('.json') and not f.startswith('.'):
             try:
@@ -248,7 +248,7 @@ def load_source_17():
     """SIRE/IFCE — source officielle, prioritaire"""
     log.info("Chargement source 17_sire_ifce...")
     records = {}
-    path = "output/17_sire_ifce"
+    path = os.path.join(BASE_DIR, "output", "17_sire_ifce")
 
     files_to_load = []
     for f in os.listdir(path):
@@ -319,7 +319,7 @@ def load_source_36():
     """Pedigree Query (8593 records)"""
     log.info("Chargement source 36_pedigree_query...")
     records = {}
-    cache_dir = "output/36_pedigree_query/cache"
+    cache_dir = os.path.join(BASE_DIR, "output", "36_pedigree_query", "cache")
     if not os.path.exists(cache_dir):
         return records
 
