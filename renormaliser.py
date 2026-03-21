@@ -31,7 +31,7 @@ deduplication_intra_source = mod.deduplication_intra_source
 default_source_configs = mod.default_source_configs
 Sauvegarder = mod.Sauvegarder
 
-OUTPUT_DIR = Path("output/01_calendrier_reunions")
+OUTPUT_DIR = Path(__file__).resolve().parent / "output" / "01_calendrier_reunions"
 BRUTES_PATH = OUTPUT_DIR / "reunions_brut.json"
 
 
