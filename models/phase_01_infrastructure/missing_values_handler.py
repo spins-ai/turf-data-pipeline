@@ -9,13 +9,18 @@ group-mean, or model-based imputation via KNN / iterative.
 import argparse
 import json
 import logging
+import os
+import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import numpy as np
 import pandas as pd
 
-logger = logging.getLogger(__name__)
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))
+from utils.logging_setup import setup_logging
+
+logger = setup_logging("missing_values_handler")
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 OUTPUT_DIR = PROJECT_ROOT / "models" / "data"
@@ -248,8 +253,6 @@ def main():
     parser.add_argument("--output-dir", default=None)
     parser.add_argument("--report-only", action="store_true", help="Only show null report")
     args = parser.parse_args()
-
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
     df = pd.read_parquet(args.input)
     handler = MissingValuesHandler(output_dir=args.output_dir)

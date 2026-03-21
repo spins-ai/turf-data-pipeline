@@ -7,13 +7,18 @@ Duo win rate, synergy score, combo form, individual and pair statistics.
 
 import argparse
 import logging
+import os
+import sys
 from pathlib import Path
 from typing import Optional
 
 import numpy as np
 import pandas as pd
 
-logger = logging.getLogger(__name__)
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))
+from utils.logging_setup import setup_logging
+
+logger = setup_logging("jockey_trainer_synergy_builder")
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DATA_MASTER = PROJECT_ROOT / "data_master"
@@ -156,8 +161,6 @@ def main():
     parser.add_argument("--input", default=None, help="Parquet or JSONL input")
     parser.add_argument("--output-dir", default=None)
     args = parser.parse_args()
-
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
     if args.input:
         inp = Path(args.input)

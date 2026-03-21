@@ -9,14 +9,19 @@ Save and load fitted scalers for inference.
 import argparse
 import json
 import logging
+import os
 import pickle
+import sys
 from pathlib import Path
 from typing import Dict, List, Optional
 
 import numpy as np
 import pandas as pd
 
-logger = logging.getLogger(__name__)
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))
+from utils.logging_setup import setup_logging
+
+logger = setup_logging("data_normalizer")
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 OUTPUT_DIR = PROJECT_ROOT / "models" / "data"
@@ -175,8 +180,6 @@ def main():
     parser.add_argument("--method", choices=["standard", "minmax", "robust"], default="standard")
     parser.add_argument("--output-dir", default=None)
     args = parser.parse_args()
-
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
     df = pd.read_parquet(args.input)
     normalizer = DataNormalizer(method=args.method, output_dir=args.output_dir)

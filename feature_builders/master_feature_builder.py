@@ -15,8 +15,12 @@ import json
 import csv
 import logging
 import os
+import sys
 import time
 from typing import Any
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+from utils.logging_setup import setup_logging
 
 from .cheval_features import build_cheval_features
 from .jockey_features import build_jockey_features, build_entraineur_features
@@ -185,9 +189,7 @@ def build_all_features(
         The merged feature matrix.
     """
     t0 = time.time()
-    logger = logging.getLogger("master_feature_builder")
-    if not logger.handlers:
-        logging.basicConfig(level=logging.INFO, format="%(message)s")
+    logger = setup_logging("master_feature_builder")
 
     print("=" * 70)
     print("MASTER FEATURE BUILDER (enriched - 19 builders + interactions)")

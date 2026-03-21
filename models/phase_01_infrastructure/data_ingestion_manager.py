@@ -10,13 +10,17 @@ import argparse
 import json
 import logging
 import os
+import sys
 from pathlib import Path
 from typing import Dict, Generator, List, Optional
 
 import numpy as np
 import pandas as pd
 
-logger = logging.getLogger(__name__)
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))
+from utils.logging_setup import setup_logging
+
+logger = setup_logging("data_ingestion_manager")
 
 # ---------------------------------------------------------------------------
 # Defaults
@@ -207,8 +211,6 @@ def main():
     parser.add_argument("--chunk-size", type=int, default=50_000)
     parser.add_argument("--merge", action="store_true", help="Build merged dataset")
     args = parser.parse_args()
-
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
     mgr = DataIngestionManager(
         partants_path=args.partants,

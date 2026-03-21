@@ -8,13 +8,18 @@ Supports clip, remove, or flag strategies.
 
 import argparse
 import logging
+import os
+import sys
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
 
-logger = logging.getLogger(__name__)
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))
+from utils.logging_setup import setup_logging
+
+logger = setup_logging("outlier_cleaner")
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 OUTPUT_DIR = PROJECT_ROOT / "models" / "data"
@@ -214,8 +219,6 @@ def main():
     parser.add_argument("--report-only", action="store_true")
     parser.add_argument("--output-dir", default=None)
     args = parser.parse_args()
-
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
     df = pd.read_parquet(args.input)
     cleaner = OutlierCleaner(

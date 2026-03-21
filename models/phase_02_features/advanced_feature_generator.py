@@ -8,12 +8,17 @@ from raw data by calling each sub-builder in sequence.
 
 import argparse
 import logging
+import os
+import sys
 import time
 from pathlib import Path
 from typing import List, Optional
 
 import numpy as np
 import pandas as pd
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))
+from utils.logging_setup import setup_logging
 
 from .rolling_stats_generator import RollingStatsGenerator
 from .temporal_feature_builder import TemporalFeatureBuilder
@@ -25,7 +30,7 @@ from .pace_profile_builder import PaceProfileBuilder
 from .sectional_feature_builder import SectionalFeatureBuilder
 from .field_strength_builder import FieldStrengthBuilder
 
-logger = logging.getLogger(__name__)
+logger = setup_logging("advanced_feature_generator")
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DATA_MASTER = PROJECT_ROOT / "data_master"
@@ -231,8 +236,6 @@ def main():
     parser.add_argument("--interactions", action="store_true", help="Add interaction features")
     parser.add_argument("--summary", action="store_true", help="Print feature summary")
     args = parser.parse_args()
-
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
     gen = AdvancedFeatureGenerator(output_dir=args.output_dir, skip_builders=args.skip)
     df = gen.load_source(partants_path=args.partants, features_path=args.features)

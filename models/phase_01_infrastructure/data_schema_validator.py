@@ -9,13 +9,18 @@ required fields, types, value ranges. Flag violations with a report.
 import argparse
 import json
 import logging
+import os
+import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
 
-logger = logging.getLogger(__name__)
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))
+from utils.logging_setup import setup_logging
+
+logger = setup_logging("data_schema_validator")
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 OUTPUT_DIR = PROJECT_ROOT / "models" / "data"
@@ -186,8 +191,6 @@ def main():
     parser.add_argument("--schema", choices=["partants", "features"], default="partants")
     parser.add_argument("--output-dir", default=None)
     args = parser.parse_args()
-
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
     inp = Path(args.input)
     if inp.suffix == ".parquet":

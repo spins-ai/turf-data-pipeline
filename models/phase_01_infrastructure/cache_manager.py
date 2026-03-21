@@ -11,13 +11,17 @@ import hashlib
 import json
 import logging
 import os
+import sys
 import time
 from pathlib import Path
 from typing import Dict, Optional
 
 import pandas as pd
 
-logger = logging.getLogger(__name__)
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))
+from utils.logging_setup import setup_logging
+
+logger = setup_logging("cache_manager")
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 CACHE_DIR = PROJECT_ROOT / "models" / "data" / ".cache"
@@ -183,8 +187,6 @@ def main():
     parser.add_argument("--key", default=None, help="Cache key (for invalidate)")
     parser.add_argument("--cache-dir", default=None)
     args = parser.parse_args()
-
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
     cm = CacheManager(cache_dir=args.cache_dir)
 
