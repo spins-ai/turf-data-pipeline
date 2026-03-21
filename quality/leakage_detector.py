@@ -339,6 +339,8 @@ def format_report(report: dict) -> str:
 # ===========================================================================
 
 def main():
+    global CORRELATION_THRESHOLD
+
     parser = argparse.ArgumentParser(
         description="Detecteur de data leakage dans les features ML"
     )
@@ -360,7 +362,6 @@ def main():
     )
     args = parser.parse_args()
 
-    global CORRELATION_THRESHOLD
     CORRELATION_THRESHOLD = args.threshold
 
     logger = setup_logging()
