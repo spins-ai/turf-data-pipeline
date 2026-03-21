@@ -22,7 +22,8 @@ from typing import Any, Optional
 import numpy as np
 import pandas as pd
 
-from models.baseline_models import BaseModel, compute_metrics, setup_logging
+from models.baseline_models import BaseModel, compute_metrics
+from utils.logging_setup import setup_logging
 
 # ===========================================================================
 # CONFIG
@@ -64,7 +65,7 @@ class MetaSelector:
         self.models = models
         self.context_keys = context_keys or ["discipline", "terrain"]
         self.min_context_samples = min_context_samples
-        self.logger = setup_logging()
+        self.logger = setup_logging("meta_selector")
 
         # Performance tracking
         # context_key -> model_name -> list[float] (log_loss par course)

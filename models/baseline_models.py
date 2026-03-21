@@ -64,12 +64,7 @@ _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(_PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROJECT_ROOT))
 
-
-# ===========================================================================
-# LOGGING (re-exported for models.meta_selector compatibility)
-# ===========================================================================
-
-from utils.logging_setup import setup_logging  # noqa: F401 — re-exported
+from utils.logging_setup import setup_logging
 
 
 # ===========================================================================

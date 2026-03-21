@@ -27,8 +27,8 @@ from models.baseline_models import (
     BaseModel,
     create_model,
     compute_metrics,
-    setup_logging,
 )
+from utils.logging_setup import setup_logging
 
 # ===========================================================================
 # CONFIG
@@ -63,7 +63,7 @@ class StackingEnsemble:
         meta_learner=None,
         base_model_params: Optional[dict[str, dict]] = None,
     ):
-        self.logger = setup_logging()
+        self.logger = setup_logging("stacking_ensemble")
         self.base_model_names = base_model_names or DEFAULT_BASE_MODELS
         self.base_model_params = base_model_params or {}
 
