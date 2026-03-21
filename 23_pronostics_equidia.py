@@ -53,7 +53,7 @@ def save_state(reason="checkpoint"):
     """Sauvegarde atomique"""
     try:
         tmp = output_file + ".tmp"
-        with open(tmp, "w") as f:
+        with open(tmp, "w", encoding="utf-8") as f:
             json.dump(all_records, f, ensure_ascii=False)
         os.replace(tmp, output_file)
         log.info(f"💾 {reason}: {len(all_records)} records sauvés")
@@ -94,7 +94,7 @@ def fetch_pronostics_api(date_str, numero_reunion, num_course):
         if resp.status_code == 200:
             data = resp.json()
             if data and data.get("selection"):
-                with open(cache_file, "w") as f:
+                with open(cache_file, "w", encoding="utf-8") as f:
                     json.dump(data, f, ensure_ascii=False)
                 return data
         elif resp.status_code == 429:
@@ -322,7 +322,7 @@ def collect_cotes_probables(courses):
                         record[f"rank_{rank}_gains"] = p["gains"]
                         record[f"rank_{rank}_victoires"] = p["nb_victoires"]
 
-                    with open(cache_file_local, "w") as f:
+                    with open(cache_file_local, "w", encoding="utf-8") as f:
                         json.dump(record, f, ensure_ascii=False)
                     records.append(record)
             elif resp.status_code == 429:
@@ -336,7 +336,7 @@ def collect_cotes_probables(courses):
 
         if (i + 1) % 500 == 0:
             log.info(f"  Cotes [{i+1}/{len(filtered)}] récup={len(records)} (cache={cached}) erreurs={errors}")
-            with open(checkpoint_file, "w") as f:
+            with open(checkpoint_file, "w", encoding="utf-8") as f:
                 json.dump({"source3_index": i + 1}, f)
 
         if (i + 1) % 2000 == 0:

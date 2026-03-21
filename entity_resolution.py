@@ -315,7 +315,7 @@ def main():
     # ── 5. Sauvegarder ──
     log.info(f"\n💾 Sauvegarde {OUTPUT}...")
     tmp = OUTPUT + ".tmp"
-    with open(tmp, "w") as f:
+    with open(tmp, "w", encoding="utf-8") as f:
         json.dump(equipements, f, ensure_ascii=False)
     os.replace(tmp, OUTPUT)
     size = os.path.getsize(OUTPUT) / 1024 / 1024

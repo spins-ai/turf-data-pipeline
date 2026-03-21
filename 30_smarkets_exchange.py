@@ -344,23 +344,23 @@ def main():
                     week_records.append(record)
 
         if week_records:
-            with open(cache_file, "w") as f:
+            with open(cache_file, "w", encoding="utf-8") as f:
                 json.dump(week_records, f, ensure_ascii=False)
 
         all_records.extend(week_records)
         log.info(f"  → {len(fr_events)} événements FR, {len(week_records)} records")
 
         # Sauvegarder périodiquement
-        with open(output_file, "w") as f:
+        with open(output_file, "w", encoding="utf-8") as f:
             json.dump(all_records, f, ensure_ascii=False)
-        with open(checkpoint_file, "w") as f:
+        with open(checkpoint_file, "w", encoding="utf-8") as f:
             json.dump({"last_date": cache_key, "total": len(all_records)}, f)
 
         current = week_end
         smart_pause(1.0, 0.5)
 
     # Sauvegarde finale
-    with open(output_file, "w") as f:
+    with open(output_file, "w", encoding="utf-8") as f:
         json.dump(all_records, f, ensure_ascii=False)
 
     log.info("=" * 60)

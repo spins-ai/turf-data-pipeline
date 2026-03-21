@@ -117,7 +117,7 @@ def scrape_day(date_str):
         log.debug(f"Erreur {date_str}: {e}")
     
     if records:
-        with open(cache_file, "w") as f:
+        with open(cache_file, "w", encoding="utf-8") as f:
             json.dump(records, f, ensure_ascii=False)
     
     return records
@@ -145,13 +145,13 @@ def main():
         
         if collected % 30 == 0 and collected > 0:
             log.info(f"  {collected} jours, {len(all_records)} records")
-            with open(output_file, "w") as f:
+            with open(output_file, "w", encoding="utf-8") as f:
                 json.dump(all_records, f, ensure_ascii=False)
         
         current += timedelta(days=1)
         smart_pause(2.5, 1.0)
     
-    with open(output_file, "w") as f:
+    with open(output_file, "w", encoding="utf-8") as f:
         json.dump(all_records, f, ensure_ascii=False)
     
     log.info(f"TERMINÉ: {collected} jours, {len(all_records)} records")

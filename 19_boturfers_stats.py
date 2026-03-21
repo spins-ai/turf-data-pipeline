@@ -118,7 +118,7 @@ def scrape_hippodrome_list(session):
             seen.add(h["name"])
             unique.append(h)
 
-    with open(cache_file, "w") as f:
+    with open(cache_file, "w", encoding="utf-8") as f:
         json.dump(unique, f, ensure_ascii=False, indent=2)
 
     print(f"  Trouvé {len(unique)} hippodromes")
@@ -166,7 +166,7 @@ def scrape_hippodrome_detail(session, hippo):
             if text and len(text) < 200:
                 detail[f"info_{classes}"] = text
 
-    with open(cache_file, "w") as f:
+    with open(cache_file, "w", encoding="utf-8") as f:
         json.dump(detail, f, ensure_ascii=False, indent=2)
 
     return detail
@@ -209,7 +209,7 @@ def main():
     print(f"\n[3/3] Sauvegarde de {len(all_stats)} hippodromes...")
 
     output_file = os.path.join(OUTPUT_DIR, "boturfers_hippodromes.json")
-    with open(output_file, "w") as f:
+    with open(output_file, "w", encoding="utf-8") as f:
         json.dump(all_stats, f, ensure_ascii=False, indent=2)
 
     # CSV

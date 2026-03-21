@@ -145,7 +145,7 @@ pmu_uid_to_course_key = {}
 # so we can match LT partants to their merged course later.
 lt_uid_merged = set()  # LT course_uids that were merged
 
-with open(OUT_COURSES, "w") as out:
+with open(OUT_COURSES, "w", encoding="utf-8") as out:
     out.write("[\n")
     first = True
 
@@ -246,7 +246,7 @@ p_pmu_only = 0
 p_merged = 0
 p_total = 0
 
-with open(OUT_PARTANTS, "w") as out:
+with open(OUT_PARTANTS, "w", encoding="utf-8") as out:
     out.write("[\n")
     first = True
 

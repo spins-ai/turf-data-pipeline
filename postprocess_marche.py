@@ -151,7 +151,7 @@ def main():
     # Sauvegarder
     log.info("Sauvegarde marche_master.json enrichi...")
     tmp = path + ".tmp"
-    with open(tmp, "w") as f:
+    with open(tmp, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False)
     os.replace(tmp, path)
     log.info(f"  → {os.path.getsize(path)/1024/1024:.1f} MB")

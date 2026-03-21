@@ -150,7 +150,7 @@ def scrape_horse(session, horse_id):
         if mere_match:
             horse["mere"] = mere_match.group(1).strip()
 
-    with open(cache_file, "w") as f:
+    with open(cache_file, "w", encoding="utf-8") as f:
         json.dump(horse, f, ensure_ascii=False, indent=2)
 
     return horse
@@ -203,9 +203,9 @@ def main():
             log.info(f"  [{i+1}/{len(horse_ids)}] chevaux={collected} erreurs={errors}")
 
         if (i + 1 - start_idx) % 200 == 0:
-            with open(output_file, "w") as f:
+            with open(output_file, "w", encoding="utf-8") as f:
                 json.dump(all_horses, f, ensure_ascii=False)
-            with open(checkpoint_file, "w") as f:
+            with open(checkpoint_file, "w", encoding="utf-8") as f:
                 json.dump({"last_index": i + 1}, f)
             log.info(f">>> Sauvegarde: {len(all_horses)} chevaux <<<")
 
@@ -217,7 +217,7 @@ def main():
         smart_pause(1.5, 0.8)
 
     log.info("Sauvegarde finale...")
-    with open(output_file, "w") as f:
+    with open(output_file, "w", encoding="utf-8") as f:
         json.dump(all_horses, f, ensure_ascii=False)
 
     log.info("=" * 60)

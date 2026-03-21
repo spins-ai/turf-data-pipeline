@@ -51,7 +51,7 @@ def fetch_json(session, url, cache_name):
             except:
                 data = {"html": resp.text[:5000], "status": resp.status_code}
 
-            with open(cache_file, "w") as f:
+            with open(cache_file, "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
             return data
         else:
@@ -175,7 +175,7 @@ def main():
     print(f"\n=== SAUVEGARDE ===")
 
     output_file = os.path.join(OUTPUT_DIR, "ifce_stats_all.json")
-    with open(output_file, "w") as f:
+    with open(output_file, "w", encoding="utf-8") as f:
         json.dump(all_data, f, ensure_ascii=False, indent=2)
 
     # Résumé

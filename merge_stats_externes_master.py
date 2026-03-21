@@ -199,7 +199,7 @@ def main():
     for r in profiles_list:
         r["_nb_sources"] = len(r.get("_sources", []))
     out1 = "data_master/horse_profiles_externes.json"
-    with open(out1 + ".tmp", "w") as f:
+    with open(out1 + ".tmp", "w", encoding="utf-8") as f:
         json.dump(profiles_list, f, ensure_ascii=False)
     os.replace(out1 + ".tmp", out1)
     log.info(f"  → horse_profiles_externes.json: {os.path.getsize(out1)/1024/1024:.1f} MB, {len(profiles_list)} chevaux")
@@ -209,7 +209,7 @@ def main():
     for r in courses_list:
         r["_nb_sources"] = len(r.get("_sources", []))
     out2 = "data_master/courses_externes.json"
-    with open(out2 + ".tmp", "w") as f:
+    with open(out2 + ".tmp", "w", encoding="utf-8") as f:
         json.dump(courses_list, f, ensure_ascii=False)
     os.replace(out2 + ".tmp", out2)
     log.info(f"  → courses_externes.json: {os.path.getsize(out2)/1024/1024:.1f} MB, {len(courses_list)} entries")
@@ -219,7 +219,7 @@ def main():
     for r in rp_list:
         r["_nb_sources"] = len(r.get("_sources", []))
     out3 = "data_master/racing_post_master.json"
-    with open(out3 + ".tmp", "w") as f:
+    with open(out3 + ".tmp", "w", encoding="utf-8") as f:
         json.dump(rp_list, f, ensure_ascii=False)
     os.replace(out3 + ".tmp", out3)
     log.info(f"  → racing_post_master.json: {os.path.getsize(out3)/1024/1024:.1f} MB, {len(rp_list)} entries")

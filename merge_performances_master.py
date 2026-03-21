@@ -104,7 +104,7 @@ def main():
     for r in stats_list:
         r["_nb_sources"] = len(r.get("_sources", []))
     out_stats = "data_master/horse_stats_master.json"
-    with open(out_stats + ".tmp", "w") as f:
+    with open(out_stats + ".tmp", "w", encoding="utf-8") as f:
         json.dump(stats_list, f, ensure_ascii=False)
     os.replace(out_stats + ".tmp", out_stats)
     log.info(f"  → horse_stats_master.json: {os.path.getsize(out_stats)/1024/1024:.1f} MB")
@@ -143,7 +143,7 @@ def main():
         log.info(f"  22_performances: streaming {size:.0f} MB → disk...")
         try:
             import ijson
-            with open(tmp, "w") as fout:
+            with open(tmp, "w", encoding="utf-8") as fout:
                 fout.write("[")
                 first = True
                 for item in ijson.items(open(perf_path, 'rb'), 'item'):

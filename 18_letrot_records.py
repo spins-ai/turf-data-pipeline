@@ -83,7 +83,7 @@ def fetch_hippodromes(session):
                 if link and link.get("href"):
                     hippodromes.append({"id": link["href"], "name": text})
 
-    with open(cache_file, "w") as f:
+    with open(cache_file, "w", encoding="utf-8") as f:
         json.dump(hippodromes, f, ensure_ascii=False, indent=2)
 
     print(f"  Trouvé {len(hippodromes)} hippodromes")
@@ -134,7 +134,7 @@ def fetch_records_page(session, url, hippodrome_name):
                         record[f"col_{i}"] = text
                 records.append(record)
 
-    with open(cache_file, "w") as f:
+    with open(cache_file, "w", encoding="utf-8") as f:
         json.dump(records, f, ensure_ascii=False, indent=2)
 
     return records
@@ -260,7 +260,7 @@ def main():
     print(f"\n[3/3] Sauvegarde de {len(all_records)} records...")
 
     output_file = os.path.join(OUTPUT_DIR, "letrot_records.json")
-    with open(output_file, "w") as f:
+    with open(output_file, "w", encoding="utf-8") as f:
         json.dump(all_records, f, ensure_ascii=False, indent=2)
 
     # CSV

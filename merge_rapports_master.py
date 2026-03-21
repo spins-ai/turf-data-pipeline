@@ -128,7 +128,7 @@ def main():
     log.info("Sauvegarde rapports_master.json...")
     out = "data_master/rapports_master.json"
     tmp = out + ".tmp"
-    with open(tmp, "w") as f:
+    with open(tmp, "w", encoding="utf-8") as f:
         json.dump(master_list, f, ensure_ascii=False)
     os.replace(tmp, out)
     log.info(f"  → {os.path.getsize(out)/1024/1024:.1f} MB, {len(master_list)} records")

@@ -177,7 +177,7 @@ def main():
     new_records = scrape_unibet_daily()
     all_records.extend(new_records)
     
-    with open(output_file, "w") as f:
+    with open(output_file, "w", encoding="utf-8") as f:
         json.dump(all_records, f, ensure_ascii=False, indent=2)
     
     log.info(f"TERMINÉ: {len(new_records)} nouveaux records, {len(all_records)} total")

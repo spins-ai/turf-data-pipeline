@@ -203,7 +203,7 @@ def download_kaggle_dataset(dataset_ref, target_dir):
                     log.warning(f"    ZIP corrompu: {zf}")
 
         # Marquer comme complet
-        with open(marker, "w") as f:
+        with open(marker, "w", encoding="utf-8") as f:
             f.write(datetime.now().isoformat())
 
         log.info(f"    OK: {dataset_ref}")
@@ -261,7 +261,7 @@ def download_via_url(dataset_ref, target_dir):
         except zipfile.BadZipFile:
             log.warning(f"    ZIP invalide pour {dataset_ref}")
 
-        with open(marker, "w") as f:
+        with open(marker, "w", encoding="utf-8") as f:
             f.write(datetime.now().isoformat())
 
         log.info(f"    OK (URL): {dataset_ref}")

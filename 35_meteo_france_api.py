@@ -195,14 +195,14 @@ def main():
             time.sleep(3)  # Rate limit Open-Meteo
         
         # Sauvegarder cache hippodrome
-        with open(cache_file, "w") as f:
+        with open(cache_file, "w", encoding="utf-8") as f:
             json.dump(hippo_meteo, f, ensure_ascii=False)
         
         all_records.append(hippo_meteo)
         collected += 1
         log.info(f"  ✅ {hippo_name}: {len(hippo_meteo['daily'])} jours de météo")
     
-    with open(output_file, "w") as f:
+    with open(output_file, "w", encoding="utf-8") as f:
         json.dump(all_records, f, ensure_ascii=False)
     
     log.info("=" * 60)

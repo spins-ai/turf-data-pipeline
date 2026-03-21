@@ -195,7 +195,7 @@ def main():
 
     log.info("Sauvegarde meteo_master.json...")
     out = "data_master/meteo_master.json"
-    with open(out, "w") as f:
+    with open(out, "w", encoding="utf-8") as f:
         json.dump(master_list, f, ensure_ascii=False)
     log.info(f"  → {os.path.getsize(out)/1024/1024:.1f} MB")
 

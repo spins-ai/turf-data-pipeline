@@ -165,7 +165,7 @@ def scrape_arqana_results():
         
         # Sauvegarder cache année
         if year_records:
-            with open(cache_file, "w") as f:
+            with open(cache_file, "w", encoding="utf-8") as f:
                 json.dump(year_records, f, ensure_ascii=False)
         
         all_records.extend(year_records)
@@ -223,11 +223,11 @@ def main():
     
     # Sauvegarder
     output_file = os.path.join(OUTPUT_DIR, "arqana_ventes.json")
-    with open(output_file, "w") as f:
+    with open(output_file, "w", encoding="utf-8") as f:
         json.dump(records, f, ensure_ascii=False, indent=2)
     
     excel_file = os.path.join(OUTPUT_DIR, "arqana_excel_links.json")
-    with open(excel_file, "w") as f:
+    with open(excel_file, "w", encoding="utf-8") as f:
         json.dump(excel_links, f, ensure_ascii=False, indent=2)
     
     log.info("=" * 60)

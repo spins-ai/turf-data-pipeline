@@ -141,19 +141,19 @@ def main():
 
     # Sauvegarder les chevaux de course (utilisable par les features)
     output_courses = os.path.join(OUTPUT_DIR, "chevaux_course.json")
-    with open(output_courses, "w") as f:
+    with open(output_courses, "w", encoding="utf-8") as f:
         json.dump(race_horses, f, ensure_ascii=False)
     print(f"  ✓ chevaux_course.json ({len(race_horses):,} chevaux)")
 
     # Index par nom (pour jointure rapide)
     output_index = os.path.join(OUTPUT_DIR, "index_par_nom.json")
-    with open(output_index, "w") as f:
+    with open(output_index, "w", encoding="utf-8") as f:
         json.dump(index_par_nom, f, ensure_ascii=False)
     print(f"  ✓ index_par_nom.json ({len(index_par_nom):,} noms uniques)")
 
     # Stats
     output_stats = os.path.join(OUTPUT_DIR, "sire_stats.json")
-    with open(output_stats, "w") as f:
+    with open(output_stats, "w", encoding="utf-8") as f:
         json.dump(stats, f, ensure_ascii=False, indent=2)
     print(f"  ✓ sire_stats.json")
 

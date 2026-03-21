@@ -63,10 +63,10 @@ def save_and_exit(signum=None, frame=None):
     log.info(f"⚡ Signal reçu — sauvegarde {len(all_records)} records...")
     try:
         tmp = output_file + ".tmp"
-        with open(tmp, "w") as f:
+        with open(tmp, "w", encoding="utf-8") as f:
             json.dump(all_records, f, ensure_ascii=False)
         os.replace(tmp, output_file)
-        with open(checkpoint_file, "w") as f:
+        with open(checkpoint_file, "w", encoding="utf-8") as f:
             json.dump(checkpoint_data, f)
         log.info("✅ Sauvegarde OK avant arrêt")
     except Exception as e:
@@ -253,7 +253,7 @@ def search_horse(name):
     record = parse_pedigree(html, clean_name)
 
     if record and record.get("sire"):
-        with open(cache_file, "w") as f:
+        with open(cache_file, "w", encoding="utf-8") as f:
             json.dump(record, f, ensure_ascii=False)
         return record
 
@@ -360,10 +360,10 @@ def main():
         if (i + 1 - start_idx) % 100 == 0:
             checkpoint_data = {"last_index": i + 1, "collected": collected}
             tmp = output_file + ".tmp"
-            with open(tmp, "w") as f:
+            with open(tmp, "w", encoding="utf-8") as f:
                 json.dump(all_records, f, ensure_ascii=False)
             os.replace(tmp, output_file)
-            with open(checkpoint_file, "w") as f:
+            with open(checkpoint_file, "w", encoding="utf-8") as f:
                 json.dump(checkpoint_data, f)
 
         # Pause intelligente (seulement si on a fetch, pas si cache)

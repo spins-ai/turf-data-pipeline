@@ -108,7 +108,7 @@ def scrape_programme_day(session, date_str):
 
                 courses.append(record)
 
-    with open(cache_file, "w") as f:
+    with open(cache_file, "w", encoding="utf-8") as f:
         json.dump(courses, f, ensure_ascii=False, indent=2)
 
     return courses
@@ -156,7 +156,7 @@ def scrape_course_detail(session, course_url, course_id):
                             partant[f"col_{j}"] = cell
                     result["partants"].append(partant)
 
-    with open(cache_file, "w") as f:
+    with open(cache_file, "w", encoding="utf-8") as f:
         json.dump(result, f, ensure_ascii=False, indent=2)
 
     return result

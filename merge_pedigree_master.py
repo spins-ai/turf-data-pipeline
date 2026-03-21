@@ -422,7 +422,7 @@ def main():
     log.info("Sauvegarde pedigree_master.json...")
     master_list = list(master.values())
     output = "data_master/pedigree_master.json"
-    with open(output, "w") as f:
+    with open(output, "w", encoding="utf-8") as f:
         json.dump(master_list, f, ensure_ascii=False, indent=None)
     size_mb = os.path.getsize(output) / 1024 / 1024
     log.info(f"  → {output}: {size_mb:.1f} MB, {len(master_list)} records")

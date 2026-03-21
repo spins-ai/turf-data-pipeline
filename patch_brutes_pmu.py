@@ -83,7 +83,7 @@ def load_checkpoint() -> set[str]:
 def save_checkpoint(done: set[str]) -> None:
     """Sauvegarde atomique du checkpoint."""
     tmp = CHECKPOINT_PATH.with_suffix(".tmp")
-    with open(tmp, "w") as f:
+    with open(tmp, "w", encoding="utf-8") as f:
         json.dump(sorted(done), f)
     tmp.rename(CHECKPOINT_PATH)
 
