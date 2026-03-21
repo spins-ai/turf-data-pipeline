@@ -28,6 +28,7 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
+from utils.scraping import smart_pause
 
 log = setup_logging("71_allbreedpedigree")
 
@@ -53,13 +54,6 @@ def new_session():
         "Connection": "keep-alive",
     })
     return s
-
-
-def smart_pause(base=3.5, jitter=2.0):
-    pause = base + random.uniform(-jitter, jitter)
-    if random.random() < 0.10:
-        pause += random.uniform(5, 20)
-    time.sleep(max(2.0, pause))
 
 
 def fetch_with_retry(session, url, max_retries=3, timeout=30):
