@@ -5,11 +5,12 @@ import time
 import requests
 import importlib.util
 
-OUTPUT_DIR = "output/13_meteo_historique/cache"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+OUTPUT_DIR = os.path.join(BASE_DIR, "output", "13_meteo_historique", "cache")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # Load hippodromes DB
-spec = importlib.util.spec_from_file_location('hippo', 'hippodromes_db.py')
+spec = importlib.util.spec_from_file_location('hippo', os.path.join(BASE_DIR, 'hippodromes_db.py'))
 mod = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(mod)
 db = mod.HIPPODROMES_DB

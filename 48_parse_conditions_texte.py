@@ -37,7 +37,8 @@ import os
 import re
 import sys
 
-OUTPUT_DIR = "output/48_conditions_texte"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+OUTPUT_DIR = os.path.join(BASE_DIR, "output", "48_conditions_texte")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)-8s | %(message)s")

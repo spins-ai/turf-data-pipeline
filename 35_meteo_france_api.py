@@ -13,7 +13,8 @@ import os
 import logging
 from datetime import datetime, timedelta
 
-OUTPUT_DIR = "output/35_meteo_france"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+OUTPUT_DIR = os.path.join(BASE_DIR, "output", "35_meteo_france")
 CACHE_DIR = os.path.join(OUTPUT_DIR, "cache")
 os.makedirs(CACHE_DIR, exist_ok=True)
 

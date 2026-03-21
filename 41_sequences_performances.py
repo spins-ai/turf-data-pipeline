@@ -35,7 +35,8 @@ import math
 from collections import defaultdict
 from datetime import datetime
 
-OUTPUT_DIR = "output/41_sequences"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+OUTPUT_DIR = os.path.join(BASE_DIR, "output", "41_sequences")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)-8s | %(message)s")

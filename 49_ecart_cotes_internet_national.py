@@ -35,7 +35,8 @@ import os
 import sys
 from collections import defaultdict
 
-OUTPUT_DIR = "output/49_ecart_cotes"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+OUTPUT_DIR = os.path.join(BASE_DIR, "output", "49_ecart_cotes")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)-8s | %(message)s")
@@ -45,8 +46,8 @@ log = logging.getLogger(__name__)
 def load_rapports_internet():
     """Charge les rapports internet indexés par course_uid."""
     index = {}
-    for path in ["output/38_rapports_internet/rapports_internet.jsonl",
-                 "output/38_rapports_internet/rapports_internet.json"]:
+    for path in [os.path.join(BASE_DIR, "output/38_rapports_internet/rapports_internet.jsonl"),
+                 os.path.join(BASE_DIR, "output/38_rapports_internet/rapports_internet.json")]:
         if not os.path.exists(path):
             continue
         log.info(f"Chargement rapports internet: {path}")
@@ -80,8 +81,8 @@ def load_rapports_internet():
 def load_rapports_nationaux():
     """Charge les rapports nationaux indexés par course_uid."""
     index = {}
-    for path in ["output/21_rapports_definitifs/rapports_definitifs.jsonl",
-                 "output/21_rapports_definitifs/rapports_definitifs.json"]:
+    for path in [os.path.join(BASE_DIR, "output/21_rapports_definitifs/rapports_definitifs.jsonl"),
+                 os.path.join(BASE_DIR, "output/21_rapports_definitifs/rapports_definitifs.json")]:
         if not os.path.exists(path):
             continue
         log.info(f"Chargement rapports nationaux: {path}")
@@ -120,8 +121,8 @@ def load_partants():
             "distance", "discipline", "nombre_partants",
             "numero_reunion", "numero_course"}
     partants = []
-    for path in ["output/02_liste_courses/partants_normalises.jsonl",
-                 "output/02_liste_courses/partants_normalises.json"]:
+    for path in [os.path.join(BASE_DIR, "output/02_liste_courses/partants_normalises.jsonl"),
+                 os.path.join(BASE_DIR, "output/02_liste_courses/partants_normalises.json")]:
         if not os.path.exists(path):
             continue
         log.info(f"Chargement partants: {path}")
@@ -150,7 +151,7 @@ def load_partants():
 def load_cotes_marche():
     """Charge les cotes marché pour détecter les mouvements."""
     index = {}
-    path = "output/07_cotes_marche/cotes_marche.json"
+    path = os.path.join(BASE_DIR, "output/07_cotes_marche/cotes_marche.json")
     if not os.path.exists(path):
         return index
     log.info(f"Chargement cotes marché: {path}")

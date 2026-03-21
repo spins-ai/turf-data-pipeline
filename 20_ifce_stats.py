@@ -12,7 +12,8 @@ import random
 import os
 from datetime import datetime
 
-OUTPUT_DIR = "output/20_ifce_stats"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+OUTPUT_DIR = os.path.join(BASE_DIR, "output", "20_ifce_stats")
 CACHE_DIR = os.path.join(OUTPUT_DIR, "cache")
 os.makedirs(CACHE_DIR, exist_ok=True)
 

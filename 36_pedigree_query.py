@@ -19,7 +19,8 @@ import sys
 from bs4 import BeautifulSoup
 from pathlib import Path
 
-OUTPUT_DIR = "output/36_pedigree_query"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+OUTPUT_DIR = os.path.join(BASE_DIR, "output", "36_pedigree_query")
 CACHE_DIR = os.path.join(OUTPUT_DIR, "cache")
 HTML_DIR = os.path.join(OUTPUT_DIR, "html_raw")
 os.makedirs(CACHE_DIR, exist_ok=True)

@@ -30,7 +30,8 @@ import re
 import sys
 from collections import defaultdict
 
-OUTPUT_DIR = "output/42_croisement_rp"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+OUTPUT_DIR = os.path.join(BASE_DIR, "output", "42_croisement_rp")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)-8s | %(message)s")

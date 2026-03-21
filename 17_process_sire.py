@@ -10,7 +10,8 @@ import os
 from datetime import datetime
 
 INPUT_FILE = "output/17_sire_ifce/donnees-equides.csv"
-OUTPUT_DIR = "output/17_sire_ifce"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+OUTPUT_DIR = os.path.join(BASE_DIR, "output", "17_sire_ifce")
 
 def parse_date(d):
     """Parse date JJ/MM/AAAA -> YYYY-MM-DD"""

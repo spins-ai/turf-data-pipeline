@@ -15,7 +15,8 @@ import logging
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 
-OUTPUT_DIR = "output/33_turf_fr"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+OUTPUT_DIR = os.path.join(BASE_DIR, "output", "33_turf_fr")
 CACHE_DIR = os.path.join(OUTPUT_DIR, "cache")
 os.makedirs(CACHE_DIR, exist_ok=True)
 
