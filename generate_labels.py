@@ -36,6 +36,9 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from utils.types import safe_int
+from utils.types import safe_float as _safe_float
+
 # Imports optionnels
 try:
     import pyarrow.parquet as pq
@@ -171,24 +174,11 @@ def build_join_key(record: Dict) -> str:
 
 
 def safe_float(val: Any) -> Optional[float]:
-    """Convert value to float or return None."""
-    if val is None:
+    """Convert value to float or return None. Rejects NaN/Inf."""
+    f = _safe_float(val)
+    if f is not None and (math.isnan(f) or math.isinf(f)):
         return None
-    try:
-        f = float(val)
-        return f if not (math.isnan(f) or math.isinf(f)) else None
-    except (ValueError, TypeError):
-        return None
-
-
-def safe_int(val: Any) -> Optional[int]:
-    """Convert value to int or return None."""
-    if val is None:
-        return None
-    try:
-        return int(val)
-    except (ValueError, TypeError):
-        return None
+    return f
 
 
 def detect_dnf(record: Dict) -> bool:

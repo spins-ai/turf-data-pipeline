@@ -27,6 +27,8 @@ from collections import defaultdict
 from pathlib import Path
 from datetime import datetime, timedelta
 
+from utils.types import safe_int, safe_float
+
 BASE_DIR = Path(__file__).resolve().parent
 DATA_MASTER = BASE_DIR / "data_master"
 
@@ -59,24 +61,6 @@ def normalize_actor(name):
     name = re.sub(r"[^A-Z ]", "", name)
     name = re.sub(r"\s+", " ", name).strip()
     return name
-
-
-def safe_int(val, default=None):
-    if val is None:
-        return default
-    try:
-        return int(val)
-    except (ValueError, TypeError):
-        return default
-
-
-def safe_float(val, default=None):
-    if val is None:
-        return default
-    try:
-        return float(val)
-    except (ValueError, TypeError):
-        return default
 
 
 def distance_category(dist):

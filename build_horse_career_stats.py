@@ -28,6 +28,7 @@ from pathlib import Path
 from datetime import datetime
 
 from utils.normalize import normalize_name
+from utils.types import safe_int, safe_float
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_MASTER = BASE_DIR / "data_master"
@@ -45,24 +46,6 @@ OUTPUT_FILE = DATA_MASTER / "horse_career_stats.jsonl"
 # -----------------------------------------------------------------------
 # Helpers
 # -----------------------------------------------------------------------
-
-def safe_int(val, default=None):
-    if val is None:
-        return default
-    try:
-        return int(val)
-    except (ValueError, TypeError):
-        return default
-
-
-def safe_float(val, default=None):
-    if val is None:
-        return default
-    try:
-        return float(val)
-    except (ValueError, TypeError):
-        return default
-
 
 def distance_category(dist):
     if dist is None:

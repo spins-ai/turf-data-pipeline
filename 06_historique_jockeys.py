@@ -29,6 +29,8 @@ from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any, Optional
 
+from utils.types import safe_float as _safe_float
+
 # Imports optionnels
 try:
     import pyarrow as pa
@@ -128,12 +130,8 @@ def sauver_csv(data: list[dict], path: Path, logger: logging.Logger):
 # ===========================================================================
 
 def safe_float(val: Any) -> float:
-    if val is None:
-        return 0.0
-    try:
-        return float(val)
-    except (ValueError, TypeError):
-        return 0.0
+    """Convertit en float, retourne 0.0 si impossible."""
+    return _safe_float(val, 0.0)
 
 
 def build_historique_acteurs(

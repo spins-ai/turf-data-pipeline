@@ -29,6 +29,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Optional
 
+from utils.types import safe_float as _safe_float
+
 # Imports optionnels
 try:
     import pyarrow as pa
@@ -130,12 +132,7 @@ def sauver_csv(data: list[dict], path: Path, logger: logging.Logger):
 
 def safe_float(val: Any) -> float:
     """Convertit en float, retourne 0.0 si impossible."""
-    if val is None:
-        return 0.0
-    try:
-        return float(val)
-    except (ValueError, TypeError):
-        return 0.0
+    return _safe_float(val, 0.0)
 
 
 def compute_forme(courses_detail: list[dict], n: int) -> Optional[float]:

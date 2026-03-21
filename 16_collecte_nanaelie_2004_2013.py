@@ -38,6 +38,8 @@ from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Optional
 
+from utils.types import safe_int as _safe_int
+
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
@@ -152,23 +154,8 @@ def normaliser_hippodrome(lieu: str) -> str:
 
 
 def safe_int(val: Any, default: int = 0) -> int:
-    """Convertit une valeur (str ou int) en int de maniere sure."""
-    if val is None:
-        return default
-    if isinstance(val, int):
-        return val
-    if isinstance(val, str):
-        val = val.strip()
-        if val == "" or val == "-":
-            return default
-        try:
-            return int(val)
-        except ValueError:
-            return default
-    try:
-        return int(val)
-    except (ValueError, TypeError):
-        return default
+    """Convertit une valeur (str ou int) en int de maniere sure (default=0)."""
+    return _safe_int(val, default)
 
 
 def parse_rc(rc_str: str) -> tuple[int, int, str]:

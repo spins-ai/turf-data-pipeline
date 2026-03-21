@@ -27,6 +27,8 @@ import math
 from collections import defaultdict
 from pathlib import Path
 
+from utils.types import safe_int, safe_float
+
 BASE_DIR = Path(__file__).resolve().parent
 DATA_MASTER = BASE_DIR / "data_master"
 
@@ -48,24 +50,6 @@ OUTPUT_FILE = DATA_MASTER / "course_profiles.jsonl"
 def strip_accents(text):
     nfkd = unicodedata.normalize("NFKD", text)
     return "".join(c for c in nfkd if not unicodedata.combining(c))
-
-
-def safe_int(val, default=None):
-    if val is None:
-        return default
-    try:
-        return int(val)
-    except (ValueError, TypeError):
-        return default
-
-
-def safe_float(val, default=None):
-    if val is None:
-        return default
-    try:
-        return float(val)
-    except (ValueError, TypeError):
-        return default
 
 
 def safe_mean(values):
