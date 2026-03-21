@@ -9,8 +9,10 @@ Sources :
 CRITIQUE pour : Anomaly Detector, Retour Forme, Outsider Detection, Value Bet
 
 v2 : multi-source + HTML brut sauvegardé + graceful shutdown
+v3 : ajout export JSONL (--export pour agréger le cache, ou écriture incrémentale)
 """
 
+import argparse
 import requests
 import json
 import time
@@ -39,6 +41,7 @@ BASE_URL = "https://offline.turfinfo.api.pmu.fr/rest/client/7/programme"
 
 all_records = []
 output_file = os.path.join(OUTPUT_DIR, "pronostics_all.json")
+jsonl_file = os.path.join(OUTPUT_DIR, "pronostics.jsonl")
 checkpoint_file = os.path.join(OUTPUT_DIR, ".checkpoint_23v2.json")
 
 
@@ -61,6 +64,90 @@ def save_and_exit(signum=None, frame=None):
 
 signal.signal(signal.SIGTERM, save_and_exit)
 signal.signal(signal.SIGINT, save_and_exit)
+
+
+def append_jsonl(records, mode="a"):
+    """Append records to JSONL output file."""
+    if not records:
+        return
+    with open(jsonl_file, mode, encoding="utf-8", newline="\n") as f:
+        for r in records:
+            f.write(json.dumps(r, ensure_ascii=False) + "\n")
+
+
+def _normalize_api_cache(data, cache_filename):
+    """Convert raw API cache (selection format) into a flat record."""
+    # Extract date/reunion/course from filename: api_DDMMYYYY_RX_CY.json
+    parts = cache_filename.replace(".json", "").split("_")
+    # parts = ['api', 'DDMMYYYY', 'RX', 'CY']
+    if len(parts) < 4:
+        return None
+    date_raw = parts[1]
+    num_r = parts[2].replace("R", "")
+    num_c = parts[3].replace("C", "")
+    try:
+        dt = datetime.strptime(date_raw, "%d%m%Y")
+        date_iso = dt.strftime("%Y-%m-%d")
+    except (ValueError, TypeError):
+        return None
+
+    record = {
+        "date_reunion_iso": date_iso,
+        "numero_reunion": int(num_r) if num_r.isdigit() else num_r,
+        "num_course": int(num_c) if num_c.isdigit() else num_c,
+        "source_prono": "pmu_api",
+    }
+    for sel in data.get("selection", []):
+        rang = sel.get("rang", 0)
+        record[f"prono_rang_{rang}_num"] = sel.get("num_partant", "")
+        record[f"prono_rang_{rang}_cote"] = sel.get("cote_prob", "")
+    return record
+
+
+def export_cache_to_jsonl():
+    """Read all cache files and write a single JSONL output file."""
+    log.info("=" * 60)
+    log.info("EXPORT : Agrégation cache → JSONL")
+    log.info("=" * 60)
+
+    cache_files = sorted(os.listdir(CACHE_DIR))
+    log.info(f"  {len(cache_files)} fichiers cache trouvés")
+
+    records = []
+    errors = 0
+
+    for i, fname in enumerate(cache_files):
+        fpath = os.path.join(CACHE_DIR, fname)
+        try:
+            with open(fpath, encoding="utf-8") as f:
+                data = json.load(f)
+        except (json.JSONDecodeError, ValueError, OSError) as e:
+            log.debug(f"  Erreur lecture cache {fname}: {e}")
+            errors += 1
+            continue
+
+        if fname.startswith("api_"):
+            # Raw API cache has 'selection' key, needs normalization
+            record = _normalize_api_cache(data, fname)
+            if record:
+                records.append(record)
+        elif fname.startswith("cotes_"):
+            # Cotes cache is already a flat record
+            if isinstance(data, dict) and data:
+                records.append(data)
+        else:
+            # Unknown format, skip
+            errors += 1
+
+        if (i + 1) % 50000 == 0:
+            log.info(f"  [{i+1}/{len(cache_files)}] records={len(records)} erreurs={errors}")
+
+    # Write all records to JSONL
+    append_jsonl(records, mode="w")
+    log.info(f"  JSONL écrit: {len(records)} records → {jsonl_file}")
+    log.info(f"  Erreurs: {errors}")
+    return len(records)
+
 
 # ═══════════════════════════════════════════════════════════
 # SOURCE 1 : API PMU pronostics (~30 derniers jours)
@@ -387,22 +474,30 @@ def main():
 
     existing_sources = set(r.get("source_prono", "") for r in all_records)
 
+    # Reset JSONL if starting fresh (no existing records)
+    jsonl_mode = "w" if not all_records else "a"
+
     # Source 1 : API PMU (30 derniers jours)
     if "pmu_api" not in existing_sources:
         api_records = collect_api_pronostics(courses)
         all_records.extend(api_records)
+        append_jsonl(api_records, mode=jsonl_mode)
+        jsonl_mode = "a"
         save_state("après API PMU")
 
     # Source 2 : Geny HTML
     if "geny" not in existing_sources:
         geny_records = parse_geny_pronostics()
         all_records.extend(geny_records)
+        append_jsonl(geny_records, mode=jsonl_mode)
+        jsonl_mode = "a"
         save_state("après Geny")
 
     # Source 3 : Cotes probables historiques (le plus long)
     if "pmu_participants" not in existing_sources:
         cotes_records = collect_cotes_probables(courses)
         all_records.extend(cotes_records)
+        append_jsonl(cotes_records, mode=jsonl_mode)
         save_state("final")
 
     # Stats finales
@@ -418,4 +513,12 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Script 23 — Pronostics multi-source")
+    parser.add_argument("--export", action="store_true",
+                        help="Exporter tous les fichiers cache en un seul JSONL (sans scraping)")
+    args = parser.parse_args()
+
+    if args.export:
+        export_cache_to_jsonl()
+    else:
+        main()
