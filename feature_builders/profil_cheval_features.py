@@ -19,13 +19,15 @@ import os
 import sys
 from collections import defaultdict
 
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from utils.logging_setup import setup_logging
+
 # ===========================================================================
 # CONFIG
 # ===========================================================================
 
 PARTANTS_DEFAULT = os.path.join("output", "02_liste_courses", "partants_normalises.jsonl")
 OUTPUT_DIR_DEFAULT = os.path.join("output", "profil_cheval_features")
-LOG_DIR = os.path.join("logs")
 
 SEXE_MAP = {
     "MALES": 0, "MALE": 0, "M": 0, "H": 0,
@@ -59,26 +61,6 @@ BREED_MAP = {
     "SELLE FRANCAIS": 5, "SF": 5,
     "STANDARDBRED": 6,
 }
-
-# ===========================================================================
-# LOGGING
-# ===========================================================================
-
-def setup_logging() -> logging.Logger:
-    logger = logging.getLogger("profil_cheval_features")
-    logger.setLevel(logging.INFO)
-    fmt = logging.Formatter(
-        "%(asctime)s | %(levelname)-8s | %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-    ch = logging.StreamHandler(sys.stdout)
-    ch.setFormatter(fmt)
-    logger.addHandler(ch)
-    os.makedirs(LOG_DIR, exist_ok=True)
-    fh = logging.FileHandler(os.path.join(LOG_DIR, "profil_cheval_features.log"), encoding="utf-8")
-    fh.setFormatter(fmt)
-    logger.addHandler(fh)
-    return logger
 
 # ===========================================================================
 # LOAD
@@ -251,7 +233,7 @@ def main():
     parser.add_argument("--output-dir", default=OUTPUT_DIR_DEFAULT, help="Output directory")
     args = parser.parse_args()
 
-    logger = setup_logging()
+    logger = setup_logging("profil_cheval_features")
     logger.info("=" * 70)
     logger.info("profil_cheval_features.py")
     logger.info("=" * 70)

@@ -39,6 +39,9 @@ try:
 except ImportError:
     HAS_PARQUET = False
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from utils.logging_setup import setup_logging
+
 # ===========================================================================
 # CONFIG
 # ===========================================================================
@@ -46,27 +49,6 @@ except ImportError:
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 INPUT_PARTANTS = _PROJECT_ROOT / "output" / "02_liste_courses" / "partants_normalises.json"
 OUTPUT_DIR = _PROJECT_ROOT / "output" / "field_strength"
-LOG_DIR = _PROJECT_ROOT / "logs"
-
-# ===========================================================================
-# LOGGING
-# ===========================================================================
-
-def setup_logging() -> logging.Logger:
-    logger = logging.getLogger("field_strength_builder")
-    logger.setLevel(logging.INFO)
-    fmt = logging.Formatter(
-        "%(asctime)s | %(levelname)-8s | %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-    ch = logging.StreamHandler(sys.stdout)
-    ch.setFormatter(fmt)
-    logger.addHandler(ch)
-    LOG_DIR.mkdir(parents=True, exist_ok=True)
-    fh = logging.FileHandler(LOG_DIR / "field_strength_builder.log", encoding="utf-8")
-    fh.setFormatter(fmt)
-    logger.addHandler(fh)
-    return logger
 
 # ===========================================================================
 # SAUVEGARDE
@@ -363,7 +345,7 @@ def main():
     )
     args = parser.parse_args()
 
-    logger = setup_logging()
+    logger = setup_logging("field_strength_builder")
     logger.info("=" * 70)
     logger.info("field_strength_builder.py — Features de force du champ")
     logger.info("=" * 70)

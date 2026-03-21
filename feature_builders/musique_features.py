@@ -25,6 +25,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.loaders import load_json_or_jsonl
+from utils.logging_setup import setup_logging
 
 # ===========================================================================
 # CONFIG
@@ -32,7 +33,6 @@ from utils.loaders import load_json_or_jsonl
 
 PARTANTS_DEFAULT = os.path.join("output", "02_liste_courses", "partants_normalises.jsonl")
 OUTPUT_DIR_DEFAULT = os.path.join("output", "musique_features")
-LOG_DIR = os.path.join("logs")
 
 _POSITION_PATTERN = re.compile(r'(\d+|[DTAR])([amphsc])', re.IGNORECASE)
 
@@ -40,26 +40,6 @@ _DISC_MAP = {
     "attele": "a", "monte": "m", "plat": "p", "haies": "h",
     "steeple": "s", "cross": "c", "trot attele": "a", "trot monte": "m",
 }
-
-# ===========================================================================
-# LOGGING
-# ===========================================================================
-
-def setup_logging() -> logging.Logger:
-    logger = logging.getLogger("musique_features")
-    logger.setLevel(logging.INFO)
-    fmt = logging.Formatter(
-        "%(asctime)s | %(levelname)-8s | %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-    ch = logging.StreamHandler(sys.stdout)
-    ch.setFormatter(fmt)
-    logger.addHandler(ch)
-    os.makedirs(LOG_DIR, exist_ok=True)
-    fh = logging.FileHandler(os.path.join(LOG_DIR, "musique_features.log"), encoding="utf-8")
-    fh.setFormatter(fmt)
-    logger.addHandler(fh)
-    return logger
 
 # ===========================================================================
 # HELPERS
@@ -237,7 +217,7 @@ def main():
     parser.add_argument("--output-dir", default=OUTPUT_DIR_DEFAULT, help="Output directory")
     args = parser.parse_args()
 
-    logger = setup_logging()
+    logger = setup_logging("musique_features")
     logger.info("=" * 70)
     logger.info("musique_features.py")
     logger.info("=" * 70)

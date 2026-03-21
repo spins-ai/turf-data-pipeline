@@ -23,6 +23,7 @@ from collections import defaultdict
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.loaders import load_json_or_jsonl
+from utils.logging_setup import setup_logging
 
 # ===========================================================================
 # CONFIG
@@ -30,27 +31,6 @@ from utils.loaders import load_json_or_jsonl
 
 PARTANTS_DEFAULT = os.path.join("output", "02_liste_courses", "partants_normalises.jsonl")
 OUTPUT_DIR_DEFAULT = os.path.join("output", "poids_features")
-LOG_DIR = os.path.join("logs")
-
-# ===========================================================================
-# LOGGING
-# ===========================================================================
-
-def setup_logging() -> logging.Logger:
-    logger = logging.getLogger("poids_features")
-    logger.setLevel(logging.INFO)
-    fmt = logging.Formatter(
-        "%(asctime)s | %(levelname)-8s | %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-    ch = logging.StreamHandler(sys.stdout)
-    ch.setFormatter(fmt)
-    logger.addHandler(ch)
-    os.makedirs(LOG_DIR, exist_ok=True)
-    fh = logging.FileHandler(os.path.join(LOG_DIR, "poids_features.log"), encoding="utf-8")
-    fh.setFormatter(fmt)
-    logger.addHandler(fh)
-    return logger
 
 # ===========================================================================
 # LOAD
@@ -195,7 +175,7 @@ def main():
     parser.add_argument("--output-dir", default=OUTPUT_DIR_DEFAULT, help="Output directory")
     args = parser.parse_args()
 
-    logger = setup_logging()
+    logger = setup_logging("poids_features")
     logger.info("=" * 70)
     logger.info("poids_features.py")
     logger.info("=" * 70)

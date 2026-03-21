@@ -23,6 +23,9 @@ import os
 import sys
 from typing import Optional
 
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from utils.logging_setup import setup_logging
+
 # ===========================================================================
 # CONFIG
 # ===========================================================================
@@ -30,24 +33,6 @@ from typing import Optional
 TS_DEFAULT = os.path.join("output", "25_turfostats", "turfostats.jsonl")
 PARTANTS_DEFAULT = os.path.join("output", "02_liste_courses", "partants_normalises.jsonl")
 OUTPUT_DIR_DEFAULT = os.path.join("output", "turfostats_features")
-LOG_DIR = os.path.join("logs")
-
-# ===========================================================================
-# LOGGING
-# ===========================================================================
-
-def setup_logging() -> logging.Logger:
-    logger = logging.getLogger("turfostats_builder")
-    logger.setLevel(logging.INFO)
-    fmt = logging.Formatter("%(asctime)s | %(levelname)-8s | %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
-    ch = logging.StreamHandler(sys.stdout)
-    ch.setFormatter(fmt)
-    logger.addHandler(ch)
-    os.makedirs(LOG_DIR, exist_ok=True)
-    fh = logging.FileHandler(os.path.join(LOG_DIR, "turfostats_builder.log"), encoding="utf-8")
-    fh.setFormatter(fmt)
-    logger.addHandler(fh)
-    return logger
 
 # ===========================================================================
 # HELPERS
@@ -229,7 +214,7 @@ def main():
     parser.add_argument("--output-dir", default=OUTPUT_DIR_DEFAULT)
     args = parser.parse_args()
 
-    logger = setup_logging()
+    logger = setup_logging("turfostats_builder")
     logger.info("=" * 70)
     logger.info("turfostats_builder.py")
     logger.info("=" * 70)

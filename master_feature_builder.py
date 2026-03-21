@@ -36,11 +36,12 @@ from typing import Any, Optional
 # PATHS
 # ============================================================================
 
+from utils.logging_setup import setup_logging
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 INPUT_DEFAULT = os.path.join(BASE_DIR, "data_master", "partants_master.jsonl")
 OUTPUT_DEFAULT = os.path.join(BASE_DIR, "output", "features", "features_matrix.jsonl")
-LOG_DIR = os.path.join(BASE_DIR, "logs")
 
 # External data paths
 SMARKETS_PATH = os.path.join(BASE_DIR, "output", "30_smarkets", "smarkets.jsonl")
@@ -64,29 +65,6 @@ JOCKEY_HIST_PATH = os.path.join(_OUTPUT_BASE, "06_historique_jockeys", "historiq
 ENTRAINEUR_HIST_PATH = os.path.join(_OUTPUT_BASE, "06_historique_jockeys", "historique_entraineurs.json")
 PERE_PATH = os.path.join(_OUTPUT_BASE, "08_pedigree", "pedigree_peres.json")
 MERE_PATH = os.path.join(_OUTPUT_BASE, "08_pedigree", "pedigree_meres.json")
-
-# ============================================================================
-# LOGGING
-# ============================================================================
-
-def setup_logging() -> logging.Logger:
-    logger = logging.getLogger("master_feature_builder")
-    logger.setLevel(logging.INFO)
-    fmt = logging.Formatter(
-        "%(asctime)s | %(levelname)-8s | %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-    ch = logging.StreamHandler(sys.stdout)
-    ch.setFormatter(fmt)
-    logger.addHandler(ch)
-    os.makedirs(LOG_DIR, exist_ok=True)
-    fh = logging.FileHandler(
-        os.path.join(LOG_DIR, "master_feature_builder.log"), encoding="utf-8"
-    )
-    fh.setFormatter(fmt)
-    logger.addHandler(fh)
-    return logger
-
 
 # ============================================================================
 # GENERIC HELPERS
@@ -2232,7 +2210,7 @@ def main():
     )
     args = parser.parse_args()
 
-    logger = setup_logging()
+    logger = setup_logging("master_feature_builder")
 
     # Ensure BASE_DIR is on sys.path
     if BASE_DIR not in sys.path:

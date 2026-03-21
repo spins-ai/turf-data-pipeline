@@ -41,6 +41,9 @@ try:
 except ImportError:
     HAS_PARQUET = False
 
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from utils.logging_setup import setup_logging
+
 
 # ===========================================================================
 # CONFIG
@@ -50,30 +53,8 @@ _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 INPUT_PARTANTS = _PROJECT_ROOT / "output" / "02_liste_courses" / "partants_normalises.json"
 INPUT_COURSES = _PROJECT_ROOT / "output" / "02_liste_courses" / "courses_normalisees.json"
 OUTPUT_DIR = _PROJECT_ROOT / "output" / "track_bias"
-LOG_DIR = _PROJECT_ROOT / "logs"
 
 LOOKBACK_DAYS = 365
-
-
-# ===========================================================================
-# LOGGING
-# ===========================================================================
-
-def setup_logging() -> logging.Logger:
-    logger = logging.getLogger("track_bias_detector")
-    logger.setLevel(logging.INFO)
-    fmt = logging.Formatter(
-        "%(asctime)s | %(levelname)-8s | %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-    ch = logging.StreamHandler(sys.stdout)
-    ch.setFormatter(fmt)
-    logger.addHandler(ch)
-    LOG_DIR.mkdir(parents=True, exist_ok=True)
-    fh = logging.FileHandler(LOG_DIR / "track_bias_detector.log", encoding="utf-8")
-    fh.setFormatter(fmt)
-    logger.addHandler(fh)
-    return logger
 
 
 # ===========================================================================
@@ -469,7 +450,7 @@ def main():
     )
     args = parser.parse_args()
 
-    logger = setup_logging()
+    logger = setup_logging("track_bias_detector")
     t0 = time.time()
 
     logger.info("=" * 70)
