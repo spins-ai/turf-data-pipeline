@@ -13,11 +13,13 @@ import time
 import random
 import os
 import re
-import logging
 import signal
 import sys
 from bs4 import BeautifulSoup
 from pathlib import Path
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from utils.logging_setup import setup_logging
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_DIR = os.path.join(BASE_DIR, "output", "36_pedigree_query")
@@ -26,18 +28,7 @@ HTML_DIR = os.path.join(OUTPUT_DIR, "html_raw")
 os.makedirs(CACHE_DIR, exist_ok=True)
 os.makedirs(HTML_DIR, exist_ok=True)
 
-# Log dans fichier + console
-log_file = "logs/36_pedigree_query.log"
-os.makedirs("logs", exist_ok=True)
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)-8s | %(message)s",
-    handlers=[
-        logging.FileHandler(log_file),
-        logging.StreamHandler()
-    ]
-)
-log = logging.getLogger(__name__)
+log = setup_logging("36_pedigree_query")
 
 USER_AGENTS = [
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
