@@ -152,8 +152,8 @@ def load_source_02b():
                                 rec[field] = val
                         if name not in records:
                             records[name] = rec
-            except Exception:
-                pass
+            except Exception as e:
+                log.warning(f"  Erreur lecture 02b: {e}")
 
     log.info(f"  02b sources: {len(records)} chevaux")
     return records
@@ -255,7 +255,7 @@ def load_source_17():
 
     for idx, f in enumerate(files_to_load):
         try:
-            with open(os.path.join(path, f)) as fh:
+            with open(os.path.join(path, f), encoding="utf-8", errors="replace") as fh:
                 data = json.load(fh)
 
             items = data if isinstance(data, list) else list(data.values()) if isinstance(data, dict) else []

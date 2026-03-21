@@ -82,7 +82,8 @@ def fetch_rapports(date_str, numero_reunion, num_course):
             return None
         else:
             return None
-    except Exception:
+    except Exception as e:
+        log.debug(f"  Erreur réseau rapports: {e}")
         return None
 
 def extract_rapports_flat(rapports_raw, course_info):

@@ -366,7 +366,8 @@ def extract_day_from_df(df: pd.DataFrame, date_iso: str) -> Optional[dict]:
     """
     try:
         target_date = pd.Timestamp(date_iso)
-    except Exception:
+    except Exception as e:
+        log.debug(f"  Erreur parsing date meteo: {e}")
         return None
 
     # Filtrer les lignes du jour

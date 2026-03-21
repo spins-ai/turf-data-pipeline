@@ -100,7 +100,8 @@ def fetch_pronostics_api(date_str, numero_reunion, num_course):
         elif resp.status_code == 429:
             time.sleep(30)
         return None
-    except Exception:
+    except Exception as e:
+        log.debug(f"  Erreur réseau pronostics: {e}")
         return None
 
 
@@ -215,8 +216,8 @@ def parse_geny_pronostics():
                 records.append(record)
                 parsed += 1
 
-        except Exception:
-            pass
+        except Exception as e:
+            log.debug(f"  Erreur parsing Geny: {e}")
 
         if (html_saved + parsed) % 200 == 0 and (html_saved + parsed) > 0:
             log.info(f"  Geny [{html_saved + parsed}/{len(geny_data)}] parsés={parsed} HTML sauvés={html_saved}")
@@ -331,7 +332,8 @@ def collect_cotes_probables(courses):
             else:
                 errors += 1
 
-        except Exception:
+        except Exception as e:
+            log.debug(f"  Erreur cotes PMU: {e}")
             errors += 1
 
         if (i + 1) % 500 == 0:

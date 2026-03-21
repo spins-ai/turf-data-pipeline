@@ -79,7 +79,8 @@ def fetch_performances(date_str, numero_reunion, num_course):
             return None
         else:
             return None
-    except Exception:
+    except Exception as e:
+        log.debug(f"  Erreur réseau performances: {e}")
         return None
 
 def flatten_performances(perf_data, course_info):

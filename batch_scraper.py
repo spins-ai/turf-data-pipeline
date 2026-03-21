@@ -168,7 +168,8 @@ def fetch(session, url, max_retries=2, timeout=20):
                 continue
             if resp.status_code in (404, 410):
                 return None
-        except Exception:
+        except Exception as e:
+            log.debug(f"  Erreur réseau batch: {e}")
             time.sleep(5 * attempt)
     return None
 

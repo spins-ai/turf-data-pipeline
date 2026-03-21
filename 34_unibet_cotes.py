@@ -86,8 +86,8 @@ def get_event_odds(event_path):
         resp = session.get(url, params=params, timeout=15)
         if resp.status_code == 200:
             return resp.json()
-    except Exception:
-        pass
+    except Exception as e:
+        log.debug(f"  Erreur réseau Unibet: {e}")
     return None
 
 def scrape_unibet_daily():

@@ -62,7 +62,8 @@ def scrape_programme_day(session, date_str):
         resp = session.get(url, timeout=30)
         if resp.status_code != 200:
             return None
-    except Exception:
+    except Exception as e:
+        log.debug(f"  Erreur réseau turfostats programme: {e}")
         return None
 
     soup = BeautifulSoup(resp.text, "html.parser")
@@ -124,7 +125,8 @@ def scrape_course_detail(session, course_url, course_id):
         resp = session.get(course_url, timeout=30)
         if resp.status_code != 200:
             return None
-    except Exception:
+    except Exception as e:
+        log.debug(f"  Erreur réseau turfostats course: {e}")
         return None
 
     soup = BeautifulSoup(resp.text, "html.parser")

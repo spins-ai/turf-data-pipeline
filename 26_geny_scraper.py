@@ -65,7 +65,8 @@ def scrape_day(session, date_str):
         resp = session.get(url, timeout=30)
         if resp.status_code != 200:
             return None
-    except Exception:
+    except Exception as e:
+        log.debug(f"  Erreur réseau geny: {e}")
         return None
 
     soup = BeautifulSoup(resp.text, "html.parser")

@@ -189,7 +189,8 @@ def load_open_meteo_cache():
         try:
             with open(fpath, encoding="utf-8") as f:
                 data = json.load(f)
-        except Exception:
+        except Exception as e:
+            log.debug(f"  Erreur lecture meteo {fpath}: {e}")
             errors += 1
             continue
 
