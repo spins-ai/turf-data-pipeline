@@ -293,46 +293,46 @@ def main():
     # Liste des fichiers à auditer
     files_to_audit = [
         # Script 02
-        ("02_courses_brut", "output/02_liste_courses/courses_brut.json"),
-        ("02_courses_brut_jsonl", "output/02_liste_courses/courses_brut.jsonl"),
-        ("02_courses_norm", "output/02_liste_courses/courses_normalisees.json"),
-        ("02_courses_norm_jsonl", "output/02_liste_courses/courses_normalisees.jsonl"),
-        ("02_partants_brut", "output/02_liste_courses/partants_brut.json"),
-        ("02_partants_brut_jsonl", "output/02_liste_courses/partants_brut.jsonl"),
-        ("02_partants_norm", "output/02_liste_courses/partants_normalises.json"),
-        ("02_partants_norm_jsonl", "output/02_liste_courses/partants_normalises.jsonl"),
-        ("02_courses_ref", "output/02_liste_courses/courses_references_04.json"),
-        ("02_courses_ref_jsonl", "output/02_liste_courses/courses_references_04.jsonl"),
+        ("02_courses_brut", os.path.join(BASE_DIR, "output", "02_liste_courses", "courses_brut.json")),
+        ("02_courses_brut_jsonl", os.path.join(BASE_DIR, "output", "02_liste_courses", "courses_brut.jsonl")),
+        ("02_courses_norm", os.path.join(BASE_DIR, "output", "02_liste_courses", "courses_normalisees.json")),
+        ("02_courses_norm_jsonl", os.path.join(BASE_DIR, "output", "02_liste_courses", "courses_normalisees.jsonl")),
+        ("02_partants_brut", os.path.join(BASE_DIR, "output", "02_liste_courses", "partants_brut.json")),
+        ("02_partants_brut_jsonl", os.path.join(BASE_DIR, "output", "02_liste_courses", "partants_brut.jsonl")),
+        ("02_partants_norm", os.path.join(BASE_DIR, "output", "02_liste_courses", "partants_normalises.json")),
+        ("02_partants_norm_jsonl", os.path.join(BASE_DIR, "output", "02_liste_courses", "partants_normalises.jsonl")),
+        ("02_courses_ref", os.path.join(BASE_DIR, "output", "02_liste_courses", "courses_references_04.json")),
+        ("02_courses_ref_jsonl", os.path.join(BASE_DIR, "output", "02_liste_courses", "courses_references_04.jsonl")),
         # Script 02b
-        ("02b_courses", "output/02b_liste_courses_2013/courses_normalisees.json"),
-        ("02b_partants", "output/02b_liste_courses_2013/partants_normalises.json"),
+        ("02b_courses", os.path.join(BASE_DIR, "output", "02b_liste_courses_2013", "courses_normalisees.json")),
+        ("02b_partants", os.path.join(BASE_DIR, "output", "02b_liste_courses_2013", "partants_normalises.json")),
         # Scripts collecte
-        ("04_resultats", "output/04_resultats/resultats.json"),
-        ("05_historique_chevaux", "output/05_historique_chevaux/historique_chevaux.json"),
-        ("06_historique_jockeys", "output/06_historique_jockeys/historique_jockeys.json"),
-        ("07_cotes_marche", "output/07_cotes_marche/cotes_marche.json"),
-        ("08_pedigree", "output/08_pedigree/pedigree.json"),
-        ("09_equipements", "output/09_equipements/equipements_historique.json"),
-        ("10_poids", "output/10_poids_handicaps/poids_handicaps.json"),
-        ("11_sectionals", "output/11_sectionals/sectionals.json"),
-        ("13_meteo", "output/13_meteo_historique/meteo_historique.json"),
-        ("14_pedigree_pq", "output/14_pedigree/pedigrees_pq.json"),
-        ("14_pedigree_pq_jsonl", "output/14_pedigree/pedigrees_pq.jsonl"),
+        ("04_resultats", os.path.join(BASE_DIR, "output", "04_resultats", "resultats.json")),
+        ("05_historique_chevaux", os.path.join(BASE_DIR, "output", "05_historique_chevaux", "historique_chevaux.json")),
+        ("06_historique_jockeys", os.path.join(BASE_DIR, "output", "06_historique_jockeys", "historique_jockeys.json")),
+        ("07_cotes_marche", os.path.join(BASE_DIR, "output", "07_cotes_marche", "cotes_marche.json")),
+        ("08_pedigree", os.path.join(BASE_DIR, "output", "08_pedigree", "pedigree.json")),
+        ("09_equipements", os.path.join(BASE_DIR, "output", "09_equipements", "equipements_historique.json")),
+        ("10_poids", os.path.join(BASE_DIR, "output", "10_poids_handicaps", "poids_handicaps.json")),
+        ("11_sectionals", os.path.join(BASE_DIR, "output", "11_sectionals", "sectionals.json")),
+        ("13_meteo", os.path.join(BASE_DIR, "output", "13_meteo_historique", "meteo_historique.json")),
+        ("14_pedigree_pq", os.path.join(BASE_DIR, "output", "14_pedigree", "pedigrees_pq.json")),
+        ("14_pedigree_pq_jsonl", os.path.join(BASE_DIR, "output", "14_pedigree", "pedigrees_pq.jsonl")),
         # Scripts JSONL
-        ("21_rapports", "output/21_rapports_definitifs/rapports_definitifs.jsonl"),
-        ("22_performances", "output/22_performances_detaillees/performances_detaillees.jsonl"),
-        ("23_pronostics", "output/23_pronostics_equidia/pronostics.json"),
-        ("24_canalturf", "output/24_canalturf/canalturf.json"),
-        ("25_turfostats", "output/25_turfostats/turfostats.json"),
-        ("26_geny", "output/26_geny/geny.json"),
-        ("27_citations", "output/27_citations_enjeux/citations_enjeux.jsonl"),
-        ("28_combinaisons", "output/28_combinaisons_marche/combinaisons_marche.jsonl"),
-        ("30_smarkets", "output/30_smarkets_exchange/smarkets.json"),
-        ("37_racing_post", "output/37_racing_post/racing_post_fr.json"),
-        ("37_racing_post_jsonl", "output/37_racing_post/racing_post_fr.jsonl"),
-        ("38_rapports_internet", "output/38_rapports_internet/rapports_internet.jsonl"),
-        ("39_reunions", "output/39_reunions_enrichies/reunions_enrichies.jsonl"),
-        ("40_enrichissement", "output/40_enrichissement_partants/enrichissement.json"),
+        ("21_rapports", os.path.join(BASE_DIR, "output", "21_rapports_definitifs", "rapports_definitifs.jsonl")),
+        ("22_performances", os.path.join(BASE_DIR, "output", "22_performances_detaillees", "performances_detaillees.jsonl")),
+        ("23_pronostics", os.path.join(BASE_DIR, "output", "23_pronostics_equidia", "pronostics.json")),
+        ("24_canalturf", os.path.join(BASE_DIR, "output", "24_canalturf", "canalturf.json")),
+        ("25_turfostats", os.path.join(BASE_DIR, "output", "25_turfostats", "turfostats.json")),
+        ("26_geny", os.path.join(BASE_DIR, "output", "26_geny", "geny.json")),
+        ("27_citations", os.path.join(BASE_DIR, "output", "27_citations_enjeux", "citations_enjeux.jsonl")),
+        ("28_combinaisons", os.path.join(BASE_DIR, "output", "28_combinaisons_marche", "combinaisons_marche.jsonl")),
+        ("30_smarkets", os.path.join(BASE_DIR, "output", "30_smarkets_exchange", "smarkets.json")),
+        ("37_racing_post", os.path.join(BASE_DIR, "output", "37_racing_post", "racing_post_fr.json")),
+        ("37_racing_post_jsonl", os.path.join(BASE_DIR, "output", "37_racing_post", "racing_post_fr.jsonl")),
+        ("38_rapports_internet", os.path.join(BASE_DIR, "output", "38_rapports_internet", "rapports_internet.jsonl")),
+        ("39_reunions", os.path.join(BASE_DIR, "output", "39_reunions_enrichies", "reunions_enrichies.jsonl")),
+        ("40_enrichissement", os.path.join(BASE_DIR, "output", "40_enrichissement_partants", "enrichissement.json")),
         # Masters
         ("master_pedigree", os.path.join(BASE_DIR, "data_master", "pedigree_master.json")),
         ("master_rapports", os.path.join(BASE_DIR, "data_master", "rapports_master.json")),
@@ -364,8 +364,8 @@ def main():
     report_lines.append("## 2. Audit détaillé partants_normalises")
     report_lines.append("")
 
-    for path in ["output/02_liste_courses/partants_normalises.jsonl",
-                 "output/02_liste_courses/partants_normalises.json"]:
+    for path in [os.path.join(BASE_DIR, "output", "02_liste_courses", "partants_normalises.jsonl"),
+                 os.path.join(BASE_DIR, "output", "02_liste_courses", "partants_normalises.json")]:
         if os.path.exists(path):
             log.info(f"  Analyse champs: {path}")
             field_analysis = stream_partants_fields(path, max_records=500000)
@@ -414,11 +414,11 @@ def main():
     report_lines.append("")
 
     cache_dirs = [
-        "output/02_liste_courses/cache",
-        "output/14_pedigree/cache",
-        "output/21_rapports_definitifs/cache",
-        "output/37_racing_post/cache",
-        "output/38_rapports_internet/cache",
+        os.path.join(BASE_DIR, "output", "02_liste_courses", "cache"),
+        os.path.join(BASE_DIR, "output", "14_pedigree", "cache"),
+        os.path.join(BASE_DIR, "output", "21_rapports_definitifs", "cache"),
+        os.path.join(BASE_DIR, "output", "37_racing_post", "cache"),
+        os.path.join(BASE_DIR, "output", "38_rapports_internet", "cache"),
     ]
 
     for cache_dir in cache_dirs:
@@ -434,7 +434,7 @@ def main():
     # Checkpoints
     report_lines.append("")
     report_lines.append("### Checkpoints")
-    for root, dirs, files in os.walk("output"):
+    for root, dirs, files in os.walk(os.path.join(BASE_DIR, "output")):
         for f in files:
             if f.startswith(".checkpoint") and f.endswith(".json"):
                 cp_path = os.path.join(root, f)

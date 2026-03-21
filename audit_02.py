@@ -338,7 +338,7 @@ def main():
     )
     parser.add_argument(
         "--input-dir",
-        default="output/02_liste_courses",
+        default=os.path.join(BASE_DIR, "output", "02_liste_courses"),
         help="Repertoire contenant les fichiers JSON (defaut: output/02_liste_courses)",
     )
     parser.add_argument(

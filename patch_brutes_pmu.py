@@ -23,6 +23,7 @@ from datetime import datetime, date
 from pathlib import Path
 from typing import Any, Optional
 
+import os
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
@@ -31,14 +32,15 @@ from urllib3.util.retry import Retry
 # CONFIG
 # ===========================================================================
 
-BRUTES_PATH = Path(os.path.join(BASE_DIR, "output", "01_calendrier_reunions", "reunions_brut.json"))
+BASE_DIR = Path(__file__).resolve().parent
+BRUTES_PATH = BASE_DIR / "output" / "01_calendrier_reunions" / "reunions_brut.json"
 PMU_URL_TEMPLATE = "https://online.turfinfo.api.pmu.fr/rest/client/7/programme/{}"
 USER_AGENT = (
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
     "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 )
 
-CHECKPOINT_PATH = Path(os.path.join(BASE_DIR, "output", "01_calendrier_reunions", ".checkpoint_patch_pmu.json"))
+CHECKPOINT_PATH = BASE_DIR / "output" / "01_calendrier_reunions" / ".checkpoint_patch_pmu.json"
 
 
 def setup_logging() -> logging.Logger:
@@ -49,7 +51,9 @@ def setup_logging() -> logging.Logger:
     sh = logging.StreamHandler()
     sh.setFormatter(fmt)
     logger.addHandler(sh)
-    fh = logging.FileHandler("logs/patch_brutes_pmu.log", encoding="utf-8")
+    log_dir = BASE_DIR / "logs"
+    log_dir.mkdir(exist_ok=True)
+    fh = logging.FileHandler(str(log_dir / "patch_brutes_pmu.log"), encoding="utf-8")
     fh.setFormatter(fmt)
     logger.addHandler(fh)
     return logger
