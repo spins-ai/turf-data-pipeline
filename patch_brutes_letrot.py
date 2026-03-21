@@ -39,7 +39,7 @@ except ImportError:
 # CONFIG
 # ===========================================================================
 
-BRUTES_PATH = Path("output/01_calendrier_reunions/reunions_brut.json")
+BRUTES_PATH = Path(os.path.join(BASE_DIR, "output", "01_calendrier_reunions", "reunions_brut.json"))
 CHECKPOINT_PATH = Path(".checkpoint_patch_letrot.json")
 LETROT_URL = "https://www.letrot.com/courses/{date}"
 LOG_DIR = Path("logs")

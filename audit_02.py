@@ -10,6 +10,7 @@ et imprime un rapport formate.
 import argparse
 import json
 import os
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 import sys
 from collections import Counter
 from datetime import datetime, timedelta

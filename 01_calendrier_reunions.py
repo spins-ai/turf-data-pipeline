@@ -379,7 +379,7 @@ class PipelineConfig:
     """Configuration globale du pipeline."""
     date_debut: date = field(default_factory=date.today)
     date_fin: date = field(default_factory=date.today)
-    dossier_sortie: Path = Path("output/01_calendrier_reunions")
+    dossier_sortie: Path = Path(__file__).resolve().parent / "output" / "01_calendrier_reunions"
     dossier_logs: Path = Path("logs")
     mode_reprise: bool = True
     export_csv: bool = True

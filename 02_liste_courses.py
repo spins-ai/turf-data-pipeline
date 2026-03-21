@@ -51,8 +51,8 @@ from urllib3.util.retry import Retry
 # CONFIG
 # ===========================================================================
 
-REFERENCES_PATH = Path("output/01_calendrier_reunions/reunions_references_02.json")
-OUTPUT_DIR = Path("output/02_liste_courses")
+REFERENCES_PATH = Path(__file__).resolve().parent / "output" / "01_calendrier_reunions" / "reunions_references_02.json"
+OUTPUT_DIR = Path(__file__).resolve().parent / "output" / "02_liste_courses"
 CACHE_DIR = OUTPUT_DIR / "cache"
 LOG_DIR = Path("logs")
 

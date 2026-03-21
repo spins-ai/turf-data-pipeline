@@ -31,14 +31,14 @@ from urllib3.util.retry import Retry
 # CONFIG
 # ===========================================================================
 
-BRUTES_PATH = Path("output/01_calendrier_reunions/reunions_brut.json")
+BRUTES_PATH = Path(os.path.join(BASE_DIR, "output", "01_calendrier_reunions", "reunions_brut.json"))
 PMU_URL_TEMPLATE = "https://online.turfinfo.api.pmu.fr/rest/client/7/programme/{}"
 USER_AGENT = (
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
     "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 )
 
-CHECKPOINT_PATH = Path("output/01_calendrier_reunions/.checkpoint_patch_pmu.json")
+CHECKPOINT_PATH = Path(os.path.join(BASE_DIR, "output", "01_calendrier_reunions", ".checkpoint_patch_pmu.json"))
 
 
 def setup_logging() -> logging.Logger:

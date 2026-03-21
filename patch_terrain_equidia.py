@@ -30,8 +30,8 @@ from urllib3.util.retry import Retry
 # CONFIG
 # ===========================================================================
 
-NORMALISEES_PATH = Path("output/01_calendrier_reunions/reunions_normalisees.json")
-CACHE_PATH = Path("output/01_calendrier_reunions/equidia_terrain_cache.json")
+NORMALISEES_PATH = Path(os.path.join(BASE_DIR, "output", "01_calendrier_reunions", "reunions_normalisees.json"))
+CACHE_PATH = Path(os.path.join(BASE_DIR, "output", "01_calendrier_reunions", "equidia_terrain_cache.json"))
 EQUIDIA_URL = "https://www.equidia.fr/courses/{date}/R{num}/C1"
 LOG_DIR = Path("logs")
 

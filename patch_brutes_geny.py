@@ -36,7 +36,7 @@ except ImportError:
 # CONFIG
 # ===========================================================================
 
-BRUTES_PATH = Path("output/01_calendrier_reunions/reunions_brut.json")
+BRUTES_PATH = Path(os.path.join(BASE_DIR, "output", "01_calendrier_reunions", "reunions_brut.json"))
 CHECKPOINT_PATH = Path(".checkpoint_patch_geny.json")
 GENY_URL = "https://www.geny.com/reunions-courses-pmu/_d{date}"
 LOG_DIR = Path("logs")

@@ -65,8 +65,8 @@ except ImportError:
 # CONFIG
 # ===========================================================================
 
-PARTANTS_PATH = Path("output/02_liste_courses/partants_normalises.json")
-OUTPUT_DIR = Path("output/12_pedigree")
+PARTANTS_PATH = Path(__file__).resolve().parent / "output" / "02_liste_courses" / "partants_normalises.json"
+OUTPUT_DIR = Path(__file__).resolve().parent / "output" / "12_pedigree"
 CACHE_DIR = OUTPUT_DIR / "cache"
 CHECKPOINT_PATH = OUTPUT_DIR / "checkpoint.json"
 LOG_DIR = Path("logs")
