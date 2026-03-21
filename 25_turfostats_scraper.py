@@ -19,7 +19,7 @@ from bs4 import BeautifulSoup
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
-from utils.scraping import smart_pause
+from utils.scraping import smart_pause, append_jsonl
 
 SCRIPT_NAME = "25_turfostats"
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output", SCRIPT_NAME)
@@ -213,6 +213,40 @@ def main():
         json.dump(all_courses, f, ensure_ascii=False)
     with open(os.path.join(OUTPUT_DIR, "turfostats_details.json"), "w", encoding="utf-8") as f:
         json.dump(all_details, f, ensure_ascii=False)
+
+    # Agrégation cache → JSONL
+    jsonl_programmes = os.path.join(OUTPUT_DIR, "turfostats_programmes.jsonl")
+    jsonl_courses = os.path.join(OUTPUT_DIR, "turfostats_courses.jsonl")
+    log.info(f"Agrégation cache → JSONL")
+    prog_count = 0
+    course_count = 0
+    with open(jsonl_programmes, "w", encoding="utf-8") as fp, \
+         open(jsonl_courses, "w", encoding="utf-8") as fc:
+        for fname in sorted(os.listdir(CACHE_DIR)):
+            if not fname.endswith(".json"):
+                continue
+            cache_path = os.path.join(CACHE_DIR, fname)
+            try:
+                with open(cache_path, encoding="utf-8") as fin:
+                    data = json.load(fin)
+            except Exception as e:
+                log.debug(f"  Erreur lecture cache {fname}: {e}")
+                continue
+
+            if fname.startswith("programme_"):
+                # Programme files contain a list of course entries
+                if isinstance(data, list):
+                    for entry in data:
+                        fp.write(json.dumps(entry, ensure_ascii=False) + "\n")
+                        prog_count += 1
+                else:
+                    fp.write(json.dumps(data, ensure_ascii=False) + "\n")
+                    prog_count += 1
+            elif fname.startswith("course_"):
+                fc.write(json.dumps(data, ensure_ascii=False) + "\n")
+                course_count += 1
+    log.info(f"  JSONL programmes: {prog_count} entrées → {jsonl_programmes}")
+    log.info(f"  JSONL courses: {course_count} entrées → {jsonl_courses}")
 
     log.info("=" * 60)
     log.info(f"TERMINÉ: {len(all_courses)} courses, {len(all_details)} détails")

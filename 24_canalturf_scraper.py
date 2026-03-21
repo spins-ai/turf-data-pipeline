@@ -19,7 +19,7 @@ from bs4 import BeautifulSoup
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
-from utils.scraping import smart_pause
+from utils.scraping import smart_pause, append_jsonl
 
 SCRIPT_NAME = "24_canalturf"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -214,6 +214,26 @@ def main():
     log.info("Sauvegarde finale...")
     with open(output_file, "w", encoding="utf-8") as f:
         json.dump(all_horses, f, ensure_ascii=False)
+
+    # Agrégation cache → JSONL
+    jsonl_file = os.path.join(OUTPUT_DIR, "canalturf_chevaux.jsonl")
+    log.info(f"Agrégation cache → {jsonl_file}")
+    jsonl_count = 0
+    # Overwrite: write fresh JSONL from all cache files
+    with open(jsonl_file, "w", encoding="utf-8") as fout:
+        for fname in sorted(os.listdir(CACHE_DIR)):
+            if not fname.endswith(".json"):
+                continue
+            cache_path = os.path.join(CACHE_DIR, fname)
+            try:
+                with open(cache_path, encoding="utf-8") as fin:
+                    record = json.load(fin)
+                if record and record.get("nom_cheval"):
+                    fout.write(json.dumps(record, ensure_ascii=False) + "\n")
+                    jsonl_count += 1
+            except Exception as e:
+                log.debug(f"  Erreur lecture cache {fname}: {e}")
+    log.info(f"  JSONL: {jsonl_count} fiches écrites → {jsonl_file}")
 
     log.info("=" * 60)
     log.info(f"TERMINÉ: {len(all_horses)} fiches chevaux collectées")

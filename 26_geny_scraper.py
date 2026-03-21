@@ -187,8 +187,27 @@ def main():
     save_checkpoint(CHECKPOINT_FILE, {"last_date": (current - timedelta(days=1)).strftime("%Y-%m-%d"),
                      "total_records": total_records, "status": "done"})
 
+    # Agrégation cache → JSONL (reconstruire le JSONL complet depuis le cache)
+    jsonl_file = os.path.join(OUTPUT_DIR, "geny_data.jsonl")
+    log.info(f"Agrégation cache → {jsonl_file}")
+    jsonl_count = 0
+    with open(jsonl_file, "w", encoding="utf-8") as fout:
+        for fname in sorted(os.listdir(CACHE_DIR)):
+            if not fname.endswith(".json"):
+                continue
+            cache_path = os.path.join(CACHE_DIR, fname)
+            try:
+                with open(cache_path, encoding="utf-8") as fin:
+                    record = json.load(fin)
+                if record:
+                    fout.write(json.dumps(record, ensure_ascii=False) + "\n")
+                    jsonl_count += 1
+            except Exception as e:
+                log.debug(f"  Erreur lecture cache {fname}: {e}")
+    log.info(f"  JSONL: {jsonl_count} jours écrits → {jsonl_file}")
+
     log.info("=" * 60)
-    log.info(f"TERMINÉ: {total_records} jours collectés → {output_file}")
+    log.info(f"TERMINÉ: {total_records} jours collectés → {jsonl_file}")
     log.info("=" * 60)
 
 if __name__ == "__main__":
