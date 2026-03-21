@@ -441,7 +441,8 @@ def main():
                     with open(cp_path, "r", encoding="utf-8") as fh:
                         cp = json.load(fh)
                     report_lines.append(f"- {cp_path}: {json.dumps(cp)[:200]}")
-                except Exception:
+                except Exception as e:
+                    log.debug("Error reading checkpoint %s: %s", cp_path, e)
                     report_lines.append(f"- {cp_path}: ERREUR LECTURE")
 
     # ================================================================

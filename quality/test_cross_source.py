@@ -6,10 +6,13 @@ Checks that shared keys (course IDs, horse names, dates) match across files.
 """
 import argparse
 import json
+import logging
 import os
 import sys
 from collections import defaultdict
 
+
+log = logging.getLogger(__name__)
 
 # Define source groups and their key fields for cross-validation
 SOURCE_GROUPS = {
@@ -212,7 +215,8 @@ def check_duplicate_ids(output_dir):
                         for key in ("id", "id_course", "idCourse", "course_id"):
                             if key in record and record[key] is not None:
                                 id_fields[key].append(str(record[key]))
-            except Exception:
+            except Exception as e:
+                log.debug("Error reading records from file: %s", e)
                 continue
 
             for field, values in id_fields.items():

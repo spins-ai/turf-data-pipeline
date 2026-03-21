@@ -23,6 +23,7 @@ import argparse
 import json
 import os
 import platform
+import logging
 import sys
 import time
 from datetime import datetime, timedelta
@@ -32,6 +33,8 @@ from typing import Dict, List, Optional, Tuple
 # ---------------------------------------------------------------------------
 # CONFIG
 # ---------------------------------------------------------------------------
+
+log = logging.getLogger(__name__)
 
 BASE_DIR = Path(__file__).resolve().parent
 CHECKPOINT_FILE = BASE_DIR / "pipeline_checkpoint.json"
@@ -391,8 +394,8 @@ def estimate_total_steps(ckpt: Dict) -> int:
         from run_pipeline import build_dag
         dag = build_dag()
         return len(dag)
-    except Exception:
-        pass
+    except Exception as e:
+        log.debug("Could not import build_dag to determine total steps: %s", e)
 
     return TOTAL_STEPS_FALLBACK
 

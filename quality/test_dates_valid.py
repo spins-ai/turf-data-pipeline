@@ -5,11 +5,14 @@ Validates that all date fields are valid ISO format and within range 2004-2026.
 """
 import argparse
 import json
+import logging
 import os
 import re
 import sys
 from datetime import datetime
 
+
+log = logging.getLogger(__name__)
 
 # Date field names to look for (case-insensitive substrings)
 DATE_FIELD_PATTERNS = [
@@ -65,8 +68,8 @@ def parse_date(value):
                 return dt, fmt + "+tz"
             except ValueError:
                 continue
-    except Exception:
-        pass
+    except Exception as e:
+        log.debug("Error parsing date value '%s': %s", value[:50], e)
 
     return None, f"unparseable: {value[:50]}"
 

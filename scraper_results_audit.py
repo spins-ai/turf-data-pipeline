@@ -85,7 +85,8 @@ def count_json_records(filepath):
             return 1
     except (json.JSONDecodeError, MemoryError, UnicodeDecodeError):
         return -1
-    except Exception:
+    except Exception as e:
+        log.debug("Unexpected error counting records in file: %s", e)
         return -1
 
 
@@ -139,8 +140,8 @@ def extract_dates_from_file(filepath, max_records=5000):
                                 if m:
                                     dates.add(m.group(1))
             del data
-    except Exception:
-        pass
+    except Exception as e:
+        log.debug("Error extracting dates from file: %s", e)
 
     return dates
 
@@ -211,8 +212,8 @@ def scan_directory(dir_path):
                         line_count = sum(1 for _ in fh) - 1  # -1 for header
                     if line_count > 0:
                         stats["total_records"] += line_count
-                except Exception:
-                    pass
+                except Exception as e:
+                    log.debug("Error counting CSV lines in %s: %s", fp, e)
                 stats["files_detail"].append({
                     "name": rel_path, "size": fsize, "records": line_count if 'line_count' in dir() else 0
                 })

@@ -8,9 +8,12 @@ Sortie : rapport texte + JSON.
 import glob
 import json
 import os
+import logging
 import subprocess
 import sys
 from datetime import datetime
+
+log = logging.getLogger(__name__)
 
 # Ensure UTF-8 output on Windows
 if sys.platform == "win32":
@@ -29,15 +32,16 @@ def count_jsonl_lines(filepath, max_lines=None):
                 count += 1
                 if max_lines and count >= max_lines:
                     return count
-    except Exception:
-        pass
+    except Exception as e:
+        log.debug("Error counting lines in %s: %s", filepath, e)
     return count
 
 
 def get_file_size_mb(filepath):
     try:
         return os.path.getsize(filepath) / (1024 * 1024)
-    except Exception:
+    except Exception as e:
+        log.debug("Error getting file size for %s: %s", filepath, e)
         return 0
 
 
@@ -75,8 +79,8 @@ def scan_output_dirs():
             try:
                 with open(cp_file, "r", encoding="utf-8") as f:
                     checkpoint = json.load(f)
-            except Exception:
-                pass
+            except Exception as e:
+                log.debug("Error reading checkpoint %s: %s", cp_file, e)
 
         # Check cache
         cache_dir = os.path.join(full, "cache")

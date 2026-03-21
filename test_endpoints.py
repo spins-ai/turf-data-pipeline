@@ -4,9 +4,12 @@ Systematic test of ALL possible PMU API endpoints to discover available data.
 Tests both offline and online servers, multiple client IDs, and various endpoint suffixes.
 """
 
-import requests
 import json
+import logging
+import requests
 import time
+
+log = logging.getLogger(__name__)
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
@@ -87,7 +90,8 @@ def test_endpoint(url, label=""):
                         keys = f"[list with {len(data)} items, first item keys: {list(data[0].keys())}]"
                 else:
                     keys = f"[{type(data).__name__}]"
-            except Exception:
+            except Exception as e:
+                log.debug("Failed to parse JSON response: %s", e)
                 keys = "[not JSON]"
             return status, text, keys
         else:

@@ -193,8 +193,8 @@ def extract_html_fields(html_content):
     parser = HTMLFieldExtractor()
     try:
         parser.feed(html_content)
-    except Exception:
-        pass
+    except Exception as e:
+        log.debug("Error parsing HTML fields: %s", e)
     return dict(parser.fields)
 
 
@@ -305,8 +305,8 @@ def audit_scraper(source_dir, max_html=20, max_json=20):
                             json_fields_all.update(record.keys())
                     except json.JSONDecodeError:
                         pass
-        except Exception:
-            pass
+        except Exception as e:
+            log.debug("Error reading JSONL file: %s", e)
 
     report["html_fields"] = dict(html_fields_all)
     report["json_fields"] = json_fields_all

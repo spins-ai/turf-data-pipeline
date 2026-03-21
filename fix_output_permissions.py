@@ -43,8 +43,8 @@ def is_junction_or_symlink(path):
             if attrs == -1:
                 return False
             return bool(attrs & FILE_ATTRIBUTE_REPARSE_POINT)
-        except Exception:
-            pass
+        except Exception as e:
+            log.debug("Error checking reparse point for %s: %s", path, e)
         # Fallback: essayer avec os.readlink
         try:
             os.readlink(path)

@@ -552,8 +552,8 @@ def undo() -> None:
                 if parent != ROOT and parent.exists() and not any(parent.iterdir()):
                     parent.rmdir()
                     log.info("Removed empty directory: %s", parent.relative_to(ROOT))
-        except Exception:
-            pass
+        except Exception as e:
+            log.debug("Error removing empty directory: %s", e)
 
     # Update migration log
     undo_log = {

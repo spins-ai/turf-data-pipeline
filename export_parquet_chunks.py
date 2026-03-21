@@ -126,7 +126,8 @@ def main():
                     # Laisser pyarrow inferer le type
                     try:
                         columns[col] = values
-                    except Exception:
+                    except Exception as e:
+                        log.debug("Type inference failed for column %s, converting to str: %s", col, e)
                         columns[col] = [str(v) if v is not None else None for v in values]
 
                 try:
