@@ -77,7 +77,7 @@ def convert_streaming(json_path, jsonl_path):
     """Convertit un JSON array en JSONL via streaming (ijson)."""
     count = 0
     with open(json_path, "rb") as fin, \
-         open(jsonl_path, "w", encoding="utf-8") as fout:
+         open(jsonl_path, "w", encoding="utf-8", newline="\n") as fout:
         # ijson.items parses each item in the root array one by one
         for record in ijson.items(fin, "item"):
             fout.write(json.dumps(record, ensure_ascii=False, cls=DecimalEncoder) + "\n")
@@ -98,7 +98,7 @@ def convert_standard(json_path, jsonl_path):
         return 0
 
     count = 0
-    with open(jsonl_path, "w", encoding="utf-8") as fout:
+    with open(jsonl_path, "w", encoding="utf-8", newline="\n") as fout:
         for record in data:
             fout.write(json.dumps(record, ensure_ascii=False, cls=DecimalEncoder) + "\n")
             count += 1

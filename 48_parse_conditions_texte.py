@@ -245,7 +245,7 @@ def main():
     total_enriched = 0
     total_features = 0
 
-    with open(output_file, "w", encoding="utf-8") as fout:
+    with open(output_file, "w", encoding="utf-8", newline="\n") as fout:
         for i, c in enumerate(courses):
             texte = c.get("conditions_texte") or ""
             libelle = c.get("libelle") or ""

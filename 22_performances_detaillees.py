@@ -186,7 +186,7 @@ def main():
 
         if perf_data and "participants" in perf_data:
             records = flatten_performances(perf_data, course)
-            with open(output_file, "a", encoding="utf-8") as f:
+            with open(output_file, "a", encoding="utf-8", newline="\n") as f:
                 for r in records:
                     f.write(json.dumps(r, ensure_ascii=False) + "\n")
             total_records += len(records)

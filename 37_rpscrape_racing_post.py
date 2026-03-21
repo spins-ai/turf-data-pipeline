@@ -196,7 +196,7 @@ def main():
             records = scrape_results_page(course_id, date_str)
             if records:
                 # Append JSONL — pas d'accumulation en mémoire
-                with open(output_file, "a", encoding="utf-8") as f:
+                with open(output_file, "a", encoding="utf-8", newline="\n") as f:
                     for r in records:
                         f.write(json.dumps(r, ensure_ascii=False) + "\n")
                 total_records += len(records)

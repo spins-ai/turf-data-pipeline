@@ -112,7 +112,7 @@ def compute_sequences(partants):
 
     output_file = os.path.join(OUTPUT_DIR, "sequences_performances.jsonl")
 
-    with open(output_file, "w", encoding="utf-8") as fout:
+    with open(output_file, "w", encoding="utf-8", newline="\n") as fout:
         for i, partant in enumerate(partants):
             nom = (partant.get("nom_cheval") or "").upper().strip()
             if not nom:

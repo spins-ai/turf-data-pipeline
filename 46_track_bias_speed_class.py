@@ -216,7 +216,7 @@ def compute_features(partants):
     output_file = os.path.join(OUTPUT_DIR, "track_bias_speed_class.jsonl")
     enriched = 0
 
-    with open(output_file, "w", encoding="utf-8") as fout:
+    with open(output_file, "w", encoding="utf-8", newline="\n") as fout:
         for i, p in enumerate(partants):
             nom = (p.get("nom_cheval") or "").upper().strip()
             hippo = (p.get("hippodrome_normalise") or "").lower()
@@ -327,7 +327,7 @@ def _enrich_field_strength(output_file, course_partants):
     tmp_file = output_file + ".tmp"
     enriched = 0
     with open(output_file, "r", encoding="utf-8") as fin, \
-         open(tmp_file, "w", encoding="utf-8") as fout:
+         open(tmp_file, "w", encoding="utf-8", newline="\n") as fout:
         for line in fin:
             line = line.strip()
             if not line:

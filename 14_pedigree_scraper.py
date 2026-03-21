@@ -777,7 +777,7 @@ def run_scraping(
 
 def _append_jsonl(record: dict):
     """Append un record au fichier JSONL."""
-    with open(OUTPUT_JSONL, "a", encoding="utf-8") as f:
+    with open(OUTPUT_JSONL, "a", encoding="utf-8", newline="\n") as f:
         f.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
 
 

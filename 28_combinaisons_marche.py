@@ -179,7 +179,7 @@ def main():
         data = fetch_combinaisons(date_api, num_r, num_c)
         if data and "combinaisons" in data:
             records = flatten_combinaisons(data, course)
-            with open(output_file, "a", encoding="utf-8") as f:
+            with open(output_file, "a", encoding="utf-8", newline="\n") as f:
                 for r in records:
                     f.write(json.dumps(r, ensure_ascii=False) + "\n")
             total_records += len(records)

@@ -106,10 +106,10 @@ def compute_graph_features(partants):
     # Fichiers edges (utiliser contextlib.ExitStack pour garantir la fermeture)
     import contextlib
     with contextlib.ExitStack() as stack:
-        edges_cj = stack.enter_context(open(os.path.join(OUTPUT_DIR, "edges_cheval_jockey.jsonl"), "w", encoding="utf-8"))
-        edges_ce = stack.enter_context(open(os.path.join(OUTPUT_DIR, "edges_cheval_entraineur.jsonl"), "w", encoding="utf-8"))
-        edges_ch = stack.enter_context(open(os.path.join(OUTPUT_DIR, "edges_cheval_hippodrome.jsonl"), "w", encoding="utf-8"))
-        fout = stack.enter_context(open(output_file, "w", encoding="utf-8"))
+        edges_cj = stack.enter_context(open(os.path.join(OUTPUT_DIR, "edges_cheval_jockey.jsonl"), "w", encoding="utf-8", newline="\n"))
+        edges_ce = stack.enter_context(open(os.path.join(OUTPUT_DIR, "edges_cheval_entraineur.jsonl"), "w", encoding="utf-8", newline="\n"))
+        edges_ch = stack.enter_context(open(os.path.join(OUTPUT_DIR, "edges_cheval_hippodrome.jsonl"), "w", encoding="utf-8", newline="\n"))
+        fout = stack.enter_context(open(output_file, "w", encoding="utf-8", newline="\n"))
         for i, p in enumerate(partants):
             nom = (p.get("nom_cheval") or "").upper().strip()
             jockey = (p.get("jockey_driver") or "").strip()
@@ -236,7 +236,7 @@ def compute_graph_features(partants):
 
     # Sauver les node features
     node_file = os.path.join(OUTPUT_DIR, "node_features.jsonl")
-    with open(node_file, "w", encoding="utf-8") as f:
+    with open(node_file, "w", encoding="utf-8", newline="\n") as f:
         for jockey, chevaux in jockey_chevaux.items():
             f.write(json.dumps({
                 "type": "jockey", "name": jockey, "nb_chevaux": len(chevaux),

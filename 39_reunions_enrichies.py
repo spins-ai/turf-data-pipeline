@@ -286,7 +286,7 @@ def main():
         data = fetch_reunion(date_api, num_r)
         if data:
             records = flatten_reunion(data, reunion)
-            with open(output_file, "a", encoding="utf-8") as f:
+            with open(output_file, "a", encoding="utf-8", newline="\n") as f:
                 for r in records:
                     f.write(json.dumps(r, ensure_ascii=False) + "\n")
             total_records += len(records)

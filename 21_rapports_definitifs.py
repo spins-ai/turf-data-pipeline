@@ -222,7 +222,7 @@ def main():
 
         if rapports_raw and len(rapports_raw) > 0:
             flat = extract_rapports_flat(rapports_raw, course)
-            with open(output_file, "a", encoding="utf-8") as f:
+            with open(output_file, "a", encoding="utf-8", newline="\n") as f:
                 f.write(json.dumps(flat, ensure_ascii=False) + "\n")
             total_rapports += 1
             collected += 1

@@ -385,7 +385,7 @@ def main():
     skipped = 0
     t0 = time.time()
 
-    with open(tmp_path, "w", encoding="utf-8", errors="replace") as fout:
+    with open(tmp_path, "w", encoding="utf-8", errors="replace", newline="\n") as fout:
         for hippo in sorted(hippo_data.keys()):
             data = hippo_data[hippo]
             profile = compute_profile(hippo, data)

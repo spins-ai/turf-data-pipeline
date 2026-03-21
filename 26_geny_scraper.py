@@ -129,7 +129,7 @@ def scrape_day(session, date_str):
     return result
 
 def append_jsonl(filepath, record):
-    with open(filepath, "a", encoding="utf-8") as f:
+    with open(filepath, "a", encoding="utf-8", newline="\n") as f:
         f.write(json.dumps(record, ensure_ascii=False) + "\n")
 
 
