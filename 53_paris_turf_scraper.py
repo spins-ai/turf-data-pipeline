@@ -31,7 +31,7 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
-from utils.scraping import smart_pause, fetch_with_retry
+from utils.scraping import smart_pause, fetch_with_retry, append_jsonl, load_checkpoint, save_checkpoint
 
 log = setup_logging("53_paris_turf")
 
@@ -64,21 +64,7 @@ def extract_next_data(html_text):
     return None
 
 
-def append_jsonl(filepath, record):
-    with open(filepath, "a", encoding="utf-8", newline="\n") as f:
-        f.write(json.dumps(record, ensure_ascii=False) + "\n")
 
-
-def load_checkpoint():
-    if os.path.exists(CHECKPOINT_FILE):
-        with open(CHECKPOINT_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return {}
-
-
-def save_checkpoint(data):
-    with open(CHECKPOINT_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
 
 
 def get_day_courses(session, page_slug):

@@ -35,7 +35,7 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
-from utils.scraping import smart_pause, fetch_with_retry
+from utils.scraping import smart_pause, fetch_with_retry, append_jsonl, load_checkpoint, save_checkpoint
 
 log = setup_logging("52_turfomania")
 
@@ -53,14 +53,6 @@ def new_session():
 
 
 
-def append_jsonl(filepath, record):
-    with open(filepath, "a", encoding="utf-8", newline="\n") as f:
-        f.write(json.dumps(record, ensure_ascii=False) + "\n")
-
-
-def save_checkpoint(data):
-    with open(CHECKPOINT_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
 
 
 def get_reunion_urls(session):
@@ -346,7 +338,7 @@ def main():
             session = new_session()
             time.sleep(random.uniform(5, 10))
 
-    save_checkpoint({
+    save_checkpoint(CHECKPOINT_FILE, {
         "last_date": date_iso,
         "total_records": total_records,
         "nb_reunions": len(reunions),
