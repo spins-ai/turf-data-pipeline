@@ -9,10 +9,10 @@ Enrichit meteo_master.json avec :
 ⚠️ NE SUPPRIME RIEN — écrit un nouveau fichier enrichi
 """
 
-import json, os, logging, time
+import json, os, time
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)-8s | %(message)s")
-log = logging.getLogger(__name__)
+from utils.logging_setup import setup_logging
+log = setup_logging("postprocess_meteo")
 nBASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # ── Mapping pénétromètre texte → valeur numérique ──

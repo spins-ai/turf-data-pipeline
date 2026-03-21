@@ -20,11 +20,11 @@ Modules :
   - feat_interactions.py   → interactions entre features + signaux marché
 """
 
-import json, os, logging, time
+import json, os, time
 from datetime import datetime
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)-8s | %(message)s")
-log = logging.getLogger(__name__)
+from utils.logging_setup import setup_logging
+log = setup_logging("feature_engineering")
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data_master")

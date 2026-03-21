@@ -17,7 +17,7 @@ Usage:
 """
 
 import json
-import logging
+
 import os
 import re
 import sys
@@ -25,8 +25,8 @@ import time
 from collections import defaultdict
 from datetime import datetime
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)-8s | %(message)s")
-log = logging.getLogger(__name__)
+from utils.logging_setup import setup_logging
+log = setup_logging("scraper_results_audit")
 
 OUTPUT_DIR = "output"
 DOCS_DIR = "docs"

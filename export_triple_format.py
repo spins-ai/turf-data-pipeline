@@ -20,7 +20,7 @@ import argparse
 import csv
 import io
 import json
-import logging
+
 import os
 import sys
 from datetime import datetime
@@ -36,11 +36,8 @@ DEFAULT_SOURCE_DIR = BASE_DIR / "data_master"
 DEFAULT_OUTPUT_DIR = BASE_DIR / "output" / "exports"
 LOG_DIR = BASE_DIR / "logs"
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)-8s | %(message)s",
-)
-log = logging.getLogger(__name__)
+from utils.logging_setup import setup_logging
+log = setup_logging("export_triple_format")
 
 # Essayer d'importer pyarrow pour Parquet
 try:

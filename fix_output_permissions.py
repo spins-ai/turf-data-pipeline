@@ -16,14 +16,14 @@ Usage:
 """
 
 import argparse
-import logging
+
 import os
 import shutil
 import sys
 import time
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)-8s | %(message)s")
-log = logging.getLogger(__name__)
+from utils.logging_setup import setup_logging
+log = setup_logging("fix_output_permissions")
 
 OUTPUT_DIR = "output"
 TEMP_DIR = "output_temp_copy"

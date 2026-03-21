@@ -15,13 +15,13 @@ Usage:
 
 import argparse
 import json
-import logging
+
 import os
 import sys
 import time
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)-8s | %(message)s")
-log = logging.getLogger(__name__)
+from utils.logging_setup import setup_logging
+log = setup_logging("export_parquet_chunks")
 
 CHUNK_SIZE_DEFAULT = 50000
 

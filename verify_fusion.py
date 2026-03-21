@@ -19,7 +19,7 @@ Usage :
 
 import argparse
 import json
-import logging
+
 import os
 import random
 import sys
@@ -42,11 +42,8 @@ SAMPLE_FILE = LOG_DIR / "verify_fusion_sample.json"
 MIN_RECORDS = 2_700_000
 MIN_COLUMNS = 200
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)-8s | %(message)s",
-)
-log = logging.getLogger(__name__)
+from utils.logging_setup import setup_logging
+log = setup_logging("verify_fusion")
 
 
 # ---------------------------------------------------------------------------

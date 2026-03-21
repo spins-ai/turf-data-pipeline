@@ -12,7 +12,7 @@ Usage:
 
 import argparse
 import json
-import logging
+
 import os
 import sys
 from collections import Counter, defaultdict
@@ -22,12 +22,8 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_DIR = os.path.join(BASE_DIR, "output", "quality")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)-8s | %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
-log = logging.getLogger(__name__)
+from utils.logging_setup import setup_logging
+log = setup_logging("validate_data_quality")
 
 if sys.platform == "win32":
     sys.stdout.reconfigure(encoding="utf-8")

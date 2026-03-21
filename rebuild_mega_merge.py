@@ -13,15 +13,15 @@ Usage:
 """
 
 import json
-import logging
+
 import os
 import sys
 
 OUTPUT_DIR = "data_master"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)-8s | %(message)s")
-log = logging.getLogger(__name__)
+from utils.logging_setup import setup_logging
+log = setup_logging("rebuild_mega_merge")
 nBASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 

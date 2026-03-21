@@ -10,10 +10,10 @@ Post-processing équipements — Enrichit equipements_master.json avec :
 ⚠️ NE SUPPRIME RIEN — enrichit le fichier existant
 """
 
-import json, os, logging, time
+import json, os, time
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)-8s | %(message)s")
-log = logging.getLogger(__name__)
+from utils.logging_setup import setup_logging
+log = setup_logging("postprocess_equipements")
 nBASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 

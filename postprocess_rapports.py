@@ -12,11 +12,11 @@ Post-processing rapports — Enrichit rapports_master.json avec :
 ⚠️ NE SUPPRIME RIEN — enrichit le fichier existant
 """
 
-import json, os, logging, time
+import json, os, time
 from datetime import datetime
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)-8s | %(message)s")
-log = logging.getLogger(__name__)
+from utils.logging_setup import setup_logging
+log = setup_logging("postprocess_rapports")
 nBASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 JOURS = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"]

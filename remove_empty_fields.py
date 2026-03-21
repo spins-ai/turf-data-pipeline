@@ -17,7 +17,7 @@ Usage :
 
 import argparse
 import json
-import logging
+
 import os
 import sys
 import tempfile
@@ -35,11 +35,8 @@ DEFAULT_SCAN_DIR = BASE_DIR / "output"
 LOG_DIR = BASE_DIR / "logs"
 REPORT_FILE = LOG_DIR / "remove_empty_fields_report.json"
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)-8s | %(message)s",
-)
-log = logging.getLogger(__name__)
+from utils.logging_setup import setup_logging
+log = setup_logging("remove_empty_fields")
 
 
 # ---------------------------------------------------------------------------

@@ -15,7 +15,6 @@ Usage :
 
 import argparse
 import importlib.util
-import logging
 import os
 import sys
 from collections import defaultdict
@@ -31,11 +30,9 @@ RUN_PIPELINE_PATH = BASE_DIR / "run_pipeline.py"
 DOCS_DIR = BASE_DIR / "docs"
 DEFAULT_OUTPUT = DOCS_DIR / "DAG.md"
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)-8s | %(message)s",
-)
-log = logging.getLogger(__name__)
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+from utils.logging_setup import setup_logging
+log = setup_logging("dag_visualizer")
 
 # Noms lisibles des phases
 PHASE_NAMES = {

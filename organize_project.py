@@ -34,7 +34,7 @@ import argparse
 import filecmp
 import hashlib
 import json
-import logging
+
 import os
 import re
 import shutil
@@ -57,12 +57,8 @@ KEEP_AS_IS = {"feature_builders", "quality", "docs", "betting", "labels",
               "models", "output", "post_course", "turf", "pipeline", ".claude",
               "__pycache__", ".git", "data_master", "logs", "data"}
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)-7s | %(message)s",
-    handlers=[logging.StreamHandler()],
-)
-log = logging.getLogger("organize")
+from utils.logging_setup import setup_logging
+log = setup_logging("organize")
 
 
 # ---------------------------------------------------------------------------

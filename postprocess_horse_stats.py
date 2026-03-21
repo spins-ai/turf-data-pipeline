@@ -12,12 +12,12 @@ Post-processing horse_stats — Enrichit horse_stats_master.json avec :
 ⚠️ NE SUPPRIME RIEN — enrichit le fichier existant
 """
 
-import json, os, logging, time
+import json, os, time
 from datetime import datetime
 from collections import Counter
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)-8s | %(message)s")
-log = logging.getLogger(__name__)
+from utils.logging_setup import setup_logging
+log = setup_logging("postprocess_horse_stats")
 nBASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 

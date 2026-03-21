@@ -10,7 +10,7 @@ Integre les ~32K records Sporting Life dans partants_master.
 """
 
 import json
-import logging
+
 import os
 import re
 import sys
@@ -28,15 +28,8 @@ LOG_DIR = BASE_DIR / "logs"
 
 LOG_DIR.mkdir(exist_ok=True)
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)-8s | %(message)s",
-    handlers=[
-        logging.FileHandler(LOG_DIR / "integrate_sporting_life.log", encoding="utf-8"),
-        logging.StreamHandler(),
-    ],
-)
-log = logging.getLogger(__name__)
+from utils.logging_setup import setup_logging
+log = setup_logging("integrate_sporting_life")
 
 
 # ── Extraction des chevaux depuis les records SL ──────────────────────

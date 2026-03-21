@@ -25,7 +25,6 @@ Usage :
 import argparse
 import hashlib
 import json
-import logging
 import os
 import sys
 from datetime import datetime
@@ -55,11 +54,9 @@ FILE_PATTERNS = [
     ("post_course", "*.py"),
 ]
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)-8s | %(message)s",
-)
-log = logging.getLogger(__name__)
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+from utils.logging_setup import setup_logging
+log = setup_logging("backup_checksums")
 
 
 # ---------------------------------------------------------------------------

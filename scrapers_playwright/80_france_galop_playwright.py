@@ -16,7 +16,6 @@ Usage:
 
 import argparse
 import json
-import logging
 import os
 import re
 import sys
@@ -24,14 +23,10 @@ import time
 from datetime import datetime, timedelta
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 from scraper_base_playwright import PlaywrightScraperBase
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)-8s | %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
-log = logging.getLogger(__name__)
+from utils.logging_setup import setup_logging
+log = setup_logging("80_france_galop_playwright")
 
 # Hippodromes majeurs France Galop
 HIPPODROMES_FR = [

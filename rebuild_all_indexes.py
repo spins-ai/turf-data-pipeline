@@ -17,12 +17,12 @@ Usage:
 """
 
 import json
-import logging
+
 import os
 import time
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)-8s | %(message)s")
-log = logging.getLogger(__name__)
+from utils.logging_setup import setup_logging
+log = setup_logging("rebuild_all_indexes")
 nBASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 INDEX_DIR = os.path.join("data_master", "indexes")
