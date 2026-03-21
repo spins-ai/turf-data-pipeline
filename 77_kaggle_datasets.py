@@ -17,6 +17,7 @@ import random
 import re
 import shutil
 import subprocess
+import sys
 import time
 import zipfile
 from datetime import datetime
@@ -32,12 +33,10 @@ CHECKPOINT_FILE = os.path.join(OUTPUT_DIR, ".checkpoint.json")
 os.makedirs(CACHE_DIR, exist_ok=True)
 os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)-8s | %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
-log = logging.getLogger(__name__)
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from utils.logging_setup import setup_logging
+
+log = setup_logging("77_kaggle")
 
 # ============================================================
 # Liste exhaustive des datasets Kaggle horse racing connus
