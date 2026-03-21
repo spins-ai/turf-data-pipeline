@@ -9,8 +9,8 @@ import json
 import os
 from datetime import datetime
 
-INPUT_FILE = "output/17_sire_ifce/donnees-equides.csv"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+INPUT_FILE = os.path.join(BASE_DIR, "output", "17_sire_ifce", "donnees-equides.csv")
 OUTPUT_DIR = os.path.join(BASE_DIR, "output", "17_sire_ifce")
 
 def parse_date(d):

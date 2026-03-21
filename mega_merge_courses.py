@@ -81,7 +81,7 @@ def main():
 
     # ─── 1. Load main courses ───────────────────────────────────────────
     print("\n[1/7] Loading main courses dataset...")
-    courses = load_json("output/02_liste_courses/courses_normalisees.json")
+    courses = load_json(os.path.join(BASE_DIR, "output", "02_liste_courses/courses_normalisees.json"))
     n_courses = len(courses)
     fields_before = set()
     for c in courses[:100]:
@@ -97,7 +97,7 @@ def main():
 
     # ─── 2. Merge rapports_complets ─────────────────────────────────────
     print("\n[2/7] Merging rapports_complets (payout data)...")
-    rapports = load_json("output/rapports_merged/rapports_complets.json")
+    rapports = load_json(os.path.join(BASE_DIR, "output", "rapports_merged/rapports_complets.json"))
     rapports_idx = build_index(rapports, "course_uid")
 
     # Fields to skip (already in courses or join keys)
@@ -123,7 +123,7 @@ def main():
 
     # ─── 3. Merge meteo_complete ────────────────────────────────────────
     print("\n[3/7] Merging meteo_complete (weather data)...")
-    meteo = load_json("output/meteo_complete/meteo_complete.json")
+    meteo = load_json(os.path.join(BASE_DIR, "output", "meteo_complete/meteo_complete.json"))
     meteo_idx = build_index(meteo, "course_uid")
 
     meteo_skip = {"course_uid", "date_reunion_iso", "hippodrome_normalise",
@@ -153,7 +153,7 @@ def main():
 
     # ─── 4. Merge reunions_enrichies ────────────────────────────────────
     print("\n[4/7] Merging reunions_enrichies (detailed course info)...")
-    reunions = load_json("output/39_reunions_enrichies/reunions_enrichies.json")
+    reunions = load_json(os.path.join(BASE_DIR, "output", "39_reunions_enrichies/reunions_enrichies.json"))
 
     # Reunions use date-based UIDs like "2013-02-19_R1_C1" while courses use
     # hash UIDs. Join on date + hippodrome_normalise + numero_course instead.
@@ -222,7 +222,7 @@ def main():
     print("  Loading partant->course mapping from parquet...", end=" ", flush=True)
     t0 = time.time()
     table = pq.read_table(
-        os.path.join(BASE, "output/02_liste_courses_raw_pmu/partants_normalises.parquet"),
+        os.path.join(BASE, os.path.join(BASE_DIR, "output", "02_liste_courses_raw_pmu/partants_normalises.parquet")),
         columns=["partant_uid", "course_uid"]
     )
     partant_to_course = {}
@@ -235,7 +235,7 @@ def main():
     print(f"{len(partant_to_course):,} mappings in {time.time()-t0:.1f}s")
 
     # Load field strength data
-    fs_data = load_json("output/field_strength/field_strength.json")
+    fs_data = load_json(os.path.join(BASE_DIR, "output", "field_strength/field_strength.json"))
 
     # Course-level fields (same for all partants in a course)
     course_level_fs_fields = [
@@ -272,7 +272,7 @@ def main():
     print("\n[7/7] Merging citations_enjeux & combinaisons_marche...")
 
     # Citations: aggregate per course_uid
-    citations = load_json("output/27_citations_enjeux/citations_enjeux.json")
+    citations = load_json(os.path.join(BASE_DIR, "output", "27_citations_enjeux/citations_enjeux.json"))
     citations_by_course = defaultdict(list)
     for rec in citations:
         cu = rec.get("course_uid")
@@ -304,7 +304,7 @@ def main():
     print(f"  -> Citations aggregated: {len(citations_agg):,} courses")
 
     # Combinaisons: aggregate per course_uid (tolerant load - large file may be truncated)
-    combis = load_json_tolerant("output/28_combinaisons_marche/combinaisons_marche.json")
+    combis = load_json_tolerant(os.path.join(BASE_DIR, "output", "28_combinaisons_marche/combinaisons_marche.json"))
     combis_by_course = defaultdict(list)
     for rec in combis:
         cu = rec.get("course_uid")
@@ -371,7 +371,7 @@ def main():
     print(f"  Combinaisons:   {matched_combi:>7,} / {n_courses:,} ({100*matched_combi/n_courses:.1f}%)")
 
     # Save
-    out_path = os.path.join(BASE, "output/02_liste_courses/courses_enrichies.json")
+    out_path = os.path.join(BASE, os.path.join(BASE_DIR, "output", "02_liste_courses/courses_enrichies.json"))
     print(f"\nSaving to {out_path} ...", end=" ", flush=True)
     t0 = time.time()
     with open(out_path, "w", encoding="utf-8") as f:
