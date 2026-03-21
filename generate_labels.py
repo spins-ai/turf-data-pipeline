@@ -452,7 +452,7 @@ def main():
     csv_writer_obj = None
 
     if fmt in ("jsonl", "all"):
-        f_jsonl = open(jsonl_tmp, "w", encoding="utf-8")
+        f_jsonl = open(jsonl_tmp, "w", encoding="utf-8", newline="\n")
     if fmt in ("csv", "all"):
         f_csv = open(csv_tmp, "w", newline="", encoding="utf-8")
 
