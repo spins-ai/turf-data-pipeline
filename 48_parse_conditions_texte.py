@@ -37,12 +37,14 @@ import os
 import re
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from utils.logging_setup import setup_logging
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_DIR = os.path.join(BASE_DIR, "output", "48_conditions_texte")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)-8s | %(message)s")
-log = logging.getLogger(__name__)
+log = setup_logging("48_parse_conditions_texte")
 
 
 def parse_conditions(texte):

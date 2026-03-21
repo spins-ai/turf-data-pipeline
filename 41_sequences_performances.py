@@ -35,12 +35,14 @@ import math
 from collections import defaultdict
 from datetime import datetime
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from utils.logging_setup import setup_logging
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_DIR = os.path.join(BASE_DIR, "output", "41_sequences")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)-8s | %(message)s")
-log = logging.getLogger(__name__)
+log = setup_logging("41_sequences_performances")
 
 MAX_SEQ_LEN = 20  # Nombre max de courses dans la séquence
 
