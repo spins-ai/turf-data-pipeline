@@ -162,8 +162,8 @@ def find_most_recent_date(filepath: Path, sample_size: int = 500) -> dict:
                             except (ValueError, TypeError):
                                 continue
 
-    except Exception:
-        pass
+    except Exception as e:
+        log.debug(f"  Erreur analyse freshness: {e}")
 
     return {
         "most_recent_date": most_recent.isoformat() if most_recent else None,

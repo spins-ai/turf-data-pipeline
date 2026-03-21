@@ -65,8 +65,8 @@ def stream_records(filepath: Path):
                 yield data
             elif isinstance(data, list):
                 yield from data
-        except Exception:
-            pass
+        except Exception as e:
+            log.debug(f"  Erreur lecture golden record: {e}")
 
 
 # -----------------------------------------------------------------------

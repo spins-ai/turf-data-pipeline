@@ -196,7 +196,8 @@ def main():
         import duckdb
         duckdb.sql(f"COPY (SELECT * FROM read_json_auto('{out}')) TO 'data_master/performances_master.parquet' (FORMAT PARQUET, COMPRESSION ZSTD)")
         log.info(f"  → {os.path.getsize('data_master/performances_master.parquet')/1024/1024:.1f} MB (DuckDB)")
-    except Exception:
+    except Exception as e:
+        log.info(f"  DuckDB non disponible ({e}), fallback pandas...")
         try:
             import pandas as pd, pyarrow as pa, pyarrow.parquet as pq
             # Lire par chunks avec ijson
