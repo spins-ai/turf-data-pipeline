@@ -308,8 +308,8 @@ def inventory_dataset(ds_dir, dataset_ref):
                         line_count = sum(1 for _ in f)
                     file_info["line_count"] = line_count
                     inventory["total_rows_estimate"] += max(0, line_count - 1)
-                except Exception:
-                    pass
+                except Exception as e:
+                    log.debug(f"  Erreur comptage lignes {fpath}: {e}")
 
             # Lire les headers CSV
             if file_info["extension"] == ".csv":
@@ -317,8 +317,8 @@ def inventory_dataset(ds_dir, dataset_ref):
                     with open(fpath, "r", encoding="utf-8", errors="ignore") as f:
                         header = f.readline().strip()
                     file_info["columns"] = header.split(",")[:20]  # Max 20 colonnes
-                except Exception:
-                    pass
+                except Exception as e:
+                    log.debug(f"  Erreur lecture headers {fpath}: {e}")
 
             inventory["files"].append(file_info)
             inventory["total_size_bytes"] += fsize

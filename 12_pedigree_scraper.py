@@ -650,8 +650,8 @@ def _extract_ifce_identity(soup: BeautifulSoup, text: str, record: dict,
                     break
                 except ValueError:
                     continue
-        except Exception:
-            pass
+        except Exception as e:
+            log.debug(f"  Erreur parsing date naissance: {e}")
 
     if not record["annee_naissance"]:
         m = re.search(r'n[eé]e?\s+en\s+(\d{4})', text_lower)
