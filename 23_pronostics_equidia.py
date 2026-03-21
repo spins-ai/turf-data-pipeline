@@ -25,6 +25,7 @@ from bs4 import BeautifulSoup
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
+from utils.scraping import smart_pause
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_DIR = os.path.join(BASE_DIR, "output", "23_pronostics")
@@ -61,11 +62,6 @@ def save_and_exit(signum=None, frame=None):
 
 signal.signal(signal.SIGTERM, save_and_exit)
 signal.signal(signal.SIGINT, save_and_exit)
-
-
-def smart_pause(base=0.25, jitter=0.15):
-    time.sleep(base + random.uniform(0, jitter))
-
 
 # ═══════════════════════════════════════════════════════════
 # SOURCE 1 : API PMU pronostics (~30 derniers jours)

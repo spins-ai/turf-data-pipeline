@@ -19,6 +19,7 @@ from datetime import datetime, timedelta
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
+from utils.scraping import smart_pause
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_DIR = os.path.join(BASE_DIR, "output", "37_racing_post")
@@ -46,11 +47,6 @@ def rotate_session():
         "DNT": "1",
     })
     req_count = 0
-
-def smart_pause(base=4.0, jitter=2.0):
-    time.sleep(base + random.uniform(-jitter, jitter))
-    if random.random() < 0.1:
-        time.sleep(random.uniform(10, 30))
 
 # Codes des hippodromes français sur Racing Post
 FR_COURSES = {

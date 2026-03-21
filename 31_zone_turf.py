@@ -17,6 +17,7 @@ from datetime import datetime, timedelta
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
+from utils.scraping import smart_pause
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_DIR = os.path.join(BASE_DIR, "output", "31_zone_turf")
@@ -45,11 +46,6 @@ def rotate_session():
         "Referer": "https://www.zone-turf.fr/",
     })
     req_count = 0
-
-def smart_pause(base=3.0, jitter=1.5):
-    time.sleep(base + random.uniform(-jitter, jitter))
-    if random.random() < 0.08:
-        time.sleep(random.uniform(5, 20))
 
 def scrape_day(date_str):
     """Scraper une journée de pronostics/résultats Zone-Turf"""

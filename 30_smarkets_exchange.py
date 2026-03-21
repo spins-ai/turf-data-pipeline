@@ -15,6 +15,7 @@ from datetime import datetime, timedelta
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
+from utils.scraping import smart_pause
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_DIR = os.path.join(BASE_DIR, "output", "30_smarkets_exchange")
@@ -46,11 +47,6 @@ FR_TRACK_KEYWORDS = [
     "nancy", "pontchateau", "pornichet", "senonnes",
     "laval", "graignes", "agen", "aix-les-bains",
 ]
-
-
-def smart_pause(base=0.5, jitter=0.3):
-    time.sleep(base + jitter * (2 * __import__('random').random() - 1))
-
 
 def is_french_event(event):
     """Check if event is French horse racing."""

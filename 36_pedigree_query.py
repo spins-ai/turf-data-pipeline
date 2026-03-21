@@ -20,6 +20,7 @@ from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
+from utils.scraping import smart_pause
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_DIR = os.path.join(BASE_DIR, "output", "36_pedigree_query")
@@ -82,17 +83,6 @@ def rotate_session():
         "Cache-Control": "max-age=0",
     })
     req_count = 0
-
-
-def smart_pause(base=5.0, jitter=3.0):
-    """Pause plus longue et variable pour éviter le ban"""
-    time.sleep(base + random.uniform(0, jitter))
-    # 15% chance de longue pause (simuler navigation humaine)
-    if random.random() < 0.15:
-        pause = random.uniform(10, 30)
-        log.debug(f"  💤 Pause longue {pause:.0f}s")
-        time.sleep(pause)
-
 
 def get_html_cached(name, clean_name):
     """Récupère le HTML — depuis cache disque si dispo, sinon fetch"""

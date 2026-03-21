@@ -16,6 +16,7 @@ from datetime import datetime
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
+from utils.scraping import smart_pause
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_DIR = os.path.join(BASE_DIR, "output", "22_performances_detaillees")
@@ -25,9 +26,6 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 log = setup_logging("22_performances_detaillees")
 
 BASE_URL = "https://offline.turfinfo.api.pmu.fr/rest/client/7/programme"
-
-def smart_pause(base=0.3, jitter=0.2):
-    time.sleep(base + random.uniform(-jitter, jitter))
 
 def load_courses_references():
     """Charger les courses depuis scripts 02 et 02b (mode léger)"""

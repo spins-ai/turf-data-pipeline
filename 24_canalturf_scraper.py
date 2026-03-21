@@ -19,6 +19,7 @@ from bs4 import BeautifulSoup
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
+from utils.scraping import smart_pause
 
 SCRIPT_NAME = "24_canalturf"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -47,12 +48,6 @@ def new_session():
         "Connection": "keep-alive",
     })
     return s
-
-def smart_pause(base=2.0, jitter=1.0):
-    pause = base + random.uniform(-jitter, jitter)
-    if random.random() < 0.05:
-        pause += random.uniform(5, 15)
-    time.sleep(max(0.8, pause))
 
 def load_horse_ids():
     """Extraire les IDs chevaux depuis les partants PMU (id_nav_partant)"""

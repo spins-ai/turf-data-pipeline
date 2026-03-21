@@ -19,6 +19,7 @@ from bs4 import BeautifulSoup
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
+from utils.scraping import smart_pause
 
 SCRIPT_NAME = "25_turfostats"
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output", SCRIPT_NAME)
@@ -42,12 +43,6 @@ def new_session():
         "DNT": "1",
     })
     return s
-
-def smart_pause(base=2.5, jitter=1.5):
-    pause = base + random.uniform(-jitter, jitter)
-    if random.random() < 0.08:
-        pause += random.uniform(5, 15)
-    time.sleep(max(1.0, pause))
 
 def scrape_programme_day(session, date_str):
     """Scraper le programme d'un jour"""

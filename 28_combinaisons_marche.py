@@ -16,6 +16,7 @@ from datetime import datetime
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
+from utils.scraping import smart_pause
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_DIR = os.path.join(BASE_DIR, "output", "28_combinaisons_marche")
@@ -47,11 +48,6 @@ def rotate_session():
         "DNT": "1",
     })
     req_count = 0
-
-def smart_pause(base=0.3, jitter=0.15):
-    time.sleep(base + random.uniform(-jitter, jitter))
-    if random.random() < 0.05:
-        time.sleep(random.uniform(3, 8))
 
 def load_courses():
     courses = []

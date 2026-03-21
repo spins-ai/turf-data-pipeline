@@ -15,6 +15,7 @@ from datetime import datetime
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
+from utils.scraping import smart_pause
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_DIR = os.path.join(BASE_DIR, "output", "39_reunions_enrichies")
@@ -47,13 +48,6 @@ def rotate_session():
         "DNT": "1",
     })
     req_count = 0
-
-
-def smart_pause(base=0.4, jitter=0.2):
-    time.sleep(base + random.uniform(-jitter, jitter))
-    if random.random() < 0.05:
-        time.sleep(random.uniform(3, 8))
-
 
 def load_reunions():
     """Charge les reunions PMU depuis reunions_references_02.json"""

@@ -15,6 +15,7 @@ from datetime import datetime, timedelta
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
+from utils.scraping import smart_pause
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_DIR = os.path.join(BASE_DIR, "output", "34_unibet_cotes")
@@ -38,9 +39,6 @@ session.headers.update({
     "Accept": "application/json",
     "Accept-Language": "fr-FR,fr;q=0.9",
 })
-
-def smart_pause(base=1.0, jitter=0.5):
-    time.sleep(base + random.uniform(-jitter, jitter))
 
 def get_horse_racing_events():
     """Récupérer les événements hippiques depuis l'API Kambi (Unibet)"""

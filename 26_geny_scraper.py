@@ -19,6 +19,7 @@ from bs4 import BeautifulSoup
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
+from utils.scraping import smart_pause
 
 SCRIPT_NAME = "26_geny"
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output", SCRIPT_NAME)
@@ -45,12 +46,6 @@ def new_session():
         "Connection": "keep-alive",
     })
     return s
-
-def smart_pause(base=3.0, jitter=1.5):
-    pause = base + random.uniform(-jitter, jitter)
-    if random.random() < 0.1:
-        pause += random.uniform(5, 20)
-    time.sleep(max(1.5, pause))
 
 def scrape_day(session, date_str):
     """Scraper la page partants d'un jour"""

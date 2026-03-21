@@ -17,6 +17,7 @@ from bs4 import BeautifulSoup
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
+from utils.scraping import smart_pause
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_DIR = os.path.join(BASE_DIR, "output", "29_arqana_ventes")
@@ -37,11 +38,6 @@ session.headers.update({
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
     "Accept-Language": "fr-FR,fr;q=0.9",
 })
-
-def smart_pause(base=2.0, jitter=1.0):
-    time.sleep(base + random.uniform(-jitter, jitter))
-    if random.random() < 0.05:
-        time.sleep(random.uniform(5, 15))
 
 def scrape_arqana_results():
     """Scraper les résultats de ventes Arqana (2019-2026)"""
