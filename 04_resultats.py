@@ -50,7 +50,7 @@ except ImportError:
 
 REFERENCES_PATH = Path(__file__).resolve().parent / "output" / "02_liste_courses" / "courses_references_04.json"
 OUTPUT_DIR = Path(__file__).resolve().parent / "output" / "04_resultats"
-LOG_DIR = Path("logs")
+LOG_DIR = Path(__file__).resolve().parent / "logs"
 
 PMU_API_BASE = "https://offline.turfinfo.api.pmu.fr/rest/client/1/programme"
 # Endpoint: {base}/{DDMMYYYY}/R{num}/C{num}/rapports-definitifs

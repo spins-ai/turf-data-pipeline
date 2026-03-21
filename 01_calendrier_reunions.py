@@ -380,7 +380,7 @@ class PipelineConfig:
     date_debut: date = field(default_factory=date.today)
     date_fin: date = field(default_factory=date.today)
     dossier_sortie: Path = Path(__file__).resolve().parent / "output" / "01_calendrier_reunions"
-    dossier_logs: Path = Path("logs")
+    dossier_logs: Path = field(default_factory=lambda: Path(__file__).resolve().parent / "logs")
     mode_reprise: bool = True
     export_csv: bool = True
     export_parquet: bool = True

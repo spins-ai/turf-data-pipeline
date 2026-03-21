@@ -54,7 +54,7 @@ from urllib3.util.retry import Retry
 REFERENCES_PATH = Path(__file__).resolve().parent / "output" / "01_calendrier_reunions" / "reunions_references_02.json"
 OUTPUT_DIR = Path(__file__).resolve().parent / "output" / "02_liste_courses"
 CACHE_DIR = OUTPUT_DIR / "cache"
-LOG_DIR = Path("logs")
+LOG_DIR = Path(__file__).resolve().parent / "logs"
 
 PMU_API_BASE = "https://offline.turfinfo.api.pmu.fr/rest/client/1/programme"
 

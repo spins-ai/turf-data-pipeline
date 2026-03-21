@@ -56,7 +56,7 @@ except ImportError:
 
 OUTPUT_DIR = Path(__file__).resolve().parent / "output" / "16_nanaelie"
 CACHE_DIR = OUTPUT_DIR / "cache"
-LOG_DIR = Path("logs")
+LOG_DIR = Path(__file__).resolve().parent / "logs"
 CHECKPOINT_PATH = OUTPUT_DIR / ".checkpoint_16.json"
 
 API_URL = "https://open-pmu-api.vercel.app/api/arrivees"

@@ -63,7 +63,7 @@ except ImportError:
 COURSES_PATH = Path(__file__).resolve().parent / "output" / "02_liste_courses" / "courses_normalisees.json"
 OUTPUT_DIR = Path(__file__).resolve().parent / "output" / "13_meteo_historique"
 CACHE_DIR = OUTPUT_DIR / "cache"
-LOG_DIR = Path("logs")
+LOG_DIR = Path(__file__).resolve().parent / "logs"
 
 
 # ===========================================================================

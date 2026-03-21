@@ -62,7 +62,7 @@ OUTPUT_DIR = Path(__file__).resolve().parent / "output" / "14_pedigree"
 CACHE_DIR = OUTPUT_DIR / "cache"
 CHECKPOINT_PATH = OUTPUT_DIR / "checkpoint.json"
 OUTPUT_JSONL = OUTPUT_DIR / "pedigrees_pq.jsonl"
-LOG_DIR = Path("logs")
+LOG_DIR = Path(__file__).resolve().parent / "logs"
 
 BASE_URL = "https://www.pedigreequery.com"
 REQUEST_PAUSE_S = 1.0

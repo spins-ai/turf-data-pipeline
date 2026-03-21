@@ -66,7 +66,7 @@ except ImportError:
 REFERENCES_PATH = Path(__file__).resolve().parent / "output" / "01_calendrier_reunions" / "reunions_references_02.json"
 OUTPUT_DIR = Path(__file__).resolve().parent / "output" / "02b_scraper_letrot"
 CACHE_DIR = OUTPUT_DIR / "cache"
-LOG_DIR = Path("logs")
+LOG_DIR = Path(__file__).resolve().parent / "logs"
 
 LETROT_BASE = "https://www.letrot.com"
 LETROT_PROGRAMME = f"{LETROT_BASE}/courses/programme"

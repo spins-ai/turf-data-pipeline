@@ -61,7 +61,7 @@ except ImportError:
 REFERENCES_PATH = Path(__file__).resolve().parent / "output" / "01_calendrier_reunions" / "reunions_references_02_2013_2016.json"
 OUTPUT_DIR = Path(__file__).resolve().parent / "output" / "02b_liste_courses_2013"
 CACHE_DIR = OUTPUT_DIR / "cache"
-LOG_DIR = Path("logs")
+LOG_DIR = Path(__file__).resolve().parent / "logs"
 
 PMU_API_BASE = "https://offline.turfinfo.api.pmu.fr/rest/client/1/programme"
 # Endpoints:

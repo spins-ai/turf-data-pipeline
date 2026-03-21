@@ -44,9 +44,10 @@ except ImportError:
 # CONFIG
 # ===========================================================================
 
-INPUT_PARTANTS = Path("output/02_liste_courses/partants_normalises.json")
-OUTPUT_DIR = Path("output/labels")
-LOG_DIR = Path("logs")
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+INPUT_PARTANTS = _PROJECT_ROOT / "output" / "02_liste_courses" / "partants_normalises.json"
+OUTPUT_DIR = _PROJECT_ROOT / "output" / "labels"
+LOG_DIR = _PROJECT_ROOT / "logs"
 
 
 # ===========================================================================

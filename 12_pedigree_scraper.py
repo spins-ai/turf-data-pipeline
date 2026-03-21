@@ -69,7 +69,7 @@ PARTANTS_PATH = Path(__file__).resolve().parent / "output" / "02_liste_courses" 
 OUTPUT_DIR = Path(__file__).resolve().parent / "output" / "12_pedigree"
 CACHE_DIR = OUTPUT_DIR / "cache"
 CHECKPOINT_PATH = OUTPUT_DIR / "checkpoint.json"
-LOG_DIR = Path("logs")
+LOG_DIR = Path(__file__).resolve().parent / "logs"
 
 # Scraping
 REQUEST_PAUSE_S = 1.0          # pause entre requetes
