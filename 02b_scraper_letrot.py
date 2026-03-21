@@ -801,6 +801,21 @@ def parse_reunion_html(
     # Le Trot utilise differents formats selon les periodes.
     # Strategie : chercher les sections/blocs de course par differents selecteurs
 
+    # ------------------------------------------------------------------
+    # Strategy 1: Try extracting structured JSON from Vue.js component
+    # Le Trot embeds race data as JSON in a :current-meeting attribute
+    # on a <meeting-detail> custom element.
+    # ------------------------------------------------------------------
+    vue_courses, vue_partants = _extract_vue_meeting_data(
+        soup, reunion_uid, date_iso, hippo, hippodrome_raw,
+        num_reunion, id_letrot, timestamp, logger,
+    )
+    if vue_courses:
+        return vue_courses, vue_partants
+
+    # ------------------------------------------------------------------
+    # Strategy 2: Classical HTML block parsing (older page formats)
+    # ------------------------------------------------------------------
     course_blocks = _find_course_blocks(soup)
 
     if not course_blocks:
@@ -818,6 +833,158 @@ def parse_reunion_html(
             partants.extend(block_partants)
 
     return courses, partants
+
+
+def _extract_vue_meeting_data(
+    soup: BeautifulSoup,
+    reunion_uid: str,
+    date_iso: str,
+    hippo: str,
+    hippodrome_raw: str,
+    num_reunion: int,
+    id_letrot: str,
+    timestamp: str,
+    logger: logging.Logger,
+) -> tuple[list[CourseBrute], list[PartantBrut]]:
+    """Extract race data from Vue.js :current-meeting attribute on <meeting-detail>.
+
+    Le Trot pages are Vue.js SPAs that embed the full meeting/race/runner data
+    as a JSON string in the :current-meeting attribute of a <meeting-detail>
+    custom element.  This function extracts that JSON and converts it to
+    CourseBrute / PartantBrut records using the existing _parse_json_course
+    helpers.
+    """
+    meeting_el = soup.select_one("meeting-detail")
+    if not meeting_el:
+        return [], []
+
+    raw = meeting_el.get(":current-meeting", "")
+    if not raw:
+        return [], []
+
+    try:
+        meeting_data = json.loads(raw)
+    except (json.JSONDecodeError, TypeError):
+        logger.debug("  Impossible de parser :current-meeting JSON pour %s/%s", date_iso, id_letrot)
+        return [], []
+
+    races = meeting_data.get("races", [])
+    if not races:
+        return [], []
+
+    # Use hippodrome info from Vue data when ref has none
+    if not hippodrome_raw:
+        hippodrome_raw = meeting_data.get("nomHippodrome", "")
+    if not hippo:
+        hippo = normaliser_texte(hippodrome_raw)
+    if not num_reunion:
+        num_reunion = safe_int(meeting_data.get("numReunion")) or 0
+
+    courses: list[CourseBrute] = []
+    partants: list[PartantBrut] = []
+
+    for race in races:
+        nc = safe_int(race.get("numCourse")) or safe_int(race.get("raceNbr")) or 0
+
+        # Map Vue race fields to the dict format expected by _parse_json_course
+        course_dict = {
+            "course": {
+                "libelle": race.get("raceName", ""),
+                "distance": race.get("distance"),
+                "discipline": race.get("discipline", ""),
+                "allocation": race.get("allocation"),
+                "corde": race.get("corde", ""),
+                "conditions": race.get("conditionAge", ""),
+                "specialite": race.get("discipline", ""),
+                "typePiste": race.get("typePiste", ""),
+            },
+            "partants": [],
+        }
+
+        # Map Vue partant fields to the dict format expected by _parse_json_partant
+        for p in race.get("partants", []):
+            mapped = {
+                "nom": p.get("name", ""),
+                "nomCheval": p.get("name", ""),
+                "sexe": p.get("sexe", ""),
+                "age": p.get("age"),
+                "ferrure": p.get("ferrure", ""),
+                "deferre": p.get("ferrure", ""),
+                "driver": p.get("driver", ""),
+                "entraineur": p.get("coach", ""),
+                "proprietaire": p.get("owner", ""),
+                "pere": p.get("father", ""),
+                "nomPere": p.get("father", ""),
+                "mere": p.get("mother", ""),
+                "nomMere": p.get("mother", ""),
+                "eleveur": p.get("breeder", ""),
+                "musique": p.get("song", ""),
+                "gains": safe_int(p.get("earnings")),
+                "numero": p.get("leavingNumber"),
+                "nonPartant": p.get("nonPartant", False),
+                "arrivee": _parse_rang(p.get("rang")),
+                "temps": None,  # parsed below
+                "reductionKilometrique": None,  # parsed below
+                "handicapDistance": safe_int(p.get("distance", 0)) - safe_int(race.get("distance", 0))
+                    if safe_int(p.get("distance")) and safe_int(race.get("distance"))
+                    and safe_int(p.get("distance")) != safe_int(race.get("distance"))
+                    else None,
+                "oeilleres": "",
+            }
+
+            # Parse temps (e.g. "1'19\"30" or "TNC")
+            temps_raw = p.get("temps", "")
+            if temps_raw and temps_raw not in ("TNC", "NP", ""):
+                mapped["temps"] = temps_raw
+
+            # Parse reduction kilometrique
+            rk_raw = p.get("reduction", "")
+            if rk_raw and rk_raw != "-":
+                mapped["reductionKilometrique"] = rk_raw
+
+            course_dict["partants"].append(mapped)
+
+        course_obj, course_partants = _parse_json_course(
+            course_dict, reunion_uid, date_iso, hippo, hippodrome_raw,
+            num_reunion, nc, id_letrot, timestamp, logger,
+        )
+        if course_obj:
+            # Enrich with Vue-specific fields
+            statut_raw = (race.get("statut", "") or race.get("status", "")).upper()
+            if statut_raw in ("DEFINITIVE", "DEFINITE"):
+                course_obj.statut = "terminee"
+                course_obj.arrivee_definitive = True
+            elif statut_raw == "ANNULEE":
+                course_obj.statut = "annulee"
+            course_obj.type_piste = race.get("typePiste", "") or "herbe"
+            if race.get("videoUrl"):
+                course_obj.replay_disponible = True
+            if race.get("autostart"):
+                course_obj.categorie_particularite = "AUTOSTART"
+            courses.append(course_obj)
+            partants.extend(course_partants)
+
+    if courses:
+        logger.debug(
+            "  Vue.js extraction: %d courses, %d partants pour %s/%s",
+            len(courses), len(partants), date_iso, id_letrot,
+        )
+
+    return courses, partants
+
+
+def _parse_rang(rang_str) -> Optional[int]:
+    """Parse a rank string like '1 ', '02', 'DA', 'NP' into an integer position or None."""
+    if not rang_str:
+        return None
+    rang_str = str(rang_str).strip()
+    if rang_str.isdigit():
+        return int(rang_str)
+    # Try to extract leading digits
+    m = re.match(r"(\d+)", rang_str)
+    if m:
+        return int(m.group(1))
+    return None
 
 
 def _find_course_blocks(soup: BeautifulSoup) -> list:
