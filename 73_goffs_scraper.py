@@ -28,7 +28,7 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
-from utils.scraping import smart_pause, fetch_with_retry
+from utils.scraping import smart_pause, fetch_with_retry, load_checkpoint, save_checkpoint, append_jsonl
 
 log = setup_logging("73_goffs")
 
@@ -70,24 +70,7 @@ def new_session():
     return s
 
 
-def append_jsonl(filepath, record):
-    """Ajouter un enregistrement JSONL (append mode)."""
-    with open(filepath, "a", encoding="utf-8", newline="\n") as f:
-        f.write(json.dumps(record, ensure_ascii=False) + "\n")
 
-
-def load_checkpoint():
-    """Charger le checkpoint de reprise."""
-    if os.path.exists(CHECKPOINT_FILE):
-        with open(CHECKPOINT_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return {}
-
-
-def save_checkpoint(data):
-    """Sauvegarder le checkpoint."""
-    with open(CHECKPOINT_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
 
 
 def scrape_sales_list(session, year):
@@ -381,7 +364,7 @@ def main():
     log.info("=" * 60)
 
     # Checkpoint
-    checkpoint = load_checkpoint()
+    checkpoint = load_checkpoint(CHECKPOINT_FILE)
     last_key = checkpoint.get("last_key", "")
     if args.resume and last_key:
         log.info(f"  Reprise au checkpoint : {last_key}")
@@ -440,7 +423,7 @@ def main():
 
             if sale_count % 5 == 0:
                 log.info(f"  Checkpoint : ventes={sale_count}, records={total_records}")
-                save_checkpoint({"last_key": key, "total_records": total_records})
+                save_checkpoint(CHECKPOINT_FILE, {"last_key": key, "total_records": total_records})
 
             if sale_count % 20 == 0:
                 session.close()
@@ -449,7 +432,7 @@ def main():
 
             smart_pause(2.0, 1.0)
 
-    save_checkpoint({"last_key": f"{year_end}_final",
+    save_checkpoint(CHECKPOINT_FILE, {"last_key": f"{year_end}_final",
                      "total_records": total_records, "status": "done"})
 
     log.info("=" * 60)

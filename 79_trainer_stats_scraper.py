@@ -29,7 +29,7 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
-from utils.scraping import smart_pause, fetch_with_retry
+from utils.scraping import smart_pause, fetch_with_retry, load_checkpoint, save_checkpoint, append_jsonl
 
 log = setup_logging("79_trainer_stats")
 
@@ -102,21 +102,7 @@ def new_session():
     return s
 
 
-def append_jsonl(filepath, record):
-    with open(filepath, "a", encoding="utf-8", newline="\n") as f:
-        f.write(json.dumps(record, ensure_ascii=False) + "\n")
 
-
-def load_checkpoint():
-    if os.path.exists(CHECKPOINT_FILE):
-        with open(CHECKPOINT_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return {}
-
-
-def save_checkpoint(data):
-    with open(CHECKPOINT_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
 
 
 def scrape_trainer_list(session, source_key):
@@ -330,7 +316,7 @@ def main():
     log.info(f"  Top only : {args.top_only}")
     log.info("=" * 60)
 
-    checkpoint = load_checkpoint()
+    checkpoint = load_checkpoint(CHECKPOINT_FILE)
     session = new_session()
     output_file = os.path.join(OUTPUT_DIR, "trainer_stats.jsonl")
 
@@ -426,7 +412,7 @@ def main():
 
             if trainer_count % 20 == 0:
                 log.info(f"  Progression: {trainer_count} profils, {total_records} records")
-                save_checkpoint({
+                save_checkpoint(CHECKPOINT_FILE, {
                     "processed_trainers": list(processed_trainers),
                     "total_records": total_records,
                 })
@@ -436,7 +422,7 @@ def main():
                 session = new_session()
                 time.sleep(random.uniform(5, 15))
 
-    save_checkpoint({
+    save_checkpoint(CHECKPOINT_FILE, {
         "processed_trainers": list(processed_trainers),
         "total_records": total_records,
         "status": "done",

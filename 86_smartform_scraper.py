@@ -28,7 +28,7 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
-from utils.scraping import smart_pause, fetch_with_retry
+from utils.scraping import smart_pause, fetch_with_retry, load_checkpoint, save_checkpoint, append_jsonl
 
 log = setup_logging("86_smartform")
 
@@ -56,21 +56,7 @@ def new_session():
     return s
 
 
-def append_jsonl(filepath, record):
-    with open(filepath, "a", encoding="utf-8", newline="\n") as f:
-        f.write(json.dumps(record, ensure_ascii=False) + "\n")
 
-
-def load_checkpoint():
-    if os.path.exists(CHECKPOINT_FILE):
-        with open(CHECKPOINT_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return {}
-
-
-def save_checkpoint(data):
-    with open(CHECKPOINT_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
 
 
 def scrape_smartform_day(session, date_str):
@@ -392,7 +378,7 @@ def main():
     log.info(f"  Période : {start_date.date()} → {end_date.date()}")
     log.info("=" * 60)
 
-    checkpoint = load_checkpoint()
+    checkpoint = load_checkpoint(CHECKPOINT_FILE)
     last_date = checkpoint.get("last_date")
     if args.resume and last_date:
         resume_date = datetime.strptime(last_date, "%Y-%m-%d") + timedelta(days=1)
@@ -427,7 +413,7 @@ def main():
 
         if day_count % 30 == 0:
             log.info(f"  {date_str} | jours={day_count} records={total_records}")
-            save_checkpoint({"last_date": date_str, "total_records": total_records})
+            save_checkpoint(CHECKPOINT_FILE, {"last_date": date_str, "total_records": total_records})
 
         if day_count % 80 == 0:
             session.close()
@@ -437,7 +423,7 @@ def main():
         current += timedelta(days=1)
         smart_pause(1.0, 0.5)
 
-    save_checkpoint({"last_date": end_date.strftime("%Y-%m-%d"),
+    save_checkpoint(CHECKPOINT_FILE, {"last_date": end_date.strftime("%Y-%m-%d"),
                      "total_records": total_records, "status": "done"})
 
     log.info("=" * 60)

@@ -28,7 +28,7 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
-from utils.scraping import smart_pause, fetch_with_retry
+from utils.scraping import smart_pause, fetch_with_retry, load_checkpoint, save_checkpoint, append_jsonl
 
 log = setup_logging("96_noaa_weather")
 
@@ -105,21 +105,7 @@ def new_session(api_token=""):
     return s
 
 
-def append_jsonl(filepath, record):
-    with open(filepath, "a", encoding="utf-8", errors="replace", newline="\n") as f:
-        f.write(json.dumps(record, ensure_ascii=True) + "\n")
 
-
-def load_checkpoint():
-    if os.path.exists(CHECKPOINT_FILE):
-        with open(CHECKPOINT_FILE, "r", encoding="utf-8", errors="replace") as f:
-            return json.load(f)
-    return {}
-
-
-def save_checkpoint(data):
-    with open(CHECKPOINT_FILE, "w", encoding="utf-8", errors="replace") as f:
-        json.dump(data, f, ensure_ascii=True, indent=2)
 
 
 def find_nearest_station(session, lat, lon, dataset_id="GHCND"):
@@ -248,7 +234,7 @@ def main():
     log.info(f"  Token : {'OUI' if api_token else 'NON (requis)'}")
     log.info("=" * 60)
 
-    checkpoint = load_checkpoint()
+    checkpoint = load_checkpoint(CHECKPOINT_FILE)
     done_hippos = set(checkpoint.get("done_hippos", []))
     if args.resume and done_hippos:
         log.info(f"  Reprise checkpoint: {len(done_hippos)} hippodromes deja traites")
@@ -336,7 +322,7 @@ def main():
         hippo_count += 1
 
         log.info(f"    {hippo_name} termine: {total_records} records total")
-        save_checkpoint({"done_hippos": list(done_hippos),
+        save_checkpoint(CHECKPOINT_FILE, {"done_hippos": list(done_hippos),
                          "total_records": total_records})
 
         if hippo_count % 10 == 0:
@@ -344,7 +330,7 @@ def main():
             session = new_session(api_token)
             time.sleep(random.uniform(3, 8))
 
-    save_checkpoint({"done_hippos": list(done_hippos),
+    save_checkpoint(CHECKPOINT_FILE, {"done_hippos": list(done_hippos),
                      "total_records": total_records, "status": "done"})
 
     log.info("=" * 60)

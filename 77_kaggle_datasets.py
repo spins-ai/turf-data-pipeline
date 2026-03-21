@@ -35,6 +35,7 @@ os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
+from utils.scraping import load_checkpoint, save_checkpoint, append_jsonl
 
 log = setup_logging("77_kaggle")
 
@@ -94,21 +95,7 @@ SEARCH_KEYWORDS = [
 ]
 
 
-def append_jsonl(filepath, record):
-    with open(filepath, "a", encoding="utf-8", newline="\n") as f:
-        f.write(json.dumps(record, ensure_ascii=False) + "\n")
 
-
-def load_checkpoint():
-    if os.path.exists(CHECKPOINT_FILE):
-        with open(CHECKPOINT_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return {}
-
-
-def save_checkpoint(data):
-    with open(CHECKPOINT_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
 
 
 def check_kaggle_cli():
@@ -344,7 +331,7 @@ def main():
     log.info(f"  Download : {not args.no_download}")
     log.info("=" * 60)
 
-    checkpoint = load_checkpoint()
+    checkpoint = load_checkpoint(CHECKPOINT_FILE)
     has_cli = check_kaggle_cli()
     output_file = os.path.join(OUTPUT_DIR, "kaggle_datasets.jsonl")
 
@@ -425,7 +412,7 @@ def main():
         ds_count += 1
 
         if ds_count % 5 == 0:
-            save_checkpoint({
+            save_checkpoint(CHECKPOINT_FILE, {
                 "downloaded": list(downloaded),
                 "failed": list(failed),
                 "total_records": total_records,
@@ -435,7 +422,7 @@ def main():
         # Pause entre les downloads
         time.sleep(random.uniform(2, 5))
 
-    save_checkpoint({
+    save_checkpoint(CHECKPOINT_FILE, {
         "downloaded": list(downloaded),
         "failed": list(failed),
         "total_records": total_records,

@@ -29,7 +29,7 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
-from utils.scraping import smart_pause, fetch_with_retry
+from utils.scraping import smart_pause, fetch_with_retry, load_checkpoint, save_checkpoint, append_jsonl
 
 log = setup_logging("91_equiratings")
 
@@ -57,21 +57,7 @@ def new_session():
     return s
 
 
-def append_jsonl(filepath, record):
-    with open(filepath, "a", encoding="utf-8", errors="replace", newline="\n") as f:
-        f.write(json.dumps(record, ensure_ascii=True) + "\n")
 
-
-def load_checkpoint():
-    if os.path.exists(CHECKPOINT_FILE):
-        with open(CHECKPOINT_FILE, "r", encoding="utf-8", errors="replace") as f:
-            return json.load(f)
-    return {}
-
-
-def save_checkpoint(data):
-    with open(CHECKPOINT_FILE, "w", encoding="utf-8", errors="replace") as f:
-        json.dump(data, f, ensure_ascii=True, indent=2)
 
 
 def scrape_rankings_page(session, page_url):
@@ -266,7 +252,7 @@ def main():
     log.info("SCRIPT 91 -- EquiRatings Scraper")
     log.info("=" * 60)
 
-    checkpoint = load_checkpoint()
+    checkpoint = load_checkpoint(CHECKPOINT_FILE)
     done_urls = set(checkpoint.get("done_urls", []))
     if args.resume and done_urls:
         log.info(f"  Reprise checkpoint: {len(done_urls)} pages deja traitees")
@@ -306,7 +292,7 @@ def main():
 
         if page_count % 10 == 0:
             log.info(f"  pages={page_count} records={total_records}")
-            save_checkpoint({"done_urls": list(done_urls),
+            save_checkpoint(CHECKPOINT_FILE, {"done_urls": list(done_urls),
                              "total_records": total_records})
 
         if page_count % 50 == 0:
@@ -335,12 +321,12 @@ def main():
 
         if page_count % 10 == 0:
             log.info(f"  pages={page_count} records={total_records}")
-            save_checkpoint({"done_urls": list(done_urls),
+            save_checkpoint(CHECKPOINT_FILE, {"done_urls": list(done_urls),
                              "total_records": total_records})
 
         smart_pause()
 
-    save_checkpoint({"done_urls": list(done_urls),
+    save_checkpoint(CHECKPOINT_FILE, {"done_urls": list(done_urls),
                      "total_records": total_records, "status": "done"})
 
     log.info("=" * 60)

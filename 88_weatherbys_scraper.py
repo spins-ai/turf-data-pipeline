@@ -28,7 +28,7 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
-from utils.scraping import smart_pause, fetch_with_retry
+from utils.scraping import smart_pause, fetch_with_retry, load_checkpoint, save_checkpoint, append_jsonl
 
 log = setup_logging("88_weatherbys")
 
@@ -56,21 +56,7 @@ def new_session():
     return s
 
 
-def append_jsonl(filepath, record):
-    with open(filepath, "a", encoding="utf-8", newline="\n") as f:
-        f.write(json.dumps(record, ensure_ascii=False) + "\n")
 
-
-def load_checkpoint():
-    if os.path.exists(CHECKPOINT_FILE):
-        with open(CHECKPOINT_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return {}
-
-
-def save_checkpoint(data):
-    with open(CHECKPOINT_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
 
 
 def scrape_weatherbys_stallion_book(session, year):
@@ -331,7 +317,7 @@ def main():
     log.info(f"  Pedigree A-Z : {args.pedigree_letters}")
     log.info("=" * 60)
 
-    checkpoint = load_checkpoint()
+    checkpoint = load_checkpoint(CHECKPOINT_FILE)
     session = new_session()
     output_file = os.path.join(OUTPUT_DIR, "weatherbys_data.jsonl")
     total_records = 0
@@ -348,7 +334,7 @@ def main():
             for rec in records:
                 append_jsonl(output_file, rec)
                 total_records += 1
-        save_checkpoint({"last_year": year, "total_records": total_records})
+        save_checkpoint(CHECKPOINT_FILE, {"last_year": year, "total_records": total_records})
         smart_pause(2.0, 1.0)
 
     # --- Pedigree search A-Z ---
@@ -369,7 +355,7 @@ def main():
                 for rec in records:
                     append_jsonl(output_file, rec)
                     total_records += 1
-            save_checkpoint({"last_year": end_year, "last_letter": letter,
+            save_checkpoint(CHECKPOINT_FILE, {"last_year": end_year, "last_letter": letter,
                              "total_records": total_records})
             smart_pause(2.0, 1.0)
 
@@ -378,7 +364,7 @@ def main():
                 session = new_session()
                 time.sleep(random.uniform(5, 15))
 
-    save_checkpoint({"last_year": end_year, "last_letter": "Z",
+    save_checkpoint(CHECKPOINT_FILE, {"last_year": end_year, "last_letter": "Z",
                      "total_records": total_records, "status": "done"})
 
     log.info("=" * 60)

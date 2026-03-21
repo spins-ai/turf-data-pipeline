@@ -29,7 +29,7 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
-from utils.scraping import smart_pause, fetch_with_retry
+from utils.scraping import smart_pause, fetch_with_retry, load_checkpoint, save_checkpoint, append_jsonl
 
 log = setup_logging("98_turftrax")
 
@@ -71,21 +71,7 @@ def new_session():
     return s
 
 
-def append_jsonl(filepath, record):
-    with open(filepath, "a", encoding="utf-8", errors="replace", newline="\n") as f:
-        f.write(json.dumps(record, ensure_ascii=True) + "\n")
 
-
-def load_checkpoint():
-    if os.path.exists(CHECKPOINT_FILE):
-        with open(CHECKPOINT_FILE, "r", encoding="utf-8", errors="replace") as f:
-            return json.load(f)
-    return {}
-
-
-def save_checkpoint(data):
-    with open(CHECKPOINT_FILE, "w", encoding="utf-8", errors="replace") as f:
-        json.dump(data, f, ensure_ascii=True, indent=2)
 
 
 def scrape_going_page(session, page_url, course_name, date_str=None):
@@ -310,7 +296,7 @@ def main():
     log.info(f"  Courses UK : {len(UK_COURSES)}")
     log.info("=" * 60)
 
-    checkpoint = load_checkpoint()
+    checkpoint = load_checkpoint(CHECKPOINT_FILE)
     done_keys = set(checkpoint.get("done_keys", []))
     last_date = checkpoint.get("last_date")
     if args.resume and done_keys:
@@ -351,7 +337,7 @@ def main():
 
         if page_count % 10 == 0:
             log.info(f"  courses={page_count} records={total_records}")
-            save_checkpoint({"done_keys": list(done_keys),
+            save_checkpoint(CHECKPOINT_FILE, {"done_keys": list(done_keys),
                              "total_records": total_records})
 
         if page_count % 50 == 0:
@@ -388,7 +374,7 @@ def main():
 
             if day_count % 30 == 0:
                 log.info(f"  {date_str} | jours={day_count} records={total_records}")
-                save_checkpoint({"done_keys": list(done_keys),
+                save_checkpoint(CHECKPOINT_FILE, {"done_keys": list(done_keys),
                                  "total_records": total_records,
                                  "last_date": date_str})
 
@@ -401,7 +387,7 @@ def main():
 
         current += timedelta(days=1)
 
-    save_checkpoint({"done_keys": list(done_keys),
+    save_checkpoint(CHECKPOINT_FILE, {"done_keys": list(done_keys),
                      "total_records": total_records, "status": "done",
                      "last_date": end_date.strftime("%Y-%m-%d")})
 
