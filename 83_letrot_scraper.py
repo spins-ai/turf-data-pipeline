@@ -11,6 +11,7 @@ import argparse
 import json
 import logging
 import os
+import sys
 import random
 import re
 import time
@@ -26,12 +27,10 @@ CHECKPOINT_FILE = os.path.join(OUTPUT_DIR, ".checkpoint.json")
 
 os.makedirs(CACHE_DIR, exist_ok=True)
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)-8s | %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
-log = logging.getLogger(__name__)
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from utils.logging_setup import setup_logging
+
+log = setup_logging("83_letrot")
 
 BASE_URL = "https://www.letrot.com"
 
