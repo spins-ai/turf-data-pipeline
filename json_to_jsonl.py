@@ -16,6 +16,15 @@ import json
 import logging
 import os
 import sys
+from decimal import Decimal
+
+
+class DecimalEncoder(json.JSONEncoder):
+    """Handle Decimal objects from ijson streaming parser."""
+    def default(self, obj):
+        if isinstance(obj, Decimal):
+            return float(obj)
+        return super().default(obj)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_BASE = os.path.join(BASE_DIR, "output")
@@ -71,7 +80,7 @@ def convert_streaming(json_path, jsonl_path):
          open(jsonl_path, "w", encoding="utf-8") as fout:
         # ijson.items parses each item in the root array one by one
         for record in ijson.items(fin, "item"):
-            fout.write(json.dumps(record, ensure_ascii=False) + "\n")
+            fout.write(json.dumps(record, ensure_ascii=False, cls=DecimalEncoder) + "\n")
             count += 1
             if count % 100000 == 0:
                 log.info(f"    {count:,} records...")
@@ -91,7 +100,7 @@ def convert_standard(json_path, jsonl_path):
     count = 0
     with open(jsonl_path, "w", encoding="utf-8") as fout:
         for record in data:
-            fout.write(json.dumps(record, ensure_ascii=False) + "\n")
+            fout.write(json.dumps(record, ensure_ascii=False, cls=DecimalEncoder) + "\n")
             count += 1
     del data
     return count
