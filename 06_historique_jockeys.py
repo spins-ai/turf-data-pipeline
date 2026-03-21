@@ -41,10 +41,10 @@ except ImportError:
 # CONFIG
 # ===========================================================================
 
-PARTANTS_PATH = Path("output/02_liste_courses/partants_normalises.json")
-COURSES_PATH = Path("output/02_liste_courses/courses_normalisees.json")
-OUTPUT_DIR = Path("output/06_historique_jockeys")
-LOG_DIR = Path("logs")
+PARTANTS_PATH = Path(__file__).resolve().parent / "output" / "02_liste_courses" / "partants_normalises.json"
+COURSES_PATH = Path(__file__).resolve().parent / "output" / "02_liste_courses" / "courses_normalisees.json"
+OUTPUT_DIR = Path(__file__).resolve().parent / "output" / "06_historique_jockeys"
+LOG_DIR = Path(__file__).resolve().parent / "logs"
 
 
 # ===========================================================================

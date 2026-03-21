@@ -536,19 +536,19 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--input", "-i",
         type=Path,
-        default=Path("output/01_calendrier_reunions/reunions_normalisees.json"),
+        default=Path(__file__).resolve().parent / "output" / "01_calendrier_reunions" / "reunions_normalisees.json",
         help="Fichier JSON des réunions normalisées (entrée)",
     )
     parser.add_argument(
         "--output", "-o",
         type=Path,
-        default=Path("output/01_calendrier_reunions/reunions_normalisees_meteo.json"),
+        default=Path(__file__).resolve().parent / "output" / "01_calendrier_reunions" / "reunions_normalisees_meteo.json",
         help="Fichier JSON enrichi (sortie)",
     )
     parser.add_argument(
         "--cache",
         type=Path,
-        default=Path("output/01_calendrier_reunions/meteo_cache.json"),
+        default=Path(__file__).resolve().parent / "output" / "01_calendrier_reunions" / "meteo_cache.json",
         help="Fichier de cache météo",
     )
     parser.add_argument(

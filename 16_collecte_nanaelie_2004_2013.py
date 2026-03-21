@@ -54,7 +54,7 @@ except ImportError:
 # CONFIG
 # ===========================================================================
 
-OUTPUT_DIR = Path("output/16_nanaelie")
+OUTPUT_DIR = Path(__file__).resolve().parent / "output" / "16_nanaelie"
 CACHE_DIR = OUTPUT_DIR / "cache"
 LOG_DIR = Path("logs")
 CHECKPOINT_PATH = OUTPUT_DIR / ".checkpoint_16.json"

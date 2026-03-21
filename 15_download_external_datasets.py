@@ -27,7 +27,7 @@ from urllib.request import Request, urlopen
 # Configuration
 # ---------------------------------------------------------------------------
 
-BASE_OUTPUT = Path("output/15_external_datasets")
+BASE_OUTPUT = Path(__file__).resolve().parent / "output" / "15_external_datasets"
 
 KAGGLE_DATASETS = {
     "kaggle_hkjc": "hrosebaby/horse-racing-dataset-for-experts-hong-kong",

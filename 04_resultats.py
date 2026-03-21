@@ -48,8 +48,8 @@ except ImportError:
 # CONFIG
 # ===========================================================================
 
-REFERENCES_PATH = Path("output/02_liste_courses/courses_references_04.json")
-OUTPUT_DIR = Path("output/04_resultats")
+REFERENCES_PATH = Path(__file__).resolve().parent / "output" / "02_liste_courses" / "courses_references_04.json"
+OUTPUT_DIR = Path(__file__).resolve().parent / "output" / "04_resultats"
 LOG_DIR = Path("logs")
 
 PMU_API_BASE = "https://offline.turfinfo.api.pmu.fr/rest/client/1/programme"

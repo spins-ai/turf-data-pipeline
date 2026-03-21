@@ -37,8 +37,8 @@ except ImportError:
 # CONFIG
 # ===========================================================================
 
-INPUT_PARTANTS = Path("output/02_liste_courses/partants_normalises.json")
-OUTPUT_DIR = Path("output/09_equipements")
+INPUT_PARTANTS = Path(__file__).resolve().parent / "output" / "02_liste_courses" / "partants_normalises.json"
+OUTPUT_DIR = Path(__file__).resolve().parent / "output" / "09_equipements"
 LOG_DIR = Path("logs")
 
 
