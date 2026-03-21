@@ -58,8 +58,13 @@ def setup_logging(
         datefmt="%Y-%m-%d %H:%M:%S",
     )
 
-    # Handler console (stdout)
-    ch = logging.StreamHandler(sys.stdout)
+    # Handler console (stdout) — force UTF-8 on Windows
+    import io
+    if hasattr(sys.stdout, "buffer"):
+        stream = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace", line_buffering=True)
+    else:
+        stream = sys.stdout
+    ch = logging.StreamHandler(stream)
     ch.setFormatter(fmt)
     logger.addHandler(ch)
 
