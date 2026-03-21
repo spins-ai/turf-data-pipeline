@@ -430,6 +430,39 @@ def main():
     log.info(f"TERMINÉ: {day_count} jours, {total_records} records → {output_file}")
     log.info("=" * 60)
 
+    # --- Aggregate cache to JSONL ---
+    aggregate_cache_to_jsonl()
+
+
+def aggregate_cache_to_jsonl():
+    """Read all cache files and write aggregated JSONL output."""
+    output_file = os.path.join(OUTPUT_DIR, "smartform_data.jsonl")
+    cache_files = sorted(
+        f for f in os.listdir(CACHE_DIR) if f.endswith(".json")
+    )
+    if not cache_files:
+        log.info("No cache files found for aggregation.")
+        return
+
+    total = 0
+    with open(output_file, "w", encoding="utf-8") as out:
+        for fname in cache_files:
+            fpath = os.path.join(CACHE_DIR, fname)
+            try:
+                with open(fpath, "r", encoding="utf-8") as f:
+                    records = json.load(f)
+                if isinstance(records, list):
+                    for rec in records:
+                        out.write(json.dumps(rec, ensure_ascii=False) + "\n")
+                        total += 1
+                elif isinstance(records, dict):
+                    out.write(json.dumps(records, ensure_ascii=False) + "\n")
+                    total += 1
+            except (json.JSONDecodeError, OSError) as e:
+                log.error(f"Error reading cache file {fname}: {e}")
+
+    log.info(f"Aggregated {total} records from {len(cache_files)} cache files -> {output_file}")
+
 
 if __name__ == "__main__":
     main()
