@@ -45,30 +45,17 @@ except ImportError:
 # ===========================================================================
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(_PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PROJECT_ROOT))
 INPUT_PARTANTS = _PROJECT_ROOT / "output" / "02_liste_courses" / "partants_normalises.json"
 OUTPUT_DIR = _PROJECT_ROOT / "output" / "labels"
-LOG_DIR = _PROJECT_ROOT / "logs"
 
 
 # ===========================================================================
 # LOGGING
 # ===========================================================================
 
-def setup_logging() -> logging.Logger:
-    logger = logging.getLogger("label_builder")
-    logger.setLevel(logging.INFO)
-    fmt = logging.Formatter(
-        "%(asctime)s | %(levelname)-8s | %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-    ch = logging.StreamHandler(sys.stdout)
-    ch.setFormatter(fmt)
-    logger.addHandler(ch)
-    LOG_DIR.mkdir(parents=True, exist_ok=True)
-    fh = logging.FileHandler(LOG_DIR / "label_builder.log", encoding="utf-8")
-    fh.setFormatter(fmt)
-    logger.addHandler(fh)
-    return logger
+from utils.logging_setup import setup_logging
 
 
 # ===========================================================================
@@ -268,7 +255,7 @@ def main():
     )
     args = parser.parse_args()
 
-    logger = setup_logging()
+    logger = setup_logging("label_builder")
     logger.info("=" * 70)
     logger.info("label_builder.py — Construction des labels")
     logger.info("=" * 70)

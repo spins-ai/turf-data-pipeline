@@ -34,8 +34,10 @@ import numpy as np
 # CONFIG
 # ===========================================================================
 
-LOG_DIR = Path(__file__).resolve().parent.parent / "logs"
-OUTPUT_DIR = Path(__file__).resolve().parent.parent / "output" / "drift"
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(_PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PROJECT_ROOT))
+OUTPUT_DIR = _PROJECT_ROOT / "output" / "drift"
 
 # Fenetres glissantes (en nombre d'observations)
 ROLLING_WINDOW_SHORT = 50
@@ -57,22 +59,7 @@ ALERT_SIGMA = 2.0             # nombre d'ecarts-types pour declenchement
 # LOGGING
 # ===========================================================================
 
-def setup_logging() -> logging.Logger:
-    logger = logging.getLogger("concept_drift_detector")
-    if not logger.handlers:
-        logger.setLevel(logging.INFO)
-        fmt = logging.Formatter(
-            "%(asctime)s | %(levelname)-8s | %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S",
-        )
-        ch = logging.StreamHandler(sys.stdout)
-        ch.setFormatter(fmt)
-        logger.addHandler(ch)
-        LOG_DIR.mkdir(parents=True, exist_ok=True)
-        fh = logging.FileHandler(LOG_DIR / "concept_drift_detector.log", encoding="utf-8")
-        fh.setFormatter(fmt)
-        logger.addHandler(fh)
-    return logger
+from utils.logging_setup import setup_logging
 
 
 # ===========================================================================
@@ -329,7 +316,7 @@ def detect_drift(
         DriftReport
     """
     if logger is None:
-        logger = setup_logging()
+        logger = setup_logging("concept_drift_detector")
 
     all_alerts: list[DriftAlert] = []
     rolling_metrics: dict[str, dict] = {}
@@ -517,7 +504,7 @@ def main() -> None:
     parser.add_argument("--output", type=str, default=str(OUTPUT_DIR / "drift_report.json"))
     args = parser.parse_args()
 
-    logger = setup_logging()
+    logger = setup_logging("concept_drift_detector")
     logger.info("=" * 70)
     logger.info("concept_drift_detector.py")
     logger.info("=" * 70)

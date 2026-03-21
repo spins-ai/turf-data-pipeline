@@ -43,9 +43,10 @@ from sklearn.pipeline import Pipeline
 # ===========================================================================
 
 ROOT = Path(__file__).resolve().parent.parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 DATA_DIR = ROOT / "models" / "data"
 SAVED_DIR = ROOT / "models" / "saved"
-LOG_DIR = ROOT / "logs"
 
 DEFAULT_PARQUET = DATA_DIR / "features_master.parquet"
 DEFAULT_TARGET = "is_winner"
@@ -61,27 +62,10 @@ RANDOM_STATE = 42
 # LOGGING
 # ===========================================================================
 
-def setup_logging() -> logging.Logger:
-    logger = logging.getLogger("logistic_regression_baseline")
-    if not logger.handlers:
-        logger.setLevel(logging.INFO)
-        fmt = logging.Formatter(
-            "%(asctime)s | %(levelname)-8s | %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S",
-        )
-        ch = logging.StreamHandler(sys.stdout)
-        ch.setFormatter(fmt)
-        logger.addHandler(ch)
-        LOG_DIR.mkdir(parents=True, exist_ok=True)
-        fh = logging.FileHandler(
-            LOG_DIR / "logistic_regression_baseline.log", encoding="utf-8"
-        )
-        fh.setFormatter(fmt)
-        logger.addHandler(fh)
-    return logger
+from utils.logging_setup import setup_logging
 
 
-logger = setup_logging()
+logger = setup_logging("logistic_regression_baseline")
 
 
 # ===========================================================================

@@ -52,8 +52,6 @@ except ImportError:
 
 BASE_DIR = Path(__file__).resolve().parent
 OUTPUT_DIR = BASE_DIR / "output" / "labels"
-LOG_DIR = BASE_DIR / "logs"
-
 # Fichiers d'entree possibles (tries par preference)
 INPUT_CANDIDATES = [
     BASE_DIR / "data_master" / "partants_master.jsonl",
@@ -72,22 +70,7 @@ DNF_STATUTS = {
 # LOGGING
 # ===========================================================================
 
-def setup_logging() -> logging.Logger:
-    logger = logging.getLogger("generate_labels")
-    logger.setLevel(logging.INFO)
-    fmt = logging.Formatter(
-        "%(asctime)s | %(levelname)-8s | %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-    ch = logging.StreamHandler(sys.stdout)
-    ch.setFormatter(fmt)
-    logger.addHandler(ch)
-
-    LOG_DIR.mkdir(parents=True, exist_ok=True)
-    fh = logging.FileHandler(LOG_DIR / "generate_labels.log", encoding="utf-8")
-    fh.setFormatter(fmt)
-    logger.addHandler(fh)
-    return logger
+from utils.logging_setup import setup_logging
 
 
 # ===========================================================================
@@ -384,7 +367,7 @@ def main():
     )
     args = parser.parse_args()
 
-    logger = setup_logging()
+    logger = setup_logging("generate_labels")
     logger.info("=" * 70)
     logger.info("generate_labels.py — Generation des labels d'entrainement")
     logger.info("=" * 70)

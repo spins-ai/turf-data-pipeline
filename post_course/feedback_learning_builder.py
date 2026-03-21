@@ -34,8 +34,10 @@ import numpy as np
 # CONFIG
 # ===========================================================================
 
-LOG_DIR = Path(__file__).resolve().parent.parent / "logs"
-OUTPUT_DIR = Path(__file__).resolve().parent.parent / "output" / "feedback"
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(_PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PROJECT_ROOT))
+OUTPUT_DIR = _PROJECT_ROOT / "output" / "feedback"
 
 # Tranches de cotes pour segmentation
 ODDS_RANGES = [
@@ -59,22 +61,7 @@ CALIBRATION_BINS = 10
 # LOGGING
 # ===========================================================================
 
-def setup_logging() -> logging.Logger:
-    logger = logging.getLogger("feedback_learning_builder")
-    if not logger.handlers:
-        logger.setLevel(logging.INFO)
-        fmt = logging.Formatter(
-            "%(asctime)s | %(levelname)-8s | %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S",
-        )
-        ch = logging.StreamHandler(sys.stdout)
-        ch.setFormatter(fmt)
-        logger.addHandler(ch)
-        LOG_DIR.mkdir(parents=True, exist_ok=True)
-        fh = logging.FileHandler(LOG_DIR / "feedback_learning_builder.log", encoding="utf-8")
-        fh.setFormatter(fmt)
-        logger.addHandler(fh)
-    return logger
+from utils.logging_setup import setup_logging
 
 
 # ===========================================================================
@@ -162,7 +149,7 @@ def build_calibration_pairs(
         Liste de CalibrationPair
     """
     if logger is None:
-        logger = setup_logging()
+        logger = setup_logging("feedback_learning_builder")
 
     # Indexer les metadata par course_uid si disponible
     meta_idx: dict[str, dict] = {}
@@ -229,7 +216,7 @@ def detect_biases(
     Un biais est detecte quand mean_predicted != mean_actual de maniere significative.
     """
     if logger is None:
-        logger = setup_logging()
+        logger = setup_logging("feedback_learning_builder")
 
     segments = ["odds_range", "discipline", "terrain", "field_size_category", "model_name"]
     biases: list[BiasReport] = []
@@ -322,7 +309,7 @@ def build_feedback_dataset(
         FeedbackDataset pret pour calibration.py
     """
     if logger is None:
-        logger = setup_logging()
+        logger = setup_logging("feedback_learning_builder")
 
     pairs = build_calibration_pairs(reconciliation_records, metadata, logger)
     biases = detect_biases(pairs, logger=logger)
@@ -365,7 +352,7 @@ def main() -> None:
     parser.add_argument("--output", type=str, default=str(OUTPUT_DIR / "recalibration_data.json"))
     args = parser.parse_args()
 
-    logger = setup_logging()
+    logger = setup_logging("feedback_learning_builder")
     logger.info("=" * 70)
     logger.info("feedback_learning_builder.py")
     logger.info("=" * 70)

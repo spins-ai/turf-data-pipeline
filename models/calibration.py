@@ -32,7 +32,10 @@ from sklearn.linear_model import LogisticRegression
 # CONFIG
 # ===========================================================================
 
-LOG_DIR = Path(__file__).resolve().parent.parent / "logs"
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(_PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PROJECT_ROOT))
+
 DEFAULT_N_BINS = 10
 
 
@@ -40,22 +43,7 @@ DEFAULT_N_BINS = 10
 # LOGGING
 # ===========================================================================
 
-def setup_logging() -> logging.Logger:
-    logger = logging.getLogger("calibration")
-    if not logger.handlers:
-        logger.setLevel(logging.INFO)
-        fmt = logging.Formatter(
-            "%(asctime)s | %(levelname)-8s | %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S",
-        )
-        ch = logging.StreamHandler(sys.stdout)
-        ch.setFormatter(fmt)
-        logger.addHandler(ch)
-        LOG_DIR.mkdir(parents=True, exist_ok=True)
-        fh = logging.FileHandler(LOG_DIR / "calibration.log", encoding="utf-8")
-        fh.setFormatter(fmt)
-        logger.addHandler(fh)
-    return logger
+from utils.logging_setup import setup_logging
 
 
 # ===========================================================================
@@ -218,7 +206,7 @@ class PlattCalibrator:
     def __init__(self):
         self.lr = LogisticRegression(C=1e10, max_iter=5000, solver="lbfgs")
         self.is_fitted = False
-        self.logger = setup_logging()
+        self.logger = setup_logging("calibration")
 
     def fit(self, y_true: np.ndarray, y_proba: np.ndarray) -> None:
         """Entraine la calibration Platt.
@@ -271,7 +259,7 @@ class IsotonicCalibrator:
     def __init__(self):
         self.ir = IsotonicRegression(y_min=0, y_max=1, out_of_bounds="clip")
         self.is_fitted = False
-        self.logger = setup_logging()
+        self.logger = setup_logging("calibration")
 
     def fit(self, y_true: np.ndarray, y_proba: np.ndarray) -> None:
         """Entraine la calibration isotonique.
@@ -317,7 +305,7 @@ class TemperatureScaler:
     def __init__(self):
         self.temperature: float = 1.0
         self.is_fitted = False
-        self.logger = setup_logging()
+        self.logger = setup_logging("calibration")
 
     def fit(
         self,
@@ -471,7 +459,7 @@ def compare_calibrations(
     dict
         Rapport comparatif avec ECE/MCE avant et apres calibration.
     """
-    logger = setup_logging()
+    logger = setup_logging("calibration")
     methods = methods or list(CALIBRATOR_REGISTRY.keys())
 
     y_true_test = np.asarray(y_true_test)

@@ -35,21 +35,11 @@ OUTPUT_DIR = Path(__file__).resolve().parent / "output" / "01_calendrier_reunion
 BRUTES_PATH = OUTPUT_DIR / "reunions_brut.json"
 
 
-def setup_logging() -> logging.Logger:
-    logger = logging.getLogger("renormaliser")
-    logger.setLevel(logging.INFO)
-    fmt = logging.Formatter(
-        "%(asctime)s | %(levelname)-8s | %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-    ch = logging.StreamHandler(sys.stdout)
-    ch.setFormatter(fmt)
-    logger.addHandler(ch)
-    return logger
+from utils.logging_setup import setup_logging
 
 
 def main():
-    logger = setup_logging()
+    logger = setup_logging("renormaliser")
     logger.info("=" * 60)
     logger.info("RE-NORMALISATION DES BRUTES")
     logger.info("=" * 60)

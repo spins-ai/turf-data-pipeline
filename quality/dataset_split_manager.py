@@ -34,8 +34,10 @@ import pandas as pd
 # CONFIG
 # ===========================================================================
 
-LOG_DIR = Path(__file__).resolve().parent.parent / "logs"
-OUTPUT_DIR = Path(__file__).resolve().parent.parent / "output" / "quality"
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(_PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PROJECT_ROOT))
+OUTPUT_DIR = _PROJECT_ROOT / "output" / "quality"
 
 DEFAULT_TRAIN_END = "2024-01-01"
 DEFAULT_VAL_END = "2024-07-01"
@@ -47,21 +49,7 @@ DATE_COL = "date_reunion_iso"
 # LOGGING
 # ===========================================================================
 
-def setup_logging() -> logging.Logger:
-    logger = logging.getLogger("dataset_split_manager")
-    logger.setLevel(logging.INFO)
-    fmt = logging.Formatter(
-        "%(asctime)s | %(levelname)-8s | %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-    ch = logging.StreamHandler(sys.stdout)
-    ch.setFormatter(fmt)
-    logger.addHandler(ch)
-    LOG_DIR.mkdir(parents=True, exist_ok=True)
-    fh = logging.FileHandler(LOG_DIR / "dataset_split_manager.log", encoding="utf-8")
-    fh.setFormatter(fmt)
-    logger.addHandler(fh)
-    return logger
+from utils.logging_setup import setup_logging
 
 
 # ===========================================================================
@@ -119,7 +107,7 @@ class DatasetSplitManager:
         self.train_end = train_end
         self.val_end = val_end
         self.date_col = date_col
-        self.logger = setup_logging()
+        self.logger = setup_logging("dataset_split_manager")
 
     def split(self, df: pd.DataFrame) -> SplitResult:
         """Decoupe le DataFrame en train/val/test par date.
@@ -395,7 +383,7 @@ def main():
     )
     args = parser.parse_args()
 
-    logger = setup_logging()
+    logger = setup_logging("dataset_split_manager")
     logger.info("=" * 70)
     logger.info("dataset_split_manager.py — Decoupage temporel")
     logger.info("=" * 70)

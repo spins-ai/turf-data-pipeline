@@ -30,7 +30,9 @@ import pandas as pd
 # CONFIG
 # ===========================================================================
 
-LOG_DIR = Path(__file__).resolve().parent.parent / "logs"
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(_PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PROJECT_ROOT))
 
 # Seuils par defaut
 DEFAULT_VALUE_THRESHOLD = 1.5   # model_prob / market_prob >= 1.5
@@ -42,22 +44,7 @@ DEFAULT_MAX_MARKET_ODDS = 100.0
 # LOGGING
 # ===========================================================================
 
-def setup_logging() -> logging.Logger:
-    logger = logging.getLogger("outsider_detector")
-    if not logger.handlers:
-        logger.setLevel(logging.INFO)
-        fmt = logging.Formatter(
-            "%(asctime)s | %(levelname)-8s | %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S",
-        )
-        ch = logging.StreamHandler(sys.stdout)
-        ch.setFormatter(fmt)
-        logger.addHandler(ch)
-        LOG_DIR.mkdir(parents=True, exist_ok=True)
-        fh = logging.FileHandler(LOG_DIR / "outsider_detector.log", encoding="utf-8")
-        fh.setFormatter(fmt)
-        logger.addHandler(fh)
-    return logger
+from utils.logging_setup import setup_logging
 
 
 # ===========================================================================
@@ -86,7 +73,7 @@ class OutsiderDetector:
         self.value_threshold = value_threshold
         self.min_market_odds = min_market_odds
         self.max_market_odds = max_market_odds
-        self.logger = setup_logging()
+        self.logger = setup_logging("outsider_detector")
 
     def detect(
         self,

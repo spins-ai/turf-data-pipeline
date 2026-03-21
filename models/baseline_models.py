@@ -60,29 +60,16 @@ except ImportError:
 # CONFIG
 # ===========================================================================
 
-LOG_DIR = Path(__file__).resolve().parent.parent / "logs"
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(_PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PROJECT_ROOT))
 
 
 # ===========================================================================
-# LOGGING
+# LOGGING (re-exported for models.meta_selector compatibility)
 # ===========================================================================
 
-def setup_logging() -> logging.Logger:
-    logger = logging.getLogger("baseline_models")
-    if not logger.handlers:
-        logger.setLevel(logging.INFO)
-        fmt = logging.Formatter(
-            "%(asctime)s | %(levelname)-8s | %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S",
-        )
-        ch = logging.StreamHandler(sys.stdout)
-        ch.setFormatter(fmt)
-        logger.addHandler(ch)
-        LOG_DIR.mkdir(parents=True, exist_ok=True)
-        fh = logging.FileHandler(LOG_DIR / "baseline_models.log", encoding="utf-8")
-        fh.setFormatter(fmt)
-        logger.addHandler(fh)
-    return logger
+from utils.logging_setup import setup_logging  # noqa: F401 — re-exported
 
 
 # ===========================================================================
@@ -272,7 +259,7 @@ class BaseModel(ABC):
         self.params = params
         self.model = None
         self.is_fitted = False
-        self.logger = setup_logging()
+        self.logger = setup_logging("baseline_models")
 
     @abstractmethod
     def fit(self, X: np.ndarray | pd.DataFrame, y: np.ndarray | pd.Series) -> None:

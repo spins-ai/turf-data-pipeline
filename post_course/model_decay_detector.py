@@ -36,8 +36,10 @@ import numpy as np
 # CONFIG
 # ===========================================================================
 
-LOG_DIR = Path(__file__).resolve().parent.parent / "logs"
-OUTPUT_DIR = Path(__file__).resolve().parent.parent / "output" / "decay"
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(_PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PROJECT_ROOT))
+OUTPUT_DIR = _PROJECT_ROOT / "output" / "decay"
 
 RECENT_WINDOW_DAYS = 30
 DECAY_THRESHOLD_PCT = 10.0          # seuil de degradation (%)
@@ -49,22 +51,7 @@ FEATURE_IMPORTANCE_SHIFT_THRESHOLD = 0.15  # cosine distance seuil
 # LOGGING
 # ===========================================================================
 
-def setup_logging() -> logging.Logger:
-    logger = logging.getLogger("model_decay_detector")
-    if not logger.handlers:
-        logger.setLevel(logging.INFO)
-        fmt = logging.Formatter(
-            "%(asctime)s | %(levelname)-8s | %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S",
-        )
-        ch = logging.StreamHandler(sys.stdout)
-        ch.setFormatter(fmt)
-        logger.addHandler(ch)
-        LOG_DIR.mkdir(parents=True, exist_ok=True)
-        fh = logging.FileHandler(LOG_DIR / "model_decay_detector.log", encoding="utf-8")
-        fh.setFormatter(fmt)
-        logger.addHandler(fh)
-    return logger
+from utils.logging_setup import setup_logging
 
 
 # ===========================================================================
@@ -215,7 +202,7 @@ def detect_decay(
         DecayReport
     """
     if logger is None:
-        logger = setup_logging()
+        logger = setup_logging("model_decay_detector")
 
     # Grouper par modele
     by_model: dict[str, list[dict]] = {}
@@ -445,7 +432,7 @@ def main() -> None:
     parser.add_argument("--output", type=str, default=str(OUTPUT_DIR / "decay_report.json"))
     args = parser.parse_args()
 
-    logger = setup_logging()
+    logger = setup_logging("model_decay_detector")
     logger.info("=" * 70)
     logger.info("model_decay_detector.py")
     logger.info("=" * 70)

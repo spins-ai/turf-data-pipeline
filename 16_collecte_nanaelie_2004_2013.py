@@ -58,7 +58,6 @@ except ImportError:
 
 OUTPUT_DIR = Path(__file__).resolve().parent / "output" / "16_nanaelie"
 CACHE_DIR = OUTPUT_DIR / "cache"
-LOG_DIR = Path(__file__).resolve().parent / "logs"
 CHECKPOINT_PATH = OUTPUT_DIR / ".checkpoint_16.json"
 
 API_URL = "https://open-pmu-api.vercel.app/api/arrivees"
@@ -98,21 +97,7 @@ class ResultatNanaelie:
 # LOGGING
 # ===========================================================================
 
-def setup_logging() -> logging.Logger:
-    logger = logging.getLogger("16_nanaelie")
-    logger.setLevel(logging.INFO)
-    fmt = logging.Formatter(
-        "%(asctime)s | %(levelname)-8s | %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-    ch = logging.StreamHandler(sys.stdout)
-    ch.setFormatter(fmt)
-    logger.addHandler(ch)
-    LOG_DIR.mkdir(parents=True, exist_ok=True)
-    fh = logging.FileHandler(LOG_DIR / "16_nanaelie.log", encoding="utf-8")
-    fh.setFormatter(fmt)
-    logger.addHandler(fh)
-    return logger
+from utils.logging_setup import setup_logging
 
 
 # ===========================================================================
@@ -480,7 +465,7 @@ def parse_args() -> argparse.Namespace:
 
 def main():
     args = parse_args()
-    logger = setup_logging()
+    logger = setup_logging("16_nanaelie")
 
     start_dt = date.fromisoformat(args.date_debut)
     end_dt = date.fromisoformat(args.date_fin)

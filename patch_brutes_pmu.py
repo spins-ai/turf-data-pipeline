@@ -43,20 +43,7 @@ USER_AGENT = (
 CHECKPOINT_PATH = BASE_DIR / "output" / "01_calendrier_reunions" / ".checkpoint_patch_pmu.json"
 
 
-def setup_logging() -> logging.Logger:
-    logger = logging.getLogger("patch_pmu")
-    logger.setLevel(logging.INFO)
-    fmt = logging.Formatter("%(asctime)s | %(levelname)-8s | %(message)s",
-                            datefmt="%Y-%m-%d %H:%M:%S")
-    sh = logging.StreamHandler()
-    sh.setFormatter(fmt)
-    logger.addHandler(sh)
-    log_dir = BASE_DIR / "logs"
-    log_dir.mkdir(exist_ok=True)
-    fh = logging.FileHandler(str(log_dir / "patch_brutes_pmu.log"), encoding="utf-8")
-    fh.setFormatter(fmt)
-    logger.addHandler(fh)
-    return logger
+from utils.logging_setup import setup_logging
 
 
 def build_session() -> requests.Session:
@@ -276,7 +263,7 @@ def main() -> None:
     parser.add_argument("--no-renorm", action="store_true", help="Skip re-normalisation finale")
     args = parser.parse_args()
 
-    logger = setup_logging()
+    logger = setup_logging("patch_pmu")
     session = build_session()
 
     logger.info("=" * 60)

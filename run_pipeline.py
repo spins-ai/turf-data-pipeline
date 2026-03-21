@@ -45,7 +45,6 @@ from typing import Dict, List, Optional, Set
 PYTHON = r"C:\Users\celia\AppData\Local\Programs\Python\Python312\python.exe"
 BASE_DIR = Path(__file__).resolve().parent
 CHECKPOINT_FILE = BASE_DIR / "pipeline_checkpoint.json"
-LOG_FILE = BASE_DIR / "pipeline.log"
 MAX_WORKERS = 4  # parallelisme pour les phases paralleles
 
 
@@ -509,30 +508,7 @@ def execute_pipeline(
 # Logging setup
 # ---------------------------------------------------------------------------
 
-def setup_logging() -> logging.Logger:
-    """Configure dual logging : file + console."""
-    logger = logging.getLogger("pipeline")
-    logger.setLevel(logging.DEBUG)
-
-    # File handler - full detail
-    fh = logging.FileHandler(str(LOG_FILE), encoding="utf-8")
-    fh.setLevel(logging.DEBUG)
-    fh.setFormatter(logging.Formatter(
-        "%(asctime)s [%(levelname)-7s] %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    ))
-    logger.addHandler(fh)
-
-    # Console handler - INFO+
-    ch = logging.StreamHandler(sys.stdout)
-    ch.setLevel(logging.INFO)
-    ch.setFormatter(logging.Formatter(
-        "%(asctime)s [%(levelname)-7s] %(message)s",
-        datefmt="%H:%M:%S",
-    ))
-    logger.addHandler(ch)
-
-    return logger
+from utils.logging_setup import setup_logging
 
 
 # ---------------------------------------------------------------------------
@@ -648,7 +624,7 @@ def main():
         return
 
     MAX_WORKERS = args.workers
-    logger = setup_logging()
+    logger = setup_logging("pipeline")
 
     logger.info(f"Python    : {PYTHON}")
     logger.info(f"Base dir  : {BASE_DIR}")

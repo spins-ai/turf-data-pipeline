@@ -43,10 +43,11 @@ except ImportError:
 # ===========================================================================
 
 ROOT = Path(__file__).resolve().parent.parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 DATA_DIR = ROOT / "models" / "data"
 SELECTION_DIR = ROOT / "models" / "phase_03_selection"
 OUTPUT_DIR = SELECTION_DIR
-LOG_DIR = ROOT / "logs"
 
 DEFAULT_PARQUET = DATA_DIR / "features_master.parquet"
 DEFAULT_SELECTED = SELECTION_DIR / "selected_features.json"
@@ -67,27 +68,10 @@ GA_ELITE_RATIO = 0.2
 # LOGGING
 # ===========================================================================
 
-def setup_logging() -> logging.Logger:
-    logger = logging.getLogger("feature_subset_optimizer")
-    if not logger.handlers:
-        logger.setLevel(logging.INFO)
-        fmt = logging.Formatter(
-            "%(asctime)s | %(levelname)-8s | %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S",
-        )
-        ch = logging.StreamHandler(sys.stdout)
-        ch.setFormatter(fmt)
-        logger.addHandler(ch)
-        LOG_DIR.mkdir(parents=True, exist_ok=True)
-        fh = logging.FileHandler(
-            LOG_DIR / "feature_subset_optimizer.log", encoding="utf-8"
-        )
-        fh.setFormatter(fmt)
-        logger.addHandler(fh)
-    return logger
+from utils.logging_setup import setup_logging
 
 
-logger = setup_logging()
+logger = setup_logging("feature_subset_optimizer")
 
 
 # ===========================================================================

@@ -36,28 +36,11 @@ from urllib3.util.retry import Retry
 NORMALISEES_PATH = Path(os.path.join(BASE_DIR, "output", "01_calendrier_reunions", "reunions_normalisees.json"))
 CACHE_PATH = Path(os.path.join(BASE_DIR, "output", "01_calendrier_reunions", "pmu_condition_cache.json"))
 PMU_URL = "https://offline.turfinfo.api.pmu.fr/rest/client/1/programme/{date_ddmmyyyy}"
-LOG_DIR = Path(__file__).resolve().parent / "logs"
-
-
 # ===========================================================================
 # LOGGING
 # ===========================================================================
 
-def setup_logging() -> logging.Logger:
-    logger = logging.getLogger("patch_condition_pmu")
-    logger.setLevel(logging.INFO)
-    fmt = logging.Formatter(
-        "%(asctime)s | %(levelname)-8s | %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-    ch = logging.StreamHandler(sys.stdout)
-    ch.setFormatter(fmt)
-    logger.addHandler(ch)
-    LOG_DIR.mkdir(parents=True, exist_ok=True)
-    fh = logging.FileHandler(LOG_DIR / "patch_condition_pmu.log", encoding="utf-8")
-    fh.setFormatter(fmt)
-    logger.addHandler(fh)
-    return logger
+from utils.logging_setup import setup_logging
 
 
 # ===========================================================================
@@ -199,7 +182,7 @@ def main():
     parser.add_argument("--batch", type=int, default=200, help="Sauvegarder tous les N jours")
     args = parser.parse_args()
 
-    logger = setup_logging()
+    logger = setup_logging("patch_condition_pmu")
 
     logger.info("=" * 60)
     logger.info("PATCH CONDITION/CORDE VIA API PMU")

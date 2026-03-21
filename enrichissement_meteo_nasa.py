@@ -64,22 +64,7 @@ def _direction_vent_texte(deg: Optional[float]) -> str:
 # LOGGING
 # ===========================================================================
 
-def setup_logging(log_file: Optional[Path] = None) -> logging.Logger:
-    logger = logging.getLogger("meteo_nasa")
-    logger.setLevel(logging.INFO)
-    fmt = logging.Formatter(
-        "%(asctime)s | %(levelname)-8s | %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-    ch = logging.StreamHandler(sys.stdout)
-    ch.setFormatter(fmt)
-    logger.addHandler(ch)
-    if log_file:
-        log_file.parent.mkdir(parents=True, exist_ok=True)
-        fh = logging.FileHandler(log_file, encoding="utf-8")
-        fh.setFormatter(fmt)
-        logger.addHandler(fh)
-    return logger
+from utils.logging_setup import setup_logging
 
 
 # ===========================================================================
@@ -380,7 +365,7 @@ def main() -> None:
     parser.add_argument("--export-parquet", action="store_true")
     args = parser.parse_args()
 
-    logger = setup_logging(args.log_dir / "enrichissement_meteo_nasa.log")
+    logger = setup_logging("enrichissement_meteo_nasa")
 
     logger.info("=" * 70)
     logger.info("ENRICHISSEMENT MÉTÉO VIA NASA POWER")

@@ -42,7 +42,9 @@ from typing import Any, Optional
 # CONFIG
 # ===========================================================================
 
-LOG_DIR = Path(__file__).resolve().parent.parent / "logs"
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(_PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PROJECT_ROOT))
 DEFAULT_LINEAGE_FILE = Path(__file__).resolve().parent.parent / "output" / "quality" / "data_lineage.json"
 
 
@@ -50,21 +52,7 @@ DEFAULT_LINEAGE_FILE = Path(__file__).resolve().parent.parent / "output" / "qual
 # LOGGING
 # ===========================================================================
 
-def setup_logging() -> logging.Logger:
-    logger = logging.getLogger("data_lineage_tracker")
-    logger.setLevel(logging.INFO)
-    fmt = logging.Formatter(
-        "%(asctime)s | %(levelname)-8s | %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-    ch = logging.StreamHandler(sys.stdout)
-    ch.setFormatter(fmt)
-    logger.addHandler(ch)
-    LOG_DIR.mkdir(parents=True, exist_ok=True)
-    fh = logging.FileHandler(LOG_DIR / "data_lineage_tracker.log", encoding="utf-8")
-    fh.setFormatter(fmt)
-    logger.addHandler(fh)
-    return logger
+from utils.logging_setup import setup_logging
 
 
 # ===========================================================================
@@ -86,7 +74,7 @@ class LineageTracker:
 
     def __init__(self, lineage_file: Path | str = DEFAULT_LINEAGE_FILE):
         self.lineage_file = Path(lineage_file)
-        self.logger = setup_logging()
+        self.logger = setup_logging("data_lineage_tracker")
         self._entries: list[dict] = self._load()
 
     def _load(self) -> list[dict]:
@@ -311,7 +299,7 @@ def main():
     )
     args = parser.parse_args()
 
-    logger = setup_logging()
+    logger = setup_logging("data_lineage_tracker")
     logger.info("=" * 70)
     logger.info("data_lineage_tracker.py — Lignee des donnees")
     logger.info("=" * 70)

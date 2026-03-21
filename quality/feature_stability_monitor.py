@@ -33,8 +33,10 @@ import pandas as pd
 # CONFIG
 # ===========================================================================
 
-LOG_DIR = Path(__file__).resolve().parent.parent / "logs"
-OUTPUT_DIR = Path(__file__).resolve().parent.parent / "output" / "quality"
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(_PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PROJECT_ROOT))
+OUTPUT_DIR = _PROJECT_ROOT / "output" / "quality"
 
 DATE_COL = "date_reunion_iso"
 PSI_THRESHOLD = 0.25
@@ -52,21 +54,7 @@ EXCLUDE_COLS = {
 # LOGGING
 # ===========================================================================
 
-def setup_logging() -> logging.Logger:
-    logger = logging.getLogger("feature_stability_monitor")
-    logger.setLevel(logging.INFO)
-    fmt = logging.Formatter(
-        "%(asctime)s | %(levelname)-8s | %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-    ch = logging.StreamHandler(sys.stdout)
-    ch.setFormatter(fmt)
-    logger.addHandler(ch)
-    LOG_DIR.mkdir(parents=True, exist_ok=True)
-    fh = logging.FileHandler(LOG_DIR / "feature_stability_monitor.log", encoding="utf-8")
-    fh.setFormatter(fmt)
-    logger.addHandler(fh)
-    return logger
+from utils.logging_setup import setup_logging
 
 
 # ===========================================================================
@@ -169,7 +157,7 @@ class FeatureStabilityMonitor:
         self.psi_threshold = psi_threshold
         self.n_bins = n_bins
         self.ref_end = ref_end
-        self.logger = setup_logging()
+        self.logger = setup_logging("feature_stability_monitor")
 
     def compute_monthly_stats(self, df: pd.DataFrame) -> dict[str, list[MonthlyStats]]:
         """Calcule les statistiques mensuelles pour chaque feature numerique.
@@ -362,7 +350,7 @@ def main():
     )
     args = parser.parse_args()
 
-    logger = setup_logging()
+    logger = setup_logging("feature_stability_monitor")
     logger.info("=" * 70)
     logger.info("feature_stability_monitor.py — Stabilite des features")
     logger.info("=" * 70)

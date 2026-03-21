@@ -32,7 +32,9 @@ from typing import Any, Optional
 # CONFIG
 # ===========================================================================
 
-LOG_DIR = Path(__file__).resolve().parent.parent / "logs"
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(_PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PROJECT_ROOT))
 CORRELATION_THRESHOLD = 0.5
 
 
@@ -40,21 +42,7 @@ CORRELATION_THRESHOLD = 0.5
 # LOGGING
 # ===========================================================================
 
-def setup_logging() -> logging.Logger:
-    logger = logging.getLogger("leakage_detector")
-    logger.setLevel(logging.INFO)
-    fmt = logging.Formatter(
-        "%(asctime)s | %(levelname)-8s | %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-    ch = logging.StreamHandler(sys.stdout)
-    ch.setFormatter(fmt)
-    logger.addHandler(ch)
-    LOG_DIR.mkdir(parents=True, exist_ok=True)
-    fh = logging.FileHandler(LOG_DIR / "leakage_detector.log", encoding="utf-8")
-    fh.setFormatter(fmt)
-    logger.addHandler(fh)
-    return logger
+from utils.logging_setup import setup_logging
 
 
 # ===========================================================================
@@ -145,7 +133,7 @@ def detect_leakage(features_path: str, labels_path: str) -> dict:
           - correlation_report: {feature: correlation} pour toutes les features numeriques
           - temporal_violations: liste des violations temporelles detectees
     """
-    logger = setup_logging()
+    logger = setup_logging("leakage_detector")
 
     features_data = charger_donnees(Path(features_path), logger)
     labels_data = charger_donnees(Path(labels_path), logger)
@@ -364,7 +352,7 @@ def main():
 
     CORRELATION_THRESHOLD = args.threshold
 
-    logger = setup_logging()
+    logger = setup_logging("leakage_detector")
     logger.info("=" * 70)
     logger.info("leakage_detector.py — Detection de data leakage")
     logger.info("=" * 70)

@@ -36,8 +36,10 @@ import pandas as pd
 # CONFIG
 # ===========================================================================
 
-LOG_DIR = Path(__file__).resolve().parent.parent / "logs"
-OUTPUT_DIR = Path(__file__).resolve().parent.parent / "output" / "quality"
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(_PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PROJECT_ROOT))
+OUTPUT_DIR = _PROJECT_ROOT / "output" / "quality"
 
 # Tolerance pour le taux de victoire attendu
 WIN_RATE_TOLERANCE = 0.03  # +/- 3 points de pourcentage
@@ -47,21 +49,7 @@ WIN_RATE_TOLERANCE = 0.03  # +/- 3 points de pourcentage
 # LOGGING
 # ===========================================================================
 
-def setup_logging() -> logging.Logger:
-    logger = logging.getLogger("label_quality_monitor")
-    logger.setLevel(logging.INFO)
-    fmt = logging.Formatter(
-        "%(asctime)s | %(levelname)-8s | %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-    ch = logging.StreamHandler(sys.stdout)
-    ch.setFormatter(fmt)
-    logger.addHandler(ch)
-    LOG_DIR.mkdir(parents=True, exist_ok=True)
-    fh = logging.FileHandler(LOG_DIR / "label_quality_monitor.log", encoding="utf-8")
-    fh.setFormatter(fmt)
-    logger.addHandler(fh)
-    return logger
+from utils.logging_setup import setup_logging
 
 
 # ===========================================================================
@@ -79,7 +67,7 @@ class LabelQualityMonitor:
 
     def __init__(self, win_rate_tolerance: float = WIN_RATE_TOLERANCE):
         self.win_rate_tolerance = win_rate_tolerance
-        self.logger = setup_logging()
+        self.logger = setup_logging("label_quality_monitor")
 
     def check_arrival_order_completeness(
         self,
@@ -498,7 +486,7 @@ def main():
     )
     args = parser.parse_args()
 
-    logger = setup_logging()
+    logger = setup_logging("label_quality_monitor")
     logger.info("=" * 70)
     logger.info("label_quality_monitor.py — Qualite des labels")
     logger.info("=" * 70)
