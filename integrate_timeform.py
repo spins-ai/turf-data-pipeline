@@ -14,9 +14,10 @@ import os
 import re
 import sys
 import time
-import unicodedata
 from collections import defaultdict
 from pathlib import Path
+
+from utils.normalize import normalize_name
 
 BASE_DIR = Path(__file__).resolve().parent
 TF_INPUT = BASE_DIR / "output" / "56_timeform" / "timeform_data.jsonl"
@@ -35,23 +36,6 @@ logging.basicConfig(
     ],
 )
 log = logging.getLogger(__name__)
-
-
-# ── Normalisation ──────────────────────────────────────────────────────
-
-def normalize_name(name):
-    """Normalise un nom de cheval : upper, sans accents, sans suffixes pays, alphanum only."""
-    if not name:
-        return ""
-    name = str(name).strip().upper()
-    # Supprimer accents
-    nfkd = unicodedata.normalize("NFKD", name)
-    name = "".join(c for c in nfkd if not unicodedata.combining(c))
-    # Supprimer suffixe pays ex: (IRE), (FR), (USA)
-    name = re.sub(r"\s*\([A-Z]{2,4}\)\s*$", "", name)
-    # Garder uniquement alphanum + espaces
-    name = re.sub(r"[^A-Z0-9\s]", "", name)
-    return " ".join(name.split())
 
 
 def normalize_date(date_str):

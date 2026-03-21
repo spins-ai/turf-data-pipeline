@@ -21,9 +21,10 @@ import os
 import re
 import sys
 import time
-import unicodedata
 from collections import defaultdict
 from pathlib import Path
+
+from utils.normalize import normalize_name
 
 BASE_DIR = Path(__file__).resolve().parent
 PARTANTS_MASTER = BASE_DIR / "data_master" / "partants_master.jsonl"
@@ -40,20 +41,6 @@ logging.basicConfig(
     ],
 )
 log = logging.getLogger(__name__)
-
-
-# ── Normalisation ──────────────────────────────────────────────────────
-
-def normalize_name(name):
-    """Normalise un nom de cheval."""
-    if not name:
-        return ""
-    name = str(name).strip().upper()
-    nfkd = unicodedata.normalize("NFKD", name)
-    name = "".join(c for c in nfkd if not unicodedata.combining(c))
-    name = re.sub(r"\s*\([A-Z]{2,4}\)\s*$", "", name)
-    name = re.sub(r"[^A-Z0-9\s]", "", name)
-    return " ".join(name.split())
 
 
 def normalize_date(date_str):

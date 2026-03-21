@@ -22,34 +22,13 @@ Usage : python3 entity_resolution.py
 
 import json, os, logging, time, hashlib, unicodedata, re
 
+from utils.normalize import normalize_name
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)-8s | %(message)s")
 log = logging.getLogger(__name__)
 
 DATA_DIR = "data_master"
 OUTPUT = os.path.join(DATA_DIR, "partants_complets.json")
-
-
-# ════════════════════════════════════════════════════
-#  NORMALISATION DES NOMS
-# ════════════════════════════════════════════════════
-
-def normalize_name(name):
-    """Normalise un nom de cheval pour le matching.
-    'PRINCE D\'OR' / 'Prince d or' / 'PRINCE DOR' → 'PRINCE DOR'
-    """
-    if not name:
-        return None
-    name = str(name).upper().strip()
-    # Enlever les accents
-    name = unicodedata.normalize('NFD', name)
-    name = ''.join(c for c in name if unicodedata.category(c) != 'Mn')
-    # Enlever les apostrophes et tirets
-    name = name.replace("'", " ").replace("'", " ").replace("-", " ")
-    # Enlever tout sauf lettres et espaces
-    name = re.sub(r'[^A-Z ]', '', name)
-    # Normaliser les espaces
-    name = re.sub(r'\s+', ' ', name).strip()
-    return name if name else None
 
 
 def normalize_hippodrome(name):

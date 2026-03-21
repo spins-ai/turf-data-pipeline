@@ -23,11 +23,11 @@ Usage :
 import json
 import os
 import time
-import unicodedata
-import re
 from collections import defaultdict
 from pathlib import Path
 from datetime import datetime
+
+from utils.normalize import normalize_name
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_MASTER = BASE_DIR / "data_master"
@@ -45,23 +45,6 @@ OUTPUT_FILE = DATA_MASTER / "horse_career_stats.jsonl"
 # -----------------------------------------------------------------------
 # Helpers
 # -----------------------------------------------------------------------
-
-def strip_accents(text):
-    nfkd = unicodedata.normalize("NFKD", text)
-    return "".join(c for c in nfkd if not unicodedata.combining(c))
-
-
-def normalize_name(name):
-    """Normalise un nom de cheval pour le regroupement."""
-    if not name:
-        return ""
-    name = str(name).strip().upper()
-    name = strip_accents(name)
-    name = name.replace("'", " ").replace("'", " ").replace("-", " ")
-    name = re.sub(r"[^A-Z0-9 ]", "", name)
-    name = re.sub(r"\s+", " ", name).strip()
-    return name
-
 
 def safe_int(val, default=None):
     if val is None:

@@ -18,10 +18,16 @@ Priorité : SIRE (officiel) > partants_enrichis > PMU 08 > scraper 14 > canaltur
 
 import json
 import os
-import re
 import logging
 import time
 from collections import defaultdict
+
+from utils.normalize import normalize_name as _shared_normalize_name
+
+
+def normalize_name(name):
+    """Normaliser un nom de cheval pour matching (sans chiffres)."""
+    return _shared_normalize_name(name, keep_digits=False)
 
 os.makedirs("data_master", exist_ok=True)
 os.makedirs("logs", exist_ok=True)
@@ -35,16 +41,6 @@ logging.basicConfig(
     ]
 )
 log = logging.getLogger(__name__)
-
-
-def normalize_name(name):
-    """Normaliser un nom de cheval pour matching"""
-    if not name:
-        return ""
-    n = name.upper().strip()
-    n = re.sub(r'[^A-Z\s]', '', n)
-    n = re.sub(r'\s+', ' ', n).strip()
-    return n
 
 
 def load_source_02_partants():

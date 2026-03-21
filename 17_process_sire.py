@@ -9,6 +9,8 @@ import json
 import os
 from datetime import datetime
 
+from utils.normalize import normalize_name
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 INPUT_FILE = os.path.join(BASE_DIR, "output", "17_sire_ifce", "donnees-equides.csv")
 OUTPUT_DIR = os.path.join(BASE_DIR, "output", "17_sire_ifce")
@@ -21,12 +23,6 @@ def parse_date(d):
         return datetime.strptime(d.strip(), "%d/%m/%Y").strftime("%Y-%m-%d")
     except (ValueError, TypeError):
         return None
-
-def normalize_name(name):
-    """Normaliser le nom du cheval pour jointure"""
-    if not name:
-        return ""
-    return name.strip().upper().replace("'", "'").replace("  ", " ")
 
 def main():
     print("=" * 60)

@@ -27,6 +27,8 @@ from collections import Counter, defaultdict
 from datetime import datetime
 from pathlib import Path
 
+from utils.normalize import normalize_name
+
 BASE_DIR = Path(__file__).resolve().parent
 DATA_MASTER = BASE_DIR / "data_master"
 OUTPUT_DIR = BASE_DIR / "output"
@@ -66,29 +68,6 @@ def stream_records(filepath: Path):
                 yield from data
         except Exception:
             pass
-
-
-# -----------------------------------------------------------------------
-# Normalisation des noms d'entite
-# -----------------------------------------------------------------------
-
-def normalize_name(name) -> str:
-    """Normalise un nom pour le matching."""
-    if not name or not isinstance(name, str):
-        return ""
-    name = name.strip().upper()
-    # Supprimer les accents communs
-    replacements = {
-        "E": "E", "E": "E", "A": "A", "U": "U",
-        "I": "I", "O": "O", "C": "C",
-    }
-    for old, new in replacements.items():
-        name = name.replace(old, new)
-    # Supprimer ponctuation
-    name = "".join(c if c.isalnum() or c == " " else " " for c in name)
-    # Normaliser espaces
-    name = " ".join(name.split())
-    return name
 
 
 # -----------------------------------------------------------------------

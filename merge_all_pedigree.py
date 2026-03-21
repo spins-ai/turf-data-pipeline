@@ -16,9 +16,10 @@ Output:
 import json
 import os
 import re
-import unicodedata
 from pathlib import Path
 from collections import Counter
+
+from utils.normalize import normalize_name
 
 import pandas as pd
 
@@ -37,18 +38,6 @@ SYMLINK_DIR = (
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
-
-def normalize_name(name: str) -> str:
-    """Lowercase, strip accents, collapse whitespace."""
-    if not name:
-        return ""
-    # NFD decompose then drop combining characters
-    s = unicodedata.normalize("NFD", name)
-    s = "".join(c for c in s if unicodedata.category(c) != "Mn")
-    s = s.lower().strip()
-    s = re.sub(r"\s+", " ", s)
-    return s
-
 
 def extract_dosage_from_sire_field(raw: str) -> dict:
     """

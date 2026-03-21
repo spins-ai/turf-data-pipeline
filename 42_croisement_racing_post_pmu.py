@@ -30,6 +30,8 @@ import re
 import sys
 from collections import defaultdict
 
+from utils.normalize import normalize_name
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_DIR = os.path.join(BASE_DIR, "output", "42_croisement_rp")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -103,16 +105,6 @@ def load_partants_light():
 
     log.info(f"  {len(partants)} partants")
     return partants
-
-
-def normalize_name(name):
-    """Normalise un nom de cheval pour matching."""
-    if not name:
-        return ""
-    import unicodedata
-    name = name.strip().upper()
-    nfkd = unicodedata.normalize("NFKD", name)
-    return "".join(c for c in nfkd if not unicodedata.combining(c))
 
 
 def extract_horse_name_from_raw(raw_text):

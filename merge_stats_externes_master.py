@@ -13,6 +13,8 @@ Output : data_master/stats_externes_master.json + .parquet
 
 import json, os, logging, time
 
+from utils.normalize import normalize_name as _shared_normalize_name
+
 os.makedirs("data_master", exist_ok=True)
 os.makedirs("logs", exist_ok=True)
 
@@ -22,10 +24,8 @@ log = logging.getLogger(__name__)
 
 
 def normalize_name(name):
-    if not name:
-        return ""
-    import re
-    return re.sub(r'[^A-Z\s]', '', name.upper()).strip()
+    """Normaliser un nom (sans chiffres)."""
+    return _shared_normalize_name(name, keep_digits=False)
 
 
 def load_json_safe(path, label):
