@@ -32,15 +32,9 @@ def normalize_name(name):
 os.makedirs("data_master", exist_ok=True)
 os.makedirs("logs", exist_ok=True)
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)-8s | %(message)s",
-    handlers=[
-        logging.FileHandler("logs/merge_pedigree.log"),
-        logging.StreamHandler()
-    ]
-)
-log = logging.getLogger(__name__)
+from utils.logging_setup import setup_logging
+
+log = setup_logging("merge_pedigree_master")
 
 
 def load_source_02_partants():

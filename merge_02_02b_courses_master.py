@@ -22,12 +22,15 @@ Usage :
 import json
 import logging
 import os
+import sys
 
 OUTPUT_DIR = "data_master"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)-8s | %(message)s")
-log = logging.getLogger(__name__)
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from utils.logging_setup import setup_logging
+
+log = setup_logging("merge_02_02b_courses_master")
 
 
 def count_non_null(record):

@@ -12,14 +12,15 @@ Output : data_master/meteo_master.json + .parquet + .csv
 ⚠️ NE SUPPRIME RIEN — lecture seule sur les sources, création dans data_master/
 """
 
-import json, os, re, logging, time
+import json, os, re, logging, sys, time
 
 os.makedirs("data_master", exist_ok=True)
 os.makedirs("logs", exist_ok=True)
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)-8s | %(message)s",
-    handlers=[logging.FileHandler("logs/merge_meteo.log"), logging.StreamHandler()])
-log = logging.getLogger(__name__)
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from utils.logging_setup import setup_logging
+
+log = setup_logging("merge_meteo_master")
 
 
 def load_json_safe(path, label=""):

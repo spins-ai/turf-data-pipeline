@@ -41,9 +41,11 @@ from collections import defaultdict
 OUTPUT_DIR = "data_master"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)-8s | %(message)s")
-log = logging.getLogger(__name__)
-nBASE_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from utils.logging_setup import setup_logging
+
+log = setup_logging("mega_merge_partants_master")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 # ================================================================

@@ -14,13 +14,12 @@ Output : data_master/stats_externes_master.json + .parquet
 import json, os, logging, time
 
 from utils.normalize import normalize_name as _shared_normalize_name
+from utils.logging_setup import setup_logging
 
 os.makedirs("data_master", exist_ok=True)
 os.makedirs("logs", exist_ok=True)
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)-8s | %(message)s",
-    handlers=[logging.FileHandler("logs/merge_stats_externes.log"), logging.StreamHandler()])
-log = logging.getLogger(__name__)
+log = setup_logging("merge_stats_externes_master")
 
 
 def normalize_name(name):

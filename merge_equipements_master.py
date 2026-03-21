@@ -9,14 +9,15 @@ Output : data_master/equipements_master.json + .parquet
 ⚠️ NE SUPPRIME RIEN — lecture seule sur les sources
 """
 
-import json, os, logging, time
+import json, os, logging, sys, time
 
 os.makedirs("data_master", exist_ok=True)
 os.makedirs("logs", exist_ok=True)
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)-8s | %(message)s",
-    handlers=[logging.FileHandler("logs/merge_equipements.log"), logging.StreamHandler()])
-log = logging.getLogger(__name__)
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from utils.logging_setup import setup_logging
+
+log = setup_logging("merge_equipements_master")
 
 
 def make_key(record):
