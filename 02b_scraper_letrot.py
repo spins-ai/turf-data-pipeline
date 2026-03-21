@@ -1778,6 +1778,149 @@ def sauver_csv(data: list[dict], path: Path, logger: logging.Logger):
 
 
 # ===========================================================================
+# JSONL EXPORT
+# ===========================================================================
+
+def aggregate_cache_to_jsonl():
+    """Read all cache files, parse HTML, normalise and write JSONL output."""
+    logger = setup_logging("02b_scraper_letrot")
+    jsonl_path = OUTPUT_DIR / "letrot_data.jsonl"
+
+    # Build lookup from references file (date_iso, id_letrot) -> ref dict
+    ref_lookup: dict[tuple[str, str], dict] = {}
+    if REFERENCES_PATH.exists():
+        try:
+            with open(REFERENCES_PATH, "r", encoding="utf-8") as f:
+                all_refs = json.load(f)
+            for r in all_refs:
+                date_iso = r.get("date_reunion_iso", "")
+                id_lt = r.get("id_letrot", "")
+                if date_iso and id_lt:
+                    ref_lookup[(date_iso, str(id_lt))] = r
+            logger.info("References chargees: %d reunions", len(ref_lookup))
+        except (json.JSONDecodeError, OSError) as e:
+            logger.warning("Impossible de charger les references: %s", e)
+
+    # Enumerate cache files
+    if not CACHE_DIR.exists():
+        logger.info("Aucun repertoire cache: %s", CACHE_DIR)
+        return
+
+    cache_files = sorted(f for f in CACHE_DIR.iterdir() if f.suffix == ".json")
+    if not cache_files:
+        logger.info("Aucun fichier cache trouve.")
+        return
+
+    logger.info("Fichiers cache a traiter: %d", len(cache_files))
+    timestamp = utc_now_iso()
+    total_courses = 0
+    total_partants = 0
+    errors = 0
+
+    with open(jsonl_path, "w", encoding="utf-8", newline="\n") as out:
+        for idx, fpath in enumerate(cache_files, 1):
+            # Extract date_iso and id_letrot from filename: {date}_{id}.json
+            stem = fpath.stem  # e.g. "2016-04-03_4917"
+            parts = stem.split("_", 1)
+            if len(parts) != 2:
+                logger.warning("Nom de fichier cache inattendu: %s", fpath.name)
+                errors += 1
+                continue
+
+            date_iso, id_letrot = parts[0], parts[1]
+
+            # Load cache data
+            try:
+                with open(fpath, "r", encoding="utf-8") as f:
+                    cached = json.load(f)
+            except (json.JSONDecodeError, OSError) as e:
+                logger.warning("Erreur lecture cache %s: %s", fpath.name, e)
+                errors += 1
+                continue
+
+            # Build reunion ref (from references or minimal fallback)
+            ref = ref_lookup.get((date_iso, id_letrot), {
+                "date_reunion_iso": date_iso,
+                "id_letrot": id_letrot,
+                "reunion_uid": make_uid(date_iso, id_letrot),
+                "hippodrome_normalise": "",
+                "hippodrome": "",
+                "numero_reunion": 0,
+                "nombre_courses_reunion": 0,
+            })
+
+            reunion_uid = ref.get("reunion_uid", "")
+            hippo = ref.get("hippodrome_normalise", "")
+            num_reunion = ref.get("numero_reunion", 0)
+
+            # Parse cached data
+            courses_brut: list = []
+            partants_brut: list = []
+
+            if "html" in cached:
+                courses_brut, partants_brut = parse_reunion_html(
+                    cached["html"], ref, timestamp, logger
+                )
+            elif "courses" in cached:
+                for nc_str, course_data in cached.get("courses", {}).items():
+                    nc = int(nc_str)
+                    course, cpartants = _parse_json_course(
+                        course_data, reunion_uid, date_iso, hippo,
+                        ref.get("hippodrome", ""), num_reunion, nc,
+                        id_letrot, timestamp, logger
+                    )
+                    if course:
+                        courses_brut.append(course)
+                        partants_brut.extend(cpartants)
+
+            if not courses_brut:
+                continue
+
+            # Normalise and write courses
+            courses_norm_list: list[dict] = []
+            for course_brute in courses_brut:
+                course_norm = normaliser_course(course_brute, ref)
+                rec = asdict(course_norm)
+                rec["_type"] = "course"
+                out.write(json.dumps(rec, ensure_ascii=False, default=str) + "\n")
+                courses_norm_list.append(asdict(course_norm))
+                total_courses += 1
+
+            # Normalise and write partants
+            for pb in partants_brut:
+                # Find matching normalised course
+                course_norm_data = CourseNormalisee(
+                    course_uid=make_uid(date_iso, hippo, f"R{num_reunion}", f"C{pb.numero_course}"),
+                    distance=None,
+                    discipline=normaliser_discipline_course("trot"),
+                )
+                for cn_dict in courses_norm_list:
+                    if cn_dict.get("numero_course") == pb.numero_course:
+                        course_norm_data = CourseNormalisee(**{
+                            k: v for k, v in cn_dict.items()
+                            if k in CourseNormalisee.__dataclass_fields__
+                        })
+                        break
+
+                pn = normaliser_partant(pb, course_norm_data)
+                rec = asdict(pn)
+                rec["_type"] = "partant"
+                out.write(json.dumps(rec, ensure_ascii=False, default=str) + "\n")
+                total_partants += 1
+
+            if idx % 500 == 0:
+                logger.info(
+                    "  [%d/%d] courses=%d partants=%d erreurs=%d",
+                    idx, len(cache_files), total_courses, total_partants, errors,
+                )
+
+    logger.info(
+        "JSONL export termine: %d courses, %d partants, %d erreurs -> %s",
+        total_courses, total_partants, errors, jsonl_path.name,
+    )
+
+
+# ===========================================================================
 # MAIN
 # ===========================================================================
 
@@ -1799,7 +1942,13 @@ def main():
                         help="Forcer le parsing HTML meme si JSON disponible")
     parser.add_argument("--reset-checkpoint", action="store_true",
                         help="Repart de zero (ignore le checkpoint)")
+    parser.add_argument("--export", action="store_true",
+                        help="Exporter le cache en JSONL sans scraper")
     args = parser.parse_args()
+
+    if args.export:
+        aggregate_cache_to_jsonl()
+        return
 
     logger = setup_logging("02b_scraper_letrot")
     logger.info("=" * 70)
@@ -2048,6 +2197,9 @@ def main():
     logger.info("=" * 70)
 
     session.close()
+
+    # Export cache to JSONL
+    aggregate_cache_to_jsonl()
 
 
 if __name__ == "__main__":
