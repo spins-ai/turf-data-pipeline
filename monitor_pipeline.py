@@ -129,6 +129,10 @@ def get_cpu_usage() -> float:
 # Checkpoint reading
 # ---------------------------------------------------------------------------
 
+# NOTE: Not migrated to utils.scraping.load_checkpoint because this version
+# uses a hardcoded CHECKPOINT_FILE, returns a pipeline-specific default dict
+# (completed, failed, timings, started_at, finished_at), and merges defaults
+# via setdefault.
 def load_checkpoint() -> Dict:
     """Load the pipeline checkpoint file."""
     default = {

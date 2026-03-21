@@ -308,6 +308,10 @@ def save_cache_entry(horse_id: str, record: dict):
 # CHECKPOINT
 # ===========================================================================
 
+# NOTE: Not migrated to utils.scraping.load_checkpoint/save_checkpoint because
+# these use a hardcoded CHECKPOINT_PATH, return script-specific default keys
+# (processed_ids, last_index, etc.), and save_checkpoint does atomic write
+# (tmp+replace) with automatic updated_at timestamping.
 def load_checkpoint() -> dict:
     """Charge l'etat du checkpoint."""
     if CHECKPOINT_PATH.exists():

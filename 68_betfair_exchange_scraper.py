@@ -60,6 +60,9 @@ def new_session():
 
 
 
+# NOTE: Not migrated to utils.scraping.fetch_with_retry because this version
+# supports headers_extra param and has Betfair-specific 429/403 handling
+# (60s*attempt for 429, 90s wait for 403) unlike the generic util.
 def fetch_with_retry(session, url, max_retries=3, timeout=30, params=None, headers_extra=None):
     """GET with automatic retry (3 attempts then skip)."""
     for attempt in range(1, max_retries + 1):

@@ -198,6 +198,9 @@ def build_dag() -> Dict[str, Step]:
 # Checkpoint management
 # ---------------------------------------------------------------------------
 
+# NOTE: Not migrated to utils.scraping.load_checkpoint/save_checkpoint because
+# these use a hardcoded CHECKPOINT_FILE, return a pipeline-specific default dict
+# (completed, failed, timings, started_at), and merge defaults via setdefault.
 def load_checkpoint() -> Dict:
     """Load checkpoint from disk. Returns dict with 'completed', 'failed', 'timings'."""
     default = {"completed": [], "failed": {}, "timings": {}, "started_at": None}

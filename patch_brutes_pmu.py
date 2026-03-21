@@ -60,6 +60,9 @@ def build_session() -> requests.Session:
     return session
 
 
+# NOTE: Not migrated to utils.scraping.load_checkpoint/save_checkpoint because
+# these return/accept set[str] (not dict), serialize as sorted list, and use
+# atomic write (tmp+rename) -- incompatible signature with the generic util.
 def load_checkpoint() -> set[str]:
     """Charge les jours déjà patchés."""
     if CHECKPOINT_PATH.exists():

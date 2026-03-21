@@ -42,6 +42,9 @@ def new_session():
     return s
 
 
+# NOTE: Not migrated to utils.scraping.fetch_with_retry because this version
+# handles 429 (exponential backoff 30s+) and 403 (session recreation via
+# new_session()) which the generic util does not support.
 def fetch_with_retry(session, url, max_retries=3):
     for attempt in range(max_retries):
         try:
