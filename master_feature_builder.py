@@ -717,7 +717,8 @@ def load_external_indexes(logger: logging.Logger) -> dict:
     try:
         from feature_builders.meteo_features import load_meteo_index
         ext["meteo_idx"] = load_meteo_index(logger) if hasattr(load_meteo_index, '__call__') else {}
-    except Exception:
+    except Exception as e:
+        logger.debug("Meteo index load error: %s", e)
         ext["meteo_idx"] = {}
 
     # Precomputed partant-level indexes
@@ -1259,7 +1260,8 @@ def compute_class_change_features(p: dict, horse_hist: list, course_lookup: dict
                     d1 = dt_date.fromisoformat(last["date"])
                     d2 = dt_date.fromisoformat(date_iso)
                     feat["jours_depuis_derniere"] = (d2 - d1).days
-                except Exception:
+                except Exception as e:
+                    logger.debug("Date diff error: %s", e)
                     feat["jours_depuis_derniere"] = None
             else:
                 feat["jours_depuis_derniere"] = None
@@ -1689,8 +1691,8 @@ def compute_external_builder_features(p: dict, ext: dict, logger: logging.Logger
                 for k, v in result[0].items():
                     if k != "partant_uid" and k not in p:
                         feat[k] = v
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("Feature builder error: %s", e)
 
     # Racing Post
     rp_idx = ext.get("rp_idx", {})
@@ -1702,8 +1704,8 @@ def compute_external_builder_features(p: dict, ext: dict, logger: logging.Logger
                 for k, v in result[0].items():
                     if k != "partant_uid" and k not in p:
                         feat[k] = v
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("Feature builder error: %s", e)
 
     # Reunions
     reunions_idx = ext.get("reunions_idx", {})
@@ -1715,8 +1717,8 @@ def compute_external_builder_features(p: dict, ext: dict, logger: logging.Logger
                 for k, v in result[0].items():
                     if k != "partant_uid" and k not in p:
                         feat[k] = v
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("Feature builder error: %s", e)
 
     # Enrichissement
     enriched_idx = ext.get("enriched_idx", {})
@@ -1728,8 +1730,8 @@ def compute_external_builder_features(p: dict, ext: dict, logger: logging.Logger
                 for k, v in result[0].items():
                     if k != "partant_uid" and k not in p:
                         feat[k] = v
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("Feature builder error: %s", e)
 
     # Canalturf
     ct_idx = ext.get("ct_idx", {})
@@ -1741,8 +1743,8 @@ def compute_external_builder_features(p: dict, ext: dict, logger: logging.Logger
                 for k, v in result[0].items():
                     if k != "partant_uid" and k not in p:
                         feat[k] = v
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("Feature builder error: %s", e)
 
     # Turfostats
     ts_idx = ext.get("ts_idx", {})
@@ -1754,8 +1756,8 @@ def compute_external_builder_features(p: dict, ext: dict, logger: logging.Logger
                 for k, v in result[0].items():
                     if k != "partant_uid" and k not in p:
                         feat[k] = v
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("Feature builder error: %s", e)
 
     # Geny
     geny_idx = ext.get("geny_idx", {})
@@ -1768,8 +1770,8 @@ def compute_external_builder_features(p: dict, ext: dict, logger: logging.Logger
                 for k, v in result[0].items():
                     if k != "partant_uid" and k not in p:
                         feat[k] = v
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("Feature builder error: %s", e)
 
     # Pedigree advanced
     try:
@@ -1779,8 +1781,8 @@ def compute_external_builder_features(p: dict, ext: dict, logger: logging.Logger
             for k, v in result[0].items():
                 if k != "partant_uid" and k not in p:
                     feat[k] = v
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug("Feature builder error: %s", e)
 
     # Meteo
     meteo_idx = ext.get("meteo_idx", {})
@@ -1792,8 +1794,8 @@ def compute_external_builder_features(p: dict, ext: dict, logger: logging.Logger
                 for k, v in result[0].items():
                     if k != "partant_uid" and k not in p:
                         feat[k] = v
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("Feature builder error: %s", e)
 
     return feat
 
@@ -1813,8 +1815,8 @@ def compute_calculation_script_features(p: dict, ext: dict, logger: logging.Logg
                 for k, v in result[0].items():
                     if k != "partant_uid" and k not in p:
                         feat[k] = v
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("Feature builder error: %s", e)
 
     # 43 - croisement meteo courses
     mod43 = ext.get("mod43")
@@ -1826,8 +1828,8 @@ def compute_calculation_script_features(p: dict, ext: dict, logger: logging.Logg
                 for k, v in result[0].items():
                     if k != "partant_uid" and k not in p:
                         feat[k] = v
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("Feature builder error: %s", e)
 
     # 44 - croisement pedigree partants
     mod44 = ext.get("mod44")
@@ -1840,8 +1842,8 @@ def compute_calculation_script_features(p: dict, ext: dict, logger: logging.Logg
                 for k, v in result[0].items():
                     if k != "partant_uid" and k not in p:
                         feat[k] = v
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("Feature builder error: %s", e)
 
     # 48 - parse conditions texte
     mod48 = ext.get("mod48")
@@ -1851,8 +1853,8 @@ def compute_calculation_script_features(p: dict, ext: dict, logger: logging.Logg
             parsed = mod48.parse_conditions(texte) if texte else {}
             if parsed:
                 feat.update(parsed)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("Feature builder error: %s", e)
 
     # 49 - ecart cotes
     mod49 = ext.get("mod49")
@@ -1866,8 +1868,8 @@ def compute_calculation_script_features(p: dict, ext: dict, logger: logging.Logg
                 for k, v in result[0].items():
                     if k != "partant_uid" and k not in p:
                         feat[k] = v
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("Feature builder error: %s", e)
 
     return feat
 
