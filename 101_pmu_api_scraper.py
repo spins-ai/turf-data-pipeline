@@ -141,7 +141,10 @@ def scrape_day(session, dt, output_programmes, output_participants, output_cours
                         course_data = json.load(f)
                 except (json.JSONDecodeError, ValueError, OSError):
                     log.warning("  Cache corrompu: %s, re-téléchargement", cache_course)
-                    os.remove(cache_course)
+                    try:
+                        os.remove(cache_course)
+                    except OSError:
+                        pass  # Windows file lock — will be overwritten
             if course_data is None:
                 course_data = api_get(session, f"/programmes/{date_pmu}/R{num_reunion}/C{num_course}")
                 if course_data:
@@ -193,7 +196,10 @@ def scrape_day(session, dt, output_programmes, output_participants, output_cours
                         parts_data = json.load(f)
                 except (json.JSONDecodeError, ValueError, OSError):
                     log.warning("  Cache corrompu: %s, re-téléchargement", cache_parts)
-                    os.remove(cache_parts)
+                    try:
+                        os.remove(cache_parts)
+                    except OSError:
+                        pass  # Windows file lock — will be overwritten
             if parts_data is None:
                 parts_data = api_get(session, f"/programmes/{date_pmu}/R{num_reunion}/C{num_course}/participants")
                 if parts_data:
