@@ -36,8 +36,8 @@ import numpy as np
 # CONFIG
 # ===========================================================================
 
-LOG_DIR = Path("logs")
-OUTPUT_DIR = Path("output/decay")
+LOG_DIR = Path(__file__).resolve().parent.parent / "logs"
+OUTPUT_DIR = Path(__file__).resolve().parent.parent / "output" / "decay"
 
 RECENT_WINDOW_DAYS = 30
 DECAY_THRESHOLD_PCT = 10.0          # seuil de degradation (%)

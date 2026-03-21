@@ -35,7 +35,7 @@ from models.baseline_models import (
 # CONFIG
 # ===========================================================================
 
-LOG_DIR = Path("logs")
+LOG_DIR = Path(__file__).resolve().parent.parent / "logs"
 
 DEFAULT_BASE_MODELS = ["logistic", "random_forest", "xgboost", "lightgbm"]
 

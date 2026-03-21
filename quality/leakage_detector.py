@@ -32,7 +32,7 @@ from typing import Any, Optional
 # CONFIG
 # ===========================================================================
 
-LOG_DIR = Path("logs")
+LOG_DIR = Path(__file__).resolve().parent.parent / "logs"
 CORRELATION_THRESHOLD = 0.5
 
 

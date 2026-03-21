@@ -26,7 +26,7 @@ import numpy as np
 # CONFIG
 # ===========================================================================
 
-LOG_DIR = Path("logs")
+LOG_DIR = Path(__file__).resolve().parent.parent / "logs"
 
 DEFAULT_N_SIMULATIONS = 10_000
 DEFAULT_CONFIDENCE_LEVEL = 0.95

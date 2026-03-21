@@ -30,7 +30,7 @@ import pandas as pd
 # CONFIG
 # ===========================================================================
 
-LOG_DIR = Path("logs")
+LOG_DIR = Path(__file__).resolve().parent.parent / "logs"
 
 # Seuils par defaut
 DEFAULT_VALUE_THRESHOLD = 1.5   # model_prob / market_prob >= 1.5

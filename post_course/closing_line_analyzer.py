@@ -36,8 +36,8 @@ import numpy as np
 # CONFIG
 # ===========================================================================
 
-LOG_DIR = Path("logs")
-OUTPUT_DIR = Path("output/clv")
+LOG_DIR = Path(__file__).resolve().parent.parent / "logs"
+OUTPUT_DIR = Path(__file__).resolve().parent.parent / "output" / "clv"
 
 
 # ===========================================================================

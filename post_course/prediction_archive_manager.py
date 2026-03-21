@@ -38,8 +38,8 @@ from typing import Optional
 # CONFIG
 # ===========================================================================
 
-OUTPUT_DIR = Path("output/predictions")
-LOG_DIR = Path("logs")
+OUTPUT_DIR = Path(__file__).resolve().parent.parent / "output" / "predictions"
+LOG_DIR = Path(__file__).resolve().parent.parent / "logs"
 
 
 # ===========================================================================

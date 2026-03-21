@@ -42,7 +42,7 @@ except ImportError:
 BRUTES_PATH = Path(os.path.join(BASE_DIR, "output", "01_calendrier_reunions", "reunions_brut.json"))
 CHECKPOINT_PATH = Path(".checkpoint_patch_letrot.json")
 LETROT_URL = "https://www.letrot.com/courses/{date}"
-LOG_DIR = Path("logs")
+LOG_DIR = Path(__file__).resolve().parent / "logs"
 
 # ===========================================================================
 # LOGGING

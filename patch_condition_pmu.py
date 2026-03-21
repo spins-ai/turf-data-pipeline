@@ -36,7 +36,7 @@ from urllib3.util.retry import Retry
 NORMALISEES_PATH = Path(os.path.join(BASE_DIR, "output", "01_calendrier_reunions", "reunions_normalisees.json"))
 CACHE_PATH = Path(os.path.join(BASE_DIR, "output", "01_calendrier_reunions", "pmu_condition_cache.json"))
 PMU_URL = "https://offline.turfinfo.api.pmu.fr/rest/client/1/programme/{date_ddmmyyyy}"
-LOG_DIR = Path("logs")
+LOG_DIR = Path(__file__).resolve().parent / "logs"
 
 
 # ===========================================================================

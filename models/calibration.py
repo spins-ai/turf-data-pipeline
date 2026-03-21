@@ -32,7 +32,7 @@ from sklearn.linear_model import LogisticRegression
 # CONFIG
 # ===========================================================================
 
-LOG_DIR = Path("logs")
+LOG_DIR = Path(__file__).resolve().parent.parent / "logs"
 DEFAULT_N_BINS = 10
 
 

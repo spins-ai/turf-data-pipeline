@@ -42,7 +42,7 @@ from typing import Any, Optional
 # CONFIG
 # ===========================================================================
 
-LOG_DIR = Path("logs")
+LOG_DIR = Path(__file__).resolve().parent.parent / "logs"
 DEFAULT_LINEAGE_FILE = Path(__file__).resolve().parent.parent / "output" / "quality" / "data_lineage.json"
 
 

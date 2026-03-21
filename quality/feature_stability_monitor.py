@@ -33,7 +33,7 @@ import pandas as pd
 # CONFIG
 # ===========================================================================
 
-LOG_DIR = Path("logs")
+LOG_DIR = Path(__file__).resolve().parent.parent / "logs"
 OUTPUT_DIR = Path(__file__).resolve().parent.parent / "output" / "quality"
 
 DATE_COL = "date_reunion_iso"
