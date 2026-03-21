@@ -430,6 +430,18 @@ def sauver_csv(data: list[dict], path: Path, logger: logging.Logger):
     logger.info("Sauve: %s (%d entrees)", path.name, len(data_flat))
 
 
+def sauver_jsonl(data: list[dict], path: Path, logger: logging.Logger):
+    if not data:
+        return
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(".tmp")
+    with open(tmp, "w", encoding="utf-8") as f:
+        for record in data:
+            f.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
+    tmp.replace(path)
+    logger.info("Sauve: %s (%d entrees)", path.name, len(data))
+
+
 # ===========================================================================
 # MAIN
 # ===========================================================================
@@ -578,9 +590,10 @@ def main():
     # Trier par date + cle_course
     data_dicts.sort(key=lambda x: (x["date_iso"], x["cle_course"]))
 
-    # Export triple
+    # Export quadruple (JSON, JSONL, Parquet, CSV)
     base_name = "nanaelie_2004_2013"
     sauver_json(data_dicts, OUTPUT_DIR / f"{base_name}.json", logger)
+    sauver_jsonl(data_dicts, OUTPUT_DIR / f"{base_name}.jsonl", logger)
     sauver_parquet(data_dicts, OUTPUT_DIR / f"{base_name}.parquet", logger)
     sauver_csv(data_dicts, OUTPUT_DIR / f"{base_name}.csv", logger)
 

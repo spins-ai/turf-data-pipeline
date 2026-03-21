@@ -530,6 +530,18 @@ def sauver_csv(data: list[dict], path: Path, logger: logging.Logger):
     logger.info("Sauve: %s", path.name)
 
 
+def sauver_jsonl(data: list[dict], path: Path, logger: logging.Logger):
+    if not data:
+        return
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(".tmp")
+    with open(tmp, "w", encoding="utf-8") as f:
+        for record in data:
+            f.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
+    tmp.replace(path)
+    logger.info("Sauve: %s (%d entrees)", path.name, len(data))
+
+
 # ===========================================================================
 # MAIN
 # ===========================================================================
@@ -746,6 +758,7 @@ def main():
     meteo_dicts = [asdict(m) for m in all_meteo]
 
     sauver_json(meteo_dicts, OUTPUT_DIR / "meteo_historique.json", logger)
+    sauver_jsonl(meteo_dicts, OUTPUT_DIR / "meteo_historique.jsonl", logger)
     sauver_parquet(meteo_dicts, OUTPUT_DIR / "meteo_historique.parquet", logger)
     sauver_csv(meteo_dicts, OUTPUT_DIR / "meteo_historique.csv", logger)
 

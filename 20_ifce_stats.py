@@ -62,6 +62,37 @@ def fetch_json(session, url, cache_name):
         print(f"  Erreur {url}: {e}")
         return None
 
+def aggregate_cache_files():
+    """Agrège tous les fichiers cache JSON en une liste de dicts avec leur source."""
+    records = []
+    cache_path = CACHE_DIR
+    if not os.path.isdir(cache_path):
+        return records
+    for fname in sorted(os.listdir(cache_path)):
+        if not fname.endswith(".json"):
+            continue
+        fpath = os.path.join(cache_path, fname)
+        try:
+            with open(fpath, encoding="utf-8") as f:
+                data = json.load(f)
+            source_name = fname.replace(".json", "")
+            if isinstance(data, dict):
+                record = {"_source": source_name}
+                record.update(data)
+                records.append(record)
+            elif isinstance(data, list):
+                for item in data:
+                    if isinstance(item, dict):
+                        record = {"_source": source_name}
+                        record.update(item)
+                        records.append(record)
+                    else:
+                        records.append({"_source": source_name, "value": item})
+        except (json.JSONDecodeError, OSError) as e:
+            print(f"  Erreur lecture cache {fname}: {e}")
+    return records
+
+
 def main():
     print("=" * 60)
     print("SCRIPT 20 — IFCE Stats & Cartes")
@@ -178,6 +209,16 @@ def main():
     output_file = os.path.join(OUTPUT_DIR, "ifce_stats_all.json")
     with open(output_file, "w", encoding="utf-8") as f:
         json.dump(all_data, f, ensure_ascii=False, indent=2)
+
+    # Agrégation cache -> JSONL
+    print("Agrégation cache -> JSONL...")
+    cache_records = aggregate_cache_files()
+    if cache_records:
+        jsonl_file = os.path.join(OUTPUT_DIR, "ifce_stats_all.jsonl")
+        with open(jsonl_file, "w", encoding="utf-8") as f:
+            for record in cache_records:
+                f.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
+        print(f"  Sauvé: {jsonl_file} ({len(cache_records)} entrées)")
 
     # Résumé
     print(f"\nRésumé:")

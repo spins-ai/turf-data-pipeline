@@ -172,6 +172,28 @@ def scrape_hippodrome_detail(session, hippo):
 
     return detail
 
+def aggregate_cache_files():
+    """Agrège tous les fichiers cache JSON en une liste de dicts."""
+    records = []
+    cache_path = CACHE_DIR
+    if not os.path.isdir(cache_path):
+        return records
+    for fname in sorted(os.listdir(cache_path)):
+        if not fname.endswith(".json"):
+            continue
+        fpath = os.path.join(cache_path, fname)
+        try:
+            with open(fpath, encoding="utf-8") as f:
+                data = json.load(f)
+            if isinstance(data, dict):
+                records.append(data)
+            elif isinstance(data, list):
+                records.extend(data)
+        except (json.JSONDecodeError, OSError) as e:
+            print(f"  Erreur lecture cache {fname}: {e}")
+    return records
+
+
 def main():
     print("=" * 60)
     print("SCRIPT 19 — Stats hippodromes Boturfers")
@@ -209,9 +231,24 @@ def main():
     # [3/3] Sauvegarde
     print(f"\n[3/3] Sauvegarde de {len(all_stats)} hippodromes...")
 
+    # If scraping produced no results, aggregate from cache files
+    if not all_stats:
+        print("  Aucun résultat du scraping, agrégation depuis le cache...")
+        all_stats = aggregate_cache_files()
+        if not all_stats:
+            print("  ERREUR: Aucune donnée en cache non plus.")
+            return
+
     output_file = os.path.join(OUTPUT_DIR, "boturfers_hippodromes.json")
     with open(output_file, "w", encoding="utf-8") as f:
         json.dump(all_stats, f, ensure_ascii=False, indent=2)
+
+    # JSONL
+    jsonl_file = os.path.join(OUTPUT_DIR, "boturfers_hippodromes.jsonl")
+    with open(jsonl_file, "w", encoding="utf-8") as f:
+        for record in all_stats:
+            f.write(json.dumps(record, ensure_ascii=False) + "\n")
+    print(f"  Sauvé: {jsonl_file} ({len(all_stats)} entrées)")
 
     # CSV
     if all_stats:
