@@ -10,9 +10,13 @@ import json
 import time
 import random
 import os
+import sys
 from datetime import datetime
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, BASE_DIR)
+from utils.scraping import smart_pause
+
 OUTPUT_DIR = os.path.join(BASE_DIR, "output", "20_ifce_stats")
 CACHE_DIR = os.path.join(OUTPUT_DIR, "cache")
 os.makedirs(CACHE_DIR, exist_ok=True)
@@ -32,9 +36,6 @@ def new_session():
     })
     return s
 
-def smart_pause(base=2.0, jitter=1.0):
-    pause = base + random.uniform(-jitter, jitter)
-    time.sleep(max(0.5, pause))
 
 def fetch_json(session, url, cache_name):
     """Récupérer un JSON avec cache"""

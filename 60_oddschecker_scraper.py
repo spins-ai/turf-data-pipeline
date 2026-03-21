@@ -33,6 +33,7 @@ os.makedirs(HTML_CACHE_DIR, exist_ok=True)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
+from utils.scraping import smart_pause
 
 log = setup_logging("60_oddschecker")
 
@@ -59,13 +60,6 @@ def new_session():
     })
     return s
 
-
-def smart_pause(base=3.0, jitter=2.0):
-    """Oddschecker has aggressive rate limiting — use longer pauses."""
-    pause = base + random.uniform(-jitter, jitter)
-    if random.random() < 0.10:
-        pause += random.uniform(8, 20)
-    time.sleep(max(1.5, pause))
 
 
 def fetch_with_retry(session, url, max_retries=3, timeout=30):
