@@ -10,7 +10,6 @@ import json
 import time
 import random
 import os
-import re
 from datetime import datetime
 from bs4 import BeautifulSoup
 

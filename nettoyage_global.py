@@ -30,7 +30,6 @@ import logging
 import os
 import re
 import sys
-import unicodedata
 from collections import Counter
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))

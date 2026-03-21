@@ -21,7 +21,6 @@ Usage :
 import json
 import os
 import time
-import re
 import math
 from collections import defaultdict
 from pathlib import Path
