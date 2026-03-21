@@ -280,7 +280,8 @@ def main():
         try:
             dt = datetime.strptime(date_iso[:10], "%Y-%m-%d")
             date_api = dt.strftime("%d%m%Y")
-        except Exception:
+        except Exception as e:
+            log.debug(f"  Erreur parsing date réunion: {e}")
             continue
 
         data = fetch_reunion(date_api, num_r)

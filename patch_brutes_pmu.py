@@ -66,8 +66,8 @@ def load_checkpoint() -> set[str]:
         try:
             with open(CHECKPOINT_PATH, "r", encoding="utf-8") as f:
                 return set(json.load(f))
-        except Exception:
-            pass
+        except Exception as e:
+            log.warning(f"  Checkpoint corrompu: {e}")
     return set()
 
 

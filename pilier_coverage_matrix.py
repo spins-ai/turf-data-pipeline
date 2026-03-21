@@ -79,7 +79,8 @@ def stream_jsonl_years(filepath: Path) -> tuple[Counter, int, int]:
                     except json.JSONDecodeError:
                         errors += 1
                 line = f.readline()
-    except Exception:
+    except Exception as e:
+        log.debug(f"  Erreur lecture JSONL: {e}")
         errors += 1
     return year_counts, total, errors
 
@@ -103,7 +104,8 @@ def stream_json_years(filepath: Path) -> tuple[Counter, int, int]:
                 total += 1
                 year = extract_year(rec)
                 year_counts[year if year else "N/A"] += 1
-    except Exception:
+    except Exception as e:
+        log.debug(f"  Erreur lecture JSON: {e}")
         errors += 1
     return year_counts, total, errors
 
@@ -143,7 +145,8 @@ def scan_output_sources(output_dir: Path) -> dict:
                     year_counts += yc
                     total += t
                     errors += e
-                except Exception:
+                except Exception as e:
+                    log.debug(f"  Erreur scan {f}: {e}")
                     errors += 1
 
         if total > 0 or errors > 0:
@@ -174,7 +177,8 @@ def scan_master_sources(master_dir: Path) -> dict:
                 year_counts, total, _ = stream_jsonl_years(f)
             else:
                 year_counts, total, _ = stream_json_years(f)
-        except Exception:
+        except Exception as e:
+            log.debug(f"  Erreur scan {f}: {e}")
             sources[source_name] = {
                 "year_counts": {},
                 "total": 0,

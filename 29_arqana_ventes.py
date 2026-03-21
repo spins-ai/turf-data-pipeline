@@ -158,9 +158,9 @@ def scrape_arqana_results():
                     if lots:
                         log.info(f"  {year}/{sale_type}: {len(lots)} lots")
                         
-            except Exception:
-                pass
-            
+            except Exception as e:
+                log.debug(f"  Erreur parsing arqana: {e}")
+
             smart_pause(1.5, 0.5)
         
         # Sauvegarder cache année

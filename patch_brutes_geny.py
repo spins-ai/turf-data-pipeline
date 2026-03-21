@@ -157,7 +157,8 @@ def extraire_extras_geny(html_content: str) -> dict[str, dict]:
 
             result[hippo_key] = extras
 
-        except Exception:
+        except Exception as e:
+            log.debug(f"  Erreur parsing geny: {e}")
             continue
 
     return result
