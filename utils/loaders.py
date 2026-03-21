@@ -13,6 +13,8 @@ Usage:
 
 from __future__ import annotations
 
+__all__ = ["load_jsonl", "load_json_or_jsonl", "load_json_safe"]
+
 import json
 import logging
 import os

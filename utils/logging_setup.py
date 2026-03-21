@@ -20,6 +20,9 @@ import sys
 from pathlib import Path
 
 
+__all__ = ["setup_logging"]
+
+
 # Repertoire de logs par defaut (racine du projet)
 _DEFAULT_LOG_DIR = Path(__file__).resolve().parent.parent / "logs"
 

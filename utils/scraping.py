@@ -28,6 +28,14 @@ try:
 except ImportError:
     requests = None  # type: ignore[assignment]
 
+__all__ = [
+    "smart_pause",
+    "fetch_with_retry",
+    "append_jsonl",
+    "load_checkpoint",
+    "save_checkpoint",
+]
+
 log = logging.getLogger(__name__)
 
 

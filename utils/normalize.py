@@ -15,6 +15,13 @@ Usage:
 
 from __future__ import annotations
 
+__all__ = [
+    "normalize_name",
+    "strip_accents",
+    "normalize_date",
+    "normalize_name_for_matching",
+]
+
 import re
 import unicodedata
 
