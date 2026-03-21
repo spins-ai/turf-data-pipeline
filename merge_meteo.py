@@ -17,7 +17,6 @@ Output: output/meteo_complete/meteo_complete.json
 
 import json
 import os
-import sys
 import glob
 from collections import defaultdict
 from pathlib import Path

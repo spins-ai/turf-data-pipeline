@@ -8,7 +8,6 @@ Each model type gets its own folder with all the data it needs.
 """
 
 import os
-import sys
 from pathlib import Path
 
 # ── Project root = directory containing this script ──────────────────────────

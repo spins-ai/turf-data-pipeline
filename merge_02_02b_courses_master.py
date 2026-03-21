@@ -22,7 +22,6 @@ Usage :
 import json
 import logging
 import os
-import sys
 
 OUTPUT_DIR = "data_master"
 os.makedirs(OUTPUT_DIR, exist_ok=True)

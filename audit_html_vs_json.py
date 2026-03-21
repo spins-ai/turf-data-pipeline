@@ -19,7 +19,6 @@ import json
 import logging
 import os
 import re
-import sys
 import time
 from collections import defaultdict
 from pathlib import Path

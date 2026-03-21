@@ -15,7 +15,6 @@ from __future__ import annotations
 
 import json
 import logging
-import sys
 from collections import defaultdict
 from pathlib import Path
 from typing import Any, Optional

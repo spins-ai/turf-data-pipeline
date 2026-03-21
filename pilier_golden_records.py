@@ -22,7 +22,6 @@ Usage:
 import argparse
 import json
 import os
-import sys
 from collections import Counter, defaultdict
 from datetime import datetime
 from pathlib import Path

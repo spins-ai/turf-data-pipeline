@@ -30,7 +30,6 @@ import csv
 import json
 import logging
 import re
-import sys
 import time
 from dataclasses import asdict, dataclass, field
 from datetime import date, datetime, timedelta, timezone

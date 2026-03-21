@@ -10,7 +10,6 @@ Output: output/02_liste_courses/partants_enrichis.json
 
 import json
 import time
-import sys
 import os
 from collections import defaultdict
 
