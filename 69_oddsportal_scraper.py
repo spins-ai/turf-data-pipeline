@@ -329,9 +329,8 @@ def main():
     last_date = checkpoint.get("last_date")
     if args.resume and last_date:
         resume_date = datetime.strptime(last_date, "%Y-%m-%d") + timedelta(days=1)
-        if resume_date > start_date:
-            start_date = resume_date
-            log.info(f"  Reprise au checkpoint : {start_date.date()}")
+        start_date = resume_date
+        log.info(f"  Reprise au checkpoint : {start_date.date()}")
 
     session = new_session()
     output_file = os.path.join(OUTPUT_DIR, "oddsportal_data.jsonl")
