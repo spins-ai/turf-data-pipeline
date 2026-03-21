@@ -28,7 +28,7 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
-from utils.scraping import smart_pause
+from utils.scraping import smart_pause, fetch_with_retry
 
 log = setup_logging("88_weatherbys")
 
@@ -54,31 +54,6 @@ def new_session():
         "Connection": "keep-alive",
     })
     return s
-
-
-def fetch_with_retry(session, url, max_retries=3, timeout=30):
-    for attempt in range(1, max_retries + 1):
-        try:
-            resp = session.get(url, timeout=timeout)
-            if resp.status_code == 429:
-                wait = 60 * attempt
-                log.warning(f"  429 Too Many Requests, pause {wait}s...")
-                time.sleep(wait)
-                continue
-            if resp.status_code == 403:
-                log.warning(f"  403 Forbidden sur {url}, pause 60s...")
-                time.sleep(60)
-                continue
-            if resp.status_code != 200:
-                log.warning(f"  HTTP {resp.status_code} sur {url} (essai {attempt}/{max_retries})")
-                time.sleep(5 * attempt)
-                continue
-            return resp
-        except requests.RequestException as e:
-            log.warning(f"  Erreur réseau: {e} (essai {attempt}/{max_retries})")
-            time.sleep(5 * attempt)
-    log.error(f"  Échec après {max_retries} essais: {url}")
-    return None
 
 
 def append_jsonl(filepath, record):

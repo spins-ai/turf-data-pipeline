@@ -27,7 +27,7 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
-from utils.scraping import smart_pause
+from utils.scraping import smart_pause, fetch_with_retry
 
 log = setup_logging("67_jra")
 
@@ -57,32 +57,6 @@ def new_session():
     })
     return s
 
-
-
-def fetch_with_retry(session, url, max_retries=3, timeout=30, params=None):
-    """GET with automatic retry (3 attempts then skip)."""
-    for attempt in range(1, max_retries + 1):
-        try:
-            resp = session.get(url, timeout=timeout, params=params)
-            if resp.status_code == 429:
-                wait = 60 * attempt
-                log.warning(f"  429 Too Many Requests, waiting {wait}s...")
-                time.sleep(wait)
-                continue
-            if resp.status_code == 403:
-                log.warning(f"  403 Forbidden on {url}, waiting 60s...")
-                time.sleep(60)
-                continue
-            if resp.status_code != 200:
-                log.warning(f"  HTTP {resp.status_code} on {url} (attempt {attempt}/{max_retries})")
-                time.sleep(5 * attempt)
-                continue
-            return resp
-        except requests.RequestException as e:
-            log.warning(f"  Network error: {e} (attempt {attempt}/{max_retries})")
-            time.sleep(5 * attempt)
-    log.error(f"  Failed after {max_retries} attempts: {url}")
-    return None
 
 
 def append_jsonl(filepath, record):

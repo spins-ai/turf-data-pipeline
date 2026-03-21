@@ -31,7 +31,7 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
-from utils.scraping import smart_pause
+from utils.scraping import smart_pause, fetch_with_retry
 
 log = setup_logging("53_paris_turf")
 
@@ -50,29 +50,6 @@ def new_session():
     s.headers.update(HEADERS)
     return s
 
-
-
-def fetch_with_retry(session, url, max_retries=3, timeout=30):
-    for attempt in range(1, max_retries + 1):
-        try:
-            resp = session.get(url, timeout=timeout)
-            if resp.status_code == 429:
-                time.sleep(60 * attempt)
-                continue
-            if resp.status_code == 403:
-                time.sleep(30)
-                continue
-            if resp.status_code == 404:
-                return None
-            if resp.status_code != 200:
-                log.warning(f"  HTTP {resp.status_code} sur {url} (essai {attempt})")
-                time.sleep(5 * attempt)
-                continue
-            return resp
-        except Exception as e:
-            log.warning(f"  Erreur: {e} (essai {attempt})")
-            time.sleep(5 * attempt)
-    return None
 
 
 def extract_next_data(html_text):

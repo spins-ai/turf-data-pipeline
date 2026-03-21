@@ -29,7 +29,7 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
-from utils.scraping import smart_pause
+from utils.scraping import smart_pause, fetch_with_retry
 
 log = setup_logging("102_racing_post")
 
@@ -53,38 +53,6 @@ def new_session():
         "Referer": BASE_URL,
     })
     return s
-
-def fetch_with_retry(session, url, max_retries=3, timeout=30):
-    for attempt in range(1, max_retries + 1):
-        try:
-            resp = session.get(url, timeout=timeout)
-            if resp.status_code == 429:
-                wait = 60 * attempt
-                log.warning(f"  429 Rate limit, pause {wait}s...")
-                time.sleep(wait)
-                continue
-            if resp.status_code == 403:
-                log.warning(f"  403 Forbidden, pause 30s + rotation...")
-                time.sleep(30)
-                session.headers["User-Agent"] = random.choice(USER_AGENTS)
-                continue
-            if resp.status_code == 404:
-                return None
-            if resp.status_code == 406:
-                log.warning(f"  406 Not Acceptable, ajout headers...")
-                session.headers["Accept"] = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
-                time.sleep(5)
-                continue
-            if resp.status_code != 200:
-                log.warning(f"  HTTP {resp.status_code} sur {url} (essai {attempt})")
-                time.sleep(5 * attempt)
-                continue
-            return resp
-        except Exception as e:
-            log.warning(f"  Erreur: {e} (essai {attempt})")
-            time.sleep(5 * attempt)
-    return None
-
 
 def append_jsonl(filepath, record):
     with open(filepath, "a", encoding="utf-8", newline="\n") as f:
