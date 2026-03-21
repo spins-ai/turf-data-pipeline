@@ -14,6 +14,7 @@ import json, os, logging, time
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)-8s | %(message)s")
 log = logging.getLogger(__name__)
+nBASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def enrich_equipement(record):
@@ -121,7 +122,7 @@ def main():
     log.info("POST-PROCESSING ÉQUIPEMENTS")
     log.info("=" * 60)
 
-    path = "data_master/equipements_master.json"
+    path = os.path.join(BASE_DIR, "data_master", "equipements_master.json")
     log.info(f"Chargement {path}...")
     with open(path, encoding="utf-8") as f:
         data = json.load(f)

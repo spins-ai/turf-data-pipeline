@@ -67,7 +67,7 @@ def categorize_distance(dist):
 def load_pedigree_index():
     """Charge le pedigree master et indexe par nom normalisé."""
     index = {}
-    for path in ["data_master/pedigree_master.json",
+    for path in [os.path.join(BASE_DIR, "data_master", "pedigree_master.json"),
                  "output/14_pedigree/pedigrees_pq.jsonl",
                  "output/14_pedigree/pedigrees_pq.json"]:
         if not os.path.exists(path):

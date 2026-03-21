@@ -17,6 +17,7 @@ from datetime import datetime
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)-8s | %(message)s")
 log = logging.getLogger(__name__)
+nBASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 JOURS = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"]
 SAISONS = {1: "hiver", 2: "hiver", 3: "printemps", 4: "printemps", 5: "printemps",
@@ -135,7 +136,7 @@ def main():
     log.info("POST-PROCESSING RAPPORTS")
     log.info("=" * 60)
 
-    path = "data_master/rapports_master.json"
+    path = os.path.join(BASE_DIR, "data_master", "rapports_master.json")
     log.info(f"Chargement {path}...")
     with open(path, encoding="utf-8") as f:
         data = json.load(f)

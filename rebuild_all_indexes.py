@@ -24,6 +24,7 @@ import time
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)-8s | %(message)s")
 log = logging.getLogger(__name__)
+nBASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 INDEX_DIR = os.path.join("data_master", "indexes")
 os.makedirs(INDEX_DIR, exist_ok=True)
@@ -83,8 +84,8 @@ def build_horse_index():
                    "naisseur", "proprietaire"]
 
     # Essayer pedigree_master.json
-    path_json = "data_master/pedigree_master.json"
-    path_csv = "data_master/pedigree_master.csv"
+    path_json = os.path.join(BASE_DIR, "data_master", "pedigree_master.json")
+    path_csv = os.path.join(BASE_DIR, "data_master", "pedigree_master.csv")
 
     if os.path.exists(path_json):
         log.info("  Source: %s", path_json)
@@ -159,7 +160,7 @@ def build_course_index():
                    "terrain", "type_course", "nb_partants",
                    "numero_reunion", "numero_course", "allocation_totale"]
 
-    path = "data_master/courses_master.jsonl"
+    path = os.path.join(BASE_DIR, "data_master", "courses_master.jsonl")
     if not os.path.exists(path):
         log.warning("  [ABSENT] %s", path)
         return index
@@ -256,7 +257,7 @@ def build_hippodrome_index():
 
     hippo_stats = {}
 
-    path = "data_master/courses_master.jsonl"
+    path = os.path.join(BASE_DIR, "data_master", "courses_master.jsonl")
     if not os.path.exists(path):
         log.warning("  [ABSENT] %s", path)
         return {}

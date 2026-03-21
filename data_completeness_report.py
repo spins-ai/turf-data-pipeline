@@ -30,6 +30,7 @@ from datetime import datetime
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)-8s | %(message)s")
 log = logging.getLogger(__name__)
+nBASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 DOCS_DIR = "docs"
 
@@ -46,9 +47,9 @@ def parse_args():
 def detect_source_file():
     """Detecte le meilleur fichier source."""
     candidates = [
-        "data_master/partants_master_v2.jsonl",
-        "data_master/partants_master.jsonl",
-        "data_master/partants_master_enrichi.jsonl",
+        os.path.join(BASE_DIR, "data_master", "partants_master_v2.jsonl"),
+        os.path.join(BASE_DIR, "data_master", "partants_master.jsonl"),
+        os.path.join(BASE_DIR, "data_master", "partants_master_enrichi.jsonl"),
     ]
     for path in candidates:
         if os.path.exists(path):

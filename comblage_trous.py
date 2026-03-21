@@ -50,7 +50,7 @@ def load_reunions_meteo():
     """Index météo/terrain par (date, hippodrome) depuis réunions enrichies."""
     index = {}
     for path in ["output/39_reunions_enrichies/reunions_enrichies.jsonl",
-                 "data_master/meteo_master.json"]:
+                 os.path.join(BASE_DIR, "data_master", "meteo_master.json")]:
         if not os.path.exists(path):
             continue
         log.info(f"  Chargement météo: {path}")

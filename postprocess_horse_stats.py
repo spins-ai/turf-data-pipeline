@@ -18,6 +18,7 @@ from collections import Counter
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)-8s | %(message)s")
 log = logging.getLogger(__name__)
+nBASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def enrich_horse_stats(record):
@@ -143,7 +144,7 @@ def main():
     log.info("POST-PROCESSING HORSE STATS")
     log.info("=" * 60)
 
-    path = "data_master/horse_stats_master.json"
+    path = os.path.join(BASE_DIR, "data_master", "horse_stats_master.json")
     log.info(f"Chargement {path}...")
     with open(path, encoding="utf-8") as f:
         data = json.load(f)

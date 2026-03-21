@@ -46,7 +46,7 @@ def load_meteo_index():
     index = {}
 
     # Essayer meteo_master d'abord
-    for path in ["data_master/meteo_master.json", "output/13_meteo_historique/meteo_historique.json"]:
+    for path in [os.path.join(BASE_DIR, "data_master", "meteo_master.json"), "output/13_meteo_historique/meteo_historique.json"]:
         if not os.path.exists(path):
             continue
         log.info(f"Chargement météo: {path}")

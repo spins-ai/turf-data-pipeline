@@ -334,13 +334,13 @@ def main():
         ("39_reunions", "output/39_reunions_enrichies/reunions_enrichies.jsonl"),
         ("40_enrichissement", "output/40_enrichissement_partants/enrichissement.json"),
         # Masters
-        ("master_pedigree", "data_master/pedigree_master.json"),
-        ("master_rapports", "data_master/rapports_master.json"),
-        ("master_meteo", "data_master/meteo_master.json"),
-        ("master_stats_ext", "data_master/stats_externes_master.json"),
-        ("master_marche", "data_master/marche_master.json"),
-        ("master_equipements", "data_master/equipements_master.json"),
-        ("master_horse_stats", "data_master/horse_stats_master.json"),
+        ("master_pedigree", os.path.join(BASE_DIR, "data_master", "pedigree_master.json")),
+        ("master_rapports", os.path.join(BASE_DIR, "data_master", "rapports_master.json")),
+        ("master_meteo", os.path.join(BASE_DIR, "data_master", "meteo_master.json")),
+        ("master_stats_ext", os.path.join(BASE_DIR, "data_master", "stats_externes_master.json")),
+        ("master_marche", os.path.join(BASE_DIR, "data_master", "marche_master.json")),
+        ("master_equipements", os.path.join(BASE_DIR, "data_master", "equipements_master.json")),
+        ("master_horse_stats", os.path.join(BASE_DIR, "data_master", "horse_stats_master.json")),
     ]
 
     for name, path in files_to_audit:

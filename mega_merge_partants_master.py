@@ -43,6 +43,7 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)-8s | %(message)s")
 log = logging.getLogger(__name__)
+nBASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 # ================================================================
@@ -207,21 +208,21 @@ def main():
 
     # Par course_uid
     idx_rapports = load_json_index(
-        "data_master/rapports_master.json",
+        os.path.join(BASE_DIR, "data_master", "rapports_master.json"),
         "course_uid", "Rapports master")
 
     idx_meteo = load_json_index(
-        "data_master/meteo_master.json",
+        os.path.join(BASE_DIR, "data_master", "meteo_master.json"),
         "course_uid", "Météo master",
         keep_fields={"temperature", "precipitation_mm", "wind_force", "terrain_category",
                      "penetrometre_numeric", "meteo_score", "is_psf"})
 
     # Par nom cheval
     idx_pedigree = load_horse_index(
-        "data_master/pedigree_master.json", "Pedigree master")
+        os.path.join(BASE_DIR, "data_master", "pedigree_master.json"), "Pedigree master")
 
     idx_horse_stats = load_horse_index(
-        "data_master/horse_stats_master.json", "Horse stats master")
+        os.path.join(BASE_DIR, "data_master", "horse_stats_master.json"), "Horse stats master")
 
     # Calculs 41-49
     idx_41 = load_json_index(
@@ -258,17 +259,17 @@ def main():
 
     # Marché
     idx_marche = load_json_index(
-        "data_master/marche_master.json",
+        os.path.join(BASE_DIR, "data_master", "marche_master.json"),
         "course_uid", "Marché master")
 
     # Équipements
     idx_equipements = load_json_index(
-        "data_master/equipements_master.json",
+        os.path.join(BASE_DIR, "data_master", "equipements_master.json"),
         "partant_uid", "Équipements master")
 
     # Stats externes
     idx_stats_ext = load_json_index(
-        "data_master/stats_externes_master.json",
+        os.path.join(BASE_DIR, "data_master", "stats_externes_master.json"),
         "nom_cheval", "Stats externes master")
 
     log.info("")

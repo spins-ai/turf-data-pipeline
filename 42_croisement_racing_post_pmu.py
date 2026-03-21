@@ -43,7 +43,7 @@ def load_racing_post():
     records = []
     for path in ["output/37_racing_post/racing_post_fr.jsonl",
                  "output/37_racing_post/racing_post_fr.json",
-                 "data_master/racing_post_master.json"]:
+                 os.path.join(BASE_DIR, "data_master", "racing_post_master.json")]:
         if not os.path.exists(path):
             continue
         log.info(f"Chargement RP: {path}")
@@ -76,7 +76,7 @@ def load_partants_light():
             "hippodrome_normalise", "distance", "discipline", "position_arrivee",
             "is_gagnant", "is_place", "cote_finale"}
     partants = []
-    for path in ["data_master/partants_master.jsonl",
+    for path in [os.path.join(BASE_DIR, "data_master", "partants_master.jsonl"),
                  "output/02_liste_courses/partants_normalises.jsonl",
                  "output/02_liste_courses/partants_normalises.json"]:
         if not os.path.exists(path):

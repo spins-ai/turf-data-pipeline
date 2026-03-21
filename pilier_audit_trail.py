@@ -490,49 +490,49 @@ def backfill_from_filesystem(audit: AuditTrail):
     # Scanner les scripts et leurs outputs probables
     script_output_map = {
         "merge_pedigree_master.py": [
-            "data_master/pedigree_master.json",
-            "data_master/pedigree_master.csv",
-            "data_master/pedigree_master.parquet",
+            os.path.join(BASE_DIR, "data_master", "pedigree_master.json"),
+            os.path.join(BASE_DIR, "data_master", "pedigree_master.csv"),
+            os.path.join(BASE_DIR, "data_master", "pedigree_master.parquet"),
         ],
         "merge_equipements_master.py": [
-            "data_master/equipements_master.json",
-            "data_master/equipements_master.parquet",
+            os.path.join(BASE_DIR, "data_master", "equipements_master.json"),
+            os.path.join(BASE_DIR, "data_master", "equipements_master.parquet"),
         ],
         "merge_meteo_master.py": [
-            "data_master/meteo_master.json",
-            "data_master/meteo_master.csv",
-            "data_master/meteo_master.parquet",
+            os.path.join(BASE_DIR, "data_master", "meteo_master.json"),
+            os.path.join(BASE_DIR, "data_master", "meteo_master.csv"),
+            os.path.join(BASE_DIR, "data_master", "meteo_master.parquet"),
         ],
         "merge_rapports_master.py": [
-            "data_master/rapports_master.json",
-            "data_master/rapports_master.parquet",
+            os.path.join(BASE_DIR, "data_master", "rapports_master.json"),
+            os.path.join(BASE_DIR, "data_master", "rapports_master.parquet"),
         ],
         "merge_marche_master.py": [
-            "data_master/marche_master.json",
-            "data_master/marche_master.parquet",
+            os.path.join(BASE_DIR, "data_master", "marche_master.json"),
+            os.path.join(BASE_DIR, "data_master", "marche_master.parquet"),
         ],
         "merge_performances_master.py": [
-            "data_master/performances_master.json",
+            os.path.join(BASE_DIR, "data_master", "performances_master.json"),
         ],
         "mega_merge_courses.py": [
-            "data_master/courses_master.jsonl",
-            "data_master/partants_master.jsonl",
+            os.path.join(BASE_DIR, "data_master", "courses_master.jsonl"),
+            os.path.join(BASE_DIR, "data_master", "partants_master.jsonl"),
         ],
-        "postprocess_meteo.py": ["data_master/meteo_master.json"],
-        "postprocess_rapports.py": ["data_master/rapports_master.json"],
-        "postprocess_marche.py": ["data_master/marche_master.json"],
-        "postprocess_equipements.py": ["data_master/equipements_master.json"],
-        "postprocess_horse_stats.py": ["data_master/horse_stats_master.json"],
+        "postprocess_meteo.py": [os.path.join(BASE_DIR, "data_master", "meteo_master.json")],
+        "postprocess_rapports.py": [os.path.join(BASE_DIR, "data_master", "rapports_master.json")],
+        "postprocess_marche.py": [os.path.join(BASE_DIR, "data_master", "marche_master.json")],
+        "postprocess_equipements.py": [os.path.join(BASE_DIR, "data_master", "equipements_master.json")],
+        "postprocess_horse_stats.py": [os.path.join(BASE_DIR, "data_master", "horse_stats_master.json")],
         "entity_resolution.py": [
-            "data_master/partants_master.jsonl",
-            "data_master/courses_master.jsonl",
+            os.path.join(BASE_DIR, "data_master", "partants_master.jsonl"),
+            os.path.join(BASE_DIR, "data_master", "courses_master.jsonl"),
         ],
         "fill_empty_fields.py": [
             "output/02_filled/courses_normalisees.json",
             "output/02_filled/partants_normalises.json",
         ],
         "enrichissement_champs.py": [
-            "data_master/partants_master_enrichi.jsonl",
+            os.path.join(BASE_DIR, "data_master", "partants_master_enrichi.jsonl"),
         ],
     }
 
