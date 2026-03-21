@@ -61,7 +61,8 @@ except ImportError:
 REFERENCES_PATH = Path(__file__).resolve().parent / "output" / "01_calendrier_reunions" / "reunions_references_02_2013_2016.json"
 OUTPUT_DIR = Path(__file__).resolve().parent / "output" / "02b_liste_courses_2013"
 CACHE_DIR = OUTPUT_DIR / "cache"
-LOG_DIR = Path(__file__).resolve().parent / "logs"
+
+from utils.logging_setup import setup_logging
 
 PMU_API_BASE = "https://offline.turfinfo.api.pmu.fr/rest/client/1/programme"
 # Endpoints:
@@ -376,27 +377,6 @@ class PartantNormalise:
 
     # Traçabilité
     timestamp_collecte: str = ""
-
-
-# ===========================================================================
-# LOGGING
-# ===========================================================================
-
-def setup_logging() -> logging.Logger:
-    logger = logging.getLogger("02_liste_courses")
-    logger.setLevel(logging.INFO)
-    fmt = logging.Formatter(
-        "%(asctime)s | %(levelname)-8s | %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-    ch = logging.StreamHandler(sys.stdout)
-    ch.setFormatter(fmt)
-    logger.addHandler(ch)
-    LOG_DIR.mkdir(parents=True, exist_ok=True)
-    fh = logging.FileHandler(LOG_DIR / "02_liste_courses.log", encoding="utf-8")
-    fh.setFormatter(fmt)
-    logger.addHandler(fh)
-    return logger
 
 
 # ===========================================================================
@@ -1091,7 +1071,7 @@ def main():
     parser.add_argument("--max-reunions", type=int, default=0, help="Max réunions à traiter (0=toutes)")
     args = parser.parse_args()
 
-    logger = setup_logging()
+    logger = setup_logging("02_liste_courses")
     logger.info("=" * 70)
     logger.info("02 — COLLECTE COURSES + PARTANTS")
     logger.info("=" * 70)

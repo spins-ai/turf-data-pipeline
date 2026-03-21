@@ -50,7 +50,8 @@ except ImportError:
 
 REFERENCES_PATH = Path(__file__).resolve().parent / "output" / "02_liste_courses" / "courses_references_04.json"
 OUTPUT_DIR = Path(__file__).resolve().parent / "output" / "04_resultats"
-LOG_DIR = Path(__file__).resolve().parent / "logs"
+
+from utils.logging_setup import setup_logging
 
 PMU_API_BASE = "https://offline.turfinfo.api.pmu.fr/rest/client/1/programme"
 # Endpoint: {base}/{DDMMYYYY}/R{num}/C{num}/rapports-definitifs
@@ -90,27 +91,6 @@ class RapportNormalise:
     dividende_euros: Optional[float] = None
     nb_gagnants: Optional[int] = None
     timestamp_collecte: str = ""
-
-
-# ===========================================================================
-# LOGGING
-# ===========================================================================
-
-def setup_logging() -> logging.Logger:
-    logger = logging.getLogger("04_resultats")
-    logger.setLevel(logging.INFO)
-    fmt = logging.Formatter(
-        "%(asctime)s | %(levelname)-8s | %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-    ch = logging.StreamHandler(sys.stdout)
-    ch.setFormatter(fmt)
-    logger.addHandler(ch)
-    LOG_DIR.mkdir(parents=True, exist_ok=True)
-    fh = logging.FileHandler(LOG_DIR / "04_resultats.log", encoding="utf-8")
-    fh.setFormatter(fmt)
-    logger.addHandler(fh)
-    return logger
 
 
 # ===========================================================================
@@ -371,7 +351,7 @@ def main():
     parser.add_argument("--max-courses", type=int, default=0, help="Max courses à traiter (0=toutes)")
     args = parser.parse_args()
 
-    logger = setup_logging()
+    logger = setup_logging("04_resultats")
     logger.info("=" * 70)
     logger.info("04 — COLLECTE RAPPORTS DEFINITIFS")
     logger.info("=" * 70)

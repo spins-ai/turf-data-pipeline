@@ -41,28 +41,8 @@ except ImportError:
 INPUT_PARTANTS = Path(__file__).resolve().parent / "output" / "02_liste_courses" / "partants_normalises.json"
 INPUT_COURSES = Path(__file__).resolve().parent / "output" / "02_liste_courses" / "courses_normalisees.json"
 OUTPUT_DIR = Path(__file__).resolve().parent / "output" / "10_poids_handicaps"
-LOG_DIR = Path(__file__).resolve().parent / "logs"
 
-
-# ===========================================================================
-# LOGGING
-# ===========================================================================
-
-def setup_logging() -> logging.Logger:
-    logger = logging.getLogger("10_poids_handicaps")
-    logger.setLevel(logging.INFO)
-    fmt = logging.Formatter(
-        "%(asctime)s | %(levelname)-8s | %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-    ch = logging.StreamHandler(sys.stdout)
-    ch.setFormatter(fmt)
-    logger.addHandler(ch)
-    LOG_DIR.mkdir(parents=True, exist_ok=True)
-    fh = logging.FileHandler(LOG_DIR / "10_poids_handicaps.log", encoding="utf-8")
-    fh.setFormatter(fmt)
-    logger.addHandler(fh)
-    return logger
+from utils.logging_setup import setup_logging
 
 
 # ===========================================================================
@@ -259,7 +239,7 @@ def main():
     )
     args = parser.parse_args()
 
-    logger = setup_logging()
+    logger = setup_logging("10_poids_handicaps")
     logger.info("=" * 70)
     logger.info("10_poids_handicaps.py — Metriques poids / handicaps")
     logger.info("=" * 70)

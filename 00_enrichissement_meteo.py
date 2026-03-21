@@ -41,6 +41,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from hippodromes_db import get_hippodrome_info
+from utils.logging_setup import setup_logging
 
 # ===========================================================================
 # CONFIGURATION
@@ -93,28 +94,6 @@ WMO_CODES: dict[int, str] = {
     96: "orage_grele_legere",
     99: "orage_grele_forte",
 }
-
-
-# ===========================================================================
-# LOGGING
-# ===========================================================================
-
-def setup_logging(log_file: Optional[Path] = None) -> logging.Logger:
-    logger = logging.getLogger("enrichissement_meteo")
-    logger.setLevel(logging.INFO)
-    fmt = logging.Formatter(
-        "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-    ch = logging.StreamHandler(sys.stdout)
-    ch.setFormatter(fmt)
-    logger.addHandler(ch)
-    if log_file:
-        log_file.parent.mkdir(parents=True, exist_ok=True)
-        fh = logging.FileHandler(log_file, encoding="utf-8")
-        fh.setFormatter(fmt)
-        logger.addHandler(fh)
-    return logger
 
 
 # ===========================================================================
@@ -584,7 +563,7 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    logger = setup_logging(args.log_dir / "enrichissement_meteo.log")
+    logger = setup_logging("enrichissement_meteo", log_dir=args.log_dir)
 
     logger.info("=" * 70)
     logger.info("ENRICHISSEMENT MÉTÉO DES RÉUNIONS")

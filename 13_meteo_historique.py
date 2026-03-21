@@ -63,7 +63,8 @@ except ImportError:
 COURSES_PATH = Path(__file__).resolve().parent / "output" / "02_liste_courses" / "courses_normalisees.json"
 OUTPUT_DIR = Path(__file__).resolve().parent / "output" / "13_meteo_historique"
 CACHE_DIR = OUTPUT_DIR / "cache"
-LOG_DIR = Path(__file__).resolve().parent / "logs"
+
+from utils.logging_setup import setup_logging
 
 
 # ===========================================================================
@@ -165,27 +166,6 @@ class MeteoNormalisee:
     is_windy: bool = False                       # wind > 30 km/h
     is_hot: bool = False                         # temp > 28degC
     is_cold: bool = False                        # temp < 5degC
-
-
-# ===========================================================================
-# LOGGING
-# ===========================================================================
-
-def setup_logging() -> logging.Logger:
-    logger = logging.getLogger("13_meteo_historique")
-    logger.setLevel(logging.INFO)
-    fmt = logging.Formatter(
-        "%(asctime)s | %(levelname)-8s | %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-    ch = logging.StreamHandler(sys.stdout)
-    ch.setFormatter(fmt)
-    logger.addHandler(ch)
-    LOG_DIR.mkdir(parents=True, exist_ok=True)
-    fh = logging.FileHandler(LOG_DIR / "13_meteo_historique.log", encoding="utf-8")
-    fh.setFormatter(fmt)
-    logger.addHandler(fh)
-    return logger
 
 
 # ===========================================================================
@@ -559,7 +539,7 @@ def main():
                         help="Sauvegarde checkpoint tous les N groupes traites")
     args = parser.parse_args()
 
-    logger = setup_logging()
+    logger = setup_logging("13_meteo_historique")
     logger.info("=" * 70)
     logger.info("13_meteo_historique -- Collecte meteo historique via Meteostat")
     logger.info("=" * 70)

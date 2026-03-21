@@ -50,6 +50,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from hippodromes_db import get_hippodrome_info, HIPPODROME_ALIASES
+from utils.logging_setup import setup_logging
 
 # ---------------------------------------------------------------------------
 # Imports optionnels (dégradation gracieuse)
@@ -585,32 +586,6 @@ class RapportQualite:
     duree_totale_secondes: float = 0.0
     timestamp_debut: str = ""
     timestamp_fin: str = ""
-
-
-# ===========================================================================
-# LOGGING
-# ===========================================================================
-
-def setup_logging(config: PipelineConfig) -> logging.Logger:
-    logger = logging.getLogger("calendrier_reunions")
-    logger.setLevel(getattr(logging, config.log_level.upper(), logging.INFO))
-    logger.handlers.clear()
-
-    formatter = logging.Formatter(
-        fmt="%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-    console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setFormatter(formatter)
-    logger.addHandler(console_handler)
-
-    config.dossier_logs.mkdir(parents=True, exist_ok=True)
-    log_file = config.dossier_logs / f"01_calendrier_reunions_{date.today().isoformat()}.log"
-    file_handler = logging.FileHandler(log_file, encoding="utf-8")
-    file_handler.setFormatter(formatter)
-    logger.addHandler(file_handler)
-
-    return logger
 
 
 # ===========================================================================
@@ -1829,7 +1804,7 @@ class CheckpointManager:
 class PipelineCalendrier:
     def __init__(self, config: PipelineConfig) -> None:
         self.config = config
-        self.logger = setup_logging(config)
+        self.logger = setup_logging("calendrier_reunions", log_dir=config.dossier_logs)
         self.http = HttpClient(config, self.logger)
         self.sauvegarder = Sauvegarder(config.dossier_sortie, self.logger)
         self.checkpoint = CheckpointManager(config.dossier_sortie, self.logger)

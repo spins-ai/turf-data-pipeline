@@ -69,7 +69,8 @@ PARTANTS_PATH = Path(__file__).resolve().parent / "output" / "02_liste_courses" 
 OUTPUT_DIR = Path(__file__).resolve().parent / "output" / "12_pedigree"
 CACHE_DIR = OUTPUT_DIR / "cache"
 CHECKPOINT_PATH = OUTPUT_DIR / "checkpoint.json"
-LOG_DIR = Path(__file__).resolve().parent / "logs"
+
+from utils.logging_setup import setup_logging
 
 # Scraping
 REQUEST_PAUSE_S = 1.0          # pause entre requetes
@@ -86,27 +87,6 @@ SOURCE_LETROT = "letrot"
 SOURCE_IFCE = "ifce"
 SOURCE_FRANCESIRE = "francesire"
 ALL_SOURCES = [SOURCE_LETROT, SOURCE_IFCE, SOURCE_FRANCESIRE]
-
-
-# ===========================================================================
-# LOGGING
-# ===========================================================================
-
-def setup_logging(verbose: bool = False) -> logging.Logger:
-    logger = logging.getLogger("12_pedigree_scraper")
-    logger.setLevel(logging.DEBUG if verbose else logging.INFO)
-    fmt = logging.Formatter(
-        "%(asctime)s | %(levelname)-8s | %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-    ch = logging.StreamHandler(sys.stdout)
-    ch.setFormatter(fmt)
-    logger.addHandler(ch)
-    LOG_DIR.mkdir(parents=True, exist_ok=True)
-    fh = logging.FileHandler(LOG_DIR / "12_pedigree_scraper.log", encoding="utf-8")
-    fh.setFormatter(fmt)
-    logger.addHandler(fh)
-    return logger
 
 
 # ===========================================================================
@@ -1300,7 +1280,7 @@ def main():
     CACHE_DIR = OUTPUT_DIR / "cache"
     CHECKPOINT_PATH = OUTPUT_DIR / "checkpoint.json"
 
-    logger = setup_logging(verbose=args.verbose)
+    logger = setup_logging("12_pedigree_scraper")
     logger.info("=" * 70)
     logger.info("12 — PEDIGREE SCRAPER (ENRICHISSEMENT LIGNEES)")
     logger.info("=" * 70)

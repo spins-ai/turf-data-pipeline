@@ -62,7 +62,8 @@ OUTPUT_DIR = Path(__file__).resolve().parent / "output" / "14_pedigree"
 CACHE_DIR = OUTPUT_DIR / "cache"
 CHECKPOINT_PATH = OUTPUT_DIR / "checkpoint.json"
 OUTPUT_JSONL = OUTPUT_DIR / "pedigrees_pq.jsonl"
-LOG_DIR = Path(__file__).resolve().parent / "logs"
+
+from utils.logging_setup import setup_logging
 
 BASE_URL = "https://www.pedigreequery.com"
 REQUEST_PAUSE_S = 1.0
@@ -108,27 +109,6 @@ class PedigreeRecord:
     source: str = "pedigreequery"
     found: bool = False
     timestamp_collecte: str = ""
-
-
-# ===========================================================================
-# LOGGING
-# ===========================================================================
-
-def setup_logging(verbose: bool = False) -> logging.Logger:
-    logger = logging.getLogger("14_pedigree_scraper")
-    logger.setLevel(logging.DEBUG if verbose else logging.INFO)
-    fmt = logging.Formatter(
-        "%(asctime)s | %(levelname)-8s | %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-    ch = logging.StreamHandler(sys.stdout)
-    ch.setFormatter(fmt)
-    logger.addHandler(ch)
-    LOG_DIR.mkdir(parents=True, exist_ok=True)
-    fh = logging.FileHandler(LOG_DIR / "14_pedigree.log", encoding="utf-8")
-    fh.setFormatter(fmt)
-    logger.addHandler(fh)
-    return logger
 
 
 # ===========================================================================
@@ -831,7 +811,7 @@ def main():
     )
     args = parser.parse_args()
 
-    logger = setup_logging(verbose=args.verbose)
+    logger = setup_logging("14_pedigree_scraper")
     logger.info("=" * 70)
     logger.info("14 — PEDIGREE SCRAPER PEDIGREEQUERY.COM (PUR-SANG) — MODE JSONL")
     logger.info("=" * 70)

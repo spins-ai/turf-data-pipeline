@@ -66,7 +66,8 @@ except ImportError:
 REFERENCES_PATH = Path(__file__).resolve().parent / "output" / "01_calendrier_reunions" / "reunions_references_02.json"
 OUTPUT_DIR = Path(__file__).resolve().parent / "output" / "02b_scraper_letrot"
 CACHE_DIR = OUTPUT_DIR / "cache"
-LOG_DIR = Path(__file__).resolve().parent / "logs"
+
+from utils.logging_setup import setup_logging
 
 LETROT_BASE = "https://www.letrot.com"
 LETROT_PROGRAMME = f"{LETROT_BASE}/courses/programme"
@@ -360,27 +361,6 @@ class PartantNormalise:
     proba_implicite: Optional[float] = None
 
     timestamp_collecte: str = ""
-
-
-# ===========================================================================
-# LOGGING
-# ===========================================================================
-
-def setup_logging() -> logging.Logger:
-    logger = logging.getLogger("02b_scraper_letrot")
-    logger.setLevel(logging.INFO)
-    fmt = logging.Formatter(
-        "%(asctime)s | %(levelname)-8s | %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-    ch = logging.StreamHandler(sys.stdout)
-    ch.setFormatter(fmt)
-    logger.addHandler(ch)
-    LOG_DIR.mkdir(parents=True, exist_ok=True)
-    fh = logging.FileHandler(LOG_DIR / "02b_scraper_letrot.log", encoding="utf-8")
-    fh.setFormatter(fmt)
-    logger.addHandler(fh)
-    return logger
 
 
 # ===========================================================================
@@ -1821,7 +1801,7 @@ def main():
                         help="Repart de zero (ignore le checkpoint)")
     args = parser.parse_args()
 
-    logger = setup_logging()
+    logger = setup_logging("02b_scraper_letrot")
     logger.info("=" * 70)
     logger.info("02b -- COLLECTE COURSES + PARTANTS LE TROT (HORS-PMU)")
     logger.info("=" * 70)
