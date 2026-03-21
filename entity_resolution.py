@@ -23,9 +23,9 @@ Usage : python3 entity_resolution.py
 import json, os, logging, time, hashlib, unicodedata, re
 
 from utils.normalize import normalize_name
+from utils.logging_setup import setup_logging
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)-8s | %(message)s")
-log = logging.getLogger(__name__)
+log = setup_logging("entity_resolution")
 
 DATA_DIR = "data_master"
 OUTPUT = os.path.join(DATA_DIR, "partants_complets.json")

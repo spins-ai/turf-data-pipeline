@@ -12,6 +12,7 @@ import json
 import logging
 import os
 import random
+import sys
 import re
 import time
 from datetime import datetime
@@ -23,12 +24,10 @@ except ImportError:
 import requests
 from bs4 import BeautifulSoup
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)-8s | %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
-log = logging.getLogger(__name__)
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from utils.logging_setup import setup_logging
+
+log = setup_logging("batch_scraper")
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",

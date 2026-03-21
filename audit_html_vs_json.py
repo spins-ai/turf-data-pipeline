@@ -18,6 +18,7 @@ import argparse
 import json
 import logging
 import os
+import sys
 import time
 from collections import defaultdict
 from pathlib import Path
@@ -31,15 +32,10 @@ LOG_DIR = BASE_DIR / "logs"
 LOG_DIR.mkdir(exist_ok=True)
 AUDIT_DIR.mkdir(exist_ok=True)
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)-8s | %(message)s",
-    handlers=[
-        logging.FileHandler(LOG_DIR / "audit_html_vs_json.log", encoding="utf-8"),
-        logging.StreamHandler(),
-    ],
-)
-log = logging.getLogger(__name__)
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from utils.logging_setup import setup_logging
+
+log = setup_logging("audit_html_vs_json")
 
 
 # ── HTML field extractor ──────────────────────────────────────────────

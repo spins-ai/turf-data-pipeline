@@ -12,6 +12,7 @@ import json
 import logging
 import os
 import random
+import sys
 import re
 import time
 from datetime import datetime, timedelta
@@ -26,12 +27,10 @@ CHECKPOINT_FILE = os.path.join(OUTPUT_DIR, ".checkpoint.json")
 
 os.makedirs(CACHE_DIR, exist_ok=True)
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)-8s | %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
-log = logging.getLogger(__name__)
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from utils.logging_setup import setup_logging
+
+log = setup_logging("102_racing_post")
 
 BASE_URL = "https://www.racingpost.com"
 USER_AGENTS = [

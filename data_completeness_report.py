@@ -27,8 +27,10 @@ import time
 from collections import defaultdict
 from datetime import datetime
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)-8s | %(message)s")
-log = logging.getLogger(__name__)
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from utils.logging_setup import setup_logging
+
+log = setup_logging("data_completeness_report")
 nBASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 DOCS_DIR = "docs"
