@@ -166,7 +166,7 @@ def parse_geny_pronostics():
     log.info("SOURCE 2 : Geny pronostics HTML (2020-2026)")
     log.info("=" * 60)
 
-    geny_path = "output/26_geny/geny_data.json"
+    geny_path = os.path.join(BASE_DIR, "output", "26_geny", "geny_data.json")
     if not os.path.exists(geny_path):
         log.warning("  Pas de données Geny trouvées")
         return []
@@ -353,8 +353,8 @@ def load_courses():
     courses = []
     seen = set()
     for path in [
-        "output/02_liste_courses/courses_normalisees.json",
-        "output/02b_liste_courses_2013/courses_normalisees.json",
+        os.path.join(BASE_DIR, "output", "02_liste_courses", "courses_normalisees.json"),
+        os.path.join(BASE_DIR, "output", "02b_liste_courses_2013", "courses_normalisees.json"),
     ]:
         if os.path.exists(path):
             try:

@@ -113,7 +113,7 @@ def main():
     output_file = os.path.join(OUTPUT_DIR, "meteo_france_hippodromes.json")
     
     # Charger les dates de courses depuis nos données
-    courses_file = "output/02_liste_courses/courses_normalisees.json"
+    courses_file = os.path.join(BASE_DIR, "output", "02_liste_courses", "courses_normalisees.json")
     if os.path.exists(courses_file):
         with open(courses_file, encoding="utf-8") as f:
             courses = json.load(f)

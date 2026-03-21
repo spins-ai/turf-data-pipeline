@@ -59,7 +59,7 @@ def smart_pause(base=0.4, jitter=0.2):
 
 def load_reunions():
     """Charge les reunions PMU depuis reunions_references_02.json"""
-    path = "output/01_calendrier_reunions/reunions_references_02.json"
+    path = os.path.join(BASE_DIR, "output", "01_calendrier_reunions", "reunions_references_02.json")
     if not os.path.exists(path):
         log.error(f"Fichier introuvable : {path}")
         return []

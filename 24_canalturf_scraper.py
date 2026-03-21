@@ -17,7 +17,8 @@ from datetime import datetime
 from bs4 import BeautifulSoup
 
 SCRIPT_NAME = "24_canalturf"
-OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output", SCRIPT_NAME)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+OUTPUT_DIR = os.path.join(BASE_DIR, "output", SCRIPT_NAME)
 CACHE_DIR = os.path.join(OUTPUT_DIR, "cache")
 os.makedirs(CACHE_DIR, exist_ok=True)
 
@@ -58,8 +59,8 @@ def load_horse_ids():
     """Extraire les IDs chevaux depuis les partants PMU (id_nav_partant)"""
     ids = set()
     for path in [
-        "output/02_liste_courses/partants_normalises.json",
-        "output/02b_liste_courses_2013/partants_normalises.json",
+        os.path.join(BASE_DIR, "output", "02_liste_courses", "partants_normalises.json"),
+        os.path.join(BASE_DIR, "output", "02b_liste_courses_2013", "partants_normalises.json"),
     ]:
         if os.path.exists(path):
             with open(path, encoding="utf-8") as f:
