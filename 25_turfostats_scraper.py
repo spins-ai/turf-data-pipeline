@@ -198,9 +198,9 @@ def main():
         if day_count % 30 == 0:
             log.info(f"  {date_str} | {len(all_courses)} courses, {len(all_details)} détails")
             # Sauvegarde intermédiaire
-            with open(os.path.join(OUTPUT_DIR, "turfostats_courses.json"), "w") as f:
+            with open(os.path.join(OUTPUT_DIR, "turfostats_courses.json"), "w", encoding="utf-8") as f:
                 json.dump(all_courses, f, ensure_ascii=False)
-            with open(os.path.join(OUTPUT_DIR, "turfostats_details.json"), "w") as f:
+            with open(os.path.join(OUTPUT_DIR, "turfostats_details.json"), "w", encoding="utf-8") as f:
                 json.dump(all_details, f, ensure_ascii=False)
 
         if day_count % 100 == 0:
@@ -213,9 +213,9 @@ def main():
 
     # Sauvegarde finale
     log.info("Sauvegarde finale...")
-    with open(os.path.join(OUTPUT_DIR, "turfostats_courses.json"), "w") as f:
+    with open(os.path.join(OUTPUT_DIR, "turfostats_courses.json"), "w", encoding="utf-8") as f:
         json.dump(all_courses, f, ensure_ascii=False)
-    with open(os.path.join(OUTPUT_DIR, "turfostats_details.json"), "w") as f:
+    with open(os.path.join(OUTPUT_DIR, "turfostats_details.json"), "w", encoding="utf-8") as f:
         json.dump(all_details, f, ensure_ascii=False)
 
     log.info("=" * 60)
