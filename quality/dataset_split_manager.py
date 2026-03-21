@@ -35,7 +35,7 @@ import pandas as pd
 # ===========================================================================
 
 LOG_DIR = Path("logs")
-OUTPUT_DIR = Path("output/quality")
+OUTPUT_DIR = Path(__file__).resolve().parent.parent / "output" / "quality"
 
 DEFAULT_TRAIN_END = "2024-01-01"
 DEFAULT_VAL_END = "2024-07-01"

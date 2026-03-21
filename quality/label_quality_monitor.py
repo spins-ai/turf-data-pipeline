@@ -37,7 +37,7 @@ import pandas as pd
 # ===========================================================================
 
 LOG_DIR = Path("logs")
-OUTPUT_DIR = Path("output/quality")
+OUTPUT_DIR = Path(__file__).resolve().parent.parent / "output" / "quality"
 
 # Tolerance pour le taux de victoire attendu
 WIN_RATE_TOLERANCE = 0.03  # +/- 3 points de pourcentage

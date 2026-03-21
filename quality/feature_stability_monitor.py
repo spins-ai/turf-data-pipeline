@@ -34,7 +34,7 @@ import pandas as pd
 # ===========================================================================
 
 LOG_DIR = Path("logs")
-OUTPUT_DIR = Path("output/quality")
+OUTPUT_DIR = Path(__file__).resolve().parent.parent / "output" / "quality"
 
 DATE_COL = "date_reunion_iso"
 PSI_THRESHOLD = 0.25
@@ -488,7 +488,7 @@ def main():
             print(f"  ! {feat}: PSI={psi_val:.4f}")
 
     # Sauvegarder
-    output_path = Path(args.output) if args.output else Path("output/quality/feature_stability_report.json")
+    output_path = Path(args.output) if args.output else Path(__file__).resolve().parent.parent / "output" / "quality" / "feature_stability_report.json"
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(report, f, ensure_ascii=False, indent=2, default=str)

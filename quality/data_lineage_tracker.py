@@ -43,7 +43,7 @@ from typing import Any, Optional
 # ===========================================================================
 
 LOG_DIR = Path("logs")
-DEFAULT_LINEAGE_FILE = Path("output/quality/data_lineage.json")
+DEFAULT_LINEAGE_FILE = Path(__file__).resolve().parent.parent / "output" / "quality" / "data_lineage.json"
 
 
 # ===========================================================================

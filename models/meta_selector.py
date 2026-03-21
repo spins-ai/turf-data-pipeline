@@ -29,8 +29,8 @@ from models.baseline_models import BaseModel, compute_metrics, setup_logging
 # CONFIG
 # ===========================================================================
 
-LOG_DIR = Path("logs")
-OUTPUT_DIR = Path("output/models")
+LOG_DIR = Path(__file__).resolve().parent.parent / "logs"
+OUTPUT_DIR = Path(__file__).resolve().parent.parent / "output" / "models"
 
 DEFAULT_MIN_CONTEXT_SAMPLES = 50  # Minimum de courses pour faire confiance au contexte
 
