@@ -26,6 +26,7 @@ from bs4 import BeautifulSoup
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
+from utils.scraping import append_jsonl
 
 log = setup_logging("batch_scraper")
 
@@ -297,10 +298,6 @@ def extract_page_data(soup, url, source_name, date_iso):
 
     return records
 
-
-def append_jsonl(filepath, record):
-    with open(filepath, "a", encoding="utf-8", newline="\n") as f:
-        f.write(json.dumps(record, ensure_ascii=False) + "\n")
 
 
 def scrape_site(name, config, use_cloudscraper=False, max_pages=50):

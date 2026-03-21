@@ -28,6 +28,7 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
+from utils.scraping import append_jsonl, load_checkpoint, save_checkpoint
 
 log = setup_logging("101_pmu_api")
 
@@ -65,22 +66,6 @@ def api_get(session, endpoint, max_retries=3, timeout=20):
             time.sleep(3 * attempt)
     return None
 
-
-def append_jsonl(filepath, record):
-    with open(filepath, "a", encoding="utf-8", newline="\n") as f:
-        f.write(json.dumps(record, ensure_ascii=False) + "\n")
-
-
-def load_checkpoint():
-    if os.path.exists(CHECKPOINT_FILE):
-        with open(CHECKPOINT_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return {}
-
-
-def save_checkpoint(data):
-    with open(CHECKPOINT_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
 
 
 def date_to_pmu(dt):
@@ -299,7 +284,7 @@ def main():
     log.info(f"  API : {BASE_API}")
     log.info("=" * 60)
 
-    checkpoint = load_checkpoint()
+    checkpoint = load_checkpoint(CHECKPOINT_FILE)
     last_date = checkpoint.get("last_date")
     if args.resume and last_date:
         resume_date = datetime.strptime(last_date, "%Y-%m-%d") + timedelta(days=1)
@@ -342,7 +327,7 @@ def main():
         if day_count % 10 == 0:
             log.info(f"  === Jour {day_count}: total {grand_total_courses} courses, "
                      f"{grand_total_participants} partants, {grand_total_records} records ===")
-            save_checkpoint({
+            save_checkpoint(CHECKPOINT_FILE, {
                 "last_date": date_str,
                 "total_courses": grand_total_courses,
                 "total_participants": grand_total_participants,
@@ -360,7 +345,7 @@ def main():
         # Pause très légère entre jours (API pas agressive)
         time.sleep(random.uniform(0.5, 1.5))
 
-    save_checkpoint({
+    save_checkpoint(CHECKPOINT_FILE, {
         "last_date": (current - timedelta(days=1)).strftime("%Y-%m-%d"),
         "total_courses": grand_total_courses,
         "total_participants": grand_total_participants,
