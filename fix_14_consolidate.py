@@ -10,8 +10,8 @@ and exports to output/14_pedigree/pedigrees_pq.json.
 import json
 from pathlib import Path
 
-CACHE_DIR = Path("output/14_pedigree/cache")
-OUTPUT_PATH = Path("output/14_pedigree/pedigrees_pq.json")
+CACHE_DIR = Path(__file__).resolve().parent / "output" / "14_pedigree" / "cache"
+OUTPUT_PATH = Path(__file__).resolve().parent / "output" / "14_pedigree" / "pedigrees_pq.json"
 
 
 def main():

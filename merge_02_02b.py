@@ -30,12 +30,12 @@ except ImportError:
 # ---------------------------------------------------------------------------
 BASE = os.path.dirname(os.path.abspath(__file__))
 
-PMU_COURSES   = os.path.join(BASE, "output/02_liste_courses/courses_normalisees.json")
-PMU_PARTANTS  = os.path.join(BASE, "output/02_liste_courses/partants_normalises.json")
-LT_COURSES    = os.path.join(BASE, "output/02b_scraper_letrot/courses_normalisees.json")
-LT_PARTANTS   = os.path.join(BASE, "output/02b_scraper_letrot/partants_normalises.json")
+PMU_COURSES   = os.path.join(BASE, os.path.join(BASE, "output", "02_liste_courses", "courses_normalisees.json"))
+PMU_PARTANTS  = os.path.join(BASE, os.path.join(BASE, "output", "02_liste_courses", "partants_normalises.json"))
+LT_COURSES    = os.path.join(BASE, os.path.join(BASE, "output", "02b_scraper_letrot", "courses_normalisees.json"))
+LT_PARTANTS   = os.path.join(BASE, os.path.join(BASE, "output", "02b_scraper_letrot", "partants_normalises.json"))
 
-OUT_DIR       = os.path.join(BASE, "output/02_merged")
+OUT_DIR       = os.path.join(BASE, os.path.join(BASE, "output", "02_merged"))
 OUT_COURSES   = os.path.join(OUT_DIR, "courses_normalisees.json")
 OUT_PARTANTS  = os.path.join(OUT_DIR, "partants_normalises.json")
 

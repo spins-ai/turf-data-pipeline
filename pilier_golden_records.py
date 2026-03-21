@@ -277,7 +277,7 @@ def find_data_files() -> list[tuple]:
                 dirs[:] = [d for d in dirs if d not in skip_dirs]
                 for fname in filenames:
                     if fname.endswith((".json", ".jsonl")) and not fname.endswith((".tmp", ".bak")):
-                        files.append((Path(root) / fname, f"output/{subdir.name}"))
+                        files.append((Path(root) / fname, fos.path.join(BASE_DIR, "output", "{subdir.name}")))
 
     return files
 

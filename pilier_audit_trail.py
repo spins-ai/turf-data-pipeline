@@ -528,8 +528,8 @@ def backfill_from_filesystem(audit: AuditTrail):
             os.path.join(BASE_DIR, "data_master", "courses_master.jsonl"),
         ],
         "fill_empty_fields.py": [
-            "output/02_filled/courses_normalisees.json",
-            "output/02_filled/partants_normalises.json",
+            os.path.join(BASE_DIR, "output", "02_filled", "courses_normalisees.json"),
+            os.path.join(BASE_DIR, "output", "02_filled", "partants_normalises.json"),
         ],
         "enrichissement_champs.py": [
             os.path.join(BASE_DIR, "data_master", "partants_master_enrichi.jsonl"),
@@ -540,7 +540,7 @@ def backfill_from_filesystem(audit: AuditTrail):
     for fname in sorted(os.listdir(BASE_DIR)):
         if fname.startswith("feat_") and fname.endswith(".py"):
             feat_name = fname.replace(".py", "").replace("feat_", "")
-            output_file = f"output/features/{feat_name}_features.jsonl"
+            output_file = fos.path.join(BASE_DIR, "output", "features", "{feat_name}_features.jsonl")
             if (BASE_DIR / output_file).exists():
                 script_output_map[fname] = [output_file]
 

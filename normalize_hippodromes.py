@@ -339,9 +339,9 @@ def main():
 
     # -- Output merge files
     merge_outputs = [
-        "output/02_liste_courses/courses_enrichies.json",
-        "output/02_liste_courses/courses_normalisees.json",
-        "output/02_liste_courses/partants_normalises.json",
+        os.path.join(BASE_DIR, "output", "02_liste_courses", "courses_enrichies.json"),
+        os.path.join(BASE_DIR, "output", "02_liste_courses", "courses_normalisees.json"),
+        os.path.join(BASE_DIR, "output", "02_liste_courses", "partants_normalises.json"),
     ]
 
     print("\n[4] Traitement des fichiers merge (output/) ...")
@@ -357,8 +357,8 @@ def main():
 
     # -- JSONL output files
     jsonl_outputs = [
-        "output/02_liste_courses/partants_normalises.jsonl",
-        "output/02_liste_courses/courses_normalisees.jsonl",
+        os.path.join(BASE_DIR, "output", "02_liste_courses", "partants_normalises.jsonl"),
+        os.path.join(BASE_DIR, "output", "02_liste_courses", "courses_normalisees.jsonl"),
     ]
 
     print("\n[5] Traitement des fichiers JSONL (output/) ...")

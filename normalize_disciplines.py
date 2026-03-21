@@ -286,9 +286,9 @@ def main():
 
     # -- Output JSON files
     output_json = [
-        "output/02_liste_courses/courses_enrichies.json",
-        "output/02_liste_courses/courses_normalisees.json",
-        "output/02_liste_courses/partants_normalises.json",
+        os.path.join(BASE_DIR, "output", "02_liste_courses", "courses_enrichies.json"),
+        os.path.join(BASE_DIR, "output", "02_liste_courses", "courses_normalisees.json"),
+        os.path.join(BASE_DIR, "output", "02_liste_courses", "partants_normalises.json"),
     ]
 
     print("\n[3] Fichiers JSON (output/) ...")
@@ -301,11 +301,11 @@ def main():
 
     # -- Output JSONL files
     output_jsonl = [
-        "output/02_liste_courses/partants_normalises.jsonl",
-        "output/02_liste_courses/courses_normalisees.jsonl",
-        "output/41_sequences/sequences_performances.jsonl",
-        "output/42_croisement_rp_pmu/croisement_rp_pmu.jsonl",
-        "output/43_croisement_meteo_courses/croisement_meteo_courses.jsonl",
+        os.path.join(BASE_DIR, "output", "02_liste_courses", "partants_normalises.jsonl"),
+        os.path.join(BASE_DIR, "output", "02_liste_courses", "courses_normalisees.jsonl"),
+        os.path.join(BASE_DIR, "output", "41_sequences", "sequences_performances.jsonl"),
+        os.path.join(BASE_DIR, "output", "42_croisement_rp_pmu", "croisement_rp_pmu.jsonl"),
+        os.path.join(BASE_DIR, "output", "43_croisement_meteo_courses", "croisement_meteo_courses.jsonl"),
     ]
 
     print("\n[4] Fichiers JSONL (output/) ...")

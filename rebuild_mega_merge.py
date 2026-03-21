@@ -152,7 +152,7 @@ def main():
 
     # Par partant_uid
     idx_enrichissement = load_json_index(
-        "output/40_enrichissement_partants/enrichissement.json",
+        os.path.join(BASE_DIR, "output", "40_enrichissement_partants", "enrichissement.json"),
         "partant_uid", "Enrichissement 40")
 
     # Par course_uid
@@ -175,35 +175,35 @@ def main():
 
     # Calculs 41-49
     idx_41 = load_json_index(
-        "output/41_sequences/sequences_performances.jsonl",
+        os.path.join(BASE_DIR, "output", "41_sequences", "sequences_performances.jsonl"),
         "partant_uid", "41 Sequences")
 
     idx_42 = load_json_index(
-        "output/42_croisement_rp/croisement_rp_pmu.jsonl",
+        os.path.join(BASE_DIR, "output", "42_croisement_rp", "croisement_rp_pmu.jsonl"),
         "partant_uid", "42 Racing Post")
 
     idx_43 = load_json_index(
-        "output/43_croisement_meteo/croisement_meteo_courses.jsonl",
+        os.path.join(BASE_DIR, "output", "43_croisement_meteo", "croisement_meteo_courses.jsonl"),
         "partant_uid", "43 Meteo")
 
     idx_44 = load_json_index(
-        "output/44_croisement_pedigree/croisement_pedigree_partants.jsonl",
+        os.path.join(BASE_DIR, "output", "44_croisement_pedigree", "croisement_pedigree_partants.jsonl"),
         "partant_uid", "44 Pedigree")
 
     idx_45 = load_json_index(
-        "output/45_graphe_gnn/graph_features_partants.jsonl",
+        os.path.join(BASE_DIR, "output", "45_graphe_gnn", "graph_features_partants.jsonl"),
         "partant_uid", "45 Graphe GNN")
 
     idx_46 = load_json_index(
-        "output/46_track_bias_speed/track_bias_speed_class.jsonl",
+        os.path.join(BASE_DIR, "output", "46_track_bias_speed", "track_bias_speed_class.jsonl"),
         "partant_uid", "46 Track/Speed/Class")
 
     idx_48 = load_json_index(
-        "output/48_conditions_texte/conditions_parsees.jsonl",
+        os.path.join(BASE_DIR, "output", "48_conditions_texte", "conditions_parsees.jsonl"),
         "course_uid", "48 Conditions texte")
 
     idx_49 = load_json_index(
-        "output/49_ecart_cotes/ecart_cotes_market.jsonl",
+        os.path.join(BASE_DIR, "output", "49_ecart_cotes", "ecart_cotes_market.jsonl"),
         "partant_uid", "49 Ecart cotes")
 
     # Marche

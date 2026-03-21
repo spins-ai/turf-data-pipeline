@@ -319,7 +319,7 @@ def main():
         output_sources = scan_output_sources(OUTPUT_DIR)
         print(f"  {len(output_sources)} sources output trouvees")
         for name, info in output_sources.items():
-            all_sources[f"output/{name}"] = info
+            all_sources[fos.path.join(BASE_DIR, "output", "{name}")] = info
 
     if not all_sources:
         print("Aucune source trouvee.")

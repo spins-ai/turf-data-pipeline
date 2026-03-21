@@ -120,9 +120,9 @@ def build_horse_index():
                     index[nom] = entry
     else:
         # Fallback: essayer les fichiers output
-        for path in ["output/08_pedigree/pedigree.json",
-                      "output/12_pedigree/pedigree.json",
-                      "output/14_pedigree/pedigree.json"]:
+        for path in [os.path.join(BASE_DIR, "output", "08_pedigree", "pedigree.json"),
+                      os.path.join(BASE_DIR, "output", "12_pedigree", "pedigree.json"),
+                      os.path.join(BASE_DIR, "output", "14_pedigree", "pedigree.json")]:
             if os.path.exists(path):
                 log.info("  Source fallback: %s", path)
                 data = load_json_safe(path)
@@ -199,8 +199,8 @@ def build_jockey_index():
 
     # Essayer output/06_historique_jockeys/
     sources = [
-        "output/06_historique_jockeys/historique_jockeys.json",
-        "output/06_historique_jockeys/historique_jockeys.jsonl",
+        os.path.join(BASE_DIR, "output", "06_historique_jockeys", "historique_jockeys.json"),
+        os.path.join(BASE_DIR, "output", "06_historique_jockeys", "historique_jockeys.jsonl"),
     ]
 
     loaded = False

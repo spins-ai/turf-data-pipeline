@@ -369,11 +369,11 @@ def sauver_parquet(data: list[dict], fichier: Path, logger: logging.Logger) -> N
 def main() -> None:
     parser = argparse.ArgumentParser(description="Enrichissement météo via NASA POWER")
     parser.add_argument("--input", "-i", type=Path,
-                        default=Path("output/01_calendrier_reunions/reunions_normalisees.json"))
+                        default=Path(__file__).resolve().parent / "output" / "01_calendrier_reunions" / "reunions_normalisees.json")
     parser.add_argument("--output", "-o", type=Path,
-                        default=Path("output/01_calendrier_reunions/reunions_normalisees_meteo.json"))
+                        default=Path(__file__).resolve().parent / "output" / "01_calendrier_reunions" / "reunions_normalisees_meteo.json")
     parser.add_argument("--cache", type=Path,
-                        default=Path("output/01_calendrier_reunions/nasa_meteo_cache.json"))
+                        default=Path(__file__).resolve().parent / "output" / "01_calendrier_reunions" / "nasa_meteo_cache.json")
     parser.add_argument("--pause", type=float, default=1.0, help="Pause entre requêtes (s)")
     parser.add_argument("--log-dir", type=Path, default=Path("logs"))
     parser.add_argument("--export-csv", action="store_true")
