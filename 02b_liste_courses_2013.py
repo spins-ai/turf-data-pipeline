@@ -56,7 +56,6 @@ OUTPUT_DIR = Path(__file__).resolve().parent / "output" / "02b_liste_courses_201
 CACHE_DIR = OUTPUT_DIR / "cache"
 
 from utils.logging_setup import setup_logging
-from utils.normalize import normaliser_texte
 from utils.output import sauver_json, sauver_csv, sauver_parquet
 from utils.types import utc_now_iso
 

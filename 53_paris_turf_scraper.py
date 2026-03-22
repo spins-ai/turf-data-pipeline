@@ -37,7 +37,7 @@ os.makedirs(HTML_CACHE_DIR, exist_ok=True)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
-from utils.scraping import smart_pause, append_jsonl, load_checkpoint, save_checkpoint
+from utils.scraping import smart_pause, append_jsonl
 
 log = setup_logging("53_paris_turf")
 

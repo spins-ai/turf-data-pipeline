@@ -25,7 +25,6 @@ import math
 from collections import defaultdict
 from pathlib import Path
 
-from utils.normalize import strip_accents
 from utils.types import safe_int, safe_float
 
 BASE_DIR = Path(__file__).resolve().parent

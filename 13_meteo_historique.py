@@ -59,7 +59,6 @@ CACHE_DIR = OUTPUT_DIR / "cache"
 
 from utils.logging_setup import setup_logging
 from utils.output import sauver_json, sauver_csv, sauver_parquet
-from utils.types import utc_now_iso
 
 
 # ===========================================================================

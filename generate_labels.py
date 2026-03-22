@@ -38,7 +38,6 @@ from typing import Any, Dict, List, Optional
 
 from utils.types import safe_int
 from utils.types import safe_float as _safe_float
-from utils.output import save_jsonl
 
 # Imports optionnels
 try:

@@ -55,7 +55,6 @@ REFERENCES_PATH = Path(__file__).resolve().parent / "output" / "01_calendrier_re
 OUTPUT_DIR = Path(__file__).resolve().parent / "output" / "02_liste_courses"
 CACHE_DIR = OUTPUT_DIR / "cache"
 from utils.logging_setup import setup_logging
-from utils.normalize import normaliser_texte
 from utils.types import utc_now_iso
 
 PMU_API_BASE = "https://offline.turfinfo.api.pmu.fr/rest/client/1/programme"
