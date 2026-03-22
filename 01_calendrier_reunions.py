@@ -52,6 +52,7 @@ from urllib3.util.retry import Retry
 from hippodromes_db import get_hippodrome_info, HIPPODROME_ALIASES
 from utils.logging_setup import setup_logging
 from utils.normalize import normaliser_texte as _normaliser_texte_base
+from utils.output import sauver_json as _sauver_json, sauver_csv as _sauver_csv, sauver_parquet as _sauver_parquet
 from utils.types import utc_now_iso
 
 # ---------------------------------------------------------------------------
@@ -1675,73 +1676,27 @@ class Sauvegarder:
         self.dossier.mkdir(parents=True, exist_ok=True)
 
     def sauver_json(self, data: list[dict[str, Any]], nom: str) -> Path:
+        """Delegate to utils.output.sauver_json."""
         path = self.dossier / nom
-        tmp = path.with_suffix(".tmp")
-        try:
-            with open(tmp, "w", encoding="utf-8") as f:
-                json.dump(data, f, ensure_ascii=False, indent=2, default=str)
-            tmp.rename(path)
-            self.logger.info("JSON: %s (%d enreg.)", path, len(data))
-        except Exception as e:
-            self.logger.error("Erreur JSON %s: %s", path, e)
-            if tmp.exists():
-                tmp.unlink()
-            raise
+        _sauver_json(data, path, self.logger)
         return path
 
     def sauver_parquet(self, data: list[dict[str, Any]], nom: str) -> Optional[Path]:
-        if not HAS_PARQUET:
-            self.logger.warning("pyarrow absent, Parquet ignoré")
-            return None
+        """Delegate to utils.output.sauver_parquet."""
         path = self.dossier / nom
-        tmp = path.with_suffix(".tmp.parquet")
-        try:
-            clean = []
-            for row in data:
-                cr = {}
-                for k, v in row.items():
-                    cr[k] = json.dumps(v, ensure_ascii=False) if isinstance(v, (list, dict)) else v
-                clean.append(cr)
-            table = pa.Table.from_pylist(clean)
-            # Metadata pour indiquer les champs JSON sérialisés
-            json_fields = [k for k, v in data[0].items() if isinstance(v, (list, dict))] if data else []
-            if json_fields:
-                existing_meta = table.schema.metadata or {}
-                existing_meta[b"json_serialized_fields"] = json.dumps(json_fields).encode("utf-8")
-                table = table.replace_schema_metadata(existing_meta)
-            pq.write_table(table, tmp, compression="snappy")
-            tmp.rename(path)
-            self.logger.info("Parquet: %s (%d enreg.)", path, len(data))
-        except Exception as e:
-            self.logger.error("Erreur Parquet %s: %s", path, e)
-            if tmp.exists():
-                tmp.unlink()
-            raise
+        _sauver_parquet(data, path, self.logger)
+        # sauver_parquet silently returns on missing pyarrow or empty data
+        if not path.exists():
+            return None
         return path
 
     def sauver_csv(self, data: list[dict[str, Any]], nom: str) -> Path:
+        """Delegate to utils.output.sauver_csv."""
         path = self.dossier / nom
-        tmp = path.with_suffix(".tmp.csv")
-        try:
-            if not data:
-                path.write_text("", encoding="utf-8")
-                return path
-            fieldnames = list(data[0].keys())
-            with open(tmp, "w", encoding="utf-8", newline="") as f:
-                w = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
-                w.writeheader()
-                for row in data:
-                    cr = {}
-                    for k, v in row.items():
-                        cr[k] = json.dumps(v, ensure_ascii=False) if isinstance(v, (list, dict)) else v
-                    w.writerow(cr)
-            tmp.rename(path)
-            self.logger.info("CSV: %s (%d enreg.)", path, len(data))
-        except Exception as e:
-            self.logger.error("Erreur CSV %s: %s", path, e)
-            if tmp.exists():
-                tmp.unlink()
-            raise
+        if not data:
+            path.write_text("", encoding="utf-8")
+            return path
+        _sauver_csv(data, path, self.logger)
         return path
 
 
