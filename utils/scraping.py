@@ -29,6 +29,7 @@ except ImportError:
     requests = None  # type: ignore[assignment]
 
 __all__ = [
+    "create_session",
     "smart_pause",
     "fetch_with_retry",
     "append_jsonl",
@@ -37,6 +38,39 @@ __all__ = [
 ]
 
 log = logging.getLogger(__name__)
+
+
+# ===================================================================
+# Session creation
+# ===================================================================
+
+def create_session(user_agents=None):
+    """Create an HTTP session with optional cloudscraper and random user-agent.
+
+    Parameters
+    ----------
+    user_agents : list[str] or None
+        List of User-Agent strings to pick from randomly.
+        If None, a sensible default Chrome UA is used.
+
+    Returns
+    -------
+    requests.Session or cloudscraper session
+        Ready-to-use HTTP session with User-Agent header set.
+    """
+    try:
+        import cloudscraper
+        session = cloudscraper.create_scraper(browser={"browser": "chrome", "platform": "windows"})
+    except ImportError:
+        import requests as _requests
+        session = _requests.Session()
+
+    if user_agents:
+        session.headers.update({"User-Agent": random.choice(user_agents)})
+    else:
+        session.headers.update({"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"})
+
+    return session
 
 
 # ===================================================================

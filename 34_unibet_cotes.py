@@ -5,7 +5,6 @@ Source : unibet.fr (API interne reverse-engineered)
 CRITIQUE pour : Value Detection (PMU vs bookmaker), Market Comparison
 """
 
-import requests
 import json
 import time
 import random
@@ -15,7 +14,7 @@ from datetime import datetime, timedelta
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
-from utils.scraping import smart_pause
+from utils.scraping import smart_pause, create_session
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_DIR = os.path.join(BASE_DIR, "output", "34_unibet_cotes")
@@ -33,9 +32,8 @@ USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
 ]
 
-session = requests.Session()
+session = create_session(user_agents=USER_AGENTS)
 session.headers.update({
-    "User-Agent": random.choice(USER_AGENTS),
     "Accept": "application/json",
     "Accept-Language": "fr-FR,fr;q=0.9",
 })

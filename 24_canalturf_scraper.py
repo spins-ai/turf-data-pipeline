@@ -6,7 +6,6 @@ Collecte les fiches détaillées : pedigree, stats PMU, historique performances,
 CRITIQUE pour : Pedigree Features, Survival Model, Field Strength
 """
 
-import requests
 import json
 import time
 import random
@@ -19,7 +18,7 @@ from bs4 import BeautifulSoup
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
-from utils.scraping import smart_pause, append_jsonl
+from utils.scraping import smart_pause, append_jsonl, create_session
 
 SCRIPT_NAME = "24_canalturf"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -38,9 +37,8 @@ USER_AGENTS = [
 ]
 
 def new_session():
-    s = requests.Session()
+    s = create_session(user_agents=USER_AGENTS)
     s.headers.update({
-        "User-Agent": random.choice(USER_AGENTS),
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         "Accept-Language": "fr-FR,fr;q=0.9",
         "Accept-Encoding": "gzip, deflate, br",

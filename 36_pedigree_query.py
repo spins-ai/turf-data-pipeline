@@ -7,7 +7,6 @@ CRITIQUE pour : Enrichir pedigree au-delà de France Galop, inbreeding analysis
 v2 : HTML brut sauvegardé en cache + retry robuste + anti-ban + checkpoint fréquent
 """
 
-import requests
 import json
 import time
 import random
@@ -20,7 +19,7 @@ from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
-from utils.scraping import smart_pause
+from utils.scraping import smart_pause, create_session
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_DIR = os.path.join(BASE_DIR, "output", "36_pedigree_query")
@@ -39,7 +38,7 @@ USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:122.0) Gecko/20100101 Firefox/122.0",
 ]
 
-session = requests.Session()
+session = create_session(user_agents=USER_AGENTS)
 req_count = 0
 consecutive_errors = 0
 MAX_CONSECUTIVE_ERRORS = 10  # Pause longue après 10 erreurs d'affilée
@@ -72,9 +71,8 @@ signal.signal(signal.SIGINT, save_and_exit)
 
 def rotate_session():
     global session, req_count
-    session = requests.Session()
+    session = create_session(user_agents=USER_AGENTS)
     session.headers.update({
-        "User-Agent": random.choice(USER_AGENTS),
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
         "Accept-Language": "en-US,en;q=0.9,fr;q=0.8",
         "Accept-Encoding": "gzip, deflate, br",

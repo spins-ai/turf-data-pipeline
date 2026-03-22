@@ -5,7 +5,6 @@ Source : https://statscartes.ifce.fr/
 Collecte les statistiques officielles de la filière courses (JSON API interne)
 """
 
-import requests
 import json
 import time
 import random
@@ -15,7 +14,7 @@ from datetime import datetime
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, BASE_DIR)
-from utils.scraping import smart_pause
+from utils.scraping import smart_pause, create_session
 
 OUTPUT_DIR = os.path.join(BASE_DIR, "output", "20_ifce_stats")
 CACHE_DIR = os.path.join(OUTPUT_DIR, "cache")
@@ -27,9 +26,8 @@ USER_AGENTS = [
 ]
 
 def new_session():
-    s = requests.Session()
+    s = create_session(user_agents=USER_AGENTS)
     s.headers.update({
-        "User-Agent": random.choice(USER_AGENTS),
         "Accept": "application/json, text/html, */*",
         "Accept-Language": "fr-FR,fr;q=0.9",
         "Referer": "https://statscartes.ifce.fr/",

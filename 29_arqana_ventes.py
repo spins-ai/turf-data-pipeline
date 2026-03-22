@@ -5,7 +5,6 @@ Source : arqana.com (catalogues, résultats, Excel stats)
 CRITIQUE pour : Valeur commerciale cheval, breeding value, ROI éleveur
 """
 
-import requests
 import json
 import random
 import os
@@ -16,7 +15,7 @@ from bs4 import BeautifulSoup
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
-from utils.scraping import smart_pause
+from utils.scraping import smart_pause, create_session
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_DIR = os.path.join(BASE_DIR, "output", "29_arqana_ventes")
@@ -31,9 +30,8 @@ USER_AGENTS = [
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15",
 ]
 
-session = requests.Session()
+session = create_session(user_agents=USER_AGENTS)
 session.headers.update({
-    "User-Agent": random.choice(USER_AGENTS),
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
     "Accept-Language": "fr-FR,fr;q=0.9",
 })

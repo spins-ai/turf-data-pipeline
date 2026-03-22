@@ -5,7 +5,6 @@ Source : turf-fr.com
 CRITIQUE pour : Consensus experts, Stats adversaires, Features presse
 """
 
-import requests
 import json
 import random
 import os
@@ -16,7 +15,7 @@ from datetime import datetime, timedelta
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
-from utils.scraping import smart_pause
+from utils.scraping import smart_pause, create_session
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_DIR = os.path.join(BASE_DIR, "output", "33_turf_fr")
@@ -30,14 +29,13 @@ USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
 ]
 
-session = requests.Session()
+session = create_session(user_agents=USER_AGENTS)
 req_count = 0
 
 def rotate_session():
     global session, req_count
-    session = requests.Session()
+    session = create_session(user_agents=USER_AGENTS)
     session.headers.update({
-        "User-Agent": random.choice(USER_AGENTS),
         "Accept": "text/html,application/xhtml+xml",
         "Accept-Language": "fr-FR,fr;q=0.9",
         "DNT": "1",

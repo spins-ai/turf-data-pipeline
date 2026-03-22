@@ -5,7 +5,6 @@ Source : offline.turfinfo.api.pmu.fr/rest/client/7/programme/{date}/R{r}/C{c}/ci
 CRITIQUE pour : Outsider Detection, Value Hunting, Crowd Wisdom, Betting Strategy
 """
 
-import requests
 import json
 import time
 import random
@@ -16,7 +15,7 @@ from datetime import datetime
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
-from utils.scraping import smart_pause
+from utils.scraping import smart_pause, create_session
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_DIR = os.path.join(BASE_DIR, "output", "27_citations_enjeux")
@@ -35,14 +34,13 @@ USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0",
 ]
 
-session = requests.Session()
+session = create_session(user_agents=USER_AGENTS)
 req_count = 0
 
 def rotate_session():
     global session, req_count
-    session = requests.Session()
+    session = create_session(user_agents=USER_AGENTS)
     session.headers.update({
-        "User-Agent": random.choice(USER_AGENTS),
         "Accept": "application/json",
         "Accept-Language": "fr-FR,fr;q=0.9",
         "DNT": "1",

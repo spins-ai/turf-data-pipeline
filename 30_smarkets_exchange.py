@@ -5,7 +5,6 @@ Source : api.smarkets.com (API gratuite)
 CRITIQUE pour : Value Detection, Market Analysis, Outsider Detection
 """
 
-import requests
 import json
 import os
 import logging
@@ -14,7 +13,7 @@ from datetime import datetime, timedelta
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
-from utils.scraping import smart_pause
+from utils.scraping import smart_pause, create_session
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_DIR = os.path.join(BASE_DIR, "output", "30_smarkets_exchange")
@@ -25,10 +24,9 @@ log = setup_logging("30_smarkets_exchange")
 
 BASE_URL = "https://api.smarkets.com/v3"
 
-session = requests.Session()
+session = create_session()
 session.headers.update({
     "Accept": "application/json",
-    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
 })
 
 # --- French track detection ---
