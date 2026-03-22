@@ -22,6 +22,7 @@ from datetime import datetime, timedelta
 
 from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeout
 from bs4 import BeautifulSoup
+from utils.playwright import launch_browser, accept_cookies
 
 SCRIPT_NAME = "55_equidia_data"
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output", SCRIPT_NAME)
@@ -38,77 +39,16 @@ from utils.scraping import smart_pause, append_jsonl, load_checkpoint, save_chec
 
 log = setup_logging("55_equidia_data")
 
-# Browser / context settings
-USER_AGENT = (
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-    "AppleWebKit/537.36 (KHTML, like Gecko) "
-    "Chrome/124.0.0.0 Safari/537.36"
-)
-DEFAULT_TIMEOUT_MS = 60_000
 MAX_RETRIES = 3
 
 
-# ------------------------------------------------------------------
-# Browser helpers
-# ------------------------------------------------------------------
-
-def launch_browser(pw):
-    """Launch headless Chromium and return (browser, context, page)."""
-    browser = pw.chromium.launch(
-        headless=True,
-        args=[
-            "--disable-blink-features=AutomationControlled",
-            "--disable-dev-shm-usage",
-            "--no-sandbox",
-        ],
-    )
-    context = browser.new_context(
-        viewport={"width": 1920, "height": 1080},
-        locale="fr-FR",
-        timezone_id="Europe/Paris",
-        user_agent=USER_AGENT,
-        java_script_enabled=True,
-        ignore_https_errors=True,
-    )
-    # Stealth tweaks
-    context.add_init_script("""
-        Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
-        Object.defineProperty(navigator, 'languages', {get: () => ['fr-FR', 'fr', 'en']});
-        Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3, 4, 5]});
-        window.chrome = {runtime: {}};
-    """)
-    page = context.new_page()
-    page.set_default_timeout(DEFAULT_TIMEOUT_MS)
-    return browser, context, page
 
 
-COOKIE_SELECTORS = [
-    "button:has-text('Accepter')",
-    "button:has-text('Tout accepter')",
-    "button:has-text('Accept')",
-    "button:has-text('OK')",
-    "#onetrust-accept-btn-handler",
-    "#didomi-notice-agree-button",
-    "[id*='accept']",
-    "[class*='accept']",
-]
 
 
-def accept_cookies(page):
-    """Try to dismiss cookie consent banner."""
-    for sel in COOKIE_SELECTORS:
-        try:
-            btn = page.locator(sel).first
-            if btn.is_visible(timeout=1500):
-                btn.click(timeout=3000)
-                log.debug("  Cookies accepted via: %s", sel)
-                time.sleep(1)
-                return True
-        except Exception:
-            continue
-    return False
 
 
+# NOTE: Local version kept because it returns HTML string (page.content()) instead of bool
 def navigate_with_retry(page, url, retries=MAX_RETRIES):
     """Navigate to url with retry logic. Returns HTML string or None."""
     for attempt in range(1, retries + 1):

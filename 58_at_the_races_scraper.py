@@ -19,6 +19,7 @@ from datetime import datetime, timedelta
 
 from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeout
 from bs4 import BeautifulSoup
+from utils.playwright import launch_browser
 
 SCRIPT_NAME = "58_at_the_races"
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output", SCRIPT_NAME)
@@ -38,39 +39,9 @@ log = setup_logging("58_at_the_races")
 BASE_URL = "https://www.attheraces.com"
 
 
-def launch_browser(pw):
-    """Launch headless Chromium with en-GB locale for UK sites."""
-    browser = pw.chromium.launch(
-        headless=True,
-        args=[
-            "--disable-blink-features=AutomationControlled",
-            "--disable-dev-shm-usage",
-            "--no-sandbox",
-        ],
-    )
-    context = browser.new_context(
-        viewport={"width": 1920, "height": 1080},
-        locale="en-GB",
-        timezone_id="Europe/London",
-        user_agent=(
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/124.0.0.0 Safari/537.36"
-        ),
-        java_script_enabled=True,
-        ignore_https_errors=True,
-    )
-    context.add_init_script("""
-        Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
-        Object.defineProperty(navigator, 'languages', {get: () => ['en-GB', 'en']});
-        Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3, 4, 5]});
-        window.chrome = {runtime: {}};
-    """)
-    page = context.new_page()
-    page.set_default_timeout(60_000)
-    return browser, context, page
 
 
+# NOTE: Local version kept because it returns HTML string (page.content()) instead of bool
 def navigate_with_retry(page, url, retries=3):
     """Navigate to a URL with retry logic. Returns page HTML or None."""
     for attempt in range(1, retries + 1):
@@ -586,7 +557,7 @@ def main():
     output_file = os.path.join(OUTPUT_DIR, "at_the_races_data.jsonl")
 
     pw = sync_playwright().start()
-    browser, context, page = launch_browser(pw)
+    browser, context, page = launch_browser(pw, locale="en-GB", timezone="Europe/London")
     try:
         current = start_date
         day_count = 0
@@ -630,7 +601,7 @@ def main():
                 # Rotate browser context to avoid detection
                 context.close()
                 browser.close()
-                browser, context, page = launch_browser(pw)
+                browser, context, page = launch_browser(pw, locale="en-GB", timezone="Europe/London")
                 time.sleep(random.uniform(5, 15))
 
             current += timedelta(days=1)

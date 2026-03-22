@@ -49,6 +49,7 @@ CHROME_USER_AGENT = (
 BASE_URL = "https://www.oddschecker.com"
 
 
+# NOTE: Local version kept -- different from shared (no stealth args, extra_http_headers, minimal config)
 def launch_browser(playwright):
     """Launch a headless Chromium browser with a Chrome user-agent and en-GB locale."""
     browser = playwright.chromium.launch(headless=True)

@@ -27,6 +27,7 @@ from datetime import datetime
 
 from playwright.sync_api import sync_playwright
 from bs4 import BeautifulSoup
+from utils.playwright import launch_browser, navigate_with_retry, accept_cookies
 
 SCRIPT_NAME = "52_turfomania"
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output", SCRIPT_NAME)
@@ -44,89 +45,10 @@ log = setup_logging("52_turfomania")
 BASE_URL = "https://www.turfomania.fr"
 
 
-def launch_browser(pw):
-    """Launch headless Chromium with fr-FR locale and Chrome UA."""
-    browser = pw.chromium.launch(
-        headless=True,
-        args=[
-            "--disable-blink-features=AutomationControlled",
-            "--disable-dev-shm-usage",
-            "--no-sandbox",
-        ],
-    )
-    context = browser.new_context(
-        viewport={"width": 1920, "height": 1080},
-        locale="fr-FR",
-        timezone_id="Europe/Paris",
-        user_agent=(
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/124.0.0.0 Safari/537.36"
-        ),
-        java_script_enabled=True,
-        ignore_https_errors=True,
-    )
-    context.add_init_script("""
-        Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
-        Object.defineProperty(navigator, 'languages', {get: () => ['fr-FR', 'fr', 'en']});
-        Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3, 4, 5]});
-        window.chrome = {runtime: {}};
-    """)
-    page = context.new_page()
-    page.set_default_timeout(60000)
-    log.info("Browser launched (headless Chromium)")
-    return browser, context, page
 
 
-def navigate_with_retry(page, url, retries=3):
-    """Navigate to url with retry. Returns True on success."""
-    for attempt in range(1, retries + 1):
-        try:
-            resp = page.goto(url, wait_until="networkidle", timeout=60000)
-            if resp and resp.status >= 400:
-                log.warning("  HTTP %d on %s (attempt %d/%d)",
-                            resp.status, url, attempt, retries)
-                if resp.status == 429:
-                    time.sleep(60 * attempt)
-                elif resp.status == 403:
-                    time.sleep(30 * attempt)
-                else:
-                    time.sleep(5 * attempt)
-                continue
-            page.wait_for_load_state("domcontentloaded")
-            time.sleep(1.5)
-            return True
-        except Exception as exc:
-            log.warning("  Navigation error: %s (attempt %d/%d)",
-                        str(exc)[:200], attempt, retries)
-            time.sleep(10 * attempt)
-    log.error("  Failed after %d retries: %s", retries, url)
-    return False
 
 
-def accept_cookies(page):
-    """Try to click a cookie-consent button."""
-    selectors = [
-        "button:has-text('Accepter')",
-        "button:has-text('Tout accepter')",
-        "button:has-text('Accept')",
-        "button:has-text('OK')",
-        "[id*='accept']",
-        "[class*='accept']",
-        "#onetrust-accept-btn-handler",
-        "#didomi-notice-agree-button",
-    ]
-    for sel in selectors:
-        try:
-            btn = page.locator(sel).first
-            if btn.is_visible(timeout=1500):
-                btn.click(timeout=3000)
-                log.info("  Cookies accepted via: %s", sel)
-                time.sleep(1)
-                return True
-        except Exception:
-            continue
-    return False
 
 
 def get_reunion_urls(page):
