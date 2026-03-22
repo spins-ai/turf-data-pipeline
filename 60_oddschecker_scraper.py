@@ -4,6 +4,13 @@ Script 60 — Scraping Oddschecker (Odds Comparison)
 Source : oddschecker.com/horse-racing
 Collecte : odds comparison across bookmakers, market movers, best odds
 CRITIQUE pour : Odds Model, Value Detection, Market Efficiency, Bookmaker Comparison
+
+Uses Playwright (headless Chromium) to bypass Cloudflare protection.
+BeautifulSoup is still used for HTML parsing after page.content().
+
+Requirements:
+    pip install playwright beautifulsoup4
+    playwright install chromium
 """
 
 import argparse
@@ -15,12 +22,8 @@ import re
 import time
 from datetime import datetime, timedelta
 
-import requests
-try:
-    import cloudscraper
-except ImportError:
-    cloudscraper = None
 from bs4 import BeautifulSoup
+from playwright.sync_api import sync_playwright
 
 SCRIPT_NAME = "60_oddschecker"
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output", SCRIPT_NAME)
@@ -33,39 +36,50 @@ os.makedirs(HTML_CACHE_DIR, exist_ok=True)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
-from utils.scraping import smart_pause, fetch_with_retry, append_jsonl, load_checkpoint, save_checkpoint
+from utils.scraping import smart_pause, append_jsonl, load_checkpoint, save_checkpoint
 
 log = setup_logging("60_oddschecker")
 
-USER_AGENTS = [
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15",
-    "Mozilla/5.0 (X11; Linux x86_64; rv:122.0) Gecko/20100101 Firefox/122.0",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
-]
+CHROME_USER_AGENT = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/124.0.0.0 Safari/537.36"
+)
 
 BASE_URL = "https://www.oddschecker.com"
 
 
-def new_session():
-    s = cloudscraper.create_scraper() if cloudscraper else requests.Session()
-    s.headers.update({
-        "User-Agent": random.choice(USER_AGENTS),
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "en-GB,en;q=0.9",
-        "Accept-Encoding": "gzip, deflate, br",
-        "DNT": "1",
-        "Connection": "keep-alive",
-    })
-    return s
+def launch_browser(playwright):
+    """Launch a headless Chromium browser with a Chrome user-agent and en-GB locale."""
+    browser = playwright.chromium.launch(headless=True)
+    context = browser.new_context(
+        user_agent=CHROME_USER_AGENT,
+        locale="en-GB",
+        viewport={"width": 1920, "height": 1080},
+        extra_http_headers={
+            "Accept-Language": "en-GB,en;q=0.9",
+            "DNT": "1",
+        },
+    )
+    page = context.new_page()
+    return browser, context, page
 
 
+def navigate_and_get_html(page, url, wait_ms=3000):
+    """Navigate to a URL with Playwright and return the rendered HTML string.
+
+    Returns None if navigation fails.
+    """
+    try:
+        page.goto(url, wait_until="domcontentloaded", timeout=30000)
+        page.wait_for_timeout(wait_ms)
+        return page.content()
+    except Exception as exc:
+        log.warning("Navigation failed for %s: %s", url, exc)
+        return None
 
 
-
-
-def scrape_meetings(session, date_str):
+def scrape_meetings(page, date_str):
     """Scrape Oddschecker horse racing meetings list for a given date."""
     cache_file = os.path.join(CACHE_DIR, f"meetings_{date_str}.json")
     if os.path.exists(cache_file):
@@ -73,16 +87,16 @@ def scrape_meetings(session, date_str):
             return json.load(f)
 
     url = f"{BASE_URL}/horse-racing/{date_str}"
-    resp = fetch_with_retry(session, url)
-    if not resp:
+    html = navigate_and_get_html(page, url)
+    if not html:
         return None
 
     # Save raw HTML to cache
     html_file = os.path.join(HTML_CACHE_DIR, f"{date_str}.html")
     with open(html_file, "w", encoding="utf-8") as f:
-        f.write(resp.text)
+        f.write(html)
 
-    soup = BeautifulSoup(resp.text, "html.parser")
+    soup = BeautifulSoup(html, "html.parser")
     records = []
 
     # Extract race links (meetings and individual races)
@@ -125,7 +139,7 @@ def scrape_meetings(session, date_str):
     return records
 
 
-def scrape_race_odds(session, race_url, date_str):
+def scrape_race_odds(page, race_url, date_str):
     """Scrape odds comparison for a specific race from Oddschecker."""
     if not race_url.startswith("http"):
         race_url = BASE_URL + race_url
@@ -136,11 +150,11 @@ def scrape_race_odds(session, race_url, date_str):
         with open(cache_file, "r", encoding="utf-8") as f:
             return json.load(f)
 
-    resp = fetch_with_retry(session, race_url)
-    if not resp:
+    html = navigate_and_get_html(page, race_url, wait_ms=4000)
+    if not html:
         return None
 
-    soup = BeautifulSoup(resp.text, "html.parser")
+    soup = BeautifulSoup(html, "html.parser")
     records = []
 
     # Race title
@@ -170,7 +184,6 @@ def scrape_race_odds(session, race_url, date_str):
 
     # Extract odds comparison table
     for table in soup.find_all("table"):
-        table_classes = " ".join(table.get("class", []))
         rows = table.find_all("tr")
         if not rows:
             continue
@@ -510,7 +523,7 @@ def main():
     end_date = datetime.strptime(args.end, "%Y-%m-%d") if args.end else datetime.now()
 
     log.info("=" * 60)
-    log.info("SCRIPT 60 — Oddschecker Scraper (Odds Comparison)")
+    log.info("SCRIPT 60 — Oddschecker Scraper (Odds Comparison, Playwright)")
     log.info(f"  Period : {start_date.date()} -> {end_date.date()}")
     log.info("=" * 60)
 
@@ -522,52 +535,61 @@ def main():
         start_date = resume_date
         log.info(f"  Resuming from checkpoint: {start_date.date()}")
 
-    session = new_session()
     output_file = os.path.join(OUTPUT_DIR, "oddschecker_data.jsonl")
 
-    current = start_date
-    day_count = 0
-    total_records = 0
+    with sync_playwright() as pw:
+        browser, context, page = launch_browser(pw)
+        try:
+            current = start_date
+            day_count = 0
+            total_records = 0
 
-    while current <= end_date:
-        date_str = current.strftime("%Y-%m-%d")
+            while current <= end_date:
+                date_str = current.strftime("%Y-%m-%d")
 
-        # Scrape meetings list
-        meeting_records = scrape_meetings(session, date_str)
-        if meeting_records:
-            # Scrape odds for each race found
-            race_urls = [r.get("url") for r in meeting_records
-                         if r.get("url") and "/horse-racing/" in r.get("url", "")]
-            for rurl in list(set(race_urls))[:20]:
-                odds = scrape_race_odds(session, rurl, date_str)
-                if odds:
-                    meeting_records.extend(odds)
-                smart_pause(2.5, 1.5)
+                # Scrape meetings list
+                meeting_records = scrape_meetings(page, date_str)
+                if meeting_records:
+                    # Scrape odds for each race found
+                    race_urls = [r.get("url") for r in meeting_records
+                                 if r.get("url") and "/horse-racing/" in r.get("url", "")]
+                    for rurl in list(set(race_urls))[:20]:
+                        odds = scrape_race_odds(page, rurl, date_str)
+                        if odds:
+                            meeting_records.extend(odds)
+                        smart_pause(2.5, 1.5)
 
-            for rec in meeting_records:
-                append_jsonl(output_file, rec)
-                total_records += 1
+                    for rec in meeting_records:
+                        append_jsonl(output_file, rec)
+                        total_records += 1
 
-        day_count += 1
+                day_count += 1
 
-        if day_count % 30 == 0:
-            log.info(f"  {date_str} | days={day_count} records={total_records}")
-            save_checkpoint(CHECKPOINT_FILE, {"last_date": date_str, "total_records": total_records})
+                if day_count % 30 == 0:
+                    log.info(f"  {date_str} | days={day_count} records={total_records}")
+                    save_checkpoint(CHECKPOINT_FILE, {"last_date": date_str, "total_records": total_records})
 
-        if day_count % 60 == 0:
-            session.close()
-            session = new_session()
-            time.sleep(random.uniform(10, 25))
+                # Rotate browser context periodically to avoid staleness
+                if day_count % 60 == 0:
+                    log.info("  Rotating browser context...")
+                    context.close()
+                    browser.close()
+                    time.sleep(random.uniform(10, 25))
+                    browser, context, page = launch_browser(pw)
 
-        current += timedelta(days=1)
-        smart_pause(1.5, 0.8)
+                current += timedelta(days=1)
+                smart_pause(1.5, 0.8)
 
-    save_checkpoint(CHECKPOINT_FILE, {"last_date": end_date.strftime("%Y-%m-%d"),
-                     "total_records": total_records, "status": "done"})
+            save_checkpoint(CHECKPOINT_FILE, {"last_date": end_date.strftime("%Y-%m-%d"),
+                             "total_records": total_records, "status": "done"})
 
-    log.info("=" * 60)
-    log.info(f"DONE: {day_count} days, {total_records} records -> {output_file}")
-    log.info("=" * 60)
+            log.info("=" * 60)
+            log.info(f"DONE: {day_count} days, {total_records} records -> {output_file}")
+            log.info("=" * 60)
+
+        finally:
+            context.close()
+            browser.close()
 
 
 if __name__ == "__main__":
