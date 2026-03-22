@@ -6,6 +6,7 @@
 #   utils.loaders       - load_json_or_jsonl, load_jsonl, load_json_safe
 #   utils.logging_setup - setup_logging
 #   utils.scraping      - smart_pause, fetch_with_retry, append_jsonl, load_checkpoint, save_checkpoint
+#   utils.playwright    - launch_browser, navigate_with_retry, accept_cookies (Playwright helpers)
 
 from utils.logging_setup import setup_logging
 from utils.loaders import load_json_or_jsonl, load_jsonl, load_json_safe
