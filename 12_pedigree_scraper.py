@@ -71,6 +71,7 @@ CACHE_DIR = OUTPUT_DIR / "cache"
 CHECKPOINT_PATH = OUTPUT_DIR / "checkpoint.json"
 
 from utils.logging_setup import setup_logging
+from utils.output import sauver_json, sauver_csv
 
 # Scraping
 REQUEST_PAUSE_S = 1.0          # pause entre requetes
@@ -93,13 +94,7 @@ ALL_SOURCES = [SOURCE_LETROT, SOURCE_IFCE, SOURCE_FRANCESIRE]
 # SAUVEGARDE
 # ===========================================================================
 
-def sauver_json(data: list[dict], path: Path, logger: logging.Logger):
-    path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_suffix(".tmp")
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2, default=str)
-    tmp.replace(path)
-    logger.info("Sauve: %s (%d entrees)", path.name, len(data))
+
 
 
 def sauver_parquet(data: list[dict], path: Path, logger: logging.Logger):
@@ -124,26 +119,7 @@ def sauver_parquet(data: list[dict], path: Path, logger: logging.Logger):
         logger.warning("Parquet ignore: %s", e)
 
 
-def sauver_csv(data: list[dict], path: Path, logger: logging.Logger):
-    if not data:
-        return
-    path.parent.mkdir(parents=True, exist_ok=True)
-    fieldnames = list(data[0].keys())
-    with open(path, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
-        writer.writeheader()
-        for row in data:
-            flat_row = {}
-            for k, v in row.items():
-                if isinstance(v, (list, set, frozenset, dict)):
-                    flat_row[k] = json.dumps(
-                        sorted(v) if isinstance(v, (set, frozenset)) else v,
-                        ensure_ascii=False, default=str,
-                    )
-                else:
-                    flat_row[k] = v
-            writer.writerow(flat_row)
-    logger.info("Sauve: %s", path.name)
+
 
 
 # ===========================================================================

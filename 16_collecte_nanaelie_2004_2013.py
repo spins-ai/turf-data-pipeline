@@ -97,6 +97,7 @@ class ResultatNanaelie:
 # ===========================================================================
 
 from utils.logging_setup import setup_logging
+from utils.output import sauver_json, sauver_csv
 
 
 # ===========================================================================
@@ -375,13 +376,7 @@ def save_cache(dt: date, data: list):
 # SAUVEGARDE
 # ===========================================================================
 
-def sauver_json(data: list[dict], path: Path, logger: logging.Logger):
-    path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_suffix(".tmp")
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2, default=str)
-    tmp.replace(path)
-    logger.info("Sauve: %s (%d entrees)", path.name, len(data))
+
 
 
 def sauver_parquet(data: list[dict], path: Path, logger: logging.Logger):
@@ -406,19 +401,7 @@ def sauver_parquet(data: list[dict], path: Path, logger: logging.Logger):
         logger.warning("Parquet ignore: %s", e)
 
 
-def sauver_csv(data: list[dict], path: Path, logger: logging.Logger):
-    if not data:
-        return
-    path.parent.mkdir(parents=True, exist_ok=True)
-    # Convertir les listes en chaines
-    data_flat = []
-    for row in data:
-        r = dict(row)
-        if isinstance(r.get("non_partants"), list):
-            r["non_partants"] = json.dumps(r["non_partants"])
-        if isinstance(r.get("arrivee_top5"), list):
-            r["arrivee_top5"] = json.dumps(r["arrivee_top5"])
-        data_flat.append(r)
+
 
     fieldnames = list(data_flat[0].keys())
     tmp = path.with_suffix(".tmp")

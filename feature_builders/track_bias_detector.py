@@ -43,6 +43,7 @@ except ImportError:
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.logging_setup import setup_logging
+from utils.output import sauver_json, sauver_csv
 
 
 # ===========================================================================
@@ -61,33 +62,10 @@ LOOKBACK_DAYS = 365
 # SAUVEGARDE
 # ===========================================================================
 
-def sauver_json(data: list[dict], path: Path, logger: logging.Logger):
-    path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_suffix(".tmp")
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2, default=str)
-    tmp.replace(path)
-    size_mb = path.stat().st_size / 1_048_576
-    logger.info("JSON saved: %s (%.1f MB)", path, size_mb)
 
 
-def sauver_csv(data: list[dict], path: Path, logger: logging.Logger):
-    if not data:
-        return
-    path.parent.mkdir(parents=True, exist_ok=True)
-    all_keys: list[str] = list(data[0].keys())
-    seen = set(all_keys)
-    for r in data:
-        for k in r:
-            if k not in seen:
-                all_keys.append(k)
-                seen.add(k)
-    with open(path, "w", encoding="utf-8", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=all_keys, extrasaction="ignore")
-        writer.writeheader()
-        writer.writerows(data)
-    size_mb = path.stat().st_size / 1_048_576
-    logger.info("CSV saved: %s (%.1f MB)", path, size_mb)
+
+
 
 
 def sauver_parquet(data: list[dict], path: Path, logger: logging.Logger) -> bool:

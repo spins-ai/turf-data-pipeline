@@ -65,6 +65,7 @@ def _direction_vent_texte(deg: Optional[float]) -> str:
 # ===========================================================================
 
 from utils.logging_setup import setup_logging
+from utils.output import sauver_json, sauver_csv
 
 
 # ===========================================================================
@@ -310,28 +311,10 @@ def _set_meteo_vide(r: dict) -> None:
 # SAUVEGARDE
 # ===========================================================================
 
-def sauver_json(data: list[dict], fichier: Path, logger: logging.Logger) -> None:
-    fichier.parent.mkdir(parents=True, exist_ok=True)
-    tmp = fichier.with_suffix(".tmp")
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2, default=str)
-    tmp.replace(fichier)
-    logger.info("Sauvegardé: %s (%d enregistrements)", fichier.name, len(data))
 
 
-def sauver_csv(data: list[dict], fichier: Path, logger: logging.Logger) -> None:
-    if not data:
-        return
-    import csv
-    fichier.parent.mkdir(parents=True, exist_ok=True)
-    keys = list(data[0].keys())
-    tmp = fichier.with_suffix(".tmp")
-    with open(tmp, "w", encoding="utf-8", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=keys, extrasaction="ignore")
-        writer.writeheader()
-        writer.writerows(data)
-    tmp.replace(fichier)
-    logger.info("Sauvegardé: %s (%d enregistrements)", fichier.name, len(data))
+
+
 
 
 def sauver_parquet(data: list[dict], fichier: Path, logger: logging.Logger) -> None:

@@ -25,6 +25,7 @@ from typing import Optional
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.loaders import load_json_or_jsonl
 from utils.logging_setup import setup_logging
+from utils.output import save_jsonl
 
 # ===========================================================================
 # CONFIG
@@ -209,12 +210,7 @@ def build_combo_features(partants: list, logger: logging.Logger = None) -> list:
 # EXPORT
 # ===========================================================================
 
-def save_jsonl(records: list, path: str, logger: logging.Logger):
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w", encoding="utf-8", newline="\n") as f:
-        for r in records:
-            f.write(json.dumps(r, ensure_ascii=False, default=str) + "\n")
-    logger.info("Sauve JSONL: %s (%d)", path, len(records))
+
 
 # ===========================================================================
 # MAIN

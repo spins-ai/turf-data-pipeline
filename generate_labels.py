@@ -38,6 +38,7 @@ from typing import Any, Dict, List, Optional
 
 from utils.types import safe_int
 from utils.types import safe_float as _safe_float
+from utils.output import save_jsonl
 
 # Imports optionnels
 try:
@@ -262,17 +263,6 @@ def generate_labels_for_course(
 # ===========================================================================
 # SAUVEGARDE
 # ===========================================================================
-
-def save_jsonl(data: List[Dict], path: Path, logger: logging.Logger):
-    """Sauvegarde en JSONL (une ligne JSON par enregistrement)."""
-    path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_suffix(".tmp")
-    with open(tmp, "w", encoding="utf-8", newline="\n") as f:
-        for record in data:
-            f.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
-    tmp.replace(path)
-    logger.info("Sauve : %s (%d lignes)", path, len(data))
-
 
 def save_csv(data: List[Dict], path: Path, logger: logging.Logger):
     """Sauvegarde en CSV."""

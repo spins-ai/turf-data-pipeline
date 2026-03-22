@@ -68,6 +68,7 @@ OUTPUT_DIR = Path(__file__).resolve().parent / "output" / "02b_scraper_letrot"
 CACHE_DIR = OUTPUT_DIR / "cache"
 
 from utils.logging_setup import setup_logging
+from utils.output import sauver_json, sauver_csv
 
 LETROT_BASE = "https://www.letrot.com"
 LETROT_PROGRAMME = f"{LETROT_BASE}/courses/programme"
@@ -1916,13 +1917,7 @@ def normaliser_partant(brute: PartantBrut, course_norm: CourseNormalisee) -> Par
 # SAUVEGARDE
 # ===========================================================================
 
-def sauver_json(data: list[dict], path: Path, logger: logging.Logger):
-    path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_suffix(".tmp")
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2, default=str)
-    tmp.replace(path)
-    logger.info("Sauve: %s (%d entrees)", path.name, len(data))
+
 
 
 def sauver_parquet(data: list[dict], path: Path, logger: logging.Logger):
@@ -1936,16 +1931,7 @@ def sauver_parquet(data: list[dict], path: Path, logger: logging.Logger):
         logger.warning("Parquet ignore: %s", e)
 
 
-def sauver_csv(data: list[dict], path: Path, logger: logging.Logger):
-    if not data:
-        return
-    path.parent.mkdir(parents=True, exist_ok=True)
-    fieldnames = list(data[0].keys())
-    with open(path, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
-        writer.writeheader()
-        writer.writerows(data)
-    logger.info("Sauve: %s", path.name)
+
 
 
 # ===========================================================================
