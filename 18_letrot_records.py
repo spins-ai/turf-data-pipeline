@@ -16,7 +16,7 @@ from bs4 import BeautifulSoup
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, BASE_DIR)
-from utils.scraping import smart_pause
+from utils.scraping import smart_pause, create_session
 
 OUTPUT_DIR = os.path.join(BASE_DIR, "output", "18_letrot_records")
 CACHE_DIR = os.path.join(OUTPUT_DIR, "cache")
@@ -27,17 +27,6 @@ USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15",
 ]
-
-def new_session():
-    s = requests.Session()
-    s.headers.update({
-        "User-Agent": random.choice(USER_AGENTS),
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "fr-FR,fr;q=0.9",
-        "Accept-Encoding": "gzip, deflate, br",
-        "Connection": "keep-alive",
-    })
-    return s
 
 
 def fetch_hippodromes(session):
@@ -142,7 +131,7 @@ def main():
     print("SCRIPT 18 — Records de piste LeTrot")
     print("=" * 60)
 
-    session = new_session()
+    session = create_session(USER_AGENTS)
 
     # Étape 1: Récupérer la page principale pour comprendre la structure
     print("\n[1/3] Analyse de la structure du site...")
@@ -251,7 +240,7 @@ def main():
             # Changer de session tous les 50 hippodromes
             if (i + 1) % 50 == 0:
                 session.close()
-                session = new_session()
+                session = create_session(USER_AGENTS)
                 time.sleep(random.uniform(3, 8))
 
     # [3/3] Sauvegarde

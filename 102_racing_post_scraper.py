@@ -29,7 +29,7 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
-from utils.scraping import smart_pause, fetch_with_retry, append_jsonl, load_checkpoint, save_checkpoint
+from utils.scraping import smart_pause, fetch_with_retry, append_jsonl, load_checkpoint, save_checkpoint, create_session
 
 log = setup_logging("102_racing_post")
 
@@ -40,19 +40,6 @@ USER_AGENTS = [
     "Mozilla/5.0 (X11; Linux x86_64; rv:122.0) Gecko/20100101 Firefox/122.0",
 ]
 
-
-def new_session():
-    s = requests.Session()
-    s.headers.update({
-        "User-Agent": random.choice(USER_AGENTS),
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "en-GB,en;q=0.9,fr;q=0.8",
-        "Accept-Encoding": "gzip, deflate, br",
-        "DNT": "1",
-        "Connection": "keep-alive",
-        "Referer": BASE_URL,
-    })
-    return s
 
 
 def get_race_links(session, date_str):
@@ -230,7 +217,7 @@ def main():
         start_date = resume_date
         log.info(f"  Reprise checkpoint: {start_date.date()}")
 
-    session = new_session()
+    session = create_session(USER_AGENTS)
     output_file = os.path.join(OUTPUT_DIR, "racing_post_data.jsonl")
 
     current = start_date
@@ -267,7 +254,7 @@ def main():
 
         if day_count % 50 == 0:
             session.close()
-            session = new_session()
+            session = create_session(USER_AGENTS)
             time.sleep(random.uniform(5, 15))
 
         current += timedelta(days=1)

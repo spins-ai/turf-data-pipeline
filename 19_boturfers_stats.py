@@ -29,6 +29,10 @@ USER_AGENTS = [
     "Mozilla/5.0 (X11; Linux x86_64; rv:122.0) Gecko/20100101 Firefox/122.0",
 ]
 
+# NOTE: new_session() is NOT migrated to utils.scraping.create_session because
+# fetch_with_retry() below recreates sessions on 403 errors (session.close() +
+# new_session()) as part of its anti-ban strategy. This tight coupling between
+# session creation and retry logic makes the generic create_session unsuitable.
 def new_session():
     s = requests.Session()
     s.headers.update({
