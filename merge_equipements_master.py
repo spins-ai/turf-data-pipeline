@@ -16,6 +16,7 @@ os.makedirs("logs", exist_ok=True)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
+from utils.loaders import load_json_safe
 
 log = setup_logging("merge_equipements_master")
 
@@ -37,21 +38,6 @@ def make_key(record):
     return ""
 
 
-def load_json_safe(path, label):
-    if not os.path.exists(path):
-        return []
-    size = os.path.getsize(path) / 1024 / 1024
-    try:
-        with open(path, encoding="utf-8") as f:
-            data = json.load(f)
-        items = data if isinstance(data, list) else list(data.values()) if isinstance(data, dict) else []
-        log.info(f"  {label}: {len(items)} records ({size:.0f} MB)")
-        return items
-    except Exception as e:
-        log.warning(f"  {label}: erreur {e}")
-        return []
-
-
 def main():
     start = time.time()
     log.info("=" * 60)
@@ -61,7 +47,7 @@ def main():
     master = {}
 
     # 09_equipements (319 MB — œillères, déferré, changements)
-    items_09 = load_json_safe(os.path.join(BASE_DIR, "output", "09_equipements", "equipements_historique.json"), "09_equipements")
+    items_09 = load_json_safe(os.path.join(BASE_DIR, "output", "09_equipements", "equipements_historique.json"), "09_equipements", log)
     for item in items_09:
         key = make_key(item)
         if not key:
@@ -77,7 +63,7 @@ def main():
     log.info(f"  → Après 09_equipements: {len(master)} partants")
 
     # 10_poids_handicaps (141 MB)
-    items_10 = load_json_safe(os.path.join(BASE_DIR, "output", "10_poids_handicaps", "poids_handicaps.json"), "10_poids")
+    items_10 = load_json_safe(os.path.join(BASE_DIR, "output", "10_poids_handicaps", "poids_handicaps.json"), "10_poids", log)
     for item in items_10:
         key = make_key(item)
         if not key:

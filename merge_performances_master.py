@@ -17,6 +17,7 @@ os.makedirs("logs", exist_ok=True)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
+from utils.loaders import load_json_safe
 
 log = setup_logging("merge_performances_master")
 
@@ -44,37 +45,6 @@ def make_horse_key(record):
     return ""
 
 
-def load_json_safe(path, label):
-    if not os.path.exists(path):
-        return []
-    size = os.path.getsize(path) / 1024 / 1024
-    if size > 4000:
-        log.info(f"  {label}: {size:.0f} MB — streaming avec ijson")
-        try:
-            import ijson
-            items = []
-            count = 0
-            with open(path, 'rb') as f:
-                for item in ijson.items(f, 'item'):
-                    items.append(item)
-                    count += 1
-                    if count % 200000 == 0:
-                        log.info(f"  {label}: {count} records...")
-            return items
-        except Exception as e:
-            log.warning(f"  {label}: streaming échoue ({e}) — skip")
-            return []
-    try:
-        with open(path, encoding="utf-8") as f:
-            data = json.load(f)
-        items = data if isinstance(data, list) else list(data.values()) if isinstance(data, dict) else []
-        log.info(f"  {label}: {len(items)} records ({size:.0f} MB)")
-        return items
-    except Exception as e:
-        log.warning(f"  {label}: erreur {e}")
-        return []
-
-
 def main():
     start = time.time()
     log.info("=" * 60)
@@ -85,7 +55,7 @@ def main():
     log.info("=== PARTIE 1 : Stats agrégées par cheval ===")
     horse_stats = {}
 
-    items_05 = load_json_safe(os.path.join(BASE_DIR, "output", "05_historique_chevaux", "historique_chevaux.json"), "05_historique")
+    items_05 = load_json_safe(os.path.join(BASE_DIR, "output", "05_historique_chevaux", "historique_chevaux.json"), "05_historique", log)
     for item in items_05:
         key = make_horse_key(item)
         if not key:
@@ -118,7 +88,7 @@ def main():
     # Charger sectionals en mémoire (243K records = ~300MB OK)
     log.info("  Chargement index sectionals...")
     sect_index = {}  # partant_key -> dict de champs sect_*
-    items_11 = load_json_safe(os.path.join(BASE_DIR, "output", "11_sectionals", "sectionals.json"), "11_sectionals")
+    items_11 = load_json_safe(os.path.join(BASE_DIR, "output", "11_sectionals", "sectionals.json"), "11_sectionals", log)
     for item in items_11:
         key = make_partant_key(item)
         if not key:

@@ -19,29 +19,9 @@ os.makedirs("logs", exist_ok=True)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
+from utils.loaders import load_json_safe
 
 log = setup_logging("merge_meteo_master")
-
-
-def load_json_safe(path, label=""):
-    """Charge un fichier JSON en toute sécurité"""
-    if not os.path.exists(path):
-        log.warning(f"  {label}: fichier non trouvé ({path})")
-        return []
-    try:
-        size_mb = os.path.getsize(path) / 1024 / 1024
-        if size_mb > 4000:
-            log.warning(f"  {label}: fichier trop gros ({size_mb:.0f} MB) — skip")
-            return []
-        log.info(f"  {label}: chargement {size_mb:.0f} MB...")
-        with open(path, encoding="utf-8") as f:
-            data = json.load(f)
-        items = data if isinstance(data, list) else list(data.values()) if isinstance(data, dict) else []
-        log.info(f"  {label}: {len(items)} records")
-        return items
-    except Exception as e:
-        log.error(f"  {label}: erreur {e}")
-        return []
 
 
 def make_course_key(record):
@@ -70,7 +50,7 @@ def main():
     for fname in os.listdir(os.path.join(BASE_DIR, "output", "13_meteo_historique")):
         if not fname.endswith('.json') or fname.startswith('.'):
             continue
-        items = load_json_safe(fos.path.join(BASE_DIR, "output", "13_meteo_historique", "{fname}"), f"13/{fname}")
+        items = load_json_safe(fos.path.join(BASE_DIR, "output", "13_meteo_historique", "{fname}"), f"13/{fname}", log)
         for item in items:
             key = make_course_key(item)
             if not key:
@@ -89,7 +69,7 @@ def main():
     for fname in os.listdir(os.path.join(BASE_DIR, "output", "35_meteo_france")) if os.path.exists(os.path.join(BASE_DIR, "output", "35_meteo_france")) else []:
         if not fname.endswith('.json') or fname.startswith('.'):
             continue
-        items = load_json_safe(fos.path.join(BASE_DIR, "output", "35_meteo_france", "{fname}"), f"35/{fname}")
+        items = load_json_safe(fos.path.join(BASE_DIR, "output", "35_meteo_france", "{fname}"), f"35/{fname}", log)
         for item in items:
             key = make_course_key(item)
             if not key:
@@ -112,7 +92,7 @@ def main():
         fsize = os.path.getsize(fpath) / 1024 / 1024
         if fsize > 3000:
             continue
-        items = load_json_safe(fpath, f"39/{fname}")
+        items = load_json_safe(fpath, f"39/{fname}", log)
         for item in items:
             key = make_course_key(item)
             if not key:
@@ -132,7 +112,7 @@ def main():
         for fname in os.listdir(os.path.join(BASE_DIR, "output", "meteo_complete")):
             if not fname.endswith('.json') or fname.startswith('.'):
                 continue
-            items = load_json_safe(fos.path.join(BASE_DIR, "output", "meteo_complete", "{fname}"), f"meteo_complete/{fname}")
+            items = load_json_safe(fos.path.join(BASE_DIR, "output", "meteo_complete", "{fname}"), f"meteo_complete/{fname}", log)
             for item in items:
                 key = make_course_key(item)
                 if not key:
@@ -151,7 +131,7 @@ def main():
     log.info("  Extraction penetrometre/type_piste depuis courses_normalisees...")
     courses_path = os.path.join(BASE_DIR, "output", "02_liste_courses", "courses_normalisees.json")
     if os.path.exists(courses_path):
-        items = load_json_safe(courses_path, "02_courses")
+        items = load_json_safe(courses_path, "02_courses", log)
         for item in items:
             key = make_course_key(item)
             if not key:

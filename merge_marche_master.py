@@ -18,6 +18,7 @@ os.makedirs("logs", exist_ok=True)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
+from utils.loaders import load_json_safe
 
 log = setup_logging("merge_marche_master")
 
@@ -38,37 +39,6 @@ def make_key(record):
     return ""
 
 
-def load_json_safe(path, label):
-    if not os.path.exists(path):
-        return []
-    size = os.path.getsize(path) / 1024 / 1024
-    if size > 4000:
-        log.info(f"  {label}: {size:.0f} MB — streaming avec ijson")
-        try:
-            import ijson
-            items = []
-            count = 0
-            with open(path, 'rb') as f:
-                for item in ijson.items(f, 'item'):
-                    items.append(item)
-                    count += 1
-                    if count % 200000 == 0:
-                        log.info(f"  {label}: {count} records...")
-            return items
-        except Exception:
-            log.warning(f"  {label}: trop gros et ijson échoue — skip")
-            return []
-    try:
-        with open(path, encoding="utf-8") as f:
-            data = json.load(f)
-        items = data if isinstance(data, list) else list(data.values()) if isinstance(data, dict) else []
-        log.info(f"  {label}: {len(items)} records ({size:.0f} MB)")
-        return items
-    except Exception as e:
-        log.warning(f"  {label}: erreur {e}")
-        return []
-
-
 def load_dir(dirpath, label):
     if not os.path.exists(dirpath):
         return []
@@ -76,7 +46,7 @@ def load_dir(dirpath, label):
     for fname in sorted(os.listdir(dirpath)):
         if not fname.endswith('.json') or fname.startswith('.'):
             continue
-        items = load_json_safe(os.path.join(dirpath, fname), f"{label}/{fname}")
+        items = load_json_safe(os.path.join(dirpath, fname), f"{label}/{fname}", log)
         all_items.extend(items)
     return all_items
 

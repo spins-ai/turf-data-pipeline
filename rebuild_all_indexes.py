@@ -29,6 +29,8 @@ INDEX_DIR = os.path.join("data_master", "indexes")
 os.makedirs(INDEX_DIR, exist_ok=True)
 
 
+# NOTE: local load_json_safe kept — incompatible signature with utils.loaders.load_json_safe
+# (1 param vs 3, returns None vs [], no label/logger params, used throughout this file)
 def load_json_safe(path):
     """Charge un fichier JSON avec gestion d'encodage."""
     if not os.path.exists(path):

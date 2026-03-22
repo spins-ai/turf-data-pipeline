@@ -15,6 +15,7 @@ import json, os, logging, time
 
 from utils.normalize import normalize_name as _shared_normalize_name
 from utils.logging_setup import setup_logging
+from utils.loaders import load_json_safe
 
 os.makedirs("data_master", exist_ok=True)
 os.makedirs("logs", exist_ok=True)
@@ -25,37 +26,6 @@ log = setup_logging("merge_stats_externes_master")
 def normalize_name(name):
     """Normaliser un nom (sans chiffres)."""
     return _shared_normalize_name(name, keep_digits=False)
-
-
-def load_json_safe(path, label):
-    if not os.path.exists(path):
-        return []
-    size = os.path.getsize(path) / 1024 / 1024
-    if size > 4000:
-        log.info(f"  {label}: {size:.0f} MB — streaming avec ijson")
-        try:
-            import ijson
-            items = []
-            count = 0
-            with open(path, 'rb') as f:
-                for item in ijson.items(f, 'item'):
-                    items.append(item)
-                    count += 1
-                    if count % 200000 == 0:
-                        log.info(f"  {label}: {count} records...")
-            return items
-        except Exception as e:
-            log.warning(f"  {label}: streaming échoue ({e}) — skip")
-            return []
-    try:
-        with open(path, encoding="utf-8") as f:
-            data = json.load(f)
-        items = data if isinstance(data, list) else list(data.values()) if isinstance(data, dict) else []
-        log.info(f"  {label}: {len(items)} records ({size:.0f} MB)")
-        return items
-    except Exception as e:
-        log.warning(f"  {label}: erreur {e}")
-        return []
 
 
 def main():
@@ -69,7 +39,7 @@ def main():
     horse_profiles = {}
 
     # 24_canalturf (profils chevaux)
-    items_24 = load_json_safe(os.path.join(BASE_DIR, "output", "24_canalturf", "canalturf_chevaux.json"), "24_canalturf")
+    items_24 = load_json_safe(os.path.join(BASE_DIR, "output", "24_canalturf", "canalturf_chevaux.json"), "24_canalturf", log)
     for item in items_24:
         nom = item.get("nom_cheval", "")
         key = normalize_name(nom)
@@ -90,7 +60,7 @@ def main():
     courses_ext = {}
 
     # 25_turfostats courses
-    items_25c = load_json_safe(os.path.join(BASE_DIR, "output", "25_turfostats", "turfostats_courses.json"), "25_courses")
+    items_25c = load_json_safe(os.path.join(BASE_DIR, "output", "25_turfostats", "turfostats_courses.json"), "25_courses", log)
     for item in items_25c:
         cid = item.get("id_course", "")
         if not cid:
@@ -102,7 +72,7 @@ def main():
                 courses_ext[key][f"turfo_{k}"] = v
 
     # 25_turfostats détails (partants par course)
-    items_25d = load_json_safe(os.path.join(BASE_DIR, "output", "25_turfostats", "turfostats_details.json"), "25_details")
+    items_25d = load_json_safe(os.path.join(BASE_DIR, "output", "25_turfostats", "turfostats_details.json"), "25_details", log)
     for item in items_25d:
         cid = item.get("id_course", "")
         if not cid:
@@ -117,7 +87,7 @@ def main():
     log.info(f"  → Courses turfostats: {len(courses_ext)}")
 
     # 26_geny (pronostics par date/réunion)
-    items_26 = load_json_safe(os.path.join(BASE_DIR, "output", "26_geny", "geny_data.json"), "26_geny")
+    items_26 = load_json_safe(os.path.join(BASE_DIR, "output", "26_geny", "geny_data.json"), "26_geny", log)
     geny_count = 0
     for item in items_26:
         date = item.get("date", "")
@@ -175,7 +145,7 @@ def main():
             for fname in sorted(os.listdir(rp_dir)):
                 if not fname.endswith('.json') or fname.startswith('.'):
                     continue
-                items = load_json_safe(os.path.join(rp_dir, fname), f"37/{fname}")
+                items = load_json_safe(os.path.join(rp_dir, fname), f"37/{fname}", log)
                 for item in items:
                     nom = item.get("horse_name", item.get("nom_cheval", ""))
                     key = normalize_name(nom) if nom else ""
