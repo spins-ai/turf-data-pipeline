@@ -1,141 +1,213 @@
 # Sources de donnees
 
-Liste exhaustive des 40+ sources de donnees du pipeline hippique, groupees par categorie.
+Liste exhaustive des 102 sources de donnees du pipeline hippique, groupees par categorie.
+Derniere mise a jour : 2026-03-22.
 
 ---
 
 ## A. PMU -- API Officielles (Sources principales)
 
-| # | Script | Source | URL / Endpoint | Type | Records | Champs principaux | Statut |
-|---|--------|--------|----------------|------|---------|-------------------|--------|
-| 1 | 01_calendrier_reunions.py | PMU Calendrier | `offline.turfinfo.api.pmu.fr/rest/client/7/programme/{date}` | API JSON | 41,477 reunions | date, hippodrome, discipline, nb_courses, pays | Termine (686 MB) |
-| 2 | 02_liste_courses.py | PMU Courses + Partants | `offline.turfinfo.api.pmu.fr/.../participants` | API JSON | 257,806 courses / 2,930,290 partants | Tous les champs partants (66), conditions, cotes, musique, equipements, poids | Termine (14 GB) |
-| 3 | 04_resultats.py | PMU Resultats | `offline.turfinfo.api.pmu.fr/.../resultats` | API JSON | ~217K courses | position_arrivee, ecarts, temps, rapports | En cours (~2.1 GB) |
-| 4 | 05_historique_chevaux.py | PMU Historique Chevaux | `offline.turfinfo.api.pmu.fr/.../historiquePerformances` | API JSON | 80,656 chevaux | nb_courses, victoires, gains, disciplines par cheval | Termine (324 MB) |
-| 5 | 06_historique_jockeys.py | PMU Historique Jockeys | `offline.turfinfo.api.pmu.fr/.../historique` | API JSON | 12,319 jockeys + ~5,000 entraineurs | victoires, places, gains, chevaux montes | Termine (14 MB) |
-| 6 | 07_cotes_marche.py | PMU Cotes Marche | `offline.turfinfo.api.pmu.fr/.../cotes` | API JSON | ~2.7M partants | cote_finale, cote_reference, proba_implicite, surcote | Termine (286 MB) |
-| 7 | 08_pedigree.py | PMU Pedigree Parents | `offline.turfinfo.api.pmu.fr/.../pedigree` | API JSON | Tous partants | pere, mere, pere_mere (1 generation) | Termine (20 MB) |
-| 8 | 09_equipements.py | PMU Equipements | `offline.turfinfo.api.pmu.fr/.../equipements` | API JSON | 573,111 partants | oeilleres, deferre, changements equipement | Termine (319 MB) |
-| 9 | 10_poids_handicaps.py | PMU Poids / Handicaps | `offline.turfinfo.api.pmu.fr/.../poids` | API JSON | ~2.7M partants | poids_porte, poids_base, surcharge/decharge, handicap_valeur | Termine (141 MB) |
-| 10 | 11_sectionals.py | PMU Sectionals | `offline.turfinfo.api.pmu.fr/.../sectionals` | API JSON | Courses trackees | reduction_km, vitesse, ecarts, temps sections | Termine (133 MB) |
+| # | Source | URL | Records | Size | Last Update | Status |
+|---|--------|-----|---------|------|-------------|--------|
+| 01 | PMU Calendrier | `offline.turfinfo.api.pmu.fr/.../programme/{date}` | 41,477 reunions | 615 MB | 2026-03-15 | ✅ Active |
+| 02 | PMU Courses + Partants | `offline.turfinfo.api.pmu.fr/.../participants` | 2,930,290 partants | 31 GB | 2026-03-21 | ✅ Active |
+| 04 | PMU Resultats | `offline.turfinfo.api.pmu.fr/.../resultats` | 1,386,967 rapports | 4.3 GB | 2026-03-21 | ✅ Active |
+| 05 | PMU Historique Chevaux | `offline.turfinfo.api.pmu.fr/.../historiquePerformances` | 80,656 chevaux | 325 MB | 2026-03-13 | ✅ Active |
+| 06 | PMU Historique Jockeys | `offline.turfinfo.api.pmu.fr/.../historique` | 12,319 jockeys + 11,840 entraineurs | 15 MB | 2026-03-13 | ✅ Active |
+| 07 | PMU Cotes Marche | `offline.turfinfo.api.pmu.fr/.../cotes` | 573,111 partants | 287 MB | 2026-03-13 | ✅ Active |
+| 08 | PMU Pedigree Parents | `offline.turfinfo.api.pmu.fr/.../pedigree` | Tous partants | 20 MB | 2026-03-13 | ✅ Active |
+| 09 | PMU Equipements | `offline.turfinfo.api.pmu.fr/.../equipements` | 573,111 partants | 320 MB | 2026-03-13 | ✅ Active |
+| 10 | PMU Poids / Handicaps | `offline.turfinfo.api.pmu.fr/.../poids` | 271,276 partants | 142 MB | 2026-03-13 | ✅ Active |
+| 11 | PMU Sectionals | `offline.turfinfo.api.pmu.fr/.../sectionals` | 243,410 courses | 134 MB | 2026-03-13 | ✅ Active |
 
 ---
 
 ## B. PMU -- Endpoints derives / internes
 
-| # | Script | Source | URL / Endpoint | Type | Records | Champs principaux | Statut |
-|---|--------|--------|----------------|------|---------|-------------------|--------|
-| 11 | 21_rapports_definitifs.py | PMU Rapports Nationaux | `offline.turfinfo.api.pmu.fr/.../rapports-definitifs` | API JSON | 124,287 courses | rapports simple/couple/tierce/quarte/quinte, mise base 200 | En cours (240K JSONL) |
-| 12 | 22_performances_detaillees.py | PMU Performances Detaillees | `online.turfinfo.api.pmu.fr/.../performances-detaillees/pretty` | API JSON | 917,805 partants | 5 dernieres performances (date, hippo, distance, position, ecart, temps, terrain, cote) | En cours (12 GB) |
-| 13 | 27_citations_enjeux.py | PMU Citations / Enjeux | `offline.turfinfo.api.pmu.fr/.../citations` | API JSON | ~144K/300K (48%) | enjeux par cheval, citations experts | En cours (5.9 GB JSONL) |
-| 14 | 28_combinaisons_marche.py | PMU Combinaisons | `offline.turfinfo.api.pmu.fr/.../combinaisons` | API JSON | 5,700,000 | masse d'enjeux par combinaison | Termine (2.3 GB JSONL) |
-| 15 | 38_rapports_internet.py | PMU Rapports Internet | `offline.turfinfo.api.pmu.fr/.../rapports-definitifs?specialisation=INTERNET` | API JSON | 3,200,000 | rapports e-paris, mise base 100 | Termine (1.9 GB JSONL) |
-| 16 | 39_reunions_enrichies.py | PMU Reunions Enrichies | `offline.turfinfo.api.pmu.fr/.../R{r}` | API JSON | ~230K | meteo, incidents, conditions reunion, masse enjeux | En cours (2 GB JSONL) |
-| 17 | 40_enrichissement_partants.py | PMU Enrichissement | PMU API (champs supplementaires) | API JSON | ~2.5M | gainsParticipant, dernierRapport, idCheval, nomPereMere, handicapValeur, eleveur, race, robe | Termine (655 MB) |
-| 18 | 23_pronostics_equidia.py | PMU/Equidia Pronostics | PMU pronostics endpoint | API JSON | ~110K | pronostics officiels | En cours (431 MB) |
+| # | Source | URL | Records | Size | Last Update | Status |
+|---|--------|-----|---------|------|-------------|--------|
+| 21 | PMU Rapports Nationaux | `offline.turfinfo.api.pmu.fr/.../rapports-definitifs` | 201,023 courses | 381 MB | 2026-03-21 | ✅ Active |
+| 22 | PMU Performances Detaillees | `online.turfinfo.api.pmu.fr/.../performances-detaillees/pretty` | 244,349 partants | 1.3 GB | 2026-03-21 | ✅ Active |
+| 23 | PMU/Equidia Pronostics | PMU pronostics endpoint | 204,598 pronostics | 422 MB | 2026-03-21 | ✅ Active |
+| 27 | PMU Citations / Enjeux | `offline.turfinfo.api.pmu.fr/.../citations` | 1,500,599 entries | 5.3 GB | 2026-03-21 | ✅ Active |
+| 28 | PMU Combinaisons | `offline.turfinfo.api.pmu.fr/.../combinaisons` | 5,413,768 combinaisons | 2.7 GB | 2026-03-21 | ✅ Active |
+| 38 | PMU Rapports Internet | `offline.turfinfo.api.pmu.fr/.../rapports-definitifs?specialisation=INTERNET` | 2,799,619 rapports | 1.6 GB | 2026-03-21 | ✅ Active |
+| 39 | PMU Reunions Enrichies | `offline.turfinfo.api.pmu.fr/.../R{r}` | 233,719 reunions | 1.4 GB | 2026-03-21 | ✅ Active |
+| 40 | PMU Enrichissement Partants | PMU API (champs supplementaires) | 2,678,013 partants | 699 MB | 2026-03-20 | ✅ Active |
+| 101 | PMU API v2 (unifie) | `online.turfinfo.api.pmu.fr/rest/client/1` | 1,319,071 participants / 112,516 courses | 1.3 GB | 2026-03-22 | 🔄 In Progress |
 
 ---
 
 ## C. Donnees institutionnelles / Open Data
 
-| # | Script | Source | URL / Endpoint | Type | Records | Champs principaux | Statut |
-|---|--------|--------|----------------|------|---------|-------------------|--------|
-| 19 | 17_process_sire.py | SIRE / IFCE | `data.gouv.fr/datasets/fichier-des-equides` | CSV Open Data | 4,000,000 equides | race, sexe, robe, date_naissance, pays_naissance, nom | Termine (1.1 GB) |
-| 20 | 20_ifce_stats.py | IFCE Stats & Cartes | `statscartes.ifce.fr/dashboard/47` | JSON API | ~5,000 | stats par hippodrome, entraineur, jockey | Termine (252 KB) |
+| # | Source | URL | Records | Size | Last Update | Status |
+|---|--------|-----|---------|------|-------------|--------|
+| 17 | SIRE / IFCE | `data.gouv.fr/datasets/fichier-des-equides` | 1,476,670 equides | 1.1 GB | 2026-03-14 | ✅ Active |
+| 20 | IFCE Stats & Cartes | `statscartes.ifce.fr` | 16 entries | 212 KB | 2026-03-21 | ✅ Active |
+| 80 | France Galop | `france-galop.com` | 44 records | 96 KB | 2026-03-21 | ⚠️ Partial |
 
 ---
 
 ## D. Pedigree / Elevage
 
-| # | Script | Source | URL / Endpoint | Type | Records | Champs principaux | Statut |
-|---|--------|--------|----------------|------|---------|-------------------|--------|
-| 21 | 12_pedigree_scraper.py | PedigreeQuery.com (galop) | `pedigreequery.com` | Scraping HTML | ~18K/58K chevaux | pedigree 4 generations (sires, dams, grandsires) | Consolider cache |
-| 22 | 14_pedigree_scraper.py | PedigreeQuery.com (complet) | `pedigreequery.com` | Scraping HTML | ~89K/250K (35%) | pedigree 4 generations, coat, country | En cours |
-| 23 | 36_pedigree_query.py | PedigreeQuery.com (v2) | `pedigreequery.com` | Scraping HTML | 24,484 chevaux | pedigree 4 generations complet | Bloque (Cloudflare) |
-| 24 | 29_arqana_ventes.py | Arqana Ventes | `arqana.com` | Scraping HTML | Variable | prix_vente, acheteur, vendeur, lot | A lancer |
+| # | Source | URL | Records | Size | Last Update | Status |
+|---|--------|-----|---------|------|-------------|--------|
+| 12 | PedigreeQuery (galop) | `pedigreequery.com` | 544 pedigrees | 804 KB | 2026-03-22 | ⚠️ Partial |
+| 14 | PedigreeQuery (complet) | `pedigreequery.com` | 29,158 chevaux | 65 MB | 2026-03-21 | ⚠️ Partial |
+| 36 | PedigreeQuery (v2) | `pedigreequery.com` | 6,629 chevaux | 3.6 MB | 2026-03-18 | ❌ Blocked |
+| 71 | AllBreedPedigree | `allbreedpedigree.com` | 0 | 0 | -- | ❌ Blocked |
+| 87 | Bloodstock (BloodHorse/TDN) | `bloodhorse.com` / `thoroughbreddailynews.com` | 0 | 0 | -- | ❌ Blocked |
+| 88 | Weatherbys (UK Stud Book) | `weatherbys.co.uk` | 0 | 0 | -- | ❌ Blocked |
 
 ---
 
 ## E. Meteo / Meteorologie
 
-| # | Script | Source | URL / Endpoint | Type | Records | Champs principaux | Statut |
-|---|--------|--------|----------------|------|---------|-------------------|--------|
-| 25 | 13_meteo_historique.py | Meteostat | API Meteostat | API JSON | 31,778 courses | temperature, humidite, vent, precipitations | Termine (71 MB) |
-| 26 | 35_meteo_france_api.py | Meteo France | `api.meteo.fr` | API JSON | Variable | donnees meteo France (payant) | A relancer |
-| 27 | 00_enrichissement_meteo.py | NASA / Open-Meteo | `open-meteo.com` | API JSON | ~12,754 cache | temperature, precipitations, vent mondial | En cours |
-| 28 | fetch_openmeteo_missing.py | Open-Meteo (comblement) | `open-meteo.com` | API JSON | Complement | comblement trous meteo mondiales | En cours |
+| # | Source | URL | Records | Size | Last Update | Status |
+|---|--------|-----|---------|------|-------------|--------|
+| 13 | Meteostat | API Meteostat | 4,551 entries | 27 MB | 2026-03-21 | ✅ Active |
+| 35 | Meteo France | `api.meteo.fr` | 40 hippodromes | 11 MB | 2026-03-14 | ⚠️ Partial |
+| 96 | NOAA Weather | `noaa.gov` | 0 | 0 | -- | ❌ Blocked |
+| 97 | Meteostat (v2 bulk) | `meteostat.p.rapidapi.com` | 0 | 0 | -- | ❌ Blocked |
 
 ---
 
 ## F. Betting Exchange / Bookmakers
 
-| # | Script | Source | URL / Endpoint | Type | Records | Champs principaux | Statut |
-|---|--------|--------|----------------|------|---------|-------------------|--------|
-| 29 | 30_smarkets_exchange.py | Smarkets Exchange | `api.smarkets.com` | API JSON | ~1,000 | cotes exchange (back/lay), volume | Termine (640 KB) |
-| 30 | 34_unibet_cotes.py | Unibet | `unibet.fr` | Scraping | Variable | cotes bookmaker, marches | A lancer |
+| # | Source | URL | Records | Size | Last Update | Status |
+|---|--------|-----|---------|------|-------------|--------|
+| 30 | Smarkets Exchange | `api.smarkets.com` | 660 events | 632 KB | 2026-03-22 | ✅ Active |
+| 51 | ZeTurf | `zeturf.fr` | 413,621 records | 95 MB | 2026-03-21 | ✅ Active |
+| 60 | OddsChecker | `oddschecker.com` | 0 | 0 | -- | ❌ Blocked |
+| 68 | Betfair Exchange | `betfair.com` | 0 | 0 | -- | ❌ Blocked |
+| 69 | OddsPortal | `oddsportal.com` | 0 | 0 | -- | ❌ Blocked |
+| 70 | BetExplorer | `betexplorer.com` | 0 | 0 | -- | ❌ Blocked |
 
 ---
 
-## G. Sites communautaires / Pronostics
+## G. Sites communautaires / Pronostics (France)
 
-| # | Script | Source | URL / Endpoint | Type | Records | Champs principaux | Statut |
-|---|--------|--------|----------------|------|---------|-------------------|--------|
-| 31 | 24_canalturf_scraper.py | CanalTurf | `canalturf.com` | Scraping HTML | ~9,159 profils | stats cheval, pronostics, historique | Termine (41 MB) |
-| 32 | 25_turfostats_scraper.py | TurfoStats | `turfostats.com` | Scraping HTML | ~8,332 entries | stats avancees, indices performance | Termine (27 MB) |
-| 33 | 26_geny_scraper.py | Geny Courses | `geny.com` | Scraping HTML | Variable | pronostics, stats, historique | Termine (44 MB) |
-| 34 | 31_zone_turf.py | Zone Turf | `zone-turf.fr` | Scraping HTML | Variable | pronostics, base musique | A lancer |
-| 35 | 32_turfomania.py | Turfomania | `turfomania.com` | Scraping HTML | Variable | pronostics, stats | A lancer |
-| 36 | 33_turf_fr.py | Turf.fr | `turf.fr` | Scraping HTML | Variable | stats, historique | A lancer |
-| 37 | 19_boturfers_stats.py | Boturfers | `boturfers.fr` | Scraping HTML | ~250 hippodromes | stats hippodrome, rapport moyen, disciplines | Termine (632 KB) |
-
----
-
-## H. Courses internationales
-
-| # | Script | Source | URL / Endpoint | Type | Records | Champs principaux | Statut |
-|---|--------|--------|----------------|------|---------|-------------------|--------|
-| 38 | 37_rpscrape_racing_post.py | Racing Post (UK/IRE) | `racingpost.com` via rpscrape | Scraping | ~10K cache | RPR, Top Speed, going, draw, class, OR | Crashe (patch JSONL fait, a relancer) |
+| # | Source | URL | Records | Size | Last Update | Status |
+|---|--------|-----|---------|------|-------------|--------|
+| 24 | CanalTurf | `canalturf.com` | 9,503 profils | 14 MB | 2026-03-21 | ✅ Active |
+| 25 | TurfoStats | `turfostats.com` | 6,121 courses / 6,127 programmes | 12 MB | 2026-03-22 | ✅ Active |
+| 26 | Geny Courses | `geny.com` | 2,265 entries | 36 MB | 2026-03-21 | ✅ Active |
+| 52 | Turfomania | `turfomania.fr` | 6,177 records | 2.3 MB | 2026-03-21 | ✅ Active |
+| 53 | Paris Turf | `paris-turf.com` | 32,154 courses / 3,775 runners | 30 MB | 2026-03-21 | ✅ Active |
+| 54 | TurfInfo | `turfinfo.fr` | 0 (cache only) | 0 | 2026-03-21 | ❌ Blocked |
+| 55 | Equidia | `equidia.fr` | 1,131 records | 9.2 MB | 2026-03-21 | ⚠️ Partial |
+| 81 | Pronosoft | `pronosoft.com` | 0 | 0 | 2026-03-22 | ❌ Blocked |
+| 82 | Turf-FR | `turf-fr.com` | 3,062 records | 1.9 MB | 2026-03-21 | ✅ Active |
+| 84 | Turfoo | `turfoo.fr` | 5,071 records | 1.7 MB | 2026-03-21 | ✅ Active |
+| 19 | Boturfers | `boturfers.fr` | 272 hippodromes | 168 KB | 2026-03-22 | ✅ Active |
 
 ---
 
-## I. Le Trot
+## H. Courses internationales (UK/IRE)
 
-| # | Script | Source | URL / Endpoint | Type | Records | Champs principaux | Statut |
-|---|--------|--------|----------------|------|---------|-------------------|--------|
-| 39 | 02b_scraper_letrot.py | Le Trot (HTML brut) | `letrot.com` | Scraping HTML | ~36K courses | courses trot hors PMU | Termine (15 GB) |
-| 40 | 02b_liste_courses_2013.py | Le Trot (historique) | `letrot.com` | Scraping HTML | Variable | donnees 2004-2013 | Termine (3.2 GB) |
-| 41 | 18_letrot_records.py | Le Trot Records de piste | `letrot.com/stats` | Scraping HTML | ~236 hippodromes | records par hippodrome/distance/specialite | Termine (152 KB) |
-
----
-
-## J. Datasets ouverts / Kaggle
-
-| # | Script | Source | URL / Endpoint | Type | Records | Champs principaux | Statut |
-|---|--------|--------|----------------|------|---------|-------------------|--------|
-| 42 | 16_collecte_nanaelie_2004_2013.py | Kaggle nanaelie PMU | `kaggle.com/datasets/nanaelie/historical-pmu-horse-racing-dataset` | CSV/Parquet | 3,295 courses (2004-2013) | arrivees top 5 historiques | Termine |
-| 43 | 15_download_external_datasets.py | Datasets externes divers | Kaggle + autres | CSV | Variable | datasets complementaires | A lancer |
-
----
-
-## K. Base interne hippodromes
-
-| # | Script | Source | Type | Records | Champs principaux | Statut |
-|---|--------|--------|------|---------|-------------------|--------|
-| 44 | hippodromes_db.py | Base hippodromes maison | Dictionnaire Python | 673 hippodromes | nom, GPS (lat/lon), altitude, type_piste, corde, region, pays | Termine |
+| # | Source | URL | Records | Size | Last Update | Status |
+|---|--------|-----|---------|------|-------------|--------|
+| 37 | Racing Post (historique FR) | `racingpost.com` via rpscrape | 3,610,366 records | 1.7 GB | 2026-03-21 | ✅ Active |
+| 56 | Timeform | `timeform.com` | 60,343 records | 11 MB | 2026-03-21 | ✅ Active |
+| 57 | Sporting Life | `sportinglife.com` | 25,086 records | 5.4 MB | 2026-03-21 | ✅ Active |
+| 58 | At The Races | `attheraces.com` | 0 | 0 | -- | ❌ Blocked |
+| 59 | Racing TV | `racingtv.com` | 0 | 0 | -- | ❌ Blocked |
+| 78 | GoingStick Data | `britishhorseracing.com` / `racingpost.com` | 0 | 0 | 2026-03-22 | ❌ Blocked |
+| 79 | Trainer Stats (multi-source) | `racingpost.com` / `sportinglife.com` | 0 | 0 | -- | ❌ Blocked |
+| 86 | SmartForm | `smartform.co.uk` | 0 | 0 | -- | ❌ Blocked |
+| 91 | EquiRatings | `equiratings.com` | 0 | 0 | -- | ❌ Blocked |
+| 93 | Raceform | `raceform.co.uk` | 0 | 0 | -- | ❌ Blocked |
+| 98 | TurfTrax | `turftrax.com` | 0 | 0 | -- | ❌ Blocked |
+| 99 | Clerk of Course (BHA) | `britishhorseracing.com` | 0 | 0 | -- | ❌ Blocked |
+| 102 | Racing Post (v2) | `racingpost.com` | 24 records | 12 KB | 2026-03-21 | ⚠️ Partial |
+| 85 | Racing and Sports | `racingandsports.com` | 0 | 0 | -- | ❌ Blocked |
 
 ---
 
-## Endpoints PMU utilises (resume)
+## I. Courses internationales (Reste du monde)
 
-| # | Endpoint | Donnees | Script(s) |
-|---|----------|---------|-----------|
-| 1 | `offline.turfinfo.api.pmu.fr/.../participants` | Partants + resultats | 02 |
-| 2 | `online.turfinfo.api.pmu.fr/.../rapports-definitifs` | Dividendes nationaux | 21 |
-| 3 | `offline.turfinfo.api.pmu.fr/.../rapports-definitifs?specialisation=INTERNET` | E-paris | 38 |
-| 4 | `offline.turfinfo.api.pmu.fr/.../performances-detaillees/pretty` | 9 dernieres courses | 22 |
-| 5 | `offline.turfinfo.api.pmu.fr/.../citations` | Enjeux par cheval | 27 |
-| 6 | `offline.turfinfo.api.pmu.fr/.../combinaisons` | Masse d'enjeux | 28 |
-| 7 | `offline.turfinfo.api.pmu.fr/.../R{r}` | Meteo, incidents, conditions reunion | 39 |
+| # | Source | URL | Records | Size | Last Update | Status |
+|---|--------|-----|---------|------|-------------|--------|
+| 61 | Equibase (US) | `equibase.com` | 256 records | 48 KB | 2026-03-21 | ⚠️ Partial |
+| 62 | Horse Racing Nation (US) | `horseracingnation.com` | 1,514 records | 544 KB | 2026-03-21 | ⚠️ Partial |
+| 63 | Daily Racing Form (US) | `drf.com` | 0 | 0 | -- | ❌ Blocked |
+| 64 | Punters (AU) | `punters.com.au` | 0 | 0 | -- | ❌ Blocked |
+| 65 | Racenet (AU) | `racenet.com.au` | 0 | 0 | -- | ❌ Blocked |
+| 66 | HKJC (Hong Kong) | `racing.hkjc.com` | 1,570 records | 664 KB | 2026-03-21 | ✅ Active |
+| 67 | JRA (Japan) | `jra.go.jp` | 41 records | 16 KB | 2026-03-21 | ⚠️ Partial |
+| 89 | Singapore Pools | `singaporepools.com.sg` | 809 records | 56 KB | 2026-03-21 | ⚠️ Partial |
+| 90 | Korea Racing (KRA) | `kra.co.kr` | 0 | 0 | -- | ❌ Blocked |
+| 92 | OptixEQ (US) | `optixeq.com` | 0 | 0 | -- | ❌ Blocked |
+
+---
+
+## J. Le Trot
+
+| # | Source | URL | Records | Size | Last Update | Status |
+|---|--------|-----|---------|------|-------------|--------|
+| 02b | Le Trot (HTML brut) | `letrot.com` | 26,462 courses | 503 MB | 2026-03-21 | ✅ Active |
+| 02b_2013 | Le Trot (historique 2004-2013) | `letrot.com` | 89,527 partants | 1.4 GB | 2026-03-19 | ✅ Active |
+| 18 | Le Trot Records de piste | `letrot.com/stats` | ~236 hippodromes | 149 KB | 2026-03-15 | ✅ Active |
+| 76 | USTA Trotting (US) | `ustrotting.com` | 3,933 records | 728 KB | 2026-03-21 | ✅ Active |
+| 83 | Le Trot (v2 corrige) | `letrot.com` | 1,401,487 records | 600 MB | 2026-03-21 | ✅ Active |
+| 94 | Harness Australia | `harness.org.au` | 0 | 0 | -- | ❌ Blocked |
+| 95 | Standardbred Canada | `standardbredcanada.ca` | 0 | 0 | -- | ❌ Blocked |
+
+---
+
+## K. Ventes aux encheres
+
+| # | Source | URL | Records | Size | Last Update | Status |
+|---|--------|-----|---------|------|-------------|--------|
+| 72 | Tattersalls (UK) | `tattersalls.com` | 0 | 0 | -- | ❌ Blocked |
+| 73 | Goffs (IRE) | `goffs.com` | 0 | 0 | -- | ❌ Blocked |
+| 74 | Arqana (FR) | `arqana.com` | 0 | 0 | -- | ❌ Blocked |
+| 75 | Keeneland (US) | `keeneland.com` | 2 records | 4 KB | 2026-03-21 | ⚠️ Partial |
+| 100 | Magic Millions (AU) | `magicmillions.com.au` | 0 (cache only) | 0 | -- | ❌ Blocked |
+
+---
+
+## L. Datasets ouverts / Kaggle
+
+| # | Source | URL | Records | Size | Last Update | Status |
+|---|--------|-----|---------|------|-------------|--------|
+| 16 | Kaggle nanaelie PMU | `kaggle.com/datasets/nanaelie` | 3,316 courses | 5.3 MB | 2026-03-21 | ✅ Active |
+| 77 | Kaggle Datasets (divers) | `kaggle.com` | 0 | 0 | -- | ❌ Blocked |
+
+---
+
+## M. Pipeline interne (transformations)
+
+| # | Source | Type | Records | Size | Last Update | Status |
+|---|--------|------|---------|------|-------------|--------|
+| 02_raw | PMU raw backup | JSON/JSONL | 2,678,013 partants | 14 GB | 2026-03-21 | ✅ Active |
+| 02_merged | Merged intermediate | JSON/JSONL | 2,930,290 partants | 9.6 GB | 2026-03-21 | ✅ Active |
+| 41 | Sequences performances | JSONL | 2,930,290 entries | 2.5 GB | 2026-03-21 | ✅ Active |
+| 42 | Croisement RP-PMU | JSONL | 2,891,593 entries | 277 MB | 2026-03-21 | ✅ Active |
+| 43 | Croisement Meteo-Courses | JSONL | 2,930,290 entries | 1.2 GB | 2026-03-21 | ✅ Active |
+| 44 | Croisement Pedigree-Partants | JSONL | 2,930,290 entries | 1.6 GB | 2026-03-21 | ✅ Active |
+| 45 | Graphe GNN (nodes+edges) | JSONL | 2,930,290 partants + edges | 2.1 GB | 2026-03-21 | ✅ Active |
+| 46 | Track Bias / Speed Class | JSONL | 2,930,290 entries | 1.3 GB | 2026-03-21 | ✅ Active |
+| 48 | Conditions Texte (NLP) | JSONL | 257,806 courses | 122 MB | 2026-03-21 | ✅ Active |
+| 49 | Ecart Cotes Market | JSONL | 2,930,290 entries | 990 MB | 2026-03-21 | ✅ Active |
+| dedup | Deduplication | JSONL | 4,600,000+ entries | 5.1 GB | 2026-03-21 | ✅ Active |
+| nettoyage | Nettoyage | JSONL | -- | 4.7 GB | 2026-03-21 | ✅ Active |
+| comblage | Comblage | JSONL | -- | 4.8 GB | 2026-03-21 | ✅ Active |
+| features | Feature Matrix | JSONL | -- | 234 GB | 2026-03-21 | ✅ Active |
+| exports | Master Export | JSON/CSV/JSONL | 2,930,290 partants | 90 GB | 2026-03-21 | ✅ Active |
+| labels | Training Labels | JSONL/CSV/Parquet | -- | 2.6 GB | 2026-03-21 | ✅ Active |
+
+---
+
+## Resume par statut
+
+| Statut | Nombre | Details |
+|--------|--------|---------|
+| ✅ Active | 46 | Sources operationnelles avec donnees |
+| ⚠️ Partial | 10 | Donnees partielles ou limitees |
+| ❌ Blocked | 35 | Bloque (Cloudflare, auth, anti-bot, payant) |
+| 🔄 In Progress | 1 | Collecte en cours (101 PMU API v2) |
+| **Total** | **92 sources + pipeline interne** | |
 
 ---
 
@@ -143,15 +215,27 @@ Liste exhaustive des 40+ sources de donnees du pipeline hippique, groupees par c
 
 | # | Signal | Couverture | Sources |
 |---|--------|------------|---------|
-| 1 | Cotes bookmakers | PARTIEL | PMU (07), Unibet (34), Smarkets (30) |
-| 2 | Resultats historiques | OUI | PMU (02, 02b, 04), Nanaelie (16), Le Trot |
+| 1 | Cotes bookmakers | OUI | PMU (07), Smarkets (30), ZeTurf (51), Paris Turf (53) |
+| 2 | Resultats historiques | OUI | PMU (02, 04), Le Trot (02b, 83), Nanaelie (16), Racing Post (37) |
 | 3 | Pedigree | PARTIEL | PedigreeQuery (14), PMU (08), SIRE/IFCE (17) |
-| 4 | Meteo | OUI | Meteostat (13), Open-Meteo (35) |
-| 5 | Terrain / piste | OUI | PMU (penetrometre), Equidia |
-| 6 | Vitesse sectionnelle | PARTIEL | PMU sectionals (11), Perf detaillees (22) |
+| 4 | Meteo | OUI | Meteostat (13), Open-Meteo, Meteo France (35) |
+| 5 | Terrain / piste | OUI | PMU (penetrometre), reunions enrichies (39) |
+| 6 | Vitesse sectionnelle | PARTIEL | PMU sectionals (11), Perf detaillees (22), Timeform (56) |
 | 7 | Biomecanique | NON | Pas de source publique |
 | 8 | Tracking GPS | NON | Pas de source publique en France |
-| 9 | Historique jockey | OUI | PMU (06), stats rolling |
+| 9 | Historique jockey | OUI | PMU (06), stats rolling, Sporting Life (57) |
 | 10 | Historique entraineur | OUI | PMU (06), stats rolling |
 
 **Score : 6/10 complets, 3/10 partiels, 1/10 manquant.**
+
+---
+
+## Volume total de donnees
+
+| Categorie | Volume |
+|-----------|--------|
+| Sources brutes (output/) | ~400+ GB |
+| Feature matrix | 234 GB |
+| Master export | 90 GB |
+| Partants (records principaux) | 2,930,290 |
+| Courses (records principaux) | ~257,806 |
