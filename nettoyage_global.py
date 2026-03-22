@@ -62,6 +62,8 @@ def fix_utf8(text):
     return text
 
 
+# NOTE: Incompatible with utils.normalize.normalize_name — this version does
+# UTF-8 fixing, preserves accents and case, keeps special chars like apostrophes.
 def normalize_name(name):
     """Normalise un nom propre (cheval, jockey, entraîneur)."""
     if not name or not isinstance(name, str):

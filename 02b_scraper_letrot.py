@@ -418,6 +418,8 @@ def centimes_to_euros(centimes: Optional[int]) -> Optional[float]:
     return centimes / 100.0
 
 
+# NOTE: Incompatible with utils.types.safe_int — this version does regex
+# extraction from strings, handles \xa0, commas as decimal separators, etc.
 def safe_int(val: Any) -> Optional[int]:
     """Extrait un entier depuis une valeur potentiellement textuelle."""
     if val is None:
@@ -440,6 +442,8 @@ def safe_int(val: Any) -> Optional[int]:
     return None
 
 
+# NOTE: Incompatible with utils.types.safe_float — this version does regex
+# extraction from strings, handles \xa0, commas as decimal separators, etc.
 def safe_float(val: Any) -> Optional[float]:
     """Extrait un float depuis une valeur potentiellement textuelle."""
     if val is None:
