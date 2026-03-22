@@ -1,4 +1,4 @@
-"""Shared output helpers: save_jsonl, sauver_json, sauver_csv.
+"""Shared output helpers: save_jsonl, sauver_json, sauver_csv, sauver_parquet.
 
 These were previously duplicated across 20+ files. All functions accept
 a list of dicts, a file path (str or Path), and a logger.
@@ -87,3 +87,51 @@ def sauver_csv(
                     flat_row[k] = v
             writer.writerow(flat_row)
     logger.info("Sauve: %s", filepath.name)
+
+
+def sauver_parquet(
+    data: list[dict[str, Any]],
+    filepath: str | os.PathLike,
+    logger: logging.Logger,
+) -> None:
+    """Write a list of records to a Parquet file.
+
+    Nested lists/dicts are serialised as JSON strings so that they survive
+    the round-trip.  Uses atomic write (tmp file + replace) and snappy
+    compression.  Silently returns if *pyarrow* is not installed or *data*
+    is empty.
+    """
+    if not data:
+        return
+    try:
+        import pyarrow as pa          # type: ignore[import-untyped]
+        import pyarrow.parquet as pq  # type: ignore[import-untyped]
+    except ImportError:
+        logger.warning("pyarrow non installe, export Parquet ignore")
+        return
+
+    filepath = Path(filepath)
+    filepath.parent.mkdir(parents=True, exist_ok=True)
+    tmp = filepath.with_suffix(".tmp.parquet")
+
+    try:
+        # Serialise nested containers so pyarrow doesn't choke on them.
+        clean: list[dict[str, Any]] = []
+        for row in data:
+            cr: dict[str, Any] = {}
+            for k, v in row.items():
+                cr[k] = (
+                    json.dumps(v, ensure_ascii=False, default=str)
+                    if isinstance(v, (list, dict, set, frozenset))
+                    else v
+                )
+            clean.append(cr)
+
+        table = pa.Table.from_pylist(clean)
+        pq.write_table(table, tmp, compression="snappy")
+        tmp.replace(filepath)
+        logger.info("Sauve Parquet: %s (%d entrees)", filepath.name, len(data))
+    except Exception:
+        if tmp.exists():
+            tmp.unlink()
+        raise

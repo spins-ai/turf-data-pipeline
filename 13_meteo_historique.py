@@ -47,13 +47,6 @@ import meteostat
 
 from hippodromes_db import HIPPODROMES_DB
 
-# Imports optionnels
-try:
-    import pyarrow as pa
-    import pyarrow.parquet as pq
-    HAS_PARQUET = True
-except ImportError:
-    HAS_PARQUET = False
 
 
 # ===========================================================================
@@ -65,7 +58,7 @@ OUTPUT_DIR = Path(__file__).resolve().parent / "output" / "13_meteo_historique"
 CACHE_DIR = OUTPUT_DIR / "cache"
 
 from utils.logging_setup import setup_logging
-from utils.output import sauver_json, sauver_csv
+from utils.output import sauver_json, sauver_csv, sauver_parquet
 from utils.types import utc_now_iso
 
 
@@ -495,19 +488,6 @@ def build_meteo_normalisee(
 # ===========================================================================
 # SAUVEGARDE
 # ===========================================================================
-
-
-
-
-def sauver_parquet(data: list[dict], path: Path, logger: logging.Logger):
-    if not HAS_PARQUET or not data:
-        return
-    try:
-        table = pa.Table.from_pylist(data)
-        pq.write_table(table, path)
-        logger.info("Sauve: %s", path.name)
-    except Exception as e:
-        logger.warning("Parquet ignore: %s", e)
 
 
 

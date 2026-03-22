@@ -52,14 +52,6 @@ try:
 except ImportError:
     HAS_BS4 = False
 
-try:
-    import pyarrow as pa
-    import pyarrow.parquet as pq
-
-    HAS_PARQUET = True
-except ImportError:
-    HAS_PARQUET = False
-
 
 # ===========================================================================
 # CONFIG
@@ -72,7 +64,7 @@ CHECKPOINT_PATH = OUTPUT_DIR / "checkpoint.json"
 
 from utils.logging_setup import setup_logging
 from utils.normalize import normaliser_texte
-from utils.output import sauver_json, sauver_csv
+from utils.output import sauver_json, sauver_csv, sauver_parquet
 from utils.types import utc_now_iso
 
 # Scraping
@@ -95,30 +87,6 @@ ALL_SOURCES = [SOURCE_LETROT, SOURCE_IFCE, SOURCE_FRANCESIRE]
 # ===========================================================================
 # SAUVEGARDE
 # ===========================================================================
-
-
-
-
-def sauver_parquet(data: list[dict], path: Path, logger: logging.Logger):
-    if not HAS_PARQUET or not data:
-        return
-    try:
-        flat = []
-        for row in data:
-            r = {}
-            for k, v in row.items():
-                if isinstance(v, (set, frozenset)):
-                    r[k] = sorted(v)
-                elif isinstance(v, dict):
-                    r[k] = json.dumps(v, ensure_ascii=False, default=str)
-                else:
-                    r[k] = v
-            flat.append(r)
-        table = pa.Table.from_pylist(flat)
-        pq.write_table(table, path)
-        logger.info("Sauve: %s", path.name)
-    except Exception as e:
-        logger.warning("Parquet ignore: %s", e)
 
 
 

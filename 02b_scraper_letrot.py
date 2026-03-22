@@ -51,13 +51,6 @@ except ImportError:
     print("ERREUR: beautifulsoup4 requis.  pip install beautifulsoup4 lxml")
     sys.exit(1)
 
-# Imports optionnels
-try:
-    import pyarrow as pa
-    import pyarrow.parquet as pq
-    HAS_PARQUET = True
-except ImportError:
-    HAS_PARQUET = False
 
 # ===========================================================================
 # CONFIG
@@ -69,7 +62,7 @@ CACHE_DIR = OUTPUT_DIR / "cache"
 
 from utils.logging_setup import setup_logging
 from utils.normalize import normaliser_texte
-from utils.output import sauver_json, sauver_csv
+from utils.output import sauver_json, sauver_csv, sauver_parquet
 from utils.types import utc_now_iso
 
 LETROT_BASE = "https://www.letrot.com"
@@ -1906,19 +1899,6 @@ def normaliser_partant(brute: PartantBrut, course_norm: CourseNormalisee) -> Par
 # ===========================================================================
 # SAUVEGARDE
 # ===========================================================================
-
-
-
-
-def sauver_parquet(data: list[dict], path: Path, logger: logging.Logger):
-    if not HAS_PARQUET or not data:
-        return
-    try:
-        table = pa.Table.from_pylist(data)
-        pq.write_table(table, path)
-        logger.info("Sauve: %s", path.name)
-    except Exception as e:
-        logger.warning("Parquet ignore: %s", e)
 
 
 

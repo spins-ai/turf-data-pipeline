@@ -43,13 +43,6 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-# Imports optionnels
-try:
-    import pyarrow as pa
-    import pyarrow.parquet as pq
-    HAS_PARQUET = True
-except ImportError:
-    HAS_PARQUET = False
 
 # ===========================================================================
 # CONFIG
@@ -97,7 +90,7 @@ class ResultatNanaelie:
 # ===========================================================================
 
 from utils.logging_setup import setup_logging
-from utils.output import sauver_json, sauver_csv
+from utils.output import sauver_json, sauver_csv, sauver_parquet
 
 
 # ===========================================================================
@@ -371,42 +364,6 @@ def save_cache(dt: date, data: list):
 # ===========================================================================
 # SAUVEGARDE
 # ===========================================================================
-
-
-
-
-def sauver_parquet(data: list[dict], path: Path, logger: logging.Logger):
-    if not HAS_PARQUET or not data:
-        if not HAS_PARQUET:
-            logger.info("pyarrow non installe, export parquet ignore")
-        return
-    try:
-        # Convertir les listes en chaines pour compatibilite parquet
-        data_flat = []
-        for row in data:
-            r = dict(row)
-            if isinstance(r.get("non_partants"), list):
-                r["non_partants"] = json.dumps(r["non_partants"])
-            if isinstance(r.get("arrivee_top5"), list):
-                r["arrivee_top5"] = json.dumps(r["arrivee_top5"])
-            data_flat.append(r)
-        table = pa.Table.from_pylist(data_flat)
-        pq.write_table(table, path)
-        logger.info("Sauve: %s", path.name)
-    except Exception as e:
-        logger.warning("Parquet ignore: %s", e)
-
-
-
-
-    fieldnames = list(data_flat[0].keys())
-    tmp = path.with_suffix(".tmp")
-    with open(tmp, "w", encoding="utf-8", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
-        writer.writeheader()
-        writer.writerows(data_flat)
-    tmp.replace(path)
-    logger.info("Sauve: %s (%d entrees)", path.name, len(data_flat))
 
 
 def sauver_jsonl(data: list[dict], path: Path, logger: logging.Logger):

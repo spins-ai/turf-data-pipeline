@@ -29,13 +29,6 @@ from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any, Optional
 
-# Imports optionnels
-try:
-    import pyarrow as pa
-    import pyarrow.parquet as pq
-    HAS_PARQUET = True
-except ImportError:
-    HAS_PARQUET = False
 
 # ===========================================================================
 # CONFIG
@@ -45,34 +38,12 @@ PARTANTS_PATH = Path(__file__).resolve().parent / "output" / "02_liste_courses" 
 OUTPUT_DIR = Path(__file__).resolve().parent / "output" / "08_pedigree"
 
 from utils.logging_setup import setup_logging
-from utils.output import sauver_json, sauver_csv
+from utils.output import sauver_json, sauver_csv, sauver_parquet
 
 
 # ===========================================================================
 # SAUVEGARDE
 # ===========================================================================
-
-
-
-
-def sauver_parquet(data: list[dict], path: Path, logger: logging.Logger):
-    if not HAS_PARQUET or not data:
-        return
-    try:
-        flat = []
-        for row in data:
-            r = {}
-            for k, v in row.items():
-                if isinstance(v, (set, frozenset)):
-                    r[k] = sorted(v)
-                else:
-                    r[k] = v
-            flat.append(r)
-        table = pa.Table.from_pylist(flat)
-        pq.write_table(table, path)
-        logger.info("Sauve: %s", path.name)
-    except Exception as e:
-        logger.warning("Parquet ignore: %s", e)
 
 
 

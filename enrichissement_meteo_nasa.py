@@ -65,7 +65,7 @@ def _direction_vent_texte(deg: Optional[float]) -> str:
 # ===========================================================================
 
 from utils.logging_setup import setup_logging
-from utils.output import sauver_json, sauver_csv
+from utils.output import sauver_json, sauver_csv, sauver_parquet
 
 
 # ===========================================================================
@@ -310,24 +310,6 @@ def _set_meteo_vide(r: dict) -> None:
 # ===========================================================================
 # SAUVEGARDE
 # ===========================================================================
-
-
-
-
-
-
-
-def sauver_parquet(data: list[dict], fichier: Path, logger: logging.Logger) -> None:
-    try:
-        import pyarrow as pa
-        import pyarrow.parquet as pq
-    except ImportError:
-        logger.warning("pyarrow non installé, export Parquet ignoré")
-        return
-    fichier.parent.mkdir(parents=True, exist_ok=True)
-    table = pa.Table.from_pylist(data)
-    pq.write_table(table, fichier)
-    logger.info("Sauvegardé: %s (%d enregistrements)", fichier.name, len(data))
 
 
 # ===========================================================================

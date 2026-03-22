@@ -33,18 +33,11 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
 
-# Optional parquet support
-try:
-    import pyarrow as pa
-    import pyarrow.parquet as pq
-    HAS_PARQUET = True
-except ImportError:
-    HAS_PARQUET = False
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.logging_setup import setup_logging
 from utils.math import safe_rate as _safe_rate
-from utils.output import sauver_json, sauver_csv
+from utils.output import sauver_json, sauver_csv, sauver_parquet
 
 
 # ===========================================================================
@@ -62,33 +55,6 @@ LOOKBACK_DAYS = 365
 # ===========================================================================
 # SAUVEGARDE
 # ===========================================================================
-
-
-
-
-
-
-
-def sauver_parquet(data: list[dict], path: Path, logger: logging.Logger) -> bool:
-    if not HAS_PARQUET:
-        logger.warning("pyarrow not installed, skipping .parquet output.")
-        return False
-    if not data:
-        return False
-    path.parent.mkdir(parents=True, exist_ok=True)
-    all_keys: list[str] = []
-    seen: set[str] = set()
-    for r in data:
-        for k in r:
-            if k not in seen:
-                all_keys.append(k)
-                seen.add(k)
-    columns = {k: [r.get(k) for r in data] for k in all_keys}
-    table = pa.table(columns)
-    pq.write_table(table, str(path))
-    size_mb = path.stat().st_size / 1_048_576
-    logger.info("Parquet saved: %s (%.1f MB)", path, size_mb)
-    return True
 
 
 # ===========================================================================
