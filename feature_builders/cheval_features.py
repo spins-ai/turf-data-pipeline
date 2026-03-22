@@ -9,32 +9,11 @@ from __future__ import annotations
 
 import json
 import math
-import statistics
 from collections import defaultdict
 from datetime import datetime
 from typing import Optional
 
-
-def _safe_mean(values: list) -> Optional[float]:
-    """Mean of non-None numeric values, or None if empty."""
-    clean = [v for v in values if v is not None]
-    if not clean:
-        return None
-    return sum(clean) / len(clean)
-
-
-def _safe_rate(count: int, total: int) -> Optional[float]:
-    if total == 0:
-        return None
-    return count / total
-
-
-def _safe_stdev(values: list) -> Optional[float]:
-    """Standard deviation of non-None numeric values, or None if < 2 values."""
-    clean = [v for v in values if v is not None]
-    if len(clean) < 2:
-        return None
-    return statistics.stdev(clean)
+from utils.math import safe_mean as _safe_mean, safe_rate as _safe_rate, safe_stdev as _safe_stdev
 
 
 def _days_between(d1: str, d2: str) -> int:

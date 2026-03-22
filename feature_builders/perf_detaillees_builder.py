@@ -22,14 +22,15 @@ import argparse
 import json
 import logging
 import os
-import statistics
 import sys
 from collections import defaultdict
+from functools import partial
 from typing import Optional
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.loaders import load_json_or_jsonl
 from utils.logging_setup import setup_logging
+from utils.math import safe_mean, safe_stdev
 from utils.output import save_jsonl
 
 # ===========================================================================
@@ -44,18 +45,8 @@ OUTPUT_DIR_DEFAULT = os.path.join("output", "perf_detaillees_features")
 # HELPERS
 # ===========================================================================
 
-def _safe_mean(values: list) -> Optional[float]:
-    clean = [v for v in values if v is not None]
-    if not clean:
-        return None
-    return round(sum(clean) / len(clean), 4)
-
-
-def _safe_stdev(values: list) -> Optional[float]:
-    clean = [v for v in values if v is not None]
-    if len(clean) < 2:
-        return None
-    return round(statistics.stdev(clean), 4)
+_safe_mean = partial(safe_mean, ndigits=4)
+_safe_stdev = partial(safe_stdev, ndigits=4)
 
 
 def _safe_min(values: list) -> Optional[float]:

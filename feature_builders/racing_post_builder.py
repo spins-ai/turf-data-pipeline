@@ -22,11 +22,13 @@ import logging
 import os
 import sys
 from collections import defaultdict
+from functools import partial
 from typing import Optional
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.logging_setup import setup_logging
 from utils.loaders import load_json_or_jsonl
+from utils.math import safe_mean
 from utils.output import save_jsonl
 
 # ===========================================================================
@@ -41,9 +43,7 @@ OUTPUT_DIR_DEFAULT = os.path.join("output", "racing_post_features")
 # HELPERS
 # ===========================================================================
 
-def _safe_mean(values: list) -> Optional[float]:
-    clean = [v for v in values if v is not None]
-    return round(sum(clean) / len(clean), 2) if clean else None
+_safe_mean = partial(safe_mean, ndigits=2)
 
 # ===========================================================================
 # INDEX RP DATA

@@ -25,7 +25,6 @@ import argparse
 import csv
 import json
 import logging
-import statistics
 import sys
 from collections import defaultdict
 from pathlib import Path
@@ -41,6 +40,7 @@ except ImportError:
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from utils.logging_setup import setup_logging
+from utils.math import safe_mean as _safe_mean, safe_stdev as _safe_stdev
 from utils.output import sauver_json, sauver_csv
 
 # ===========================================================================
@@ -82,18 +82,6 @@ def charger_json(path: Path, logger: logging.Logger) -> list[dict]:
 # ===========================================================================
 # HELPERS
 # ===========================================================================
-
-def _safe_mean(values: list[float]) -> Optional[float]:
-    if not values:
-        return None
-    return sum(values) / len(values)
-
-
-def _safe_stdev(values: list[float]) -> Optional[float]:
-    if len(values) < 2:
-        return None
-    return statistics.stdev(values)
-
 
 def _win_rate(p: dict) -> float:
     """Historical win rate from career counters already available."""

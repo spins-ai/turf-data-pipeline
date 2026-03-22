@@ -22,9 +22,12 @@ import sys
 from collections import defaultdict
 from typing import Optional
 
+from functools import partial
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.loaders import load_json_or_jsonl
 from utils.logging_setup import setup_logging
+from utils.math import safe_rate
 from utils.output import save_jsonl
 
 # ===========================================================================
@@ -38,10 +41,7 @@ OUTPUT_DIR_DEFAULT = os.path.join("output", "combo_features")
 # HELPERS
 # ===========================================================================
 
-def _safe_rate(count: int, total: int) -> Optional[float]:
-    if total == 0:
-        return None
-    return round(count / total, 4)
+_safe_rate = partial(safe_rate, ndigits=4)
 
 
 def _distance_category(dist) -> Optional[str]:

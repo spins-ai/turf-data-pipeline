@@ -11,10 +11,11 @@ import json
 import math
 import os
 import re
-import statistics
 from collections import defaultdict
 from datetime import datetime
 from typing import Any, Optional
+
+from utils.math import safe_stdev as _safe_stdev
 
 
 # ---------------------------------------------------------------------------
@@ -54,12 +55,6 @@ def _load_hippodromes_db() -> dict[str, dict]:
     with open(db_path, encoding="utf-8") as f:
         exec(f.read(), ns)
     return ns.get("HIPPODROMES_DB", {})
-
-
-def _safe_stdev(values: list) -> Optional[float]:
-    if len(values) < 2:
-        return None
-    return statistics.stdev(values)
 
 
 def _distance_category(distance: Optional[int]) -> Optional[str]:

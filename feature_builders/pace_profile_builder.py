@@ -14,26 +14,17 @@ import argparse
 import json
 import os
 from collections import defaultdict
+from functools import partial
 from pathlib import Path
 from typing import Any, Optional
 
+from utils.math import safe_mean as _safe_mean, safe_rate
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
-def _safe_mean(values: list) -> Optional[float]:
-    """Mean of non-None numeric values, or None if empty."""
-    clean = [v for v in values if v is not None]
-    if not clean:
-        return None
-    return sum(clean) / len(clean)
-
-
-def _safe_rate(count: int, total: int) -> Optional[float]:
-    if total == 0:
-        return None
-    return round(count / total, 4)
+_safe_rate = partial(safe_rate, ndigits=4)
 
 
 # ---------------------------------------------------------------------------

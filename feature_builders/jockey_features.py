@@ -12,18 +12,7 @@ from collections import defaultdict
 from datetime import datetime, timedelta
 from typing import Optional
 
-
-def _safe_rate(count: int, total: int) -> Optional[float]:
-    if total == 0:
-        return None
-    return count / total
-
-
-def _safe_mean(values: list) -> Optional[float]:
-    clean = [v for v in values if v is not None]
-    if not clean:
-        return None
-    return sum(clean) / len(clean)
+from utils.math import safe_mean as _safe_mean, safe_rate as _safe_rate
 
 
 def _build_actor_features(

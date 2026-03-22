@@ -43,6 +43,7 @@ except ImportError:
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.logging_setup import setup_logging
+from utils.math import safe_rate as _safe_rate
 from utils.output import sauver_json, sauver_csv
 
 
@@ -93,12 +94,6 @@ def sauver_parquet(data: list[dict], path: Path, logger: logging.Logger) -> bool
 # ===========================================================================
 # HELPERS
 # ===========================================================================
-
-def _safe_rate(count: int, total: int) -> Optional[float]:
-    if total == 0:
-        return None
-    return count / total
-
 
 def _distance_category(distance: Optional[int]) -> Optional[str]:
     """Classify race distance into a category."""

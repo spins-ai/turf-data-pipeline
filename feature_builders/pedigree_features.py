@@ -11,11 +11,7 @@ import json
 from collections import defaultdict
 from typing import Optional
 
-
-def _safe_rate(count: int, total: int) -> Optional[float]:
-    if total == 0:
-        return None
-    return count / total
+from utils.math import safe_rate as _safe_rate
 
 
 def build_pedigree_features(partants: list[dict]) -> list[dict]:
