@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 """
-Script 55 — Scraping Equidia.fr
+Script 55 — Scraping Equidia.fr (Playwright version)
 Source : equidia.fr/courses/{date}
 Collecte : stats terrain, données vidéo/replay, résumés, indices de forme
 CRITIQUE pour : Terrain Features, Video Analysis Metadata, Track Conditions
+
+Requires:
+    pip install playwright beautifulsoup4
+    playwright install chromium
 """
 
 import argparse
@@ -16,11 +20,7 @@ import re
 import time
 from datetime import datetime, timedelta
 
-import requests
-try:
-    import cloudscraper
-except ImportError:
-    cloudscraper = None
+from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeout
 from bs4 import BeautifulSoup
 
 SCRIPT_NAME = "55_equidia_data"
@@ -34,35 +34,113 @@ os.makedirs(HTML_CACHE_DIR, exist_ok=True)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
-from utils.scraping import smart_pause, fetch_with_retry, append_jsonl, load_checkpoint, save_checkpoint
+from utils.scraping import smart_pause, append_jsonl, load_checkpoint, save_checkpoint
 
 log = setup_logging("55_equidia_data")
 
-USER_AGENTS = [
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15",
-    "Mozilla/5.0 (X11; Linux x86_64; rv:122.0) Gecko/20100101 Firefox/122.0",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
+# Browser / context settings
+USER_AGENT = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/124.0.0.0 Safari/537.36"
+)
+DEFAULT_TIMEOUT_MS = 60_000
+MAX_RETRIES = 3
+
+
+# ------------------------------------------------------------------
+# Browser helpers
+# ------------------------------------------------------------------
+
+def launch_browser(pw):
+    """Launch headless Chromium and return (browser, context, page)."""
+    browser = pw.chromium.launch(
+        headless=True,
+        args=[
+            "--disable-blink-features=AutomationControlled",
+            "--disable-dev-shm-usage",
+            "--no-sandbox",
+        ],
+    )
+    context = browser.new_context(
+        viewport={"width": 1920, "height": 1080},
+        locale="fr-FR",
+        timezone_id="Europe/Paris",
+        user_agent=USER_AGENT,
+        java_script_enabled=True,
+        ignore_https_errors=True,
+    )
+    # Stealth tweaks
+    context.add_init_script("""
+        Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
+        Object.defineProperty(navigator, 'languages', {get: () => ['fr-FR', 'fr', 'en']});
+        Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3, 4, 5]});
+        window.chrome = {runtime: {}};
+    """)
+    page = context.new_page()
+    page.set_default_timeout(DEFAULT_TIMEOUT_MS)
+    return browser, context, page
+
+
+COOKIE_SELECTORS = [
+    "button:has-text('Accepter')",
+    "button:has-text('Tout accepter')",
+    "button:has-text('Accept')",
+    "button:has-text('OK')",
+    "#onetrust-accept-btn-handler",
+    "#didomi-notice-agree-button",
+    "[id*='accept']",
+    "[class*='accept']",
 ]
 
 
-def new_session():
-    s = cloudscraper.create_scraper() if cloudscraper else requests.Session()
-    s.headers.update({
-        "User-Agent": random.choice(USER_AGENTS),
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "fr-FR,fr;q=0.9,en-US;q=0.8",
-        "Accept-Encoding": "gzip, deflate, br",
-        "DNT": "1",
-        "Connection": "keep-alive",
-    })
-    return s
+def accept_cookies(page):
+    """Try to dismiss cookie consent banner."""
+    for sel in COOKIE_SELECTORS:
+        try:
+            btn = page.locator(sel).first
+            if btn.is_visible(timeout=1500):
+                btn.click(timeout=3000)
+                log.debug("  Cookies accepted via: %s", sel)
+                time.sleep(1)
+                return True
+        except Exception:
+            continue
+    return False
 
 
+def navigate_with_retry(page, url, retries=MAX_RETRIES):
+    """Navigate to url with retry logic. Returns HTML string or None."""
+    for attempt in range(1, retries + 1):
+        try:
+            resp = page.goto(url, wait_until="networkidle", timeout=DEFAULT_TIMEOUT_MS)
+            if resp and resp.status >= 400:
+                log.warning("  HTTP %d on %s (attempt %d/%d)",
+                            resp.status, url, attempt, retries)
+                if resp.status == 429:
+                    time.sleep(60 * attempt)
+                elif resp.status == 403:
+                    time.sleep(30 * attempt)
+                else:
+                    time.sleep(5 * attempt)
+                continue
+            page.wait_for_load_state("domcontentloaded")
+            time.sleep(1.5)
+            return page.content()
+        except PlaywrightTimeout:
+            log.warning("  Timeout on %s (attempt %d/%d)", url, attempt, retries)
+            time.sleep(10 * attempt)
+        except Exception as exc:
+            log.warning("  Navigation error: %s (attempt %d/%d)",
+                        str(exc)[:200], attempt, retries)
+            time.sleep(5 * attempt)
+    log.error("  Failed after %d retries: %s", retries, url)
+    return None
 
 
-
+# ------------------------------------------------------------------
+# Extraction helpers (BeautifulSoup-based, unchanged)
+# ------------------------------------------------------------------
 
 def extract_embedded_json(soup, date_str, source="equidia"):
     """Extract all embedded JSON from script tags."""
@@ -230,7 +308,11 @@ def extract_video_metadata(soup, date_str, source="equidia"):
     return records
 
 
-def scrape_equidia_day(session, date_str):
+# ------------------------------------------------------------------
+# Main scraping functions
+# ------------------------------------------------------------------
+
+def scrape_equidia_day(page, date_str):
     """Scraper les données Equidia pour un jour donné."""
     cache_file = os.path.join(CACHE_DIR, f"day_{date_str}.json")
     if os.path.exists(cache_file):
@@ -238,20 +320,20 @@ def scrape_equidia_day(session, date_str):
             return json.load(f)
 
     url = f"https://www.equidia.fr/courses/{date_str}"
-    resp = fetch_with_retry(session, url)
-    if not resp:
+    html = navigate_with_retry(page, url)
+    if not html:
         return None
 
     # Save raw HTML to cache
     html_file = os.path.join(HTML_CACHE_DIR, f"{date_str}.html")
     with open(html_file, "w", encoding="utf-8") as f:
-        f.write(resp.text)
+        f.write(html)
 
-    soup = BeautifulSoup(resp.text, "html.parser")
+    soup = BeautifulSoup(html, "html.parser")
     records = []
     course_links = []
 
-    # --- NEW: Full extraction pattern ---
+    # --- Full extraction pattern ---
     records.extend(extract_embedded_json(soup, date_str, "equidia"))
     records.extend(extract_data_attributes(soup, date_str, "equidia"))
     records.extend(extract_comments_analyses(soup, date_str, "equidia"))
@@ -364,7 +446,7 @@ def scrape_equidia_day(session, date_str):
     return result
 
 
-def scrape_course_detail(session, course_url, date_str):
+def scrape_course_detail(page, course_url, date_str):
     """Scraper le détail d'une course Equidia (terrain, stats, vidéo metadata)."""
     url_hash = re.sub(r'[^a-zA-Z0-9]', '_', course_url[-60:])
     cache_file = os.path.join(CACHE_DIR, f"detail_{url_hash}.json")
@@ -372,14 +454,14 @@ def scrape_course_detail(session, course_url, date_str):
         with open(cache_file, "r", encoding="utf-8") as f:
             return json.load(f)
 
-    resp = fetch_with_retry(session, course_url)
-    if not resp:
+    html = navigate_with_retry(page, course_url)
+    if not html:
         return None
 
-    soup = BeautifulSoup(resp.text, "html.parser")
+    soup = BeautifulSoup(html, "html.parser")
     records = []
 
-    # --- NEW: Full extraction on course detail page ---
+    # --- Full extraction on course detail page ---
     records.extend(extract_embedded_json(soup, date_str, "equidia"))
     records.extend(extract_data_attributes(soup, date_str, "equidia"))
     records.extend(extract_comments_analyses(soup, date_str, "equidia"))
@@ -501,7 +583,7 @@ def main():
     end_date = datetime.strptime(args.end, "%Y-%m-%d") if args.end else datetime.now()
 
     log.info("=" * 60)
-    log.info("SCRIPT 55 — Equidia Data Scraper")
+    log.info("SCRIPT 55 — Equidia Data Scraper (Playwright)")
     log.info(f"  Période : {start_date.date()} → {end_date.date()}")
     log.info("=" * 60)
 
@@ -513,51 +595,81 @@ def main():
         start_date = resume_date
         log.info(f"  Reprise au checkpoint : {start_date.date()}")
 
-    session = new_session()
     output_file = os.path.join(OUTPUT_DIR, "equidia_data.jsonl")
 
-    current = start_date
-    day_count = 0
-    total_records = 0
+    pw = sync_playwright().start()
+    browser, context, page = None, None, None
+    try:
+        browser, context, page = launch_browser(pw)
+        log.info("Browser launched (headless Chromium)")
 
-    while current <= end_date:
-        date_str = current.strftime("%Y-%m-%d")
-        result = scrape_equidia_day(session, date_str)
+        # Accept cookies on first navigation
+        first_nav = True
 
-        if result:
-            records = result.get("records", [])
+        current = start_date
+        day_count = 0
+        total_records = 0
 
-            # Scraper le détail de chaque course
-            for curl in result.get("course_links", [])[:10]:
-                detail = scrape_course_detail(session, curl, date_str)
-                if detail:
-                    records.extend(detail)
-                smart_pause(1.5, 0.8)
+        while current <= end_date:
+            date_str = current.strftime("%Y-%m-%d")
+            result = scrape_equidia_day(page, date_str)
 
-            for rec in records:
-                append_jsonl(output_file, rec)
-                total_records += 1
+            if first_nav and result is not None:
+                accept_cookies(page)
+                first_nav = False
 
-        day_count += 1
+            if result:
+                records = result.get("records", [])
 
-        if day_count % 30 == 0:
-            log.info(f"  {date_str} | jours={day_count} records={total_records}")
-            save_checkpoint(CHECKPOINT_FILE, {"last_date": date_str, "total_records": total_records})
+                # Scraper le détail de chaque course
+                for curl in result.get("course_links", [])[:10]:
+                    detail = scrape_course_detail(page, curl, date_str)
+                    if detail:
+                        records.extend(detail)
+                    smart_pause(1.5, 0.8)
 
-        if day_count % 80 == 0:
-            session.close()
-            session = new_session()
-            time.sleep(random.uniform(5, 15))
+                for rec in records:
+                    append_jsonl(output_file, rec)
+                    total_records += 1
 
-        current += timedelta(days=1)
-        smart_pause(1.0, 0.5)
+            day_count += 1
 
-    save_checkpoint(CHECKPOINT_FILE, {"last_date": end_date.strftime("%Y-%m-%d"),
-                     "total_records": total_records, "status": "done"})
+            if day_count % 30 == 0:
+                log.info(f"  {date_str} | jours={day_count} records={total_records}")
+                save_checkpoint(CHECKPOINT_FILE, {"last_date": date_str, "total_records": total_records})
 
-    log.info("=" * 60)
-    log.info(f"TERMINÉ: {day_count} jours, {total_records} records → {output_file}")
-    log.info("=" * 60)
+            current += timedelta(days=1)
+            smart_pause(1.0, 0.5)
+
+        save_checkpoint(CHECKPOINT_FILE, {"last_date": end_date.strftime("%Y-%m-%d"),
+                         "total_records": total_records, "status": "done"})
+
+        log.info("=" * 60)
+        log.info(f"TERMINÉ: {day_count} jours, {total_records} records → {output_file}")
+        log.info("=" * 60)
+
+    finally:
+        # Graceful cleanup
+        try:
+            if page and not page.is_closed():
+                page.close()
+        except Exception:
+            pass
+        try:
+            if context:
+                context.close()
+        except Exception:
+            pass
+        try:
+            if browser:
+                browser.close()
+        except Exception:
+            pass
+        try:
+            pw.stop()
+        except Exception:
+            pass
+        log.info("Browser closed")
 
 
 if __name__ == "__main__":
