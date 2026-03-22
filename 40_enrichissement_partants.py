@@ -13,24 +13,16 @@ import json
 import os
 import re
 import sys
-import unicodedata
 from multiprocessing import Pool, cpu_count
 from pathlib import Path
+
+from utils.normalize import normaliser_texte
 
 BASE_DIR = Path(__file__).resolve().parent
 CACHE_DIR = BASE_DIR / "output" / "02_liste_courses" / "cache"
 OUTPUT_DIR = BASE_DIR / "output" / "40_enrichissement_partants"
 
 FILENAME_RE = re.compile(r"^(\d{4}-\d{2}-\d{2})_R(\d+)\.json$")
-
-
-def normaliser_texte(texte: str) -> str:
-    """Normalise un texte : strip, lower, supprime les accents."""
-    if not texte:
-        return ""
-    texte = texte.strip().lower()
-    nfkd = unicodedata.normalize("NFKD", texte)
-    return "".join(c for c in nfkd if not unicodedata.combining(c))
 
 
 def safe_get(d, *keys, default=None):

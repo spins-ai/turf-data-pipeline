@@ -51,6 +51,8 @@ from urllib3.util.retry import Retry
 
 from hippodromes_db import get_hippodrome_info, HIPPODROME_ALIASES
 from utils.logging_setup import setup_logging
+from utils.normalize import normaliser_texte as _normaliser_texte_base
+from utils.types import utc_now_iso
 
 # ---------------------------------------------------------------------------
 # Imports optionnels (dégradation gracieuse)
@@ -592,21 +594,12 @@ class RapportQualite:
 # UTILITAIRES
 # ===========================================================================
 
-def utc_now() -> datetime:
-    return datetime.now(timezone.utc)
-
-
-def utc_now_iso() -> str:
-    return utc_now().strftime("%Y-%m-%dT%H:%M:%SZ")
-
-
 def normaliser_texte(texte: str) -> str:
-    if not texte:
+    """Normalise un texte avec collapse des espaces/tirets/underscores."""
+    base = _normaliser_texte_base(texte)
+    if not base:
         return ""
-    texte = texte.strip().lower()
-    nfkd = unicodedata.normalize("NFKD", texte)
-    sans_accents = "".join(c for c in nfkd if not unicodedata.combining(c))
-    return re.sub(r"[\s\-_]+", " ", sans_accents).strip()
+    return re.sub(r"[\s\-_]+", " ", base).strip()
 
 
 def normaliser_hippodrome(nom: str) -> str:

@@ -55,6 +55,8 @@ REFERENCES_PATH = Path(__file__).resolve().parent / "output" / "01_calendrier_re
 OUTPUT_DIR = Path(__file__).resolve().parent / "output" / "02_liste_courses"
 CACHE_DIR = OUTPUT_DIR / "cache"
 from utils.logging_setup import setup_logging
+from utils.normalize import normaliser_texte
+from utils.types import utc_now_iso
 
 PMU_API_BASE = "https://offline.turfinfo.api.pmu.fr/rest/client/1/programme"
 
@@ -308,18 +310,6 @@ def create_session() -> requests.Session:
 # ===========================================================================
 # UTILITAIRES
 # ===========================================================================
-
-def utc_now_iso() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-
-
-def normaliser_texte(texte: str) -> str:
-    if not texte:
-        return ""
-    texte = texte.strip().lower()
-    nfkd = unicodedata.normalize("NFKD", texte)
-    return "".join(c for c in nfkd if not unicodedata.combining(c))
-
 
 def make_uid(*parts: str) -> str:
     h = hashlib.blake2b("|".join(str(p) for p in parts).encode(), digest_size=8)

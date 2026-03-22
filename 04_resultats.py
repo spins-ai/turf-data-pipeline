@@ -53,6 +53,7 @@ OUTPUT_DIR = Path(__file__).resolve().parent / "output" / "04_resultats"
 
 from utils.logging_setup import setup_logging
 from utils.output import sauver_json, sauver_csv
+from utils.types import utc_now_iso
 
 PMU_API_BASE = "https://offline.turfinfo.api.pmu.fr/rest/client/1/programme"
 # Endpoint: {base}/{DDMMYYYY}/R{num}/C{num}/rapports-definitifs
@@ -110,10 +111,6 @@ def create_session() -> requests.Session:
 # ===========================================================================
 # UTILITAIRES
 # ===========================================================================
-
-def utc_now_iso() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-
 
 def make_uid(*parts: str) -> str:
     h = hashlib.blake2b("|".join(str(p) for p in parts).encode(), digest_size=8)

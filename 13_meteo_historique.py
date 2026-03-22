@@ -66,6 +66,7 @@ CACHE_DIR = OUTPUT_DIR / "cache"
 
 from utils.logging_setup import setup_logging
 from utils.output import sauver_json, sauver_csv
+from utils.types import utc_now_iso
 
 
 # ===========================================================================
@@ -172,10 +173,6 @@ class MeteoNormalisee:
 # ===========================================================================
 # UTILITAIRES
 # ===========================================================================
-
-def utc_now_iso() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-
 
 def parse_hour(heure_depart: str) -> int:
     """Parse 'HH:MM' et retourne l'heure entiere la plus proche (0-23)."""

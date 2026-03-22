@@ -12,9 +12,26 @@ Usage:
 
 from __future__ import annotations
 
-__all__ = ["safe_int", "safe_float"]
+__all__ = ["safe_int", "safe_float", "utc_now_iso"]
 
+from datetime import datetime, timezone
 from typing import Any, Optional
+
+
+def utc_now_iso() -> str:
+    """Return current UTC time as ISO 8601 string.
+
+    Returns
+    -------
+    str
+        UTC timestamp formatted as ``YYYY-MM-DDTHH:MM:SSZ``.
+
+    Examples
+    --------
+    >>> isinstance(utc_now_iso(), str)
+    True
+    """
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def safe_int(val: Any, default: Optional[int] = None) -> Optional[int]:

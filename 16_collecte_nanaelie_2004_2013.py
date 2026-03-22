@@ -37,7 +37,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 from utils.normalize import strip_accents
-from utils.types import safe_int as _safe_int
+from utils.types import safe_int as _safe_int, utc_now_iso
 
 import requests
 from requests.adapters import HTTPAdapter
@@ -117,10 +117,6 @@ def create_session() -> requests.Session:
 # ===========================================================================
 # UTILITAIRES
 # ===========================================================================
-
-def utc_now_iso() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-
 
 def normaliser_hippodrome(lieu: str) -> str:
     """Normalise le nom d'hippodrome : minuscules, sans accents, espaces nettoyes."""

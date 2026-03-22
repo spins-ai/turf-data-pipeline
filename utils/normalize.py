@@ -17,6 +17,7 @@ from __future__ import annotations
 
 __all__ = [
     "normalize_name",
+    "normaliser_texte",
     "strip_accents",
     "normalize_date",
     "normalize_name_for_matching",
@@ -151,6 +152,33 @@ def normalize_date(date_str: str | None) -> str:
         return f"{m.group(3)}-{m.group(2)}-{m.group(1)}"
 
     return date_str[:10] if len(date_str) >= 10 else ""
+
+
+def normaliser_texte(texte: str) -> str:
+    """Normalise un texte : strip, lower, supprime les accents.
+
+    Parameters
+    ----------
+    texte : str
+        Texte a normaliser.
+
+    Returns
+    -------
+    str
+        Texte en minuscules sans accents, ou ``""`` si vide.
+
+    Examples
+    --------
+    >>> normaliser_texte("Étoile du Berger")
+    'etoile du berger'
+    >>> normaliser_texte("")
+    ''
+    """
+    if not texte:
+        return ""
+    texte = texte.strip().lower()
+    nfkd = unicodedata.normalize("NFKD", texte)
+    return "".join(c for c in nfkd if not unicodedata.combining(c))
 
 
 # Alias pour import direct

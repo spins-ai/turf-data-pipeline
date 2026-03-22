@@ -64,6 +64,8 @@ CHECKPOINT_PATH = OUTPUT_DIR / "checkpoint.json"
 OUTPUT_JSONL = OUTPUT_DIR / "pedigrees_pq.jsonl"
 
 from utils.logging_setup import setup_logging
+from utils.normalize import normaliser_texte
+from utils.types import utc_now_iso
 
 BASE_URL = "https://www.pedigreequery.com"
 REQUEST_PAUSE_S = 1.0
@@ -114,19 +116,6 @@ class PedigreeRecord:
 # ===========================================================================
 # UTILITAIRES
 # ===========================================================================
-
-def utc_now_iso() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-
-
-def normaliser_texte(texte: str) -> str:
-    """Normalise en minuscules sans accents."""
-    if not texte:
-        return ""
-    texte = texte.strip().lower()
-    nfkd = unicodedata.normalize("NFKD", texte)
-    return "".join(c for c in nfkd if not unicodedata.combining(c))
-
 
 def make_horse_id(nom: str, pere: str, mere: str) -> str:
     """Hash MD5 stable pour identifier un cheval unique."""

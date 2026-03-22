@@ -71,7 +71,9 @@ CACHE_DIR = OUTPUT_DIR / "cache"
 CHECKPOINT_PATH = OUTPUT_DIR / "checkpoint.json"
 
 from utils.logging_setup import setup_logging
+from utils.normalize import normaliser_texte
 from utils.output import sauver_json, sauver_csv
+from utils.types import utc_now_iso
 
 # Scraping
 REQUEST_PAUSE_S = 1.0          # pause entre requetes
@@ -125,19 +127,6 @@ def sauver_parquet(data: list[dict], path: Path, logger: logging.Logger):
 # ===========================================================================
 # UTILITAIRES
 # ===========================================================================
-
-def utc_now_iso() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-
-
-def normaliser_texte(texte: str) -> str:
-    """Normalise en minuscules sans accents."""
-    if not texte:
-        return ""
-    texte = texte.strip().lower()
-    nfkd = unicodedata.normalize("NFKD", texte)
-    return "".join(c for c in nfkd if not unicodedata.combining(c))
-
 
 def make_horse_id(nom: str, pere: str, mere: str) -> str:
     """Hash stable pour identifier un cheval unique."""
