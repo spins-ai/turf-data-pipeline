@@ -1,9 +1,16 @@
 #!/usr/bin/env python3
 """
-Script 54 — Scraping TurfInfo.fr
+Script 54 — Scraping TurfInfo.fr (Playwright)
+Migrated from cloudscraper to Playwright to bypass Cloudflare.
+
 Source : turfinfo.fr/courses/{date}
-Collecte : informations détaillées de courses, partants, cotes, résultats, musique
+Collecte : informations detaillees de courses, partants, cotes, resultats, musique
 CRITIQUE pour : Race Detail Features, Partant History, Form Analysis
+
+Usage:
+    pip install playwright beautifulsoup4
+    playwright install chromium
+    python 54_turfinfo_scraper.py --start 2024-01-01 --end 2024-03-31
 """
 
 import argparse
@@ -16,11 +23,7 @@ import re
 import time
 from datetime import datetime, timedelta
 
-import requests
-try:
-    import cloudscraper
-except ImportError:
-    cloudscraper = None
+from playwright.sync_api import sync_playwright
 from bs4 import BeautifulSoup
 
 SCRIPT_NAME = "54_turfinfo"
@@ -34,34 +37,94 @@ os.makedirs(HTML_CACHE_DIR, exist_ok=True)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
-from utils.scraping import smart_pause, fetch_with_retry, append_jsonl, load_checkpoint, save_checkpoint
+from utils.scraping import smart_pause, append_jsonl, load_checkpoint, save_checkpoint
 
 log = setup_logging("54_turfinfo")
 
-USER_AGENTS = [
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15",
-    "Mozilla/5.0 (X11; Linux x86_64; rv:122.0) Gecko/20100101 Firefox/122.0",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
-]
+
+def launch_browser(pw):
+    """Launch headless Chromium with fr-FR locale and Chrome UA."""
+    browser = pw.chromium.launch(
+        headless=True,
+        args=[
+            "--disable-blink-features=AutomationControlled",
+            "--disable-dev-shm-usage",
+            "--no-sandbox",
+        ],
+    )
+    context = browser.new_context(
+        viewport={"width": 1920, "height": 1080},
+        locale="fr-FR",
+        timezone_id="Europe/Paris",
+        user_agent=(
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/124.0.0.0 Safari/537.36"
+        ),
+        java_script_enabled=True,
+        ignore_https_errors=True,
+    )
+    context.add_init_script("""
+        Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
+        Object.defineProperty(navigator, 'languages', {get: () => ['fr-FR', 'fr', 'en']});
+        Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3, 4, 5]});
+        window.chrome = {runtime: {}};
+    """)
+    page = context.new_page()
+    page.set_default_timeout(60000)
+    log.info("Browser launched (headless Chromium)")
+    return browser, context, page
 
 
-def new_session():
-    s = cloudscraper.create_scraper() if cloudscraper else requests.Session()
-    s.headers.update({
-        "User-Agent": random.choice(USER_AGENTS),
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "fr-FR,fr;q=0.9,en-US;q=0.8",
-        "Accept-Encoding": "gzip, deflate, br",
-        "DNT": "1",
-        "Connection": "keep-alive",
-    })
-    return s
+def navigate_with_retry(page, url, retries=3):
+    """Navigate to url with retry. Returns True on success."""
+    for attempt in range(1, retries + 1):
+        try:
+            resp = page.goto(url, wait_until="networkidle", timeout=60000)
+            if resp and resp.status >= 400:
+                log.warning("  HTTP %d on %s (attempt %d/%d)",
+                            resp.status, url, attempt, retries)
+                if resp.status == 429:
+                    time.sleep(60 * attempt)
+                elif resp.status == 403:
+                    time.sleep(30 * attempt)
+                else:
+                    time.sleep(5 * attempt)
+                continue
+            page.wait_for_load_state("domcontentloaded")
+            time.sleep(1.5)
+            return True
+        except Exception as exc:
+            log.warning("  Navigation error: %s (attempt %d/%d)",
+                        str(exc)[:200], attempt, retries)
+            time.sleep(10 * attempt)
+    log.error("  Failed after %d retries: %s", retries, url)
+    return False
 
 
-
-
+def accept_cookies(page):
+    """Try to click a cookie-consent button."""
+    selectors = [
+        "button:has-text('Accepter')",
+        "button:has-text('Tout accepter')",
+        "button:has-text('Accept')",
+        "button:has-text('OK')",
+        "[id*='accept']",
+        "[class*='accept']",
+        "#onetrust-accept-btn-handler",
+        "#didomi-notice-agree-button",
+    ]
+    for sel in selectors:
+        try:
+            btn = page.locator(sel).first
+            if btn.is_visible(timeout=1500):
+                btn.click(timeout=3000)
+                log.info("  Cookies accepted via: %s", sel)
+                time.sleep(1)
+                return True
+        except Exception:
+            continue
+    return False
 
 
 def extract_embedded_json(soup, date_str, source="turfinfo"):
@@ -201,34 +264,35 @@ def extract_musique_detaillee(soup, date_str, source="turfinfo"):
     return records
 
 
-def scrape_programme_day(session, date_str):
-    """Scraper le programme TurfInfo d'un jour donné."""
+def scrape_programme_day(page, date_str):
+    """Scraper le programme TurfInfo d'un jour donne."""
     cache_file = os.path.join(CACHE_DIR, f"programme_{date_str}.json")
     if os.path.exists(cache_file):
         with open(cache_file, "r", encoding="utf-8") as f:
             return json.load(f)
 
     url = f"https://www.turfinfo.fr/courses/{date_str}"
-    resp = fetch_with_retry(session, url)
-    if not resp:
+    if not navigate_with_retry(page, url):
         return None
+
+    html = page.content()
 
     # Save raw HTML to cache
     html_file = os.path.join(HTML_CACHE_DIR, f"{date_str}.html")
     with open(html_file, "w", encoding="utf-8") as f:
-        f.write(resp.text)
+        f.write(html)
 
-    soup = BeautifulSoup(resp.text, "html.parser")
+    soup = BeautifulSoup(html, "html.parser")
     records = []
     course_links = []
 
-    # --- NEW: Full extraction pattern ---
+    # --- Full extraction pattern ---
     records.extend(extract_embedded_json(soup, date_str, "turfinfo"))
     records.extend(extract_data_attributes(soup, date_str, "turfinfo"))
     records.extend(extract_comments_analyses(soup, date_str, "turfinfo"))
     records.extend(extract_musique_detaillee(soup, date_str, "turfinfo"))
 
-    # --- Extraire les réunions ---
+    # --- Extraire les reunions ---
     for div in soup.find_all(["div", "section", "article"], class_=True):
         classes = " ".join(div.get("class", []))
         if any(kw in classes.lower() for kw in ["reunion", "meeting", "hippodrome",
@@ -243,7 +307,7 @@ def scrape_programme_day(session, date_str):
             if title:
                 record["hippodrome"] = title.get_text(strip=True)
 
-            # Infos complémentaires (discipline, distance, etc.)
+            # Infos complementaires (discipline, distance, etc.)
             for span in div.find_all(["span", "small", "em"]):
                 text = span.get_text(strip=True)
                 if re.search(r'\d+\s*m', text):
@@ -263,7 +327,7 @@ def scrape_programme_day(session, date_str):
                 record["resume"] = text_content[:300]
             records.append(record)
 
-    # --- Tables de données ---
+    # --- Tables de donnees ---
     for table in soup.find_all("table"):
         rows = table.find_all("tr")
         headers = []
@@ -292,22 +356,21 @@ def scrape_programme_day(session, date_str):
     return result
 
 
-def scrape_course_detail(session, course_url, date_str):
-    """Scraper les informations détaillées d'une course (partants, musique, cotes)."""
+def scrape_course_detail(page, course_url, date_str):
+    """Scraper les informations detaillees d'une course (partants, musique, cotes)."""
     url_hash = re.sub(r'[^a-zA-Z0-9]', '_', course_url[-60:])
     cache_file = os.path.join(CACHE_DIR, f"detail_{url_hash}.json")
     if os.path.exists(cache_file):
         with open(cache_file, "r", encoding="utf-8") as f:
             return json.load(f)
 
-    resp = fetch_with_retry(session, course_url)
-    if not resp:
+    if not navigate_with_retry(page, course_url):
         return None
 
-    soup = BeautifulSoup(resp.text, "html.parser")
+    soup = BeautifulSoup(page.content(), "html.parser")
     records = []
 
-    # --- NEW: Full extraction on course detail page ---
+    # --- Full extraction on course detail page ---
     records.extend(extract_embedded_json(soup, date_str, "turfinfo"))
     records.extend(extract_data_attributes(soup, date_str, "turfinfo"))
     records.extend(extract_comments_analyses(soup, date_str, "turfinfo"))
@@ -325,15 +388,15 @@ def scrape_course_detail(session, course_url, date_str):
     conditions = {}
     page_text = soup.get_text()
 
-    dist_match = re.search(r'(\d[\d\s]*)\s*m(?:ètre)?', page_text)
+    dist_match = re.search(r'(\d[\d\s]*)\s*m(?:etre)?', page_text)
     if dist_match:
         conditions["distance_m"] = dist_match.group(1).replace(" ", "")
 
-    dotation_match = re.search(r'(\d[\d\s,.]*)\s*€', page_text)
+    dotation_match = re.search(r'(\d[\d\s,.]*)\s*\u20ac', page_text)
     if dotation_match:
         conditions["dotation"] = dotation_match.group(0)
 
-    disc_match = re.search(r'(trot attelé|trot monté|plat|haies|steeple|cross)',
+    disc_match = re.search(r'(trot attele|trot monte|plat|haies|steeple|cross)',
                            page_text, re.I)
     if disc_match:
         conditions["discipline"] = disc_match.group(1)
@@ -369,7 +432,7 @@ def scrape_course_detail(session, course_url, date_str):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
                 record[key] = cell
 
-            # Extraire la musique (séquence de performances passées)
+            # Extraire la musique (sequence de performances passees)
             for cell in cells:
                 musique_match = re.search(r'([0-9DATap]{5,})', cell)
                 if musique_match:
@@ -385,7 +448,7 @@ def scrape_course_detail(session, course_url, date_str):
 
             records.append(record)
 
-    # Résultats si disponibles
+    # Resultats si disponibles
     for div in soup.find_all(["div", "section"], class_=True):
         classes = " ".join(div.get("class", []))
         if any(kw in classes.lower() for kw in ["resultat", "result", "arrivee"]):
@@ -409,11 +472,11 @@ def scrape_course_detail(session, course_url, date_str):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Script 54 — TurfInfo Scraper (informations détaillées)")
+    parser = argparse.ArgumentParser(description="Script 54 — TurfInfo Scraper (Playwright)")
     parser.add_argument("--start", type=str, default="2022-01-01",
-                        help="Date de début (YYYY-MM-DD)")
+                        help="Date de debut (YYYY-MM-DD)")
     parser.add_argument("--end", type=str, default=None,
-                        help="Date de fin (YYYY-MM-DD), défaut=aujourd'hui")
+                        help="Date de fin (YYYY-MM-DD), defaut=aujourd'hui")
     parser.add_argument("--resume", action="store_true", default=True,
                         help="Reprendre depuis le dernier checkpoint")
     args = parser.parse_args()
@@ -422,8 +485,8 @@ def main():
     end_date = datetime.strptime(args.end, "%Y-%m-%d") if args.end else datetime.now()
 
     log.info("=" * 60)
-    log.info("SCRIPT 54 — TurfInfo Scraper")
-    log.info(f"  Période : {start_date.date()} → {end_date.date()}")
+    log.info("SCRIPT 54 — TurfInfo Scraper (Playwright)")
+    log.info(f"  Periode : {start_date.date()} -> {end_date.date()}")
     log.info("=" * 60)
 
     # Checkpoint
@@ -434,51 +497,82 @@ def main():
         start_date = resume_date
         log.info(f"  Reprise au checkpoint : {start_date.date()}")
 
-    session = new_session()
     output_file = os.path.join(OUTPUT_DIR, "turfinfo_data.jsonl")
 
-    current = start_date
-    day_count = 0
-    total_records = 0
+    pw = sync_playwright().start()
+    browser, context, page = launch_browser(pw)
 
-    while current <= end_date:
-        date_str = current.strftime("%Y-%m-%d")
-        result = scrape_programme_day(session, date_str)
+    try:
+        # Accept cookies on first navigation
+        first_page = True
 
-        if result:
-            records = result.get("records", [])
+        current = start_date
+        day_count = 0
+        total_records = 0
 
-            # Scraper les détails de chaque course
-            for curl in result.get("course_links", [])[:12]:
-                detail = scrape_course_detail(session, curl, date_str)
-                if detail:
-                    records.extend(detail)
-                smart_pause(1.5, 0.8)
+        while current <= end_date:
+            date_str = current.strftime("%Y-%m-%d")
+            result = scrape_programme_day(page, date_str)
 
-            for rec in records:
-                append_jsonl(output_file, rec)
-                total_records += 1
+            if first_page:
+                accept_cookies(page)
+                first_page = False
 
-        day_count += 1
+            if result:
+                records = result.get("records", [])
 
-        if day_count % 30 == 0:
-            log.info(f"  {date_str} | jours={day_count} records={total_records}")
-            save_checkpoint(CHECKPOINT_FILE, {"last_date": date_str, "total_records": total_records})
+                # Scraper les details de chaque course
+                for curl in result.get("course_links", [])[:12]:
+                    detail = scrape_course_detail(page, curl, date_str)
+                    if detail:
+                        records.extend(detail)
+                    smart_pause(1.5, 0.8)
 
-        if day_count % 80 == 0:
-            session.close()
-            session = new_session()
-            time.sleep(random.uniform(5, 15))
+                for rec in records:
+                    append_jsonl(output_file, rec)
+                    total_records += 1
 
-        current += timedelta(days=1)
-        smart_pause(1.0, 0.5)
+            day_count += 1
 
-    save_checkpoint(CHECKPOINT_FILE, {"last_date": end_date.strftime("%Y-%m-%d"),
-                     "total_records": total_records, "status": "done"})
+            if day_count % 30 == 0:
+                log.info(f"  {date_str} | jours={day_count} records={total_records}")
+                save_checkpoint(CHECKPOINT_FILE, {"last_date": date_str, "total_records": total_records})
 
-    log.info("=" * 60)
-    log.info(f"TERMINÉ: {day_count} jours, {total_records} records → {output_file}")
-    log.info("=" * 60)
+            if day_count % 80 == 0:
+                log.info("  Rotating browser context...")
+                context.close()
+                browser.close()
+                smart_pause(5.0, 3.0)
+                browser, context, page = launch_browser(pw)
+
+            current += timedelta(days=1)
+            smart_pause(1.0, 0.5)
+
+        save_checkpoint(CHECKPOINT_FILE, {"last_date": end_date.strftime("%Y-%m-%d"),
+                         "total_records": total_records, "status": "done"})
+
+        log.info("=" * 60)
+        log.info(f"TERMINE: {day_count} jours, {total_records} records -> {output_file}")
+        log.info("=" * 60)
+
+    finally:
+        try:
+            page.close()
+        except Exception:
+            pass
+        try:
+            context.close()
+        except Exception:
+            pass
+        try:
+            browser.close()
+        except Exception:
+            pass
+        try:
+            pw.stop()
+        except Exception:
+            pass
+        log.info("Browser closed")
 
 
 if __name__ == "__main__":

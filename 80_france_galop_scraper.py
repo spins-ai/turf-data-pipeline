@@ -1,11 +1,18 @@
 #!/usr/bin/env python3
 """
 Script 80 — Scraping france-galop.com (donnees officielles courses FR)
+Migrated to Playwright to bypass Cloudflare anti-bot protection.
+
 Source : france-galop.com
 Collecte : resultats officiels, classements, programmes, statistiques,
            fiches chevaux, fiches proprietaires, fiches eleveurs,
            calendrier, allocations, terrains officiels
 CRITIQUE pour : Source officielle FR, Ground Truth, Validation Pipeline
+
+Usage:
+    pip install playwright beautifulsoup4
+    playwright install chromium
+    python 80_france_galop_scraper.py --start 2024-01-01 --end 2024-03-31
 """
 
 import argparse
@@ -18,7 +25,7 @@ import sys
 import time
 from datetime import datetime, timedelta
 
-import requests
+from playwright.sync_api import sync_playwright
 from bs4 import BeautifulSoup
 
 SCRIPT_NAME = "80_france_galop"
@@ -30,17 +37,9 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
-from utils.scraping import smart_pause, fetch_with_retry, load_checkpoint, save_checkpoint, append_jsonl
+from utils.scraping import smart_pause, append_jsonl, load_checkpoint, save_checkpoint
 
 log = setup_logging("80_france_galop")
-
-USER_AGENTS = [
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15",
-    "Mozilla/5.0 (X11; Linux x86_64; rv:122.0) Gecko/20100101 Firefox/122.0",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
-]
 
 BASE_URL = "https://www.france-galop.com"
 
@@ -59,30 +58,98 @@ HIPPODROMES_FR = [
 RACE_TYPES = ["plat", "obstacles", "haies", "steeple-chase", "cross-country"]
 
 
-def new_session():
-    s = requests.Session()
-    s.headers.update({
-        "User-Agent": random.choice(USER_AGENTS),
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "fr-FR,fr;q=0.9,en-US;q=0.8",
-        "Accept-Encoding": "gzip, deflate, br",
-        "DNT": "1",
-        "Connection": "keep-alive",
-    })
-    return s
+def launch_browser(pw):
+    """Launch headless Chromium with fr-FR locale and Chrome UA."""
+    browser = pw.chromium.launch(
+        headless=True,
+        args=[
+            "--disable-blink-features=AutomationControlled",
+            "--disable-dev-shm-usage",
+            "--no-sandbox",
+        ],
+    )
+    context = browser.new_context(
+        viewport={"width": 1920, "height": 1080},
+        locale="fr-FR",
+        timezone_id="Europe/Paris",
+        user_agent=(
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/124.0.0.0 Safari/537.36"
+        ),
+        java_script_enabled=True,
+        ignore_https_errors=True,
+    )
+    context.add_init_script("""
+        Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
+        Object.defineProperty(navigator, 'languages', {get: () => ['fr-FR', 'fr', 'en']});
+        Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3, 4, 5]});
+        window.chrome = {runtime: {}};
+    """)
+    page = context.new_page()
+    page.set_default_timeout(60000)
+    log.info("Browser launched (headless Chromium)")
+    return browser, context, page
 
 
+def navigate_with_retry(page, url, retries=3):
+    """Navigate to url with retry. Returns True on success."""
+    for attempt in range(1, retries + 1):
+        try:
+            resp = page.goto(url, wait_until="networkidle", timeout=60000)
+            if resp and resp.status >= 400:
+                log.warning("  HTTP %d on %s (attempt %d/%d)",
+                            resp.status, url, attempt, retries)
+                if resp.status == 429:
+                    time.sleep(60 * attempt)
+                elif resp.status == 403:
+                    time.sleep(30 * attempt)
+                else:
+                    time.sleep(5 * attempt)
+                continue
+            page.wait_for_load_state("domcontentloaded")
+            time.sleep(1.5)
+            return True
+        except Exception as exc:
+            log.warning("  Navigation error: %s (attempt %d/%d)",
+                        str(exc)[:200], attempt, retries)
+            time.sleep(10 * attempt)
+    log.error("  Failed after %d retries: %s", retries, url)
+    return False
 
 
+def accept_cookies(page):
+    """Try to click a cookie-consent button."""
+    selectors = [
+        "button:has-text('Accepter')",
+        "button:has-text('Tout accepter')",
+        "button:has-text('Accept')",
+        "button:has-text('OK')",
+        "[id*='accept']",
+        "[class*='accept']",
+        "#onetrust-accept-btn-handler",
+        "#didomi-notice-agree-button",
+    ]
+    for sel in selectors:
+        try:
+            btn = page.locator(sel).first
+            if btn.is_visible(timeout=1500):
+                btn.click(timeout=3000)
+                log.info("  Cookies accepted via: %s", sel)
+                time.sleep(1)
+                return True
+        except Exception:
+            continue
+    return False
 
-def scrape_programme_jour(session, date_str):
+
+def scrape_programme_jour(page, date_str):
     """Scraper le programme des courses pour un jour donne."""
     cache_file = os.path.join(CACHE_DIR, f"prog_{date_str}.json")
     if os.path.exists(cache_file):
         with open(cache_file, "r", encoding="utf-8") as f:
             return json.load(f)
 
-    date_fmt = date_str.replace("-", "")
     urls_to_try = [
         f"{BASE_URL}/fr/courses/programme/{date_str}",
         f"{BASE_URL}/fr/programme/{date_str}",
@@ -91,12 +158,9 @@ def scrape_programme_jour(session, date_str):
     ]
 
     soup = None
-    used_url = None
     for url in urls_to_try:
-        resp = fetch_with_retry(session, url)
-        if resp:
-            soup = BeautifulSoup(resp.text, "html.parser")
-            used_url = url
+        if navigate_with_retry(page, url):
+            soup = BeautifulSoup(page.content(), "html.parser")
             break
         smart_pause(1.0, 0.5)
 
@@ -170,7 +234,7 @@ def scrape_programme_jour(session, date_str):
     return records
 
 
-def scrape_resultats_jour(session, date_str):
+def scrape_resultats_jour(page, date_str):
     """Scraper les resultats officiels pour un jour donne."""
     cache_file = os.path.join(CACHE_DIR, f"res_{date_str}.json")
     if os.path.exists(cache_file):
@@ -185,9 +249,8 @@ def scrape_resultats_jour(session, date_str):
 
     soup = None
     for url in urls_to_try:
-        resp = fetch_with_retry(session, url)
-        if resp:
-            soup = BeautifulSoup(resp.text, "html.parser")
+        if navigate_with_retry(page, url):
+            soup = BeautifulSoup(page.content(), "html.parser")
             break
         smart_pause(1.0, 0.5)
 
@@ -407,7 +470,7 @@ def scrape_resultats_jour(session, date_str):
     return records
 
 
-def scrape_course_detail(session, course_url, date_str):
+def scrape_course_detail(page, course_url, date_str):
     """Scraper le detail d'une course individuelle."""
     if not course_url:
         return []
@@ -421,11 +484,10 @@ def scrape_course_detail(session, course_url, date_str):
     if not course_url.startswith("http"):
         course_url = f"{BASE_URL}{course_url}"
 
-    resp = fetch_with_retry(session, course_url)
-    if not resp:
+    if not navigate_with_retry(page, course_url):
         return []
 
-    soup = BeautifulSoup(resp.text, "html.parser")
+    soup = BeautifulSoup(page.content(), "html.parser")
     records = []
 
     # Infos de la course
@@ -690,7 +752,7 @@ def scrape_course_detail(session, course_url, date_str):
     return records
 
 
-def scrape_classements(session, year, category="entraineurs"):
+def scrape_classements(page, year, category="entraineurs"):
     """Scraper les classements annuels (entraineurs, jockeys, proprietaires, eleveurs)."""
     cache_file = os.path.join(CACHE_DIR, f"classement_{category}_{year}.json")
     if os.path.exists(cache_file):
@@ -705,9 +767,8 @@ def scrape_classements(session, year, category="entraineurs"):
 
     soup = None
     for url in urls_to_try:
-        resp = fetch_with_retry(session, url)
-        if resp:
-            soup = BeautifulSoup(resp.text, "html.parser")
+        if navigate_with_retry(page, url):
+            soup = BeautifulSoup(page.content(), "html.parser")
             break
         smart_pause(1.0, 0.5)
 
@@ -769,7 +830,7 @@ def scrape_classements(session, year, category="entraineurs"):
     return records
 
 
-def scrape_fiche_cheval(session, horse_url):
+def scrape_fiche_cheval(page, horse_url):
     """Scraper la fiche d'un cheval sur France Galop."""
     url_hash = re.sub(r'[^a-zA-Z0-9]', '_', horse_url[-60:])
     cache_file = os.path.join(CACHE_DIR, f"cheval_{url_hash}.json")
@@ -780,11 +841,10 @@ def scrape_fiche_cheval(session, horse_url):
     if not horse_url.startswith("http"):
         horse_url = f"{BASE_URL}{horse_url}"
 
-    resp = fetch_with_retry(session, horse_url)
-    if not resp:
+    if not navigate_with_retry(page, horse_url):
         return None
 
-    soup = BeautifulSoup(resp.text, "html.parser")
+    soup = BeautifulSoup(page.content(), "html.parser")
     fiche = {
         "source": "france_galop",
         "type": "fiche_cheval",
@@ -951,7 +1011,7 @@ def scrape_fiche_cheval(session, horse_url):
     return fiche
 
 
-def scrape_stats_hippodrome(session, hippodrome_name):
+def scrape_stats_hippodrome(page, hippodrome_name):
     """Scraper les statistiques par hippodrome."""
     cache_file = os.path.join(CACHE_DIR, f"hippo_{hippodrome_name}.json")
     if os.path.exists(cache_file):
@@ -966,9 +1026,8 @@ def scrape_stats_hippodrome(session, hippodrome_name):
 
     soup = None
     for url in urls_to_try:
-        resp = fetch_with_retry(session, url)
-        if resp:
-            soup = BeautifulSoup(resp.text, "html.parser")
+        if navigate_with_retry(page, url):
+            soup = BeautifulSoup(page.content(), "html.parser")
             break
         smart_pause(1.0, 0.5)
 
@@ -1029,7 +1088,7 @@ def scrape_stats_hippodrome(session, hippodrome_name):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Script 80 — France Galop Scraper (donnees officielles FR)")
+    parser = argparse.ArgumentParser(description="Script 80 — France Galop Scraper (Playwright)")
     parser.add_argument("--start", type=str, default="2018-01-01",
                         help="Date de debut (YYYY-MM-DD)")
     parser.add_argument("--end", type=str, default=None,
@@ -1046,119 +1105,148 @@ def main():
     end_date = datetime.strptime(args.end, "%Y-%m-%d") if args.end else datetime.now()
 
     log.info("=" * 60)
-    log.info("SCRIPT 80 — France Galop Scraper (officiel FR)")
+    log.info("SCRIPT 80 — France Galop Scraper (Playwright)")
     log.info(f"  Periode : {start_date.date()} -> {end_date.date()}")
     log.info(f"  Mode : {args.mode}")
     log.info(f"  Detail courses : {args.detail}")
     log.info("=" * 60)
 
     checkpoint = load_checkpoint(CHECKPOINT_FILE)
-    session = new_session()
     output_file = os.path.join(OUTPUT_DIR, "france_galop_data.jsonl")
 
     total_records = checkpoint.get("total_records", 0)
 
-    # --- Phase 1: Resultats jour par jour ---
-    if args.mode in ("resultats", "all"):
-        log.info("--- Phase 1: Resultats quotidiens ---")
-        last_date = checkpoint.get("last_date")
-        current = start_date
-        if args.resume and last_date:
-            resume_date = datetime.strptime(last_date, "%Y-%m-%d") + timedelta(days=1)
-            if resume_date > current:
-                current = resume_date
-                log.info(f"  Reprise au checkpoint : {current.date()}")
+    pw = sync_playwright().start()
+    browser, context, page = launch_browser(pw)
 
-        day_count = 0
-        while current <= end_date:
-            date_str = current.strftime("%Y-%m-%d")
+    try:
+        # --- Phase 1: Resultats jour par jour ---
+        if args.mode in ("resultats", "all"):
+            log.info("--- Phase 1: Resultats quotidiens ---")
+            last_date = checkpoint.get("last_date")
+            current = start_date
+            if args.resume and last_date:
+                resume_date = datetime.strptime(last_date, "%Y-%m-%d") + timedelta(days=1)
+                if resume_date > current:
+                    current = resume_date
+                    log.info(f"  Reprise au checkpoint : {current.date()}")
 
-            # Programme
-            prog = scrape_programme_jour(session, date_str)
-            if prog:
-                for rec in prog:
-                    append_jsonl(output_file, rec)
-                    total_records += 1
-            smart_pause(1.5, 0.8)
+            # Accept cookies on first page
+            first_page = True
+            day_count = 0
+            while current <= end_date:
+                date_str = current.strftime("%Y-%m-%d")
 
-            # Resultats
-            results = scrape_resultats_jour(session, date_str)
-            if results:
-                for rec in results:
-                    append_jsonl(output_file, rec)
-                    total_records += 1
-
-                # Detail optionnel
-                if args.detail:
-                    course_urls = set()
-                    for rec in results:
-                        url = rec.get("url_detail") or rec.get("url_course")
-                        if url:
-                            course_urls.add(url)
-
-                    for curl in course_urls:
-                        detail = scrape_course_detail(session, curl, date_str)
-                        if detail:
-                            for drec in detail:
-                                append_jsonl(output_file, drec)
-                                total_records += 1
-                        smart_pause(1.5, 0.8)
-
-            day_count += 1
-
-            if day_count % 30 == 0:
-                log.info(f"  {date_str} | jours={day_count} records={total_records}")
-                save_checkpoint(CHECKPOINT_FILE, {"last_date": date_str, "total_records": total_records})
-
-            if day_count % 80 == 0:
-                session.close()
-                session = new_session()
-                time.sleep(random.uniform(5, 15))
-
-            current += timedelta(days=1)
-            smart_pause(1.0, 0.5)
-
-    # --- Phase 2: Classements annuels ---
-    if args.mode in ("classements", "all"):
-        log.info("--- Phase 2: Classements annuels ---")
-        year_start = start_date.year
-        year_end = end_date.year
-
-        categories = ["entraineurs", "jockeys", "proprietaires", "eleveurs"]
-
-        for year in range(year_start, year_end + 1):
-            for cat in categories:
-                log.info(f"  Classement {cat} {year}")
-                records = scrape_classements(session, year, cat)
-                if records:
-                    for rec in records:
+                # Programme
+                prog = scrape_programme_jour(page, date_str)
+                if first_page:
+                    accept_cookies(page)
+                    first_page = False
+                if prog:
+                    for rec in prog:
                         append_jsonl(output_file, rec)
                         total_records += 1
-                    log.info(f"    -> {len(records)} entrees")
+                smart_pause(1.5, 0.8)
+
+                # Resultats
+                results = scrape_resultats_jour(page, date_str)
+                if results:
+                    for rec in results:
+                        append_jsonl(output_file, rec)
+                        total_records += 1
+
+                    # Detail optionnel
+                    if args.detail:
+                        course_urls = set()
+                        for rec in results:
+                            url = rec.get("url_detail") or rec.get("url_course")
+                            if url:
+                                course_urls.add(url)
+
+                        for curl in course_urls:
+                            detail = scrape_course_detail(page, curl, date_str)
+                            if detail:
+                                for drec in detail:
+                                    append_jsonl(output_file, drec)
+                                    total_records += 1
+                            smart_pause(1.5, 0.8)
+
+                day_count += 1
+
+                if day_count % 30 == 0:
+                    log.info(f"  {date_str} | jours={day_count} records={total_records}")
+                    save_checkpoint(CHECKPOINT_FILE, {"last_date": date_str, "total_records": total_records})
+
+                if day_count % 80 == 0:
+                    log.info("  Rotating browser context...")
+                    context.close()
+                    browser.close()
+                    smart_pause(5.0, 3.0)
+                    browser, context, page = launch_browser(pw)
+
+                current += timedelta(days=1)
+                smart_pause(1.0, 0.5)
+
+        # --- Phase 2: Classements annuels ---
+        if args.mode in ("classements", "all"):
+            log.info("--- Phase 2: Classements annuels ---")
+            year_start = start_date.year
+            year_end = end_date.year
+
+            categories = ["entraineurs", "jockeys", "proprietaires", "eleveurs"]
+
+            for year in range(year_start, year_end + 1):
+                for cat in categories:
+                    log.info(f"  Classement {cat} {year}")
+                    records = scrape_classements(page, year, cat)
+                    if records:
+                        for rec in records:
+                            append_jsonl(output_file, rec)
+                            total_records += 1
+                        log.info(f"    -> {len(records)} entrees")
+                    smart_pause(2.0, 1.0)
+
+        # --- Phase 3: Stats par hippodrome ---
+        if args.mode in ("all",):
+            log.info("--- Phase 3: Statistiques par hippodrome ---")
+            for hippo in HIPPODROMES_FR[:15]:  # Top 15 hippodromes
+                log.info(f"  Hippodrome: {hippo}")
+                hippo_records = scrape_stats_hippodrome(page, hippo)
+                if hippo_records:
+                    for rec in hippo_records:
+                        append_jsonl(output_file, rec)
+                        total_records += 1
+                    log.info(f"    -> {len(hippo_records)} entrees")
                 smart_pause(2.0, 1.0)
 
-    # --- Phase 3: Stats par hippodrome ---
-    if args.mode in ("all",):
-        log.info("--- Phase 3: Statistiques par hippodrome ---")
-        for hippo in HIPPODROMES_FR[:15]:  # Top 15 hippodromes
-            log.info(f"  Hippodrome: {hippo}")
-            hippo_records = scrape_stats_hippodrome(session, hippo)
-            if hippo_records:
-                for rec in hippo_records:
-                    append_jsonl(output_file, rec)
-                    total_records += 1
-                log.info(f"    -> {len(hippo_records)} entrees")
-            smart_pause(2.0, 1.0)
+        save_checkpoint(CHECKPOINT_FILE, {
+            "last_date": end_date.strftime("%Y-%m-%d"),
+            "total_records": total_records,
+            "status": "done",
+        })
 
-    save_checkpoint(CHECKPOINT_FILE, {
-        "last_date": end_date.strftime("%Y-%m-%d"),
-        "total_records": total_records,
-        "status": "done",
-    })
+        log.info("=" * 60)
+        log.info(f"TERMINE: {total_records} records -> {output_file}")
+        log.info("=" * 60)
 
-    log.info("=" * 60)
-    log.info(f"TERMINE: {total_records} records -> {output_file}")
-    log.info("=" * 60)
+    finally:
+        try:
+            page.close()
+        except Exception:
+            pass
+        try:
+            context.close()
+        except Exception:
+            pass
+        try:
+            browser.close()
+        except Exception:
+            pass
+        try:
+            pw.stop()
+        except Exception:
+            pass
+        log.info("Browser closed")
 
 
 if __name__ == "__main__":

@@ -1,12 +1,18 @@
 #!/usr/bin/env python3
 """
-Script 52 — Scraping Turfomania.fr (corrigé v3)
+Script 52 — Scraping Turfomania.fr (Playwright)
+Migrated from cloudscraper to Playwright to bypass Cloudflare.
+
 Source : turfomania.fr — pronostics, partants, stats
 Flux :
-  1) /partants-programmes/ → Schema.org JSON-LD → URLs detail-reunion.php?idreunion=XXX
-  2) detail-reunion.php → tables avec partants + liens /pronostics/partants-...?idcourse=XXX
-  3) Page course individuelle → table détaillée des partants + pronostics
-Utilise cloudscraper pour contourner Cloudflare.
+  1) /partants-programmes/ -> Schema.org JSON-LD -> URLs detail-reunion.php?idreunion=XXX
+  2) detail-reunion.php -> tables avec partants + liens /pronostics/partants-...?idcourse=XXX
+  3) Page course individuelle -> table detaillee des partants + pronostics
+
+Usage:
+    pip install playwright beautifulsoup4
+    playwright install chromium
+    python 52_turfomania_scraper.py --max-courses 200
 """
 
 import argparse
@@ -19,11 +25,7 @@ import re
 import time
 from datetime import datetime
 
-import requests
-try:
-    import cloudscraper
-except ImportError:
-    cloudscraper = None
+from playwright.sync_api import sync_playwright
 from bs4 import BeautifulSoup
 
 SCRIPT_NAME = "52_turfomania"
@@ -35,33 +37,105 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
-from utils.scraping import smart_pause, fetch_with_retry, append_jsonl, load_checkpoint, save_checkpoint
+from utils.scraping import smart_pause, append_jsonl, load_checkpoint, save_checkpoint
 
 log = setup_logging("52_turfomania")
 
 BASE_URL = "https://www.turfomania.fr"
 
 
-def new_session():
-    if cloudscraper:
-        return cloudscraper.create_scraper(
-            browser={"browser": "chrome", "platform": "windows", "desktop": True}
-        )
-    s = requests.Session()
-    s.headers.update({"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"})
-    return s
+def launch_browser(pw):
+    """Launch headless Chromium with fr-FR locale and Chrome UA."""
+    browser = pw.chromium.launch(
+        headless=True,
+        args=[
+            "--disable-blink-features=AutomationControlled",
+            "--disable-dev-shm-usage",
+            "--no-sandbox",
+        ],
+    )
+    context = browser.new_context(
+        viewport={"width": 1920, "height": 1080},
+        locale="fr-FR",
+        timezone_id="Europe/Paris",
+        user_agent=(
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/124.0.0.0 Safari/537.36"
+        ),
+        java_script_enabled=True,
+        ignore_https_errors=True,
+    )
+    context.add_init_script("""
+        Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
+        Object.defineProperty(navigator, 'languages', {get: () => ['fr-FR', 'fr', 'en']});
+        Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3, 4, 5]});
+        window.chrome = {runtime: {}};
+    """)
+    page = context.new_page()
+    page.set_default_timeout(60000)
+    log.info("Browser launched (headless Chromium)")
+    return browser, context, page
 
 
+def navigate_with_retry(page, url, retries=3):
+    """Navigate to url with retry. Returns True on success."""
+    for attempt in range(1, retries + 1):
+        try:
+            resp = page.goto(url, wait_until="networkidle", timeout=60000)
+            if resp and resp.status >= 400:
+                log.warning("  HTTP %d on %s (attempt %d/%d)",
+                            resp.status, url, attempt, retries)
+                if resp.status == 429:
+                    time.sleep(60 * attempt)
+                elif resp.status == 403:
+                    time.sleep(30 * attempt)
+                else:
+                    time.sleep(5 * attempt)
+                continue
+            page.wait_for_load_state("domcontentloaded")
+            time.sleep(1.5)
+            return True
+        except Exception as exc:
+            log.warning("  Navigation error: %s (attempt %d/%d)",
+                        str(exc)[:200], attempt, retries)
+            time.sleep(10 * attempt)
+    log.error("  Failed after %d retries: %s", retries, url)
+    return False
 
 
+def accept_cookies(page):
+    """Try to click a cookie-consent button."""
+    selectors = [
+        "button:has-text('Accepter')",
+        "button:has-text('Tout accepter')",
+        "button:has-text('Accept')",
+        "button:has-text('OK')",
+        "[id*='accept']",
+        "[class*='accept']",
+        "#onetrust-accept-btn-handler",
+        "#didomi-notice-agree-button",
+    ]
+    for sel in selectors:
+        try:
+            btn = page.locator(sel).first
+            if btn.is_visible(timeout=1500):
+                btn.click(timeout=3000)
+                log.info("  Cookies accepted via: %s", sel)
+                time.sleep(1)
+                return True
+        except Exception:
+            continue
+    return False
 
-def get_reunion_urls(session):
+
+def get_reunion_urls(page):
     """Etape 1: Extraire les URLs de reunions depuis /partants-programmes/ via Schema.org JSON-LD."""
-    resp = fetch_with_retry(session, f"{BASE_URL}/partants-programmes/")
-    if not resp:
+    if not navigate_with_retry(page, f"{BASE_URL}/partants-programmes/"):
         return []
 
-    soup = BeautifulSoup(resp.text, "html.parser")
+    accept_cookies(page)
+    soup = BeautifulSoup(page.content(), "html.parser")
     reunions = []
     seen_ids = set()
 
@@ -119,7 +193,7 @@ def get_reunion_urls(session):
     return reunions
 
 
-def scrape_reunion(session, reunion_info, date_iso, output_file):
+def scrape_reunion(page, reunion_info, date_iso, output_file):
     """Etape 2: Scraper une page de reunion — extraire les tables de partants + liens courses."""
     id_reunion = reunion_info["id_reunion"]
     cache_file = os.path.join(CACHE_DIR, f"reunion_{id_reunion}.json")
@@ -129,11 +203,10 @@ def scrape_reunion(session, reunion_info, date_iso, output_file):
             cached = json.load(f)
             return cached.get("nb_records", 0), cached.get("course_links", [])
 
-    resp = fetch_with_retry(session, reunion_info["url"])
-    if not resp:
+    if not navigate_with_retry(page, reunion_info["url"]):
         return 0, []
 
-    soup = BeautifulSoup(resp.text, "html.parser")
+    soup = BeautifulSoup(page.content(), "html.parser")
     records = []
     course_links = []
 
@@ -198,7 +271,7 @@ def scrape_reunion(session, reunion_info, date_iso, output_file):
     return len(records), course_links
 
 
-def scrape_course(session, course_info, date_iso, output_file):
+def scrape_course(page, course_info, date_iso, output_file):
     """Etape 3: Scraper une course individuelle — partants detailles + pronostics."""
     id_course = course_info["id_course"]
     cache_file = os.path.join(CACHE_DIR, f"course_{id_course}.json")
@@ -208,11 +281,10 @@ def scrape_course(session, course_info, date_iso, output_file):
             cached = json.load(f)
             return cached.get("nb_records", 0)
 
-    resp = fetch_with_retry(session, course_info["url"])
-    if not resp:
+    if not navigate_with_retry(page, course_info["url"]):
         return 0
 
-    soup = BeautifulSoup(resp.text, "html.parser")
+    soup = BeautifulSoup(page.content(), "html.parser")
     records = []
 
     # Info course
@@ -283,73 +355,99 @@ def scrape_course(session, course_info, date_iso, output_file):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Script 52 — Turfomania Scraper v3")
+    parser = argparse.ArgumentParser(description="Script 52 — Turfomania Scraper (Playwright)")
     parser.add_argument("--max-courses", type=int, default=200,
                         help="Max courses individuelles a scraper")
     args = parser.parse_args()
 
     log.info("=" * 60)
-    log.info("SCRIPT 52 — Turfomania Scraper v3 (cloudscraper)")
+    log.info("SCRIPT 52 — Turfomania Scraper (Playwright)")
     log.info("=" * 60)
 
-    session = new_session()
     output_file = os.path.join(OUTPUT_DIR, "turfomania_data.jsonl")
     date_iso = datetime.now().strftime("%Y-%m-%d")
 
-    # Etape 1: Recuperer les reunions
-    log.info("  Etape 1: Recuperation des reunions...")
-    reunions = get_reunion_urls(session)
-    log.info(f"  {len(reunions)} reunions trouvees")
+    pw = sync_playwright().start()
+    browser, context, page = launch_browser(pw)
 
-    total_records = 0
-    all_course_links = []
+    try:
+        # Etape 1: Recuperer les reunions
+        log.info("  Etape 1: Recuperation des reunions...")
+        reunions = get_reunion_urls(page)
+        log.info(f"  {len(reunions)} reunions trouvees")
 
-    # Etape 2: Scraper chaque reunion
-    log.info("  Etape 2: Scraping des reunions...")
-    for i, reunion in enumerate(reunions):
-        nb, courses = scrape_reunion(session, reunion, date_iso, output_file)
-        total_records += nb
-        all_course_links.extend(courses)
-        log.info(f"    Reunion {i+1}/{len(reunions)}: {reunion.get('name', reunion['id_reunion'])} "
-                 f"-> {nb} records, {len(courses)} courses")
-        smart_pause(2.0, 1.0)
+        total_records = 0
+        all_course_links = []
 
-        if (i + 1) % 10 == 0:
-            session.close()
-            session = new_session()
-            time.sleep(random.uniform(3, 6))
+        # Etape 2: Scraper chaque reunion
+        log.info("  Etape 2: Scraping des reunions...")
+        for i, reunion in enumerate(reunions):
+            nb, courses = scrape_reunion(page, reunion, date_iso, output_file)
+            total_records += nb
+            all_course_links.extend(courses)
+            log.info(f"    Reunion {i+1}/{len(reunions)}: {reunion.get('name', reunion['id_reunion'])} "
+                     f"-> {nb} records, {len(courses)} courses")
+            smart_pause(2.0, 1.0)
 
-    log.info(f"  Total reunions: {total_records} records, {len(all_course_links)} courses individuelles")
+            if (i + 1) % 10 == 0:
+                log.info("  Rotating browser context...")
+                context.close()
+                browser.close()
+                smart_pause(3.0, 2.0)
+                browser, context, page = launch_browser(pw)
 
-    # Etape 3: Scraper les courses individuelles
-    log.info("  Etape 3: Scraping des courses individuelles...")
-    course_count = 0
-    for i, course in enumerate(all_course_links[:args.max_courses]):
-        nb = scrape_course(session, course, date_iso, output_file)
-        total_records += nb
-        course_count += 1
-        if (i + 1) % 10 == 0:
-            log.info(f"    {i+1}/{min(len(all_course_links), args.max_courses)} courses, "
-                     f"{total_records} records total")
-        smart_pause(1.5, 0.8)
+        log.info(f"  Total reunions: {total_records} records, {len(all_course_links)} courses individuelles")
 
-        if (i + 1) % 30 == 0:
-            session.close()
-            session = new_session()
-            time.sleep(random.uniform(5, 10))
+        # Etape 3: Scraper les courses individuelles
+        log.info("  Etape 3: Scraping des courses individuelles...")
+        course_count = 0
+        for i, course in enumerate(all_course_links[:args.max_courses]):
+            nb = scrape_course(page, course, date_iso, output_file)
+            total_records += nb
+            course_count += 1
+            if (i + 1) % 10 == 0:
+                log.info(f"    {i+1}/{min(len(all_course_links), args.max_courses)} courses, "
+                         f"{total_records} records total")
+            smart_pause(1.5, 0.8)
 
-    save_checkpoint(CHECKPOINT_FILE, {
-        "last_date": date_iso,
-        "total_records": total_records,
-        "nb_reunions": len(reunions),
-        "nb_courses": course_count,
-        "status": "done",
-    })
+            if (i + 1) % 30 == 0:
+                log.info("  Rotating browser context...")
+                context.close()
+                browser.close()
+                smart_pause(5.0, 3.0)
+                browser, context, page = launch_browser(pw)
 
-    log.info("=" * 60)
-    log.info(f"TERMINE: {len(reunions)} reunions, {course_count} courses, {total_records} records")
-    log.info(f"  -> {output_file}")
-    log.info("=" * 60)
+        save_checkpoint(CHECKPOINT_FILE, {
+            "last_date": date_iso,
+            "total_records": total_records,
+            "nb_reunions": len(reunions),
+            "nb_courses": course_count,
+            "status": "done",
+        })
+
+        log.info("=" * 60)
+        log.info(f"TERMINE: {len(reunions)} reunions, {course_count} courses, {total_records} records")
+        log.info(f"  -> {output_file}")
+        log.info("=" * 60)
+
+    finally:
+        try:
+            page.close()
+        except Exception:
+            pass
+        try:
+            context.close()
+        except Exception:
+            pass
+        try:
+            browser.close()
+        except Exception:
+            pass
+        try:
+            pw.stop()
+        except Exception:
+            pass
+        log.info("Browser closed")
 
 
 if __name__ == "__main__":
