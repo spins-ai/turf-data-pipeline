@@ -28,6 +28,7 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
 from utils.scraping import smart_pause, append_jsonl, load_checkpoint, save_checkpoint, create_session
+from utils.html_parsing import extract_data_attributes
 
 log = setup_logging("68_betfair_exchange")
 
@@ -163,35 +164,6 @@ def extract_embedded_json(soup, date_str, source="betfair_exchange"):
                     except json.JSONDecodeError:
                         pass
                 break
-    return records
-
-
-def extract_data_attributes(soup, date_str, source="betfair_exchange"):
-    """Extract all data-* attributes from DOM elements (market IDs, runner IDs, etc.)."""
-    records = []
-    seen = set()
-    for el in soup.find_all(True):
-        data_attrs = {k: v for k, v in el.attrs.items()
-                      if isinstance(k, str) and k.startswith("data-") and v}
-        if len(data_attrs) >= 2:
-            key = frozenset(data_attrs.items())
-            if key in seen:
-                continue
-            seen.add(key)
-            record = {
-                "date": date_str,
-                "source": source,
-                "type": "data_attribute",
-                "tag": el.name,
-                "scraped_at": datetime.now().isoformat(),
-            }
-            for attr_name, attr_val in data_attrs.items():
-                clean_name = attr_name.replace("data-", "").replace("-", "_")
-                record[clean_name] = attr_val
-            text = el.get_text(strip=True)
-            if text and len(text) < 300:
-                record["text_content"] = text
-            records.append(record)
     return records
 
 
