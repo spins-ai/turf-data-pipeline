@@ -27,7 +27,7 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
-from utils.scraping import smart_pause, fetch_with_retry, append_jsonl, load_checkpoint, save_checkpoint
+from utils.scraping import smart_pause, fetch_with_retry, append_jsonl, load_checkpoint, save_checkpoint, create_session
 
 log = setup_logging("63_daily_racing_form")
 
@@ -40,22 +40,6 @@ USER_AGENTS = [
 ]
 
 BASE_URL = "https://www.drf.com"
-
-
-def new_session():
-    s = requests.Session()
-    s.headers.update({
-        "User-Agent": random.choice(USER_AGENTS),
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.9",
-        "Accept-Encoding": "gzip, deflate, br",
-        "DNT": "1",
-        "Connection": "keep-alive",
-    })
-    return s
-
-
-
 
 
 
@@ -267,7 +251,7 @@ def main():
         start_date = resume_date
         log.info(f"  Resuming from checkpoint: {start_date.date()}")
 
-    session = new_session()
+    session = create_session(USER_AGENTS)
     output_file = os.path.join(OUTPUT_DIR, "drf_data.jsonl")
 
     current = start_date
@@ -310,7 +294,7 @@ def main():
 
         if day_count % 80 == 0:
             session.close()
-            session = new_session()
+            session = create_session(USER_AGENTS)
             time.sleep(random.uniform(5, 15))
 
         current += timedelta(days=1)

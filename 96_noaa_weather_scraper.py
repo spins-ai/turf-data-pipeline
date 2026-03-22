@@ -28,7 +28,7 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
-from utils.scraping import smart_pause, fetch_with_retry, load_checkpoint, save_checkpoint, append_jsonl
+from utils.scraping import smart_pause, fetch_with_retry, load_checkpoint, save_checkpoint, append_jsonl, create_session
 
 log = setup_logging("96_noaa_weather")
 
@@ -93,15 +93,14 @@ DATATYPES = ["TMAX", "TMIN", "TAVG", "PRCP", "SNOW", "AWND", "WSF2", "WSF5",
              "RHAV", "RHMN", "RHMX", "EVAP"]
 
 
-def new_session(api_token=""):
-    s = requests.Session()
-    headers = {
+def _make_session(api_token=""):
+    s = create_session()
+    s.headers.update({
         "Accept": "application/json",
         "Content-Type": "application/json",
-    }
+    })
     if api_token:
-        headers["token"] = api_token
-    s.headers.update(headers)
+        s.headers["token"] = api_token
     return s
 
 
@@ -239,7 +238,7 @@ def main():
     if args.resume and done_hippos:
         log.info(f"  Reprise checkpoint: {len(done_hippos)} hippodromes deja traites")
 
-    session = new_session(api_token)
+    session = _make_session(api_token)
     output_file = os.path.join(OUTPUT_DIR, "noaa_weather_data.jsonl")
 
     total_records = 0
@@ -327,7 +326,7 @@ def main():
 
         if hippo_count % 10 == 0:
             session.close()
-            session = new_session(api_token)
+            session = _make_session(api_token)
             time.sleep(random.uniform(3, 8))
 
     save_checkpoint(CHECKPOINT_FILE, {"done_hippos": list(done_hippos),

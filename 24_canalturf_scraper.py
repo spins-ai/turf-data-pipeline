@@ -36,16 +36,6 @@ USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
 ]
 
-def new_session():
-    s = create_session(user_agents=USER_AGENTS)
-    s.headers.update({
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "fr-FR,fr;q=0.9",
-        "Accept-Encoding": "gzip, deflate, br",
-        "DNT": "1",
-        "Connection": "keep-alive",
-    })
-    return s
 
 def load_horse_ids():
     """Extraire les IDs chevaux depuis les partants PMU (id_nav_partant)"""
@@ -207,7 +197,7 @@ def main():
         start_idx = cp.get("last_index", 0)
         log.info(f"Reprise au checkpoint: index {start_idx}")
 
-    session = new_session()
+    session = create_session(USER_AGENTS)
     all_horses = []
     output_file = os.path.join(OUTPUT_DIR, "canalturf_chevaux.json")
     if os.path.exists(output_file) and start_idx > 0:
@@ -239,7 +229,7 @@ def main():
 
             # Rotation session
             session.close()
-            session = new_session()
+            session = create_session(USER_AGENTS)
             time.sleep(random.uniform(3, 8))
 
         smart_pause(1.5, 0.8)

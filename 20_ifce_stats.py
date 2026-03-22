@@ -25,15 +25,6 @@ USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
 ]
 
-def new_session():
-    s = create_session(user_agents=USER_AGENTS)
-    s.headers.update({
-        "Accept": "application/json, text/html, */*",
-        "Accept-Language": "fr-FR,fr;q=0.9",
-        "Referer": "https://statscartes.ifce.fr/",
-    })
-    return s
-
 
 def fetch_json(session, url, cache_name):
     """Récupérer un JSON avec cache"""
@@ -96,7 +87,7 @@ def main():
     print("SCRIPT 20 — IFCE Stats & Cartes")
     print("=" * 60)
 
-    session = new_session()
+    session = create_session(USER_AGENTS)
 
     # Dashboard IDs connus (courses hippiques)
     dashboards = {

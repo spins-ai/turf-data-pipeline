@@ -20,10 +20,6 @@ import time
 from datetime import datetime, timedelta
 
 import requests
-try:
-    import cloudscraper
-except ImportError:
-    cloudscraper = None
 from bs4 import BeautifulSoup
 
 SCRIPT_NAME = "84_turfoo"
@@ -35,28 +31,11 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
-from utils.scraping import smart_pause, fetch_with_retry, load_checkpoint, save_checkpoint, append_jsonl
+from utils.scraping import smart_pause, fetch_with_retry, load_checkpoint, save_checkpoint, append_jsonl, create_session
 
 log = setup_logging("84_turfoo")
 
 BASE_URL = "https://www.turfoo.fr"
-
-
-def new_session():
-    if cloudscraper:
-        s = cloudscraper.create_scraper(
-            browser={"browser": "chrome", "platform": "windows", "desktop": True}
-        )
-    else:
-        s = requests.Session()
-    s.headers.update({
-        "Accept-Language": "fr-FR,fr;q=0.9",
-        "DNT": "1",
-        "Referer": BASE_URL,
-    })
-    return s
-
-
 
 
 
@@ -294,7 +273,7 @@ def main():
         start_date = resume_date
         log.info(f"  Reprise checkpoint: {start_date.date()}")
 
-    session = new_session()
+    session = create_session()
     output_file = os.path.join(OUTPUT_DIR, "turfoo_data.jsonl")
 
     current = start_date
@@ -331,7 +310,7 @@ def main():
 
         if day_count % 40 == 0:
             session.close()
-            session = new_session()
+            session = create_session()
             time.sleep(random.uniform(5, 15))
 
         current += timedelta(days=1)

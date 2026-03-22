@@ -28,7 +28,7 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
-from utils.scraping import smart_pause, fetch_with_retry, load_checkpoint, save_checkpoint, append_jsonl
+from utils.scraping import smart_pause, fetch_with_retry, load_checkpoint, save_checkpoint, append_jsonl, create_session
 
 log = setup_logging("97_meteostat")
 
@@ -101,15 +101,12 @@ HIPPODROMES = {
 }
 
 
-def new_session(api_key=""):
-    s = requests.Session()
-    headers = {
-        "Accept": "application/json",
-    }
+def _make_session(api_key=""):
+    s = create_session()
+    s.headers.update({"Accept": "application/json"})
     if api_key:
-        headers["X-RapidAPI-Key"] = api_key
-        headers["X-RapidAPI-Host"] = "meteostat.p.rapidapi.com"
-    s.headers.update(headers)
+        s.headers["X-RapidAPI-Key"] = api_key
+        s.headers["X-RapidAPI-Host"] = "meteostat.p.rapidapi.com"
     return s
 
 
@@ -244,7 +241,7 @@ def main():
     if args.resume and done_hippos:
         log.info(f"  Reprise checkpoint: {len(done_hippos)} hippodromes deja traites")
 
-    session = new_session(api_key)
+    session = _make_session(api_key)
     output_file = os.path.join(OUTPUT_DIR, "meteostat_data.jsonl")
 
     total_records = 0
@@ -336,7 +333,7 @@ def main():
 
         if hippo_count % 10 == 0:
             session.close()
-            session = new_session(api_key)
+            session = _make_session(api_key)
             time.sleep(random.uniform(3, 8))
 
     save_checkpoint(CHECKPOINT_FILE, {"done_hippos": list(done_hippos),

@@ -35,15 +35,6 @@ USER_AGENTS = [
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15",
 ]
 
-def new_session():
-    s = create_session(user_agents=USER_AGENTS)
-    s.headers.update({
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "fr-FR,fr;q=0.9,en-US;q=0.8",
-        "DNT": "1",
-        "Connection": "keep-alive",
-    })
-    return s
 
 def scrape_day(session, date_str):
     """Scraper la page partants d'un jour"""
@@ -181,7 +172,7 @@ def main():
         start_date = resume_date
         log.info(f"  Reprise au checkpoint : {start_date.date()}")
 
-    session = new_session()
+    session = create_session(USER_AGENTS)
     output_file = os.path.join(OUTPUT_DIR, "geny_data.jsonl")
 
     current = start_date
@@ -207,7 +198,7 @@ def main():
 
         if day_count % 50 == 0:
             session.close()
-            session = new_session()
+            session = create_session(USER_AGENTS)
             time.sleep(random.uniform(10, 30))
 
         current += timedelta(days=1)

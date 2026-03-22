@@ -29,7 +29,7 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
-from utils.scraping import smart_pause, fetch_with_retry, load_checkpoint, save_checkpoint, append_jsonl
+from utils.scraping import smart_pause, fetch_with_retry, load_checkpoint, save_checkpoint, append_jsonl, create_session
 
 log = setup_logging("79_trainer_stats")
 
@@ -87,21 +87,6 @@ TOP_TRAINERS_UK = [
     "nicky-henderson", "paul-nicholls", "willie-mullins", "gordon-elliott",
     "dan-skelton", "henry-de-bromhead", "nigel-twiston-davies", "philip-hobbs",
 ]
-
-
-def new_session():
-    s = requests.Session()
-    s.headers.update({
-        "User-Agent": random.choice(USER_AGENTS),
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "en-GB,en;q=0.9,fr-FR;q=0.8",
-        "Accept-Encoding": "gzip, deflate, br",
-        "DNT": "1",
-        "Connection": "keep-alive",
-    })
-    return s
-
-
 
 
 
@@ -317,7 +302,7 @@ def main():
     log.info("=" * 60)
 
     checkpoint = load_checkpoint(CHECKPOINT_FILE)
-    session = new_session()
+    session = create_session(USER_AGENTS)
     output_file = os.path.join(OUTPUT_DIR, "trainer_stats.jsonl")
 
     total_records = checkpoint.get("total_records", 0)
@@ -419,7 +404,7 @@ def main():
 
             if trainer_count % 50 == 0:
                 session.close()
-                session = new_session()
+                session = create_session(USER_AGENTS)
                 time.sleep(random.uniform(5, 15))
 
     save_checkpoint(CHECKPOINT_FILE, {

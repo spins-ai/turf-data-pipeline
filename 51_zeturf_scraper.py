@@ -17,10 +17,6 @@ import time
 from datetime import datetime, timedelta
 
 import requests
-try:
-    import cloudscraper
-except ImportError:
-    cloudscraper = None
 from bs4 import BeautifulSoup
 
 SCRIPT_NAME = "51_zeturf"
@@ -34,7 +30,7 @@ os.makedirs(HTML_CACHE_DIR, exist_ok=True)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
-from utils.scraping import smart_pause, fetch_with_retry, append_jsonl, load_checkpoint, save_checkpoint
+from utils.scraping import smart_pause, fetch_with_retry, append_jsonl, load_checkpoint, save_checkpoint, create_session
 
 log = setup_logging("51_zeturf")
 
@@ -45,22 +41,6 @@ USER_AGENTS = [
     "Mozilla/5.0 (X11; Linux x86_64; rv:122.0) Gecko/20100101 Firefox/122.0",
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
 ]
-
-
-def new_session():
-    s = cloudscraper.create_scraper() if cloudscraper else requests.Session()
-    s.headers.update({
-        "User-Agent": random.choice(USER_AGENTS),
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "fr-FR,fr;q=0.9,en-US;q=0.8",
-        "Accept-Encoding": "gzip, deflate, br",
-        "DNT": "1",
-        "Connection": "keep-alive",
-    })
-    return s
-
-
-
 
 
 
@@ -493,7 +473,7 @@ def main():
         start_date = resume_date
         log.info(f"  Reprise au checkpoint : {start_date.date()}")
 
-    session = new_session()
+    session = create_session(USER_AGENTS)
     output_file = os.path.join(OUTPUT_DIR, "zeturf_data.jsonl")
 
     current = start_date
@@ -527,7 +507,7 @@ def main():
 
         if day_count % 80 == 0:
             session.close()
-            session = new_session()
+            session = create_session(USER_AGENTS)
             time.sleep(random.uniform(5, 15))
 
         current += timedelta(days=1)
