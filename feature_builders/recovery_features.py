@@ -21,10 +21,12 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 from collections import defaultdict
 from datetime import datetime
 from typing import Optional
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 from utils.math import safe_mean as _safe_mean, safe_rate as _safe_rate
 
 
