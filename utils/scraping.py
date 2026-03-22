@@ -30,9 +30,11 @@ except ImportError:
 
 __all__ = [
     "create_session",
+    "rotate_session",
     "smart_pause",
     "fetch_with_retry",
     "append_jsonl",
+    "aggregate_cache_to_jsonl",
     "load_checkpoint",
     "save_checkpoint",
 ]
@@ -70,6 +72,48 @@ def create_session(user_agents=None):
     else:
         session.headers.update({"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"})
 
+    return session
+
+
+def rotate_session(
+    user_agents: list[str] | None = None,
+    headers: dict[str, str] | None = None,
+):
+    """Create a fresh HTTP session with rotated User-Agent.
+
+    This replaces the per-file ``rotate_session()`` pattern that was
+    duplicated across 9+ scrapers.  The caller is responsible for
+    assigning the returned session to its module-level variable.
+
+    Parameters
+    ----------
+    user_agents : list[str] or None
+        User-Agent strings to pick from randomly (forwarded to
+        ``create_session``).
+    headers : dict[str, str] or None
+        Extra headers to set on the new session (e.g. Accept,
+        Accept-Language, Referer).
+
+    Returns
+    -------
+    requests.Session
+        A fresh session ready to use.
+
+    Example
+    -------
+    ::
+
+        from utils.scraping import rotate_session
+        session = rotate_session(user_agents=USER_AGENTS, headers={
+            "Accept": "application/json",
+            "Accept-Language": "fr-FR,fr;q=0.9",
+            "DNT": "1",
+        })
+        req_count = 0
+    """
+    session = create_session(user_agents=user_agents)
+    if headers:
+        session.headers.update(headers)
     return session
 
 
@@ -168,6 +212,65 @@ def append_jsonl(filepath: str | Path, record: dict, ensure_ascii: bool = False)
     """
     with open(filepath, "a", encoding="utf-8", newline="\n") as f:
         f.write(json.dumps(record, ensure_ascii=ensure_ascii, default=str) + "\n")
+
+
+def aggregate_cache_to_jsonl(
+    cache_dir: str | Path,
+    output_file: str | Path,
+    logger: logging.Logger | None = None,
+) -> int:
+    """Read all JSON cache files from *cache_dir* and write them as JSONL.
+
+    Each cache file may contain a JSON list of records or a single dict.
+    All records are written as one-JSON-object-per-line into *output_file*.
+
+    Parameters
+    ----------
+    cache_dir : str or Path
+        Directory containing ``*.json`` cache files.
+    output_file : str or Path
+        Destination JSONL file (overwritten).
+    logger : logging.Logger or None
+        Logger instance; falls back to module logger.
+
+    Returns
+    -------
+    int
+        Total number of records written.
+    """
+    _log = logger or log
+    cache_dir = Path(cache_dir)
+    output_file = Path(output_file)
+
+    if not cache_dir.exists():
+        _log.info("No cache directory: %s", cache_dir)
+        return 0
+
+    cache_files = sorted(f.name for f in cache_dir.iterdir() if f.suffix == ".json")
+    if not cache_files:
+        _log.info("No cache files found for aggregation.")
+        return 0
+
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+    total = 0
+    with open(output_file, "w", encoding="utf-8") as out:
+        for fname in cache_files:
+            fpath = cache_dir / fname
+            try:
+                with open(fpath, "r", encoding="utf-8") as f:
+                    records = json.load(f)
+                if isinstance(records, list):
+                    for rec in records:
+                        out.write(json.dumps(rec, ensure_ascii=False) + "\n")
+                        total += 1
+                elif isinstance(records, dict):
+                    out.write(json.dumps(records, ensure_ascii=False) + "\n")
+                    total += 1
+            except (json.JSONDecodeError, OSError) as e:
+                _log.error("Error reading cache file %s: %s", fname, e)
+
+    _log.info("Aggregated %d records from %d cache files -> %s", total, len(cache_files), output_file)
+    return total
 
 
 # ===================================================================

@@ -1909,6 +1909,9 @@ def normaliser_partant(brute: PartantBrut, course_norm: CourseNormalisee) -> Par
 # ===========================================================================
 
 def aggregate_cache_to_jsonl():
+    # NOTE: Not migrated to utils.scraping.aggregate_cache_to_jsonl because this
+    # version includes HTML parsing, ref_lookup enrichment, and custom normalisation
+    # logic that is specific to the letrot scraper.
     """Read all cache files, parse HTML, normalise and write JSONL output."""
     logger = setup_logging("02b_scraper_letrot")
     jsonl_path = OUTPUT_DIR / "letrot_data.jsonl"

@@ -19,7 +19,7 @@ from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
-from utils.scraping import smart_pause, create_session
+from utils.scraping import smart_pause, create_session, rotate_session as _rotate_session
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_DIR = os.path.join(BASE_DIR, "output", "36_pedigree_query")
@@ -38,6 +38,14 @@ USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:122.0) Gecko/20100101 Firefox/122.0",
 ]
 
+_HEADERS = {
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9,fr;q=0.8",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Connection": "keep-alive",
+    "Upgrade-Insecure-Requests": "1",
+    "Cache-Control": "max-age=0",
+}
 session = create_session(user_agents=USER_AGENTS)
 req_count = 0
 consecutive_errors = 0
@@ -71,15 +79,7 @@ signal.signal(signal.SIGINT, save_and_exit)
 
 def rotate_session():
     global session, req_count
-    session = create_session(user_agents=USER_AGENTS)
-    session.headers.update({
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.9,fr;q=0.8",
-        "Accept-Encoding": "gzip, deflate, br",
-        "Connection": "keep-alive",
-        "Upgrade-Insecure-Requests": "1",
-        "Cache-Control": "max-age=0",
-    })
+    session = _rotate_session(user_agents=USER_AGENTS, headers=_HEADERS)
     req_count = 0
 
 def get_html_cached(name, clean_name):
