@@ -4,6 +4,7 @@ Script 64 — Scraping Punters.com.au (Australian Racing)
 Source : punters.com.au
 Collecte : race data, form guides, tips, results, track conditions
 CRITIQUE pour : Australian Racing Data, Form Analysis, Track Bias
+Backend : Playwright (headless Chromium) — bypasses Cloudflare
 """
 
 import argparse
@@ -15,11 +16,7 @@ import re
 import time
 from datetime import datetime, timedelta
 
-import requests
-try:
-    import cloudscraper
-except ImportError:
-    cloudscraper = None
+from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeout
 from bs4 import BeautifulSoup
 
 SCRIPT_NAME = "64_punters"
@@ -33,36 +30,71 @@ os.makedirs(HTML_CACHE_DIR, exist_ok=True)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
-from utils.scraping import smart_pause, fetch_with_retry, append_jsonl, load_checkpoint, save_checkpoint
+from utils.scraping import smart_pause, append_jsonl, load_checkpoint, save_checkpoint
 
 log = setup_logging("64_punters")
-
-USER_AGENTS = [
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15",
-    "Mozilla/5.0 (X11; Linux x86_64; rv:122.0) Gecko/20100101 Firefox/122.0",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
-]
 
 BASE_URL = "https://www.punters.com.au"
 
 
-def new_session():
-    s = cloudscraper.create_scraper() if cloudscraper else requests.Session()
-    s.headers.update({
-        "User-Agent": random.choice(USER_AGENTS),
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "en-AU,en;q=0.9",
-        "Accept-Encoding": "gzip, deflate, br",
-        "DNT": "1",
-        "Connection": "keep-alive",
-    })
-    return s
+def launch_browser(pw):
+    """Launch headless Chromium with en-AU locale for AU sites."""
+    browser = pw.chromium.launch(
+        headless=True,
+        args=[
+            "--disable-blink-features=AutomationControlled",
+            "--disable-dev-shm-usage",
+            "--no-sandbox",
+        ],
+    )
+    context = browser.new_context(
+        viewport={"width": 1920, "height": 1080},
+        locale="en-AU",
+        timezone_id="Australia/Sydney",
+        user_agent=(
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/124.0.0.0 Safari/537.36"
+        ),
+        java_script_enabled=True,
+        ignore_https_errors=True,
+    )
+    context.add_init_script("""
+        Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
+        Object.defineProperty(navigator, 'languages', {get: () => ['en-AU', 'en']});
+        Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3, 4, 5]});
+        window.chrome = {runtime: {}};
+    """)
+    page = context.new_page()
+    page.set_default_timeout(60_000)
+    return browser, context, page
 
 
-
-
+def navigate_with_retry(page, url, retries=3):
+    """Navigate to a URL with retry logic. Returns page HTML or None."""
+    for attempt in range(1, retries + 1):
+        try:
+            resp = page.goto(url, wait_until="networkidle", timeout=60_000)
+            if resp and resp.status >= 400:
+                log.warning("  HTTP %d on %s (attempt %d/%d)", resp.status, url, attempt, retries)
+                if resp.status == 429:
+                    time.sleep(60 * attempt)
+                elif resp.status == 403:
+                    time.sleep(30 * attempt)
+                else:
+                    time.sleep(5 * attempt)
+                continue
+            page.wait_for_load_state("domcontentloaded")
+            time.sleep(1.5)
+            return page.content()
+        except PlaywrightTimeout:
+            log.warning("  Timeout on %s (attempt %d/%d)", url, attempt, retries)
+            time.sleep(10 * attempt)
+        except Exception as exc:
+            log.warning("  Navigation error: %s (attempt %d/%d)", str(exc)[:200], attempt, retries)
+            time.sleep(5 * attempt)
+    log.error("  Failed after %d retries: %s", retries, url)
+    return None
 
 
 def extract_embedded_json(soup, date_str, source="punters_au"):
@@ -188,7 +220,6 @@ def extract_track_conditions_detail(soup, date_str, source="punters_au"):
                     "classes_css": classes,
                     "scraped_at": datetime.now().isoformat(),
                 }
-                # Parse track rating (e.g., Good 4, Heavy 8)
                 rating_match = re.search(r'(Good|Soft|Heavy|Firm|Synthetic)\s*(\d+)?', text, re.I)
                 if rating_match:
                     record["track_rating"] = rating_match.group(0).strip()
@@ -236,7 +267,7 @@ def extract_speed_maps(soup, date_str, source="punters_au"):
     return records
 
 
-def scrape_form_guide(session, date_str):
+def scrape_form_guide(page, date_str):
     """Scrape Punters.com.au form guide for a given date."""
     cache_file = os.path.join(CACHE_DIR, f"form_{date_str}.json")
     if os.path.exists(cache_file):
@@ -244,19 +275,18 @@ def scrape_form_guide(session, date_str):
             return json.load(f)
 
     url = f"{BASE_URL}/form-guide/{date_str}"
-    resp = fetch_with_retry(session, url)
-    if not resp:
+    html = navigate_with_retry(page, url)
+    if not html:
         return None
 
     # Save raw HTML to cache
     html_file = os.path.join(HTML_CACHE_DIR, f"{date_str}.html")
     with open(html_file, "w", encoding="utf-8") as f:
-        f.write(resp.text)
+        f.write(html)
 
-    soup = BeautifulSoup(resp.text, "html.parser")
+    soup = BeautifulSoup(html, "html.parser")
     records = []
 
-    # --- NEW: Full extraction pattern ---
     records.extend(extract_embedded_json(soup, date_str, "punters_au"))
     records.extend(extract_data_attributes(soup, date_str, "punters_au"))
     records.extend(extract_comments(soup, date_str, "punters_au"))
@@ -272,7 +302,6 @@ def scrape_form_guide(session, date_str):
             if h_tag:
                 track_name = h_tag.get_text(strip=True)
 
-            # Extract race links
             for link in section.find_all("a", href=True):
                 href = link["href"]
                 text = link.get_text(strip=True)
@@ -318,7 +347,7 @@ def scrape_form_guide(session, date_str):
     return records
 
 
-def scrape_results(session, date_str):
+def scrape_results(page, date_str):
     """Scrape Punters.com.au results for a given date."""
     cache_file = os.path.join(CACHE_DIR, f"results_{date_str}.json")
     if os.path.exists(cache_file):
@@ -326,14 +355,13 @@ def scrape_results(session, date_str):
             return json.load(f)
 
     url = f"{BASE_URL}/results/{date_str}"
-    resp = fetch_with_retry(session, url)
-    if not resp:
+    html = navigate_with_retry(page, url)
+    if not html:
         return None
 
-    soup = BeautifulSoup(resp.text, "html.parser")
+    soup = BeautifulSoup(html, "html.parser")
     records = []
 
-    # --- NEW: Full extraction on results page ---
     records.extend(extract_embedded_json(soup, date_str, "punters_au"))
     records.extend(extract_data_attributes(soup, date_str, "punters_au"))
     records.extend(extract_comments(soup, date_str, "punters_au"))
@@ -384,7 +412,7 @@ def scrape_results(session, date_str):
     return records
 
 
-def scrape_tips(session, date_str):
+def scrape_tips(page, date_str):
     """Scrape Punters.com.au tips — expert picks and consensus."""
     cache_file = os.path.join(CACHE_DIR, f"tips_{date_str}.json")
     if os.path.exists(cache_file):
@@ -392,14 +420,13 @@ def scrape_tips(session, date_str):
             return json.load(f)
 
     url = f"{BASE_URL}/tips/{date_str}"
-    resp = fetch_with_retry(session, url)
-    if not resp:
+    html = navigate_with_retry(page, url)
+    if not html:
         return None
 
-    soup = BeautifulSoup(resp.text, "html.parser")
+    soup = BeautifulSoup(html, "html.parser")
     records = []
 
-    # --- NEW: Full extraction on tips page ---
     records.extend(extract_embedded_json(soup, date_str, "punters_au"))
     records.extend(extract_data_attributes(soup, date_str, "punters_au"))
     records.extend(extract_comments(soup, date_str, "punters_au"))
@@ -410,7 +437,6 @@ def scrape_tips(session, date_str):
         if any(kw in classes.lower() for kw in ["tip", "pick", "selection", "best-bet"]):
             text = div.get_text(strip=True)
             if text and 5 < len(text) < 1000:
-                # Try to extract horse name and race
                 horse = ""
                 race = ""
                 h_tag = div.find(["h3", "h4", "h5", "strong"])
@@ -462,7 +488,7 @@ def scrape_tips(session, date_str):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Script 64 — Punters.com.au Scraper (AU race data, form, tips)")
+    parser = argparse.ArgumentParser(description="Script 64 — Punters.com.au Scraper (AU race data, form, tips) [Playwright]")
     parser.add_argument("--start", type=str, default="2022-01-01",
                         help="Start date (YYYY-MM-DD)")
     parser.add_argument("--end", type=str, default=None,
@@ -475,7 +501,7 @@ def main():
     end_date = datetime.strptime(args.end, "%Y-%m-%d") if args.end else datetime.now()
 
     log.info("=" * 60)
-    log.info("SCRIPT 64 — Punters.com.au Scraper (Australian Racing)")
+    log.info("SCRIPT 64 — Punters.com.au Scraper (Australian Racing) [Playwright]")
     log.info(f"  Period : {start_date.date()} -> {end_date.date()}")
     log.info("=" * 60)
 
@@ -487,61 +513,78 @@ def main():
         start_date = resume_date
         log.info(f"  Resuming from checkpoint: {start_date.date()}")
 
-    session = new_session()
     output_file = os.path.join(OUTPUT_DIR, "punters_data.jsonl")
 
-    current = start_date
-    day_count = 0
-    total_records = 0
+    pw = sync_playwright().start()
+    browser, context, page = launch_browser(pw)
+    try:
+        current = start_date
+        day_count = 0
+        total_records = 0
 
-    while current <= end_date:
-        date_str = current.strftime("%Y-%m-%d")
+        while current <= end_date:
+            date_str = current.strftime("%Y-%m-%d")
 
-        # Scrape form guide
-        form_records = scrape_form_guide(session, date_str)
-        if form_records:
-            for rec in form_records:
-                append_jsonl(output_file, rec)
-                total_records += 1
+            # Scrape form guide
+            form_records = scrape_form_guide(page, date_str)
+            if form_records:
+                for rec in form_records:
+                    append_jsonl(output_file, rec)
+                    total_records += 1
 
-        smart_pause(2.0, 1.0)
+            smart_pause(2.0, 1.0)
 
-        # Scrape results
-        result_records = scrape_results(session, date_str)
-        if result_records:
-            for rec in result_records:
-                append_jsonl(output_file, rec)
-                total_records += 1
+            # Scrape results
+            result_records = scrape_results(page, date_str)
+            if result_records:
+                for rec in result_records:
+                    append_jsonl(output_file, rec)
+                    total_records += 1
 
-        smart_pause(2.0, 1.0)
+            smart_pause(2.0, 1.0)
 
-        # Scrape tips
-        tip_records = scrape_tips(session, date_str)
-        if tip_records:
-            for rec in tip_records:
-                append_jsonl(output_file, rec)
-                total_records += 1
+            # Scrape tips
+            tip_records = scrape_tips(page, date_str)
+            if tip_records:
+                for rec in tip_records:
+                    append_jsonl(output_file, rec)
+                    total_records += 1
 
-        day_count += 1
+            day_count += 1
 
-        if day_count % 30 == 0:
-            log.info(f"  {date_str} | days={day_count} records={total_records}")
-            save_checkpoint(CHECKPOINT_FILE, {"last_date": date_str, "total_records": total_records})
+            if day_count % 30 == 0:
+                log.info(f"  {date_str} | days={day_count} records={total_records}")
+                save_checkpoint(CHECKPOINT_FILE, {"last_date": date_str, "total_records": total_records})
 
-        if day_count % 80 == 0:
-            session.close()
-            session = new_session()
-            time.sleep(random.uniform(5, 15))
+            if day_count % 80 == 0:
+                # Rotate browser context to avoid detection
+                context.close()
+                browser.close()
+                browser, context, page = launch_browser(pw)
+                time.sleep(random.uniform(5, 15))
 
-        current += timedelta(days=1)
-        smart_pause(1.0, 0.5)
+            current += timedelta(days=1)
+            smart_pause(1.0, 0.5)
 
-    save_checkpoint(CHECKPOINT_FILE, {"last_date": end_date.strftime("%Y-%m-%d"),
-                     "total_records": total_records, "status": "done"})
+        save_checkpoint(CHECKPOINT_FILE, {"last_date": end_date.strftime("%Y-%m-%d"),
+                         "total_records": total_records, "status": "done"})
 
-    log.info("=" * 60)
-    log.info(f"DONE: {day_count} days, {total_records} records -> {output_file}")
-    log.info("=" * 60)
+        log.info("=" * 60)
+        log.info(f"DONE: {day_count} days, {total_records} records -> {output_file}")
+        log.info("=" * 60)
+    finally:
+        try:
+            context.close()
+        except Exception:
+            pass
+        try:
+            browser.close()
+        except Exception:
+            pass
+        try:
+            pw.stop()
+        except Exception:
+            pass
 
 
 if __name__ == "__main__":

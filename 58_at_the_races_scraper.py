@@ -4,6 +4,7 @@ Script 58 — Scraping At The Races (UK/IRE Racing)
 Source : attheraces.com
 Collecte : UK/IRE results, form guides, race cards, trainer/jockey stats
 CRITIQUE pour : UK/IRE Form Data, Results Archive, Performance Tracking
+Backend : Playwright (headless Chromium) — bypasses Cloudflare
 """
 
 import argparse
@@ -16,11 +17,7 @@ import re
 import time
 from datetime import datetime, timedelta
 
-import requests
-try:
-    import cloudscraper
-except ImportError:
-    cloudscraper = None
+from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeout
 from bs4 import BeautifulSoup
 
 SCRIPT_NAME = "58_at_the_races"
@@ -34,36 +31,71 @@ os.makedirs(HTML_CACHE_DIR, exist_ok=True)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
-from utils.scraping import smart_pause, fetch_with_retry, append_jsonl, load_checkpoint, save_checkpoint
+from utils.scraping import smart_pause, append_jsonl, load_checkpoint, save_checkpoint
 
 log = setup_logging("58_at_the_races")
-
-USER_AGENTS = [
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15",
-    "Mozilla/5.0 (X11; Linux x86_64; rv:122.0) Gecko/20100101 Firefox/122.0",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
-]
 
 BASE_URL = "https://www.attheraces.com"
 
 
-def new_session():
-    s = cloudscraper.create_scraper() if cloudscraper else requests.Session()
-    s.headers.update({
-        "User-Agent": random.choice(USER_AGENTS),
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "en-GB,en;q=0.9",
-        "Accept-Encoding": "gzip, deflate, br",
-        "DNT": "1",
-        "Connection": "keep-alive",
-    })
-    return s
+def launch_browser(pw):
+    """Launch headless Chromium with en-GB locale for UK sites."""
+    browser = pw.chromium.launch(
+        headless=True,
+        args=[
+            "--disable-blink-features=AutomationControlled",
+            "--disable-dev-shm-usage",
+            "--no-sandbox",
+        ],
+    )
+    context = browser.new_context(
+        viewport={"width": 1920, "height": 1080},
+        locale="en-GB",
+        timezone_id="Europe/London",
+        user_agent=(
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/124.0.0.0 Safari/537.36"
+        ),
+        java_script_enabled=True,
+        ignore_https_errors=True,
+    )
+    context.add_init_script("""
+        Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
+        Object.defineProperty(navigator, 'languages', {get: () => ['en-GB', 'en']});
+        Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3, 4, 5]});
+        window.chrome = {runtime: {}};
+    """)
+    page = context.new_page()
+    page.set_default_timeout(60_000)
+    return browser, context, page
 
 
-
-
+def navigate_with_retry(page, url, retries=3):
+    """Navigate to a URL with retry logic. Returns page HTML or None."""
+    for attempt in range(1, retries + 1):
+        try:
+            resp = page.goto(url, wait_until="networkidle", timeout=60_000)
+            if resp and resp.status >= 400:
+                log.warning("  HTTP %d on %s (attempt %d/%d)", resp.status, url, attempt, retries)
+                if resp.status == 429:
+                    time.sleep(60 * attempt)
+                elif resp.status == 403:
+                    time.sleep(30 * attempt)
+                else:
+                    time.sleep(5 * attempt)
+                continue
+            page.wait_for_load_state("domcontentloaded")
+            time.sleep(1.5)
+            return page.content()
+        except PlaywrightTimeout:
+            log.warning("  Timeout on %s (attempt %d/%d)", url, attempt, retries)
+            time.sleep(10 * attempt)
+        except Exception as exc:
+            log.warning("  Navigation error: %s (attempt %d/%d)", str(exc)[:200], attempt, retries)
+            time.sleep(5 * attempt)
+    log.error("  Failed after %d retries: %s", retries, url)
+    return None
 
 
 def extract_embedded_json(soup, date_str, source="at_the_races"):
@@ -223,7 +255,7 @@ def extract_sectionals(soup, date_str, source="at_the_races"):
     return records
 
 
-def scrape_racecards(session, date_str):
+def scrape_racecards(page, date_str):
     """Scrape At The Races race cards for a given date."""
     cache_file = os.path.join(CACHE_DIR, f"racecards_{date_str}.json")
     if os.path.exists(cache_file):
@@ -234,19 +266,18 @@ def scrape_racecards(session, date_str):
     dt = datetime.strptime(date_str, "%Y-%m-%d")
     url_date = dt.strftime("%d-%B-%Y").lstrip("0")
     url = f"{BASE_URL}/racecards/{url_date}"
-    resp = fetch_with_retry(session, url)
-    if not resp:
+    html = navigate_with_retry(page, url)
+    if not html:
         return None
 
     # Save raw HTML to cache
     html_file = os.path.join(HTML_CACHE_DIR, f"{date_str}.html")
     with open(html_file, "w", encoding="utf-8") as f:
-        f.write(resp.text)
+        f.write(html)
 
-    soup = BeautifulSoup(resp.text, "html.parser")
+    soup = BeautifulSoup(html, "html.parser")
     records = []
 
-    # --- NEW: Full extraction pattern ---
     records.extend(extract_embedded_json(soup, date_str, "at_the_races"))
     records.extend(extract_data_attributes(soup, date_str, "at_the_races"))
     records.extend(extract_verdicts_comments(soup, date_str, "at_the_races"))
@@ -314,31 +345,26 @@ def scrape_racecards(session, date_str):
                 "scraped_at": datetime.now().isoformat(),
             }
 
-            # Jockey
             jockey_el = section.find(["span", "a", "div"],
                                      class_=lambda c: c and "jockey" in " ".join(c).lower())
             if jockey_el:
                 record["jockey"] = jockey_el.get_text(strip=True)
 
-            # Trainer
             trainer_el = section.find(["span", "a", "div"],
                                       class_=lambda c: c and "trainer" in " ".join(c).lower())
             if trainer_el:
                 record["trainer"] = trainer_el.get_text(strip=True)
 
-            # Form
             form_el = section.find(["span", "div"],
                                    class_=lambda c: c and "form" in " ".join(c).lower())
             if form_el:
                 record["form"] = form_el.get_text(strip=True)
 
-            # Weight
             weight_el = section.find(["span", "div"],
                                      class_=lambda c: c and "weight" in " ".join(c).lower())
             if weight_el:
                 record["weight"] = weight_el.get_text(strip=True)
 
-            # Age
             age_el = section.find(["span", "div"],
                                   class_=lambda c: c and "age" in " ".join(c).lower())
             if age_el:
@@ -352,7 +378,7 @@ def scrape_racecards(session, date_str):
     return records
 
 
-def scrape_results(session, date_str):
+def scrape_results(page, date_str):
     """Scrape At The Races results for a given date."""
     cache_file = os.path.join(CACHE_DIR, f"results_{date_str}.json")
     if os.path.exists(cache_file):
@@ -362,14 +388,13 @@ def scrape_results(session, date_str):
     dt = datetime.strptime(date_str, "%Y-%m-%d")
     url_date = dt.strftime("%d-%B-%Y").lstrip("0")
     url = f"{BASE_URL}/results/{url_date}"
-    resp = fetch_with_retry(session, url)
-    if not resp:
+    html = navigate_with_retry(page, url)
+    if not html:
         return None
 
-    soup = BeautifulSoup(resp.text, "html.parser")
+    soup = BeautifulSoup(html, "html.parser")
     records = []
 
-    # --- NEW: Full extraction on results page ---
     records.extend(extract_embedded_json(soup, date_str, "at_the_races"))
     records.extend(extract_data_attributes(soup, date_str, "at_the_races"))
     records.extend(extract_verdicts_comments(soup, date_str, "at_the_races"))
@@ -385,7 +410,6 @@ def scrape_results(session, date_str):
         if len(headers) < 3:
             continue
 
-        # Identify race name from preceding header
         race_name = ""
         prev = table.find_previous(["h2", "h3", "h4"])
         if prev:
@@ -406,13 +430,11 @@ def scrape_results(session, date_str):
                 key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
                 record[key] = cell
 
-            # Parse finishing position
             if cells:
                 pos_match = re.match(r'^(\d+)(st|nd|rd|th)?$', cells[0].strip(), re.IGNORECASE)
                 if pos_match:
                     record["position_parsed"] = int(pos_match.group(1))
 
-            # Parse SP odds
             for cell in cells:
                 odds_match = re.search(r'(\d+/\d+|\d+\.\d+|evens|evs)', cell, re.IGNORECASE)
                 if odds_match:
@@ -441,7 +463,7 @@ def scrape_results(session, date_str):
     return records
 
 
-def scrape_form_guide(session, race_url, date_str):
+def scrape_form_guide(page, race_url, date_str):
     """Scrape detailed form guide for a specific race."""
     if not race_url.startswith("http"):
         race_url = BASE_URL + race_url
@@ -452,14 +474,13 @@ def scrape_form_guide(session, race_url, date_str):
         with open(cache_file, "r", encoding="utf-8") as f:
             return json.load(f)
 
-    resp = fetch_with_retry(session, race_url)
-    if not resp:
+    html = navigate_with_retry(page, race_url)
+    if not html:
         return None
 
-    soup = BeautifulSoup(resp.text, "html.parser")
+    soup = BeautifulSoup(html, "html.parser")
     records = []
 
-    # --- NEW: Full extraction on form guide page ---
     records.extend(extract_embedded_json(soup, date_str, "at_the_races"))
     records.extend(extract_data_attributes(soup, date_str, "at_the_races"))
     records.extend(extract_verdicts_comments(soup, date_str, "at_the_races"))
@@ -473,7 +494,7 @@ def scrape_form_guide(session, race_url, date_str):
             race_name = text
             break
 
-    # Race conditions (distance, class, prize, going)
+    # Race conditions
     conditions = {}
     for el in soup.find_all(["span", "div", "p"], class_=True):
         classes = " ".join(el.get("class", []))
@@ -537,7 +558,7 @@ def scrape_form_guide(session, race_url, date_str):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Script 58 — At The Races Scraper (UK/IRE results, form)")
+    parser = argparse.ArgumentParser(description="Script 58 — At The Races Scraper (UK/IRE results, form) [Playwright]")
     parser.add_argument("--start", type=str, default="2022-01-01",
                         help="Start date (YYYY-MM-DD)")
     parser.add_argument("--end", type=str, default=None,
@@ -550,7 +571,7 @@ def main():
     end_date = datetime.strptime(args.end, "%Y-%m-%d") if args.end else datetime.now()
 
     log.info("=" * 60)
-    log.info("SCRIPT 58 — At The Races Scraper (UK/IRE)")
+    log.info("SCRIPT 58 — At The Races Scraper (UK/IRE) [Playwright]")
     log.info(f"  Period : {start_date.date()} -> {end_date.date()}")
     log.info("=" * 60)
 
@@ -562,61 +583,78 @@ def main():
         start_date = resume_date
         log.info(f"  Resuming from checkpoint: {start_date.date()}")
 
-    session = new_session()
     output_file = os.path.join(OUTPUT_DIR, "at_the_races_data.jsonl")
 
-    current = start_date
-    day_count = 0
-    total_records = 0
+    pw = sync_playwright().start()
+    browser, context, page = launch_browser(pw)
+    try:
+        current = start_date
+        day_count = 0
+        total_records = 0
 
-    while current <= end_date:
-        date_str = current.strftime("%Y-%m-%d")
+        while current <= end_date:
+            date_str = current.strftime("%Y-%m-%d")
 
-        # Scrape race cards
-        racecard_records = scrape_racecards(session, date_str)
-        if racecard_records:
-            # Scrape form details for each race
-            race_urls = [r.get("url") for r in racecard_records
-                         if r.get("type") == "race_link" and r.get("url")]
-            for rurl in list(set(race_urls))[:15]:
-                detail = scrape_form_guide(session, rurl, date_str)
-                if detail:
-                    racecard_records.extend(detail)
-                smart_pause(1.5, 0.8)
+            # Scrape race cards
+            racecard_records = scrape_racecards(page, date_str)
+            if racecard_records:
+                # Scrape form details for each race
+                race_urls = [r.get("url") for r in racecard_records
+                             if r.get("type") == "race_link" and r.get("url")]
+                for rurl in list(set(race_urls))[:15]:
+                    detail = scrape_form_guide(page, rurl, date_str)
+                    if detail:
+                        racecard_records.extend(detail)
+                    smart_pause(1.5, 0.8)
 
-            for rec in racecard_records:
-                append_jsonl(output_file, rec)
-                total_records += 1
+                for rec in racecard_records:
+                    append_jsonl(output_file, rec)
+                    total_records += 1
 
-        smart_pause(2.0, 1.0)
+            smart_pause(2.0, 1.0)
 
-        # Scrape results
-        result_records = scrape_results(session, date_str)
-        if result_records:
-            for rec in result_records:
-                append_jsonl(output_file, rec)
-                total_records += 1
+            # Scrape results
+            result_records = scrape_results(page, date_str)
+            if result_records:
+                for rec in result_records:
+                    append_jsonl(output_file, rec)
+                    total_records += 1
 
-        day_count += 1
+            day_count += 1
 
-        if day_count % 30 == 0:
-            log.info(f"  {date_str} | days={day_count} records={total_records}")
-            save_checkpoint(CHECKPOINT_FILE, {"last_date": date_str, "total_records": total_records})
+            if day_count % 30 == 0:
+                log.info(f"  {date_str} | days={day_count} records={total_records}")
+                save_checkpoint(CHECKPOINT_FILE, {"last_date": date_str, "total_records": total_records})
 
-        if day_count % 80 == 0:
-            session.close()
-            session = new_session()
-            time.sleep(random.uniform(5, 15))
+            if day_count % 80 == 0:
+                # Rotate browser context to avoid detection
+                context.close()
+                browser.close()
+                browser, context, page = launch_browser(pw)
+                time.sleep(random.uniform(5, 15))
 
-        current += timedelta(days=1)
-        smart_pause(1.0, 0.5)
+            current += timedelta(days=1)
+            smart_pause(1.0, 0.5)
 
-    save_checkpoint(CHECKPOINT_FILE, {"last_date": end_date.strftime("%Y-%m-%d"),
-                     "total_records": total_records, "status": "done"})
+        save_checkpoint(CHECKPOINT_FILE, {"last_date": end_date.strftime("%Y-%m-%d"),
+                         "total_records": total_records, "status": "done"})
 
-    log.info("=" * 60)
-    log.info(f"DONE: {day_count} days, {total_records} records -> {output_file}")
-    log.info("=" * 60)
+        log.info("=" * 60)
+        log.info(f"DONE: {day_count} days, {total_records} records -> {output_file}")
+        log.info("=" * 60)
+    finally:
+        try:
+            context.close()
+        except Exception:
+            pass
+        try:
+            browser.close()
+        except Exception:
+            pass
+        try:
+            pw.stop()
+        except Exception:
+            pass
 
 
 if __name__ == "__main__":
