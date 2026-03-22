@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 """
-Script 59 — Scraping Racing TV
+Script 59 — Scraping Racing TV (Playwright version)
 Source : racingtv.com
 Collecte : replays metadata, race data, meeting schedules, race cards
 CRITIQUE pour : Replay Analysis, Race Metadata, Meeting Coverage
+
+Requires:
+    pip install playwright beautifulsoup4
+    playwright install chromium
 """
 
 import argparse
@@ -16,51 +20,131 @@ import re
 import time
 from datetime import datetime, timedelta
 
-import requests
+from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeout
 from bs4 import BeautifulSoup
 
 SCRIPT_NAME = "59_racing_tv"
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output", SCRIPT_NAME)
 CACHE_DIR = os.path.join(OUTPUT_DIR, "cache")
+HTML_CACHE_DIR = os.path.join(OUTPUT_DIR, "html_cache")
 CHECKPOINT_FILE = os.path.join(OUTPUT_DIR, ".checkpoint.json")
 
 os.makedirs(CACHE_DIR, exist_ok=True)
+os.makedirs(HTML_CACHE_DIR, exist_ok=True)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
-from utils.scraping import smart_pause, fetch_with_retry, append_jsonl, load_checkpoint, save_checkpoint
+from utils.scraping import smart_pause, append_jsonl, load_checkpoint, save_checkpoint
 
 log = setup_logging("59_racing_tv")
 
-USER_AGENTS = [
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15",
-    "Mozilla/5.0 (X11; Linux x86_64; rv:122.0) Gecko/20100101 Firefox/122.0",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
-]
+# Browser / context settings
+USER_AGENT = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/124.0.0.0 Safari/537.36"
+)
+DEFAULT_TIMEOUT_MS = 60_000
+MAX_RETRIES = 3
 
 BASE_URL = "https://www.racingtv.com"
 
 
-def new_session():
-    s = requests.Session()
-    s.headers.update({
-        "User-Agent": random.choice(USER_AGENTS),
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "en-GB,en;q=0.9",
-        "Accept-Encoding": "gzip, deflate, br",
-        "DNT": "1",
-        "Connection": "keep-alive",
-    })
-    return s
+# ------------------------------------------------------------------
+# Browser helpers
+# ------------------------------------------------------------------
+
+def launch_browser(pw):
+    """Launch headless Chromium and return (browser, context, page)."""
+    browser = pw.chromium.launch(
+        headless=True,
+        args=[
+            "--disable-blink-features=AutomationControlled",
+            "--disable-dev-shm-usage",
+            "--no-sandbox",
+        ],
+    )
+    context = browser.new_context(
+        viewport={"width": 1920, "height": 1080},
+        locale="en-GB",
+        timezone_id="Europe/London",
+        user_agent=USER_AGENT,
+        java_script_enabled=True,
+        ignore_https_errors=True,
+    )
+    # Stealth tweaks
+    context.add_init_script("""
+        Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
+        Object.defineProperty(navigator, 'languages', {get: () => ['en-GB', 'en']});
+        Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3, 4, 5]});
+        window.chrome = {runtime: {}};
+    """)
+    page = context.new_page()
+    page.set_default_timeout(DEFAULT_TIMEOUT_MS)
+    return browser, context, page
 
 
+COOKIE_SELECTORS = [
+    "button:has-text('Accept')",
+    "button:has-text('Accept All')",
+    "button:has-text('OK')",
+    "button:has-text('I Agree')",
+    "#onetrust-accept-btn-handler",
+    "#didomi-notice-agree-button",
+    "[id*='accept']",
+    "[class*='accept']",
+]
 
 
+def accept_cookies(page):
+    """Try to dismiss cookie consent banner."""
+    for sel in COOKIE_SELECTORS:
+        try:
+            btn = page.locator(sel).first
+            if btn.is_visible(timeout=1500):
+                btn.click(timeout=3000)
+                log.debug("  Cookies accepted via: %s", sel)
+                time.sleep(1)
+                return True
+        except Exception:
+            continue
+    return False
 
 
-def scrape_racecards(session, date_str):
+def navigate_with_retry(page, url, retries=MAX_RETRIES):
+    """Navigate to url with retry logic. Returns HTML string or None."""
+    for attempt in range(1, retries + 1):
+        try:
+            resp = page.goto(url, wait_until="networkidle", timeout=DEFAULT_TIMEOUT_MS)
+            if resp and resp.status >= 400:
+                log.warning("  HTTP %d on %s (attempt %d/%d)",
+                            resp.status, url, attempt, retries)
+                if resp.status == 429:
+                    time.sleep(60 * attempt)
+                elif resp.status == 403:
+                    time.sleep(30 * attempt)
+                else:
+                    time.sleep(5 * attempt)
+                continue
+            page.wait_for_load_state("domcontentloaded")
+            time.sleep(1.5)
+            return page.content()
+        except PlaywrightTimeout:
+            log.warning("  Timeout on %s (attempt %d/%d)", url, attempt, retries)
+            time.sleep(10 * attempt)
+        except Exception as exc:
+            log.warning("  Navigation error: %s (attempt %d/%d)",
+                        str(exc)[:200], attempt, retries)
+            time.sleep(5 * attempt)
+    log.error("  Failed after %d retries: %s", retries, url)
+    return None
+
+
+# ------------------------------------------------------------------
+# Scraping functions (BeautifulSoup-based, fed from page.content())
+# ------------------------------------------------------------------
+
+def scrape_racecards(page, date_str):
     """Scrape Racing TV race cards and meeting schedule for a given date."""
     cache_file = os.path.join(CACHE_DIR, f"racecards_{date_str}.json")
     if os.path.exists(cache_file):
@@ -68,11 +152,16 @@ def scrape_racecards(session, date_str):
             return json.load(f)
 
     url = f"{BASE_URL}/racecards/{date_str}"
-    resp = fetch_with_retry(session, url)
-    if not resp:
+    html = navigate_with_retry(page, url)
+    if not html:
         return None
 
-    soup = BeautifulSoup(resp.text, "html.parser")
+    # Save raw HTML
+    html_file = os.path.join(HTML_CACHE_DIR, f"racecards_{date_str}.html")
+    with open(html_file, "w", encoding="utf-8") as f:
+        f.write(html)
+
+    soup = BeautifulSoup(html, "html.parser")
     records = []
 
     # Extract meeting / race links
@@ -140,7 +229,7 @@ def scrape_racecards(session, date_str):
     return records
 
 
-def scrape_results(session, date_str):
+def scrape_results(page, date_str):
     """Scrape Racing TV results for a given date."""
     cache_file = os.path.join(CACHE_DIR, f"results_{date_str}.json")
     if os.path.exists(cache_file):
@@ -148,11 +237,16 @@ def scrape_results(session, date_str):
             return json.load(f)
 
     url = f"{BASE_URL}/results/{date_str}"
-    resp = fetch_with_retry(session, url)
-    if not resp:
+    html = navigate_with_retry(page, url)
+    if not html:
         return None
 
-    soup = BeautifulSoup(resp.text, "html.parser")
+    # Save raw HTML
+    html_file = os.path.join(HTML_CACHE_DIR, f"results_{date_str}.html")
+    with open(html_file, "w", encoding="utf-8") as f:
+        f.write(html)
+
+    soup = BeautifulSoup(html, "html.parser")
     records = []
 
     # Extract result tables
@@ -199,7 +293,7 @@ def scrape_results(session, date_str):
     return records
 
 
-def scrape_replays(session, date_str):
+def scrape_replays(page, date_str):
     """Scrape Racing TV replays metadata for a given date."""
     cache_file = os.path.join(CACHE_DIR, f"replays_{date_str}.json")
     if os.path.exists(cache_file):
@@ -207,11 +301,16 @@ def scrape_replays(session, date_str):
             return json.load(f)
 
     url = f"{BASE_URL}/replays/{date_str}"
-    resp = fetch_with_retry(session, url)
-    if not resp:
+    html = navigate_with_retry(page, url)
+    if not html:
         return None
 
-    soup = BeautifulSoup(resp.text, "html.parser")
+    # Save raw HTML
+    html_file = os.path.join(HTML_CACHE_DIR, f"replays_{date_str}.html")
+    with open(html_file, "w", encoding="utf-8") as f:
+        f.write(html)
+
+    soup = BeautifulSoup(html, "html.parser")
     records = []
 
     # Extract replay entries (video metadata, not the video itself)
@@ -283,7 +382,7 @@ def scrape_replays(session, date_str):
     return records
 
 
-def scrape_race_detail(session, race_url, date_str):
+def scrape_race_detail(page, race_url, date_str):
     """Scrape individual race detail page for full metadata."""
     if not race_url.startswith("http"):
         race_url = BASE_URL + race_url
@@ -294,11 +393,11 @@ def scrape_race_detail(session, race_url, date_str):
         with open(cache_file, "r", encoding="utf-8") as f:
             return json.load(f)
 
-    resp = fetch_with_retry(session, race_url)
-    if not resp:
+    html = navigate_with_retry(page, race_url)
+    if not html:
         return None
 
-    soup = BeautifulSoup(resp.text, "html.parser")
+    soup = BeautifulSoup(html, "html.parser")
     records = []
 
     # Race title
@@ -362,7 +461,7 @@ def scrape_race_detail(session, race_url, date_str):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Script 59 — Racing TV Scraper (replays metadata, race data)")
+    parser = argparse.ArgumentParser(description="Script 59 — Racing TV Scraper (Playwright, replays metadata, race data)")
     parser.add_argument("--start", type=str, default="2022-01-01",
                         help="Start date (YYYY-MM-DD)")
     parser.add_argument("--end", type=str, default=None,
@@ -375,7 +474,7 @@ def main():
     end_date = datetime.strptime(args.end, "%Y-%m-%d") if args.end else datetime.now()
 
     log.info("=" * 60)
-    log.info("SCRIPT 59 — Racing TV Scraper")
+    log.info("SCRIPT 59 — Racing TV Scraper (Playwright)")
     log.info(f"  Period : {start_date.date()} -> {end_date.date()}")
     log.info("=" * 60)
 
@@ -387,73 +486,104 @@ def main():
         start_date = resume_date
         log.info(f"  Resuming from checkpoint: {start_date.date()}")
 
-    session = new_session()
     output_file = os.path.join(OUTPUT_DIR, "racing_tv_data.jsonl")
 
-    current = start_date
-    day_count = 0
-    total_records = 0
+    pw = sync_playwright().start()
+    browser, context, page = None, None, None
+    try:
+        browser, context, page = launch_browser(pw)
+        log.info("Browser launched (headless Chromium)")
 
-    while current <= end_date:
-        date_str = current.strftime("%Y-%m-%d")
+        # Accept cookies on first navigation
+        first_nav = True
 
-        # Scrape race cards
-        racecard_records = scrape_racecards(session, date_str)
-        if racecard_records:
-            # Scrape detail pages
-            race_urls = [r.get("url") for r in racecard_records
-                         if r.get("type") == "race_link" and r.get("url")]
-            for rurl in list(set(race_urls))[:15]:
-                detail = scrape_race_detail(session, rurl, date_str)
-                if detail:
-                    racecard_records.extend(detail)
-                smart_pause(1.5, 0.8)
+        current = start_date
+        day_count = 0
+        total_records = 0
 
-            for rec in racecard_records:
-                append_jsonl(output_file, rec)
-                total_records += 1
+        while current <= end_date:
+            date_str = current.strftime("%Y-%m-%d")
 
-        smart_pause(2.0, 1.0)
+            # Scrape race cards
+            racecard_records = scrape_racecards(page, date_str)
 
-        # Scrape results
-        result_records = scrape_results(session, date_str)
-        if result_records:
-            for rec in result_records:
-                append_jsonl(output_file, rec)
-                total_records += 1
+            if first_nav and racecard_records is not None:
+                accept_cookies(page)
+                first_nav = False
 
-        smart_pause(2.0, 1.0)
+            if racecard_records:
+                # Scrape detail pages
+                race_urls = [r.get("url") for r in racecard_records
+                             if r.get("type") == "race_link" and r.get("url")]
+                for rurl in list(set(race_urls))[:15]:
+                    detail = scrape_race_detail(page, rurl, date_str)
+                    if detail:
+                        racecard_records.extend(detail)
+                    smart_pause(1.5, 0.8)
 
-        # Scrape replays metadata
-        replay_records = scrape_replays(session, date_str)
-        if replay_records:
-            for rec in replay_records:
-                append_jsonl(output_file, rec)
-                total_records += 1
+                for rec in racecard_records:
+                    append_jsonl(output_file, rec)
+                    total_records += 1
 
-        day_count += 1
+            smart_pause(2.0, 1.0)
 
-        if day_count % 30 == 0:
-            log.info(f"  {date_str} | days={day_count} records={total_records}")
-            save_checkpoint(CHECKPOINT_FILE, {"last_date": date_str, "total_records": total_records})
+            # Scrape results
+            result_records = scrape_results(page, date_str)
+            if result_records:
+                for rec in result_records:
+                    append_jsonl(output_file, rec)
+                    total_records += 1
 
-        if day_count % 80 == 0:
-            session.close()
-            session = new_session()
-            time.sleep(random.uniform(5, 15))
+            smart_pause(2.0, 1.0)
 
-        current += timedelta(days=1)
-        smart_pause(1.0, 0.5)
+            # Scrape replays metadata
+            replay_records = scrape_replays(page, date_str)
+            if replay_records:
+                for rec in replay_records:
+                    append_jsonl(output_file, rec)
+                    total_records += 1
 
-    save_checkpoint(CHECKPOINT_FILE, {"last_date": end_date.strftime("%Y-%m-%d"),
-                     "total_records": total_records, "status": "done"})
+            day_count += 1
 
-    log.info("=" * 60)
-    log.info(f"DONE: {day_count} days, {total_records} records -> {output_file}")
-    log.info("=" * 60)
+            if day_count % 30 == 0:
+                log.info(f"  {date_str} | days={day_count} records={total_records}")
+                save_checkpoint(CHECKPOINT_FILE, {"last_date": date_str, "total_records": total_records})
 
-    # --- Aggregate cache to JSONL ---
-    aggregate_cache_to_jsonl()
+            current += timedelta(days=1)
+            smart_pause(1.0, 0.5)
+
+        save_checkpoint(CHECKPOINT_FILE, {"last_date": end_date.strftime("%Y-%m-%d"),
+                         "total_records": total_records, "status": "done"})
+
+        log.info("=" * 60)
+        log.info(f"DONE: {day_count} days, {total_records} records -> {output_file}")
+        log.info("=" * 60)
+
+        # --- Aggregate cache to JSONL ---
+        aggregate_cache_to_jsonl()
+
+    finally:
+        # Graceful cleanup
+        try:
+            if page and not page.is_closed():
+                page.close()
+        except Exception:
+            pass
+        try:
+            if context:
+                context.close()
+        except Exception:
+            pass
+        try:
+            if browser:
+                browser.close()
+        except Exception:
+            pass
+        try:
+            pw.stop()
+        except Exception:
+            pass
+        log.info("Browser closed")
 
 
 def aggregate_cache_to_jsonl():

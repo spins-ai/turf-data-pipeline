@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 """
-Script 66 — Scraping racing.hkjc.com (Hong Kong Jockey Club)
+Script 66 — Scraping racing.hkjc.com (Playwright version)
 Source : racing.hkjc.com
 Collecte : sectional times, GPS tracking, results, race cards, dividends
 CRITIQUE pour : HK Sectionals, GPS Data, Race Analysis, Pace Model
+
+Requires:
+    pip install playwright beautifulsoup4
+    playwright install chromium
 """
 
 import argparse
@@ -15,11 +19,7 @@ import re
 import time
 from datetime import datetime, timedelta
 
-import requests
-try:
-    import cloudscraper
-except ImportError:
-    cloudscraper = None
+from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeout
 from bs4 import BeautifulSoup
 
 SCRIPT_NAME = "66_hkjc"
@@ -33,17 +33,18 @@ os.makedirs(HTML_CACHE_DIR, exist_ok=True)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
-from utils.scraping import smart_pause, fetch_with_retry, append_jsonl, load_checkpoint, save_checkpoint
+from utils.scraping import smart_pause, append_jsonl, load_checkpoint, save_checkpoint
 
 log = setup_logging("66_hkjc")
 
-USER_AGENTS = [
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15",
-    "Mozilla/5.0 (X11; Linux x86_64; rv:122.0) Gecko/20100101 Firefox/122.0",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
-]
+# Browser / context settings
+USER_AGENT = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/124.0.0.0 Safari/537.36"
+)
+DEFAULT_TIMEOUT_MS = 60_000
+MAX_RETRIES = 3
 
 BASE_URL = "https://racing.hkjc.com"
 RESULTS_URL = f"{BASE_URL}/racing/information/English/Racing/LocalResults.aspx"
@@ -52,29 +53,111 @@ SECTIONALS_URL = f"{BASE_URL}/racing/information/English/Racing/SectionalTime.as
 RUNNING_POS_URL = f"{BASE_URL}/racing/information/English/Racing/RunningPosition.aspx"
 HORSE_URL = f"{BASE_URL}/racing/information/English/Horse/Horse.aspx"
 RACE_REPLAY_URL = f"{BASE_URL}/racing/information/English/Racing/RaceReplay.aspx"
-# HKJC AJAX API endpoints for detailed data
 HKJC_API_BASE = "https://racing.hkjc.com/racing/information/english/racing"
 
 
-def new_session():
-    s = cloudscraper.create_scraper() if cloudscraper else requests.Session()
-    s.headers.update({
-        "User-Agent": random.choice(USER_AGENTS),
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "en-HK,en;q=0.9",
-        "Accept-Encoding": "gzip, deflate, br",
-        "DNT": "1",
-        "Connection": "keep-alive",
-        "Referer": BASE_URL,
-    })
-    return s
+# ------------------------------------------------------------------
+# Browser helpers
+# ------------------------------------------------------------------
+
+def launch_browser(pw):
+    """Launch headless Chromium and return (browser, context, page)."""
+    browser = pw.chromium.launch(
+        headless=True,
+        args=[
+            "--disable-blink-features=AutomationControlled",
+            "--disable-dev-shm-usage",
+            "--no-sandbox",
+        ],
+    )
+    context = browser.new_context(
+        viewport={"width": 1920, "height": 1080},
+        locale="en-HK",
+        timezone_id="Asia/Hong_Kong",
+        user_agent=USER_AGENT,
+        java_script_enabled=True,
+        ignore_https_errors=True,
+    )
+    # Stealth tweaks
+    context.add_init_script("""
+        Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
+        Object.defineProperty(navigator, 'languages', {get: () => ['en-HK', 'en', 'zh-HK']});
+        Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3, 4, 5]});
+        window.chrome = {runtime: {}};
+    """)
+    page = context.new_page()
+    page.set_default_timeout(DEFAULT_TIMEOUT_MS)
+    return browser, context, page
 
 
+COOKIE_SELECTORS = [
+    "button:has-text('Accept')",
+    "button:has-text('Accept All')",
+    "button:has-text('OK')",
+    "button:has-text('I Agree')",
+    "#onetrust-accept-btn-handler",
+    "#didomi-notice-agree-button",
+    "[id*='accept']",
+    "[class*='accept']",
+]
 
 
+def accept_cookies(page):
+    """Try to dismiss cookie consent banner."""
+    for sel in COOKIE_SELECTORS:
+        try:
+            btn = page.locator(sel).first
+            if btn.is_visible(timeout=1500):
+                btn.click(timeout=3000)
+                log.debug("  Cookies accepted via: %s", sel)
+                time.sleep(1)
+                return True
+        except Exception:
+            continue
+    return False
 
 
-def scrape_race_card(session, date_str):
+def navigate_with_retry(page, url, retries=MAX_RETRIES):
+    """Navigate to url with retry logic. Returns HTML string or None."""
+    for attempt in range(1, retries + 1):
+        try:
+            resp = page.goto(url, wait_until="networkidle", timeout=DEFAULT_TIMEOUT_MS)
+            if resp and resp.status >= 400:
+                log.warning("  HTTP %d on %s (attempt %d/%d)",
+                            resp.status, url, attempt, retries)
+                if resp.status == 429:
+                    time.sleep(60 * attempt)
+                elif resp.status == 403:
+                    time.sleep(30 * attempt)
+                else:
+                    time.sleep(5 * attempt)
+                continue
+            page.wait_for_load_state("domcontentloaded")
+            time.sleep(1.5)
+            return page.content()
+        except PlaywrightTimeout:
+            log.warning("  Timeout on %s (attempt %d/%d)", url, attempt, retries)
+            time.sleep(10 * attempt)
+        except Exception as exc:
+            log.warning("  Navigation error: %s (attempt %d/%d)",
+                        str(exc)[:200], attempt, retries)
+            time.sleep(5 * attempt)
+    log.error("  Failed after %d retries: %s", retries, url)
+    return None
+
+
+def navigate_with_params(page, base_url, params, retries=MAX_RETRIES):
+    """Navigate to url with query params. Returns HTML string or None."""
+    from urllib.parse import urlencode
+    url = f"{base_url}?{urlencode(params)}"
+    return navigate_with_retry(page, url, retries)
+
+
+# ------------------------------------------------------------------
+# Scraping functions (BeautifulSoup-based, fed from page.content())
+# ------------------------------------------------------------------
+
+def scrape_race_card(page, date_str):
     """Scrape HKJC race card for a given date."""
     cache_file = os.path.join(CACHE_DIR, f"racecard_{date_str}.json")
     if os.path.exists(cache_file):
@@ -85,17 +168,16 @@ def scrape_race_card(session, date_str):
     dt = datetime.strptime(date_str, "%Y-%m-%d")
     hkjc_date = dt.strftime("%d/%m/%Y")
 
-    params = {"RaceDate": hkjc_date}
-    resp = fetch_with_retry(session, ENTRIES_URL, params=params)
-    if not resp:
+    html = navigate_with_params(page, ENTRIES_URL, {"RaceDate": hkjc_date})
+    if not html:
         return None
 
     # Save raw HTML to cache
     html_file = os.path.join(HTML_CACHE_DIR, f"{date_str}.html")
     with open(html_file, "w", encoding="utf-8") as f:
-        f.write(resp.text)
+        f.write(html)
 
-    soup = BeautifulSoup(resp.text, "html.parser")
+    soup = BeautifulSoup(html, "html.parser")
     records = []
 
     # Extract race links
@@ -206,7 +288,7 @@ def scrape_race_card(session, date_str):
     return records
 
 
-def scrape_results(session, date_str):
+def scrape_results(page, date_str):
     """Scrape HKJC race results for a given date."""
     cache_file = os.path.join(CACHE_DIR, f"results_{date_str}.json")
     if os.path.exists(cache_file):
@@ -216,12 +298,11 @@ def scrape_results(session, date_str):
     dt = datetime.strptime(date_str, "%Y-%m-%d")
     hkjc_date = dt.strftime("%d/%m/%Y")
 
-    params = {"RaceDate": hkjc_date}
-    resp = fetch_with_retry(session, RESULTS_URL, params=params)
-    if not resp:
+    html = navigate_with_params(page, RESULTS_URL, {"RaceDate": hkjc_date})
+    if not html:
         return None
 
-    soup = BeautifulSoup(resp.text, "html.parser")
+    soup = BeautifulSoup(html, "html.parser")
     records = []
 
     # Extract results tables
@@ -344,7 +425,7 @@ def scrape_results(session, date_str):
     return records
 
 
-def scrape_sectionals(session, date_str):
+def scrape_sectionals(page, date_str):
     """Scrape HKJC sectional times and GPS data."""
     cache_file = os.path.join(CACHE_DIR, f"sectionals_{date_str}.json")
     if os.path.exists(cache_file):
@@ -354,12 +435,11 @@ def scrape_sectionals(session, date_str):
     dt = datetime.strptime(date_str, "%Y-%m-%d")
     hkjc_date = dt.strftime("%d/%m/%Y")
 
-    params = {"RaceDate": hkjc_date}
-    resp = fetch_with_retry(session, SECTIONALS_URL, params=params)
-    if not resp:
+    html = navigate_with_params(page, SECTIONALS_URL, {"RaceDate": hkjc_date})
+    if not html:
         return None
 
-    soup = BeautifulSoup(resp.text, "html.parser")
+    soup = BeautifulSoup(html, "html.parser")
     records = []
 
     # Extract sectional time tables
@@ -416,7 +496,6 @@ def scrape_sectionals(session, date_str):
     for script in soup.find_all("script"):
         script_text = script.string or ""
         if any(kw in script_text.lower() for kw in ["runposition", "gps", "sectiontime", "trackingdata"]):
-            # Try to extract JSON data from script
             json_matches = re.findall(r'\{[^{}]{20,}\}', script_text)
             for jm in json_matches[:10]:
                 try:
@@ -434,7 +513,6 @@ def scrape_sectionals(session, date_str):
     # --- Enhanced GPS/tracking data extraction from scripts ---
     for script in soup.find_all("script"):
         script_text = script.string or ""
-        # Broad match for any GPS/tracking/sectional JS objects
         for m in re.finditer(
             r'(?:var|let|const)\s+(\w*(?:gps|track|section|position|running|speed|distance)\w*)\s*=\s*(\{[\s\S]+?\}|\[[\s\S]+?\]);',
             script_text, re.IGNORECASE
@@ -504,7 +582,7 @@ def scrape_sectionals(session, date_str):
     return records
 
 
-def scrape_running_positions(session, date_str):
+def scrape_running_positions(page, date_str):
     """Scrape HKJC running positions for all races on a given date."""
     cache_file = os.path.join(CACHE_DIR, f"runpos_{date_str}.json")
     if os.path.exists(cache_file):
@@ -514,12 +592,11 @@ def scrape_running_positions(session, date_str):
     dt = datetime.strptime(date_str, "%Y-%m-%d")
     hkjc_date = dt.strftime("%d/%m/%Y")
 
-    params = {"RaceDate": hkjc_date}
-    resp = fetch_with_retry(session, RUNNING_POS_URL, params=params)
-    if not resp:
+    html = navigate_with_params(page, RUNNING_POS_URL, {"RaceDate": hkjc_date})
+    if not html:
         return None
 
-    soup = BeautifulSoup(resp.text, "html.parser")
+    soup = BeautifulSoup(html, "html.parser")
     records = []
 
     # Extract running position tables
@@ -571,7 +648,7 @@ def scrape_running_positions(session, date_str):
     return records
 
 
-def scrape_race_replay_metadata(session, date_str):
+def scrape_race_replay_metadata(page, date_str):
     """Scrape HKJC race replay metadata (video URLs, thumbnails)."""
     cache_file = os.path.join(CACHE_DIR, f"replay_{date_str}.json")
     if os.path.exists(cache_file):
@@ -581,12 +658,11 @@ def scrape_race_replay_metadata(session, date_str):
     dt = datetime.strptime(date_str, "%Y-%m-%d")
     hkjc_date = dt.strftime("%d/%m/%Y")
 
-    params = {"RaceDate": hkjc_date}
-    resp = fetch_with_retry(session, RACE_REPLAY_URL, params=params)
-    if not resp:
+    html = navigate_with_params(page, RACE_REPLAY_URL, {"RaceDate": hkjc_date})
+    if not html:
         return None
 
-    soup = BeautifulSoup(resp.text, "html.parser")
+    soup = BeautifulSoup(html, "html.parser")
     records = []
 
     # Extract video/media elements
@@ -652,7 +728,7 @@ def scrape_race_replay_metadata(session, date_str):
     return records
 
 
-def scrape_horse_form(session, horse_url, date_str):
+def scrape_horse_form(page, horse_url, date_str):
     """Scrape full form history for a horse (last 10+ races)."""
     if not horse_url:
         return []
@@ -665,11 +741,11 @@ def scrape_horse_form(session, horse_url, date_str):
         with open(cache_file, "r", encoding="utf-8") as f:
             return json.load(f)
 
-    resp = fetch_with_retry(session, horse_url)
-    if not resp:
+    html = navigate_with_retry(page, horse_url)
+    if not html:
         return []
 
-    soup = BeautifulSoup(resp.text, "html.parser")
+    soup = BeautifulSoup(html, "html.parser")
     records = []
 
     # Horse name
@@ -746,7 +822,7 @@ def scrape_horse_form(session, horse_url, date_str):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Script 66 — HKJC Scraper (HK sectionals, GPS, results)")
+    parser = argparse.ArgumentParser(description="Script 66 — HKJC Scraper (Playwright, HK sectionals, GPS, results)")
     parser.add_argument("--start", type=str, default="2022-01-01",
                         help="Start date (YYYY-MM-DD)")
     parser.add_argument("--end", type=str, default=None,
@@ -759,7 +835,7 @@ def main():
     end_date = datetime.strptime(args.end, "%Y-%m-%d") if args.end else datetime.now()
 
     log.info("=" * 60)
-    log.info("SCRIPT 66 — HKJC Scraper (Hong Kong Racing)")
+    log.info("SCRIPT 66 — HKJC Scraper (Playwright)")
     log.info(f"  Period : {start_date.date()} -> {end_date.date()}")
     log.info("=" * 60)
 
@@ -771,103 +847,133 @@ def main():
         start_date = resume_date
         log.info(f"  Resuming from checkpoint: {start_date.date()}")
 
-    session = new_session()
     output_file = os.path.join(OUTPUT_DIR, "hkjc_data.jsonl")
 
-    current = start_date
-    day_count = 0
-    total_records = 0
+    pw = sync_playwright().start()
+    browser, context, page = None, None, None
+    try:
+        browser, context, page = launch_browser(pw)
+        log.info("Browser launched (headless Chromium)")
 
-    # HKJC races typically on Wed & Sun — but scrape all days in case
-    while current <= end_date:
-        date_str = current.strftime("%Y-%m-%d")
+        # Accept cookies on first navigation
+        first_nav = True
 
-        # Scrape race card
-        card_records = scrape_race_card(session, date_str)
-        if card_records:
-            for rec in card_records:
-                append_jsonl(output_file, rec)
-                total_records += 1
+        current = start_date
+        day_count = 0
+        total_records = 0
 
-        smart_pause(2.5, 1.0)
+        # HKJC races typically on Wed & Sun -- but scrape all days in case
+        while current <= end_date:
+            date_str = current.strftime("%Y-%m-%d")
 
-        # Scrape results
-        result_records = scrape_results(session, date_str)
-        if result_records:
-            for rec in result_records:
-                append_jsonl(output_file, rec)
-                total_records += 1
+            # Scrape race card
+            card_records = scrape_race_card(page, date_str)
 
-        smart_pause(2.5, 1.0)
+            if first_nav and card_records is not None:
+                accept_cookies(page)
+                first_nav = False
 
-        # Scrape sectional times
-        sect_records = scrape_sectionals(session, date_str)
-        if sect_records:
-            for rec in sect_records:
-                append_jsonl(output_file, rec)
-                total_records += 1
+            if card_records:
+                for rec in card_records:
+                    append_jsonl(output_file, rec)
+                    total_records += 1
 
-        smart_pause(2.0, 1.0)
+            smart_pause(2.5, 1.0)
 
-        # Scrape running positions
-        runpos_records = scrape_running_positions(session, date_str)
-        if runpos_records:
-            for rec in runpos_records:
-                append_jsonl(output_file, rec)
-                total_records += 1
+            # Scrape results
+            result_records = scrape_results(page, date_str)
+            if result_records:
+                for rec in result_records:
+                    append_jsonl(output_file, rec)
+                    total_records += 1
 
-        smart_pause(2.0, 1.0)
+            smart_pause(2.5, 1.0)
 
-        # Scrape race replay metadata
-        replay_records = scrape_race_replay_metadata(session, date_str)
-        if replay_records:
-            for rec in replay_records:
-                append_jsonl(output_file, rec)
-                total_records += 1
+            # Scrape sectional times
+            sect_records = scrape_sectionals(page, date_str)
+            if sect_records:
+                for rec in sect_records:
+                    append_jsonl(output_file, rec)
+                    total_records += 1
 
-        # Scrape horse form for horses found in race cards (limit per day)
-        if card_records:
-            horse_urls = set()
-            for rec in card_records:
-                for key, val in rec.items():
-                    if isinstance(val, str) and "Horse.aspx" in val:
-                        horse_urls.add(val)
-            # Also look for horse links in data attributes
-            for rec in card_records:
-                if rec.get("type") == "racecard_data_attrs":
-                    attrs = rec.get("attributes", {})
-                    for v in attrs.values():
-                        if isinstance(v, str) and "Horse" in v:
-                            horse_urls.add(v)
+            smart_pause(2.0, 1.0)
 
-            for hurl in list(horse_urls)[:10]:  # Limit to 10 horses per day
-                horse_data = scrape_horse_form(session, hurl, date_str)
-                if horse_data:
-                    for rec in horse_data:
-                        append_jsonl(output_file, rec)
-                        total_records += 1
-                smart_pause(2.0, 1.0)
+            # Scrape running positions
+            runpos_records = scrape_running_positions(page, date_str)
+            if runpos_records:
+                for rec in runpos_records:
+                    append_jsonl(output_file, rec)
+                    total_records += 1
 
-        day_count += 1
+            smart_pause(2.0, 1.0)
 
-        if day_count % 30 == 0:
-            log.info(f"  {date_str} | days={day_count} records={total_records}")
-            save_checkpoint(CHECKPOINT_FILE, {"last_date": date_str, "total_records": total_records})
+            # Scrape race replay metadata
+            replay_records = scrape_race_replay_metadata(page, date_str)
+            if replay_records:
+                for rec in replay_records:
+                    append_jsonl(output_file, rec)
+                    total_records += 1
 
-        if day_count % 80 == 0:
-            session.close()
-            session = new_session()
-            time.sleep(random.uniform(5, 15))
+            # Scrape horse form for horses found in race cards (limit per day)
+            if card_records:
+                horse_urls = set()
+                for rec in card_records:
+                    for key, val in rec.items():
+                        if isinstance(val, str) and "Horse.aspx" in val:
+                            horse_urls.add(val)
+                    # Also look for horse links in data attributes
+                    if rec.get("type") == "racecard_data_attrs":
+                        attrs = rec.get("attributes", {})
+                        for v in attrs.values():
+                            if isinstance(v, str) and "Horse" in v:
+                                horse_urls.add(v)
 
-        current += timedelta(days=1)
-        smart_pause(1.0, 0.5)
+                for hurl in list(horse_urls)[:10]:  # Limit to 10 horses per day
+                    horse_data = scrape_horse_form(page, hurl, date_str)
+                    if horse_data:
+                        for rec in horse_data:
+                            append_jsonl(output_file, rec)
+                            total_records += 1
+                    smart_pause(2.0, 1.0)
 
-    save_checkpoint(CHECKPOINT_FILE, {"last_date": end_date.strftime("%Y-%m-%d"),
-                     "total_records": total_records, "status": "done"})
+            day_count += 1
 
-    log.info("=" * 60)
-    log.info(f"DONE: {day_count} days, {total_records} records -> {output_file}")
-    log.info("=" * 60)
+            if day_count % 30 == 0:
+                log.info(f"  {date_str} | days={day_count} records={total_records}")
+                save_checkpoint(CHECKPOINT_FILE, {"last_date": date_str, "total_records": total_records})
+
+            current += timedelta(days=1)
+            smart_pause(1.0, 0.5)
+
+        save_checkpoint(CHECKPOINT_FILE, {"last_date": end_date.strftime("%Y-%m-%d"),
+                         "total_records": total_records, "status": "done"})
+
+        log.info("=" * 60)
+        log.info(f"DONE: {day_count} days, {total_records} records -> {output_file}")
+        log.info("=" * 60)
+
+    finally:
+        # Graceful cleanup
+        try:
+            if page and not page.is_closed():
+                page.close()
+        except Exception:
+            pass
+        try:
+            if context:
+                context.close()
+        except Exception:
+            pass
+        try:
+            if browser:
+                browser.close()
+        except Exception:
+            pass
+        try:
+            pw.stop()
+        except Exception:
+            pass
+        log.info("Browser closed")
 
 
 if __name__ == "__main__":

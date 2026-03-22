@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 """
-Script 53 — Scraping Paris-Turf.com (corrigé)
-Source : paris-turf.com — données riches via __NEXT_DATA__ JSON
-URLs réelles :
-  /programme-courses/hier → liste meetings + courses du jour
+Script 53 — Scraping Paris-Turf.com (Playwright version)
+Source : paris-turf.com -- donnees riches via __NEXT_DATA__ JSON
+URLs reelles :
+  /programme-courses/hier -> liste meetings + courses du jour
   /programme-courses/aujourdhui
-  /course/{hippo}-{prix}-idc-{id} → détails course avec runners complets
-Données : runners avec records, stats, ferrage, musique, cotes, etc.
+  /course/{hippo}-{prix}-idc-{id} -> details course avec runners complets
+Donnees : runners avec records, stats, ferrage, musique, cotes, etc.
+
+Requires:
+    pip install playwright beautifulsoup4
+    playwright install chromium
 """
 
 import argparse
@@ -15,40 +19,132 @@ import logging
 import os
 import sys
 import re
+import time
 from datetime import datetime, timedelta
 
-import requests
+from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeout
 from bs4 import BeautifulSoup
 
 SCRIPT_NAME = "53_paris_turf"
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output", SCRIPT_NAME)
 CACHE_DIR = os.path.join(OUTPUT_DIR, "cache")
+HTML_CACHE_DIR = os.path.join(OUTPUT_DIR, "html_cache")
 CHECKPOINT_FILE = os.path.join(OUTPUT_DIR, ".checkpoint.json")
 
 os.makedirs(CACHE_DIR, exist_ok=True)
+os.makedirs(HTML_CACHE_DIR, exist_ok=True)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
-from utils.scraping import smart_pause, fetch_with_retry, append_jsonl, load_checkpoint, save_checkpoint
+from utils.scraping import smart_pause, append_jsonl, load_checkpoint, save_checkpoint
 
 log = setup_logging("53_paris_turf")
 
+# Browser / context settings
+USER_AGENT = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/124.0.0.0 Safari/537.36"
+)
+DEFAULT_TIMEOUT_MS = 60_000
+MAX_RETRIES = 3
+
 BASE_URL = "https://www.paris-turf.com"
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-    "Accept-Language": "fr-FR,fr;q=0.9",
-    "Accept-Encoding": "gzip, deflate, br",
-    "DNT": "1",
-}
 
 
-def new_session():
-    s = requests.Session()
-    s.headers.update(HEADERS)
-    return s
+# ------------------------------------------------------------------
+# Browser helpers
+# ------------------------------------------------------------------
+
+def launch_browser(pw):
+    """Launch headless Chromium and return (browser, context, page)."""
+    browser = pw.chromium.launch(
+        headless=True,
+        args=[
+            "--disable-blink-features=AutomationControlled",
+            "--disable-dev-shm-usage",
+            "--no-sandbox",
+        ],
+    )
+    context = browser.new_context(
+        viewport={"width": 1920, "height": 1080},
+        locale="fr-FR",
+        timezone_id="Europe/Paris",
+        user_agent=USER_AGENT,
+        java_script_enabled=True,
+        ignore_https_errors=True,
+    )
+    # Stealth tweaks
+    context.add_init_script("""
+        Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
+        Object.defineProperty(navigator, 'languages', {get: () => ['fr-FR', 'fr', 'en']});
+        Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3, 4, 5]});
+        window.chrome = {runtime: {}};
+    """)
+    page = context.new_page()
+    page.set_default_timeout(DEFAULT_TIMEOUT_MS)
+    return browser, context, page
 
 
+COOKIE_SELECTORS = [
+    "button:has-text('Accepter')",
+    "button:has-text('Tout accepter')",
+    "button:has-text('Accept')",
+    "button:has-text('OK')",
+    "#onetrust-accept-btn-handler",
+    "#didomi-notice-agree-button",
+    "[id*='accept']",
+    "[class*='accept']",
+]
+
+
+def accept_cookies(page):
+    """Try to dismiss cookie consent banner."""
+    for sel in COOKIE_SELECTORS:
+        try:
+            btn = page.locator(sel).first
+            if btn.is_visible(timeout=1500):
+                btn.click(timeout=3000)
+                log.debug("  Cookies accepted via: %s", sel)
+                time.sleep(1)
+                return True
+        except Exception:
+            continue
+    return False
+
+
+def navigate_with_retry(page, url, retries=MAX_RETRIES):
+    """Navigate to url with retry logic. Returns HTML string or None."""
+    for attempt in range(1, retries + 1):
+        try:
+            resp = page.goto(url, wait_until="networkidle", timeout=DEFAULT_TIMEOUT_MS)
+            if resp and resp.status >= 400:
+                log.warning("  HTTP %d on %s (attempt %d/%d)",
+                            resp.status, url, attempt, retries)
+                if resp.status == 429:
+                    time.sleep(60 * attempt)
+                elif resp.status == 403:
+                    time.sleep(30 * attempt)
+                else:
+                    time.sleep(5 * attempt)
+                continue
+            page.wait_for_load_state("domcontentloaded")
+            time.sleep(1.5)
+            return page.content()
+        except PlaywrightTimeout:
+            log.warning("  Timeout on %s (attempt %d/%d)", url, attempt, retries)
+            time.sleep(10 * attempt)
+        except Exception as exc:
+            log.warning("  Navigation error: %s (attempt %d/%d)",
+                        str(exc)[:200], attempt, retries)
+            time.sleep(5 * attempt)
+    log.error("  Failed after %d retries: %s", retries, url)
+    return None
+
+
+# ------------------------------------------------------------------
+# Extraction helpers
+# ------------------------------------------------------------------
 
 def extract_next_data(html_text):
     """Extraire __NEXT_DATA__ JSON depuis le HTML."""
@@ -62,17 +158,24 @@ def extract_next_data(html_text):
     return None
 
 
+# ------------------------------------------------------------------
+# Scraping functions (BeautifulSoup-based, fed from page.content())
+# ------------------------------------------------------------------
 
-
-
-def get_day_courses(session, page_slug):
-    """Récupérer les courses d'un jour via la page programme."""
-    resp = fetch_with_retry(session, f"{BASE_URL}/programme-courses/{page_slug}")
-    if not resp:
+def get_day_courses(page, page_slug):
+    """Recuperer les courses d'un jour via la page programme."""
+    url = f"{BASE_URL}/programme-courses/{page_slug}"
+    html = navigate_with_retry(page, url)
+    if not html:
         return [], []
 
+    # Save raw HTML
+    html_file = os.path.join(HTML_CACHE_DIR, f"programme_{page_slug}.html")
+    with open(html_file, "w", encoding="utf-8") as f:
+        f.write(html)
+
     # Extraire les liens de courses
-    soup = BeautifulSoup(resp.text, "html.parser")
+    soup = BeautifulSoup(html, "html.parser")
     course_links = set()
     for a in soup.find_all("a", href=True):
         href = a["href"]
@@ -82,7 +185,7 @@ def get_day_courses(session, page_slug):
             course_links.add(href)
 
     # Extraire __NEXT_DATA__ pour les meetings et races
-    next_data = extract_next_data(resp.text)
+    next_data = extract_next_data(html)
     meetings = []
     if next_data:
         state = next_data.get("props", {}).get("pageProps", {}).get("initialState", {})
@@ -103,7 +206,7 @@ def get_day_courses(session, page_slug):
     return sorted(course_links), meetings
 
 
-def scrape_course(session, course_url, date_iso, output_runners, output_races):
+def scrape_course(page, course_url, date_iso, output_runners, output_races):
     """Scraper une course individuelle via __NEXT_DATA__."""
     # Extraire l'ID de la course pour le cache
     idc_match = re.search(r'idc-([a-f0-9]+)', course_url)
@@ -115,11 +218,16 @@ def scrape_course(session, course_url, date_iso, output_runners, output_races):
             cached = json.load(f)
             return cached.get("nb_runners", 0)
 
-    resp = fetch_with_retry(session, course_url)
-    if not resp:
+    html = navigate_with_retry(page, course_url)
+    if not html:
         return 0
 
-    next_data = extract_next_data(resp.text)
+    # Save raw HTML
+    html_file = os.path.join(HTML_CACHE_DIR, f"course_{idc[:40]}.html")
+    with open(html_file, "w", encoding="utf-8") as f:
+        f.write(html)
+
+    next_data = extract_next_data(html)
     if not next_data:
         return 0
 
@@ -144,7 +252,7 @@ def scrape_course(session, course_url, date_iso, output_runners, output_races):
                 "url": course_url,
                 "scraped_at": datetime.now().isoformat(),
             }
-            # Copier les champs clés
+            # Copier les champs cles
             for k in ["id", "distance", "specialty", "totalPrize", "going", "class",
                        "minAge", "maxAge", "winnerTimeKm", "penetrometer", "time",
                        "prizeCurrency", "name", "raceNumber", "meetingName",
@@ -220,43 +328,79 @@ def scrape_course(session, course_url, date_iso, output_runners, output_races):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Script 53 — Paris-Turf Scraper (Next.js JSON)")
+    parser = argparse.ArgumentParser(description="Script 53 — Paris-Turf Scraper (Playwright, Next.js JSON)")
     parser.add_argument("--pages", type=str, nargs="+",
                         default=["hier", "aujourdhui"],
-                        help="Pages à scraper (hier, aujourdhui, demain)")
+                        help="Pages a scraper (hier, aujourdhui, demain)")
     args = parser.parse_args()
 
     log.info("=" * 60)
-    log.info("SCRIPT 53 — Paris-Turf Scraper (Next.js __NEXT_DATA__)")
+    log.info("SCRIPT 53 — Paris-Turf Scraper (Playwright)")
     log.info(f"  Pages : {args.pages}")
     log.info("=" * 60)
 
-    session = new_session()
     output_runners = os.path.join(OUTPUT_DIR, "paris_turf_runners.jsonl")
     output_races = os.path.join(OUTPUT_DIR, "paris_turf_races.jsonl")
 
     total_courses = 0
     total_runners = 0
 
-    for page_slug in args.pages:
-        log.info(f"  Page : /programme-courses/{page_slug}")
-        course_links, meetings = get_day_courses(session, page_slug)
-        log.info(f"    {len(course_links)} courses, {len(meetings)} meetings")
+    pw = sync_playwright().start()
+    browser, context, page = None, None, None
+    try:
+        browser, context, page = launch_browser(pw)
+        log.info("Browser launched (headless Chromium)")
 
-        for i, curl in enumerate(course_links):
-            nb = scrape_course(session, curl, datetime.now().strftime("%Y-%m-%d"),
-                               output_runners, output_races)
-            total_runners += nb
-            total_courses += 1
-            if (i + 1) % 10 == 0:
-                log.info(f"    {i+1}/{len(course_links)} courses, {total_runners} runners")
-            smart_pause(1.5, 0.8)
+        # Accept cookies on first navigation
+        first_nav = True
 
-    log.info("=" * 60)
-    log.info(f"TERMINÉ: {total_courses} courses, {total_runners} runners")
-    log.info(f"  → {output_runners}")
-    log.info(f"  → {output_races}")
-    log.info("=" * 60)
+        for page_slug in args.pages:
+            log.info(f"  Page : /programme-courses/{page_slug}")
+            course_links, meetings = get_day_courses(page, page_slug)
+
+            if first_nav:
+                accept_cookies(page)
+                first_nav = False
+
+            log.info(f"    {len(course_links)} courses, {len(meetings)} meetings")
+
+            for i, curl in enumerate(course_links):
+                nb = scrape_course(page, curl, datetime.now().strftime("%Y-%m-%d"),
+                                   output_runners, output_races)
+                total_runners += nb
+                total_courses += 1
+                if (i + 1) % 10 == 0:
+                    log.info(f"    {i+1}/{len(course_links)} courses, {total_runners} runners")
+                smart_pause(1.5, 0.8)
+
+        log.info("=" * 60)
+        log.info(f"TERMINE: {total_courses} courses, {total_runners} runners")
+        log.info(f"  -> {output_runners}")
+        log.info(f"  -> {output_races}")
+        log.info("=" * 60)
+
+    finally:
+        # Graceful cleanup
+        try:
+            if page and not page.is_closed():
+                page.close()
+        except Exception:
+            pass
+        try:
+            if context:
+                context.close()
+        except Exception:
+            pass
+        try:
+            if browser:
+                browser.close()
+        except Exception:
+            pass
+        try:
+            pw.stop()
+        except Exception:
+            pass
+        log.info("Browser closed")
 
 
 if __name__ == "__main__":
