@@ -1726,3 +1726,46 @@
 # Group-aware train/test splits
 # Anti-scraping / légalité
 # ════════════════════════════════════════════════════════════════
+
+# ┌─────────────────────────────────────────┐
+# │  ÉTAPE 16 — VALIDATION FINALE          │
+# │  (Dossier DATA officiellement terminé) │
+# └─────────────────────────────────────────┘
+
+## 16.1 Données finales à jour
+- [ ] Re-merger partants_master avec nouvelles données PMU (2024-2026)
+- [ ] Re-générer labels (generate_labels.py) sur le nouveau master
+- [ ] Re-calculer features (master_feature_builder.py) sur le nouveau master
+- [ ] Exporter TOUS les masters en Parquet (partants, courses, features, labels)
+- [ ] Convertir features_matrix.jsonl (36 GB) → Parquet par chunks
+
+## 16.2 Validation end-to-end
+- [ ] Test intégrité : partants_master → labels → features ont même nb records et mêmes UIDs
+- [ ] Rapport de couverture : par année, par hippodrome, par discipline — identifier les trous
+- [ ] Vérifier jointures : sample 1000 records, vérifier que features matchent les bonnes courses
+- [ ] Stats finales : nb total features, taux remplissage moyen, plage de dates
+- [ ] Aucun champ 100% null restant dans la matrice finale
+
+## 16.3 Documentation complète
+- [ ] FEATURE_CATALOG.md : liste TOUTES les features avec description, source, type, % remplissage
+- [ ] DATA_DICTIONARY.md : description de chaque champ dans partants_master
+- [ ] PIPELINE_README.md : comment relancer le pipeline de A à Z (commande par commande)
+- [ ] SOURCES.md mis à jour : toutes les sources avec URL, fréquence, volume, date dernier scrape
+
+## 16.4 Fiabilité & backup
+- [ ] Checksums SHA256 de tous les fichiers master finaux
+- [ ] Backup final compressé du dossier data_master/
+- [ ] Script de validation unique : vérifie tout (intégrité, jointures, trous, stats) en une commande
+- [ ] Versionner tag git "data-v1.0-ready"
+
+## 16.5 Critères de complétion ✅
+# Le dossier DATA est OFFICIELLEMENT TERMINÉ quand :
+# □ Tous les masters sont à jour avec données 2014-2026
+# □ features_matrix contient 400+ features avec <10% null moyen
+# □ labels couvrent 100% des partants
+# □ Tous les exports Parquet existent et sont valides
+# □ Documentation complète (4 fichiers MD)
+# □ Checksums + backup fait
+# □ Script de validation passe sans erreur
+# □ Tag git "data-v1.0-ready" posé
+# → Alors on crée le nouveau dossier MODÈLES avec sa propre TODO
