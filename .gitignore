@@ -4,6 +4,7 @@
 output/
 data_master/
 logs/
+*.log
 *.json.tmp
 
 # Cache et checkpoints
@@ -16,16 +17,27 @@ __pycache__/
 # OS
 .DS_Store
 Thumbs.db
+desktop.ini
 
 # IDE
 .vscode/
 .idea/
 *.swp
+*.swo
+*~
 
-# Environnement
+# Environnement & packaging
 .env
+.env.*
 venv/
+.venv/
 *.egg-info/
-backup_20260314/
-backup_20260315_0101/
+dist/
+build/
+
+# Backups
+backup*/
 *.bak
+
+# Claude worktrees
+.claude/worktrees/
