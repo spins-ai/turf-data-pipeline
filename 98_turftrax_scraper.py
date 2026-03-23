@@ -9,7 +9,6 @@ CRITIQUE pour : Going Model, Track Bias, Surface Condition Prediction
 
 import argparse
 import json
-import logging
 import os
 import sys
 import random

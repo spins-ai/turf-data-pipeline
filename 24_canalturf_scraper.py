@@ -11,7 +11,6 @@ import time
 import random
 import os
 import re
-import logging
 import sys
 from datetime import datetime
 from bs4 import BeautifulSoup

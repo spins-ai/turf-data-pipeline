@@ -9,7 +9,6 @@ CRITIQUE pour : Trainer Model, Form Analysis, Stable Confidence
 
 import argparse
 import json
-import logging
 import os
 import random
 import re

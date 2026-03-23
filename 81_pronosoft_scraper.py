@@ -8,7 +8,6 @@ CRITIQUE pour : Pronostics Model, Consensus Tips, Base PMU Features
 
 import argparse
 import json
-import logging
 import os
 import sys
 import random

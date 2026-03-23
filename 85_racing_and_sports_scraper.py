@@ -8,7 +8,6 @@ CRITIQUE pour : International Ratings, Speed Figures, Global Form Features
 
 import argparse
 import json
-import logging
 import os
 import sys
 import random

@@ -7,7 +7,6 @@ CRITIQUE pour : Value Detection, Market Analysis, Outsider Detection
 
 import json
 import os
-import logging
 import sys
 from datetime import datetime, timedelta
 

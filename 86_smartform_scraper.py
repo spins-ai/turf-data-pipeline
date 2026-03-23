@@ -8,7 +8,6 @@ CRITIQUE pour : UK Speed Ratings, Sectional Analysis, Form Database Features
 
 import argparse
 import json
-import logging
 import os
 import sys
 import random

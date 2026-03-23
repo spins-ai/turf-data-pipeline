@@ -9,7 +9,6 @@ URL pattern : /results/YYYY-MM-DD → liste des courses
 
 import argparse
 import json
-import logging
 import os
 import random
 import sys

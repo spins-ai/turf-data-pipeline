@@ -9,7 +9,6 @@ Backend : Playwright (headless Chromium) — bypasses Cloudflare
 
 import argparse
 import json
-import logging
 import os
 import sys
 import random

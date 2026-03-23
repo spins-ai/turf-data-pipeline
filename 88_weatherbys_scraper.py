@@ -8,7 +8,6 @@ CRITIQUE pour : Pedigree Features, Official UK Breeding Data, Stud Book Intellig
 
 import argparse
 import json
-import logging
 import os
 import sys
 import random

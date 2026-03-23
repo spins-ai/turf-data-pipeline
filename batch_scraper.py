@@ -9,7 +9,6 @@ Outputs JSONL per site in output/{site_name}/
 
 import argparse
 import json
-import logging
 import os
 import random
 import sys

@@ -9,7 +9,6 @@ CRITIQUE pour : Speed Model, Pace Handicapping, Track Bias Analysis
 
 import argparse
 import json
-import logging
 import os
 import sys
 import random

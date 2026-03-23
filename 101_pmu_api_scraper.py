@@ -10,7 +10,6 @@ C'est LA source #1 pour le ML hippique français.
 
 import argparse
 import json
-import logging
 import os
 import random
 import sys

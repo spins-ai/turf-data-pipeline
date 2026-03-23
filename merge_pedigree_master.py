@@ -18,7 +18,6 @@ Priorité : SIRE (officiel) > partants_enrichis > PMU 08 > scraper 14 > canaltur
 
 import json
 import os
-import logging
 import time
 from collections import defaultdict
 

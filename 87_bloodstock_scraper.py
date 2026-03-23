@@ -8,7 +8,6 @@ CRITIQUE pour : Breeding Features, Stallion Model, Bloodstock Market Intelligenc
 
 import argparse
 import json
-import logging
 import os
 import sys
 import random

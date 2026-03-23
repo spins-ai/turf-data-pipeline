@@ -9,7 +9,6 @@ CRITIQUE pour : Weather Model, Going Prediction, Track State Analysis
 
 import argparse
 import json
-import logging
 import os
 import sys
 import random

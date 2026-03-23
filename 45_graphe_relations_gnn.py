@@ -31,7 +31,6 @@ Features par partant :
 """
 
 import json
-import logging
 import os
 import sys
 from collections import defaultdict

@@ -28,7 +28,6 @@ Features calculées par cheval (séquence des N dernières courses) :
 """
 
 import json
-import logging
 import os
 import sys
 import math

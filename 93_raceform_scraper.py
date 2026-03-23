@@ -9,7 +9,6 @@ CRITIQUE pour : UK Form Analysis, Cross-Market Validation, Going Impact
 
 import argparse
 import json
-import logging
 import os
 import sys
 import random

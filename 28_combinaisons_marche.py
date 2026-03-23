@@ -9,7 +9,6 @@ import json
 import time
 import random
 import os
-import logging
 import sys
 from datetime import datetime
 

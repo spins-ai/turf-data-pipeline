@@ -9,7 +9,6 @@ CRITIQUE pour : Terrain Model, Track Bias, Going-adjusted Speed
 
 import argparse
 import json
-import logging
 import os
 import random
 import re

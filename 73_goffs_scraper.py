@@ -8,7 +8,6 @@ CRITIQUE pour : Valuation Model, Irish Market, Bloodline Pricing (etape 7F)
 
 import argparse
 import json
-import logging
 import os
 import random
 import re

@@ -9,7 +9,6 @@ import requests
 import json
 import time
 import os
-import logging
 import sys
 from datetime import datetime
 

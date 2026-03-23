@@ -9,7 +9,6 @@ CRITIQUE pour : Going Model, Real-time Track Updates, Abandonment Prediction
 
 import argparse
 import json
-import logging
 import os
 import sys
 import random

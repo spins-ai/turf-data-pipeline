@@ -9,7 +9,6 @@ CRITIQUE pour : Trot Analysis, Driver Stats, Standardbred Pedigree
 
 import argparse
 import json
-import logging
 import os
 import random
 import re

@@ -9,7 +9,6 @@ import json
 import random
 import os
 import re
-import logging
 import sys
 from bs4 import BeautifulSoup
 

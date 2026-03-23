@@ -32,7 +32,6 @@ Features extraites du champ conditions_texte par regex :
 """
 
 import json
-import logging
 import os
 import re
 import sys

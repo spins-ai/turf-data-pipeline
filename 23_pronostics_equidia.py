@@ -18,7 +18,6 @@ import json
 import time
 import os
 import re
-import logging
 import signal
 import sys
 from datetime import datetime, timedelta

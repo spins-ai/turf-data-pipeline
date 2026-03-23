@@ -8,7 +8,6 @@ CRITIQUE pour : Performance Ratings, Speed Model, Form Analysis
 
 import argparse
 import json
-import logging
 import os
 import sys
 import random

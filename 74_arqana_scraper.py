@@ -8,7 +8,6 @@ CRITIQUE pour : Valuation Model, Pedigree Analysis, Market Intelligence
 
 import argparse
 import json
-import logging
 import os
 import random
 import re

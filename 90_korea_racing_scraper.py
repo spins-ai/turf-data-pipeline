@@ -8,7 +8,6 @@ CRITIQUE pour : Asian Racing Features, Korean Market Data, International Results
 
 import argparse
 import json
-import logging
 import os
 import sys
 import random

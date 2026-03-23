@@ -13,7 +13,6 @@ Usage:
 
 import argparse
 import json
-import logging
 import os
 import sys
 from decimal import Decimal
