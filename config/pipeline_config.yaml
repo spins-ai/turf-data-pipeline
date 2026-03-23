@@ -1,0 +1,675 @@
+# =============================================================================
+# pipeline_config.yaml — Configuration du pipeline turf-data
+# =============================================================================
+#
+# Pilier 8 : ordre d'execution, dependances, parametres par phase.
+#
+# Phases :
+#   1. Audit             — verification d'integrite des donnees brutes
+#   2. Nettoyage         — normalisation, suppression doublons textuels
+#   3. Deduplication     — dedup stricte sur UIDs
+#   4. Comblage          — remplissage des trous par interpolation/API
+#   5. Merges            — fusion des sources en fichiers master (parallele)
+#   6. Mega merge        — fusion finale de tous les masters
+#   7. Features          — calcul de features individuelles (parallele)
+#   8. Master features   — assemblage de la matrice de features
+#   9. Quality           — tests de qualite et validation finale
+#
+# Usage :
+#   Charge par run_pipeline.py ou tout orchestrateur qui lit ce YAML.
+# =============================================================================
+
+pipeline:
+  name: turf-data-pipeline
+  version: "1.0.0"
+  python_exe: "C:\\Users\\celia\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+  max_workers: 4
+  max_concurrent_heavy: 3    # max 3 taches >= 2 Go RAM simultanees
+
+# =============================================================================
+# Defaults appliques a tout script sauf surcharge
+# =============================================================================
+defaults:
+  timeout_seconds: 3600      # 1 heure par defaut
+  ram_budget_mb: 1024
+  retry_on_failure: true
+  max_retries: 2
+  supports_resume: false
+
+# =============================================================================
+# Phase 1 — Audit
+# =============================================================================
+phases:
+
+  - phase: 1
+    name: "Audit"
+    description: "Verification d'integrite des donnees brutes"
+    ram_budget_mb: 1024
+    parallel: false
+    scripts:
+      - name: audit
+        script: audit_data_integrity.py
+        timeout_seconds: 1800
+        ram_budget_mb: 1024
+        supports_resume: false
+        depends_on: []
+
+  # ===========================================================================
+  # Phase 2 — Nettoyage
+  # ===========================================================================
+  - phase: 2
+    name: "Nettoyage"
+    description: "Normalisation des champs, nettoyage des valeurs aberrantes"
+    ram_budget_mb: 2048
+    parallel: false
+    scripts:
+      - name: nettoyage
+        script: nettoyage_global.py
+        timeout_seconds: 3600
+        ram_budget_mb: 2048
+        supports_resume: false
+        depends_on: [audit]
+
+  # ===========================================================================
+  # Phase 3 — Deduplication
+  # ===========================================================================
+  - phase: 3
+    name: "Deduplication"
+    description: "Suppression des doublons stricts sur UIDs"
+    ram_budget_mb: 2048
+    parallel: false
+    scripts:
+      - name: dedup
+        script: deduplication.py
+        timeout_seconds: 3600
+        ram_budget_mb: 2048
+        supports_resume: false
+        depends_on: [nettoyage]
+
+  # ===========================================================================
+  # Phase 4 — Comblage
+  # ===========================================================================
+  - phase: 4
+    name: "Comblage"
+    description: "Remplissage des champs manquants par interpolation ou API"
+    ram_budget_mb: 2048
+    parallel: false
+    scripts:
+      - name: comblage
+        script: comblage_trous.py
+        timeout_seconds: 7200
+        ram_budget_mb: 2048
+        supports_resume: true
+        depends_on: [dedup]
+
+  # ===========================================================================
+  # Phase 5 — Merges (parallele)
+  # ===========================================================================
+  - phase: 5
+    name: "Merges"
+    description: "Fusion des sources en fichiers master par domaine"
+    ram_budget_mb: 2048
+    parallel: true
+    scripts:
+      - name: merge_courses_master
+        script: merge_02_02b_courses_master.py
+        timeout_seconds: 3600
+        ram_budget_mb: 2048
+        supports_resume: false
+        depends_on: [comblage]
+
+      - name: merge_pedigree_master
+        script: merge_pedigree_master.py
+        timeout_seconds: 3600
+        ram_budget_mb: 2048
+        supports_resume: false
+        depends_on: [comblage]
+
+      - name: merge_rapports_21_38
+        script: merge_rapports_21_38.py
+        timeout_seconds: 3600
+        ram_budget_mb: 2048
+        supports_resume: false
+        depends_on: [comblage]
+
+      - name: merge_rapports_master
+        script: merge_rapports_master.py
+        timeout_seconds: 3600
+        ram_budget_mb: 2048
+        supports_resume: false
+        depends_on: [merge_rapports_21_38]
+
+      - name: merge_meteo
+        script: merge_meteo.py
+        timeout_seconds: 1800
+        ram_budget_mb: 1024
+        supports_resume: false
+        depends_on: [comblage]
+
+      - name: merge_meteo_master
+        script: merge_meteo_master.py
+        timeout_seconds: 1800
+        ram_budget_mb: 1024
+        supports_resume: false
+        depends_on: [merge_meteo]
+
+      - name: merge_equipements_master
+        script: merge_equipements_master.py
+        timeout_seconds: 1800
+        ram_budget_mb: 1024
+        supports_resume: false
+        depends_on: [comblage]
+
+      - name: merge_marche_master
+        script: merge_marche_master.py
+        timeout_seconds: 1800
+        ram_budget_mb: 1024
+        supports_resume: false
+        depends_on: [comblage]
+
+      - name: merge_performances_master
+        script: merge_performances_master.py
+        timeout_seconds: 3600
+        ram_budget_mb: 2048
+        supports_resume: false
+        depends_on: [comblage]
+
+      - name: merge_stats_externes_master
+        script: merge_stats_externes_master.py
+        timeout_seconds: 3600
+        ram_budget_mb: 2048
+        supports_resume: false
+        depends_on: [comblage]
+
+  # ===========================================================================
+  # Phase 6 — Mega merge
+  # ===========================================================================
+  - phase: 6
+    name: "Mega merge"
+    description: "Fusion finale de tous les masters en partants_master.jsonl"
+    ram_budget_mb: 4096
+    parallel: false
+    scripts:
+      - name: mega_merge
+        script: mega_merge_partants_master.py
+        timeout_seconds: 7200
+        ram_budget_mb: 4096
+        supports_resume: true
+        depends_on:
+          - merge_courses_master
+          - merge_pedigree_master
+          - merge_rapports_master
+          - merge_meteo_master
+          - merge_equipements_master
+          - merge_marche_master
+          - merge_performances_master
+          - merge_stats_externes_master
+
+  # ===========================================================================
+  # Phase 7 — Features (parallele)
+  # ===========================================================================
+  - phase: 7
+    name: "Features"
+    description: "Calcul de features individuelles a partir du mega merge"
+    ram_budget_mb: 2048
+    parallel: true
+    scripts:
+      # --- feature_builders/*.py ---
+      - name: fb_cheval_features
+        script: feature_builders/cheval_features.py
+        timeout_seconds: 3600
+        ram_budget_mb: 2048
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: fb_course_features
+        script: feature_builders/course_features.py
+        timeout_seconds: 3600
+        ram_budget_mb: 2048
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: fb_field_strength_builder
+        script: feature_builders/field_strength_builder.py
+        timeout_seconds: 3600
+        ram_budget_mb: 2048
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: fb_jockey_features
+        script: feature_builders/jockey_features.py
+        timeout_seconds: 3600
+        ram_budget_mb: 2048
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: fb_marche_features
+        script: feature_builders/marche_features.py
+        timeout_seconds: 1800
+        ram_budget_mb: 1024
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: fb_pace_profile_builder
+        script: feature_builders/pace_profile_builder.py
+        timeout_seconds: 3600
+        ram_budget_mb: 2048
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: fb_pedigree_features
+        script: feature_builders/pedigree_features.py
+        timeout_seconds: 3600
+        ram_budget_mb: 2048
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: fb_track_bias_detector
+        script: feature_builders/track_bias_detector.py
+        timeout_seconds: 3600
+        ram_budget_mb: 2048
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: fb_perf_detaillees_builder
+        script: feature_builders/perf_detaillees_builder.py
+        timeout_seconds: 3600
+        ram_budget_mb: 2048
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: fb_smarkets_builder
+        script: feature_builders/smarkets_builder.py
+        timeout_seconds: 1800
+        ram_budget_mb: 1024
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: fb_racing_post_builder
+        script: feature_builders/racing_post_builder.py
+        timeout_seconds: 1800
+        ram_budget_mb: 1024
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: fb_reunions_builder
+        script: feature_builders/reunions_builder.py
+        timeout_seconds: 1800
+        ram_budget_mb: 1024
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: fb_enrichissement_builder
+        script: feature_builders/enrichissement_builder.py
+        timeout_seconds: 1800
+        ram_budget_mb: 1024
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: fb_pedigree_advanced_builder
+        script: feature_builders/pedigree_advanced_builder.py
+        timeout_seconds: 3600
+        ram_budget_mb: 2048
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: fb_canalturf_builder
+        script: feature_builders/canalturf_builder.py
+        timeout_seconds: 1800
+        ram_budget_mb: 1024
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: fb_turfostats_builder
+        script: feature_builders/turfostats_builder.py
+        timeout_seconds: 1800
+        ram_budget_mb: 1024
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: fb_geny_builder
+        script: feature_builders/geny_builder.py
+        timeout_seconds: 1800
+        ram_budget_mb: 1024
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: fb_musique_features
+        script: feature_builders/musique_features.py
+        timeout_seconds: 3600
+        ram_budget_mb: 2048
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: fb_temps_features
+        script: feature_builders/temps_features.py
+        timeout_seconds: 1800
+        ram_budget_mb: 1024
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: fb_profil_cheval_features
+        script: feature_builders/profil_cheval_features.py
+        timeout_seconds: 3600
+        ram_budget_mb: 2048
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: fb_equipement_features
+        script: feature_builders/equipement_features.py
+        timeout_seconds: 1800
+        ram_budget_mb: 1024
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: fb_poids_features
+        script: feature_builders/poids_features.py
+        timeout_seconds: 1800
+        ram_budget_mb: 1024
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: fb_meteo_features
+        script: feature_builders/meteo_features.py
+        timeout_seconds: 1800
+        ram_budget_mb: 1024
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: fb_combo_features
+        script: feature_builders/combo_features.py
+        timeout_seconds: 3600
+        ram_budget_mb: 2048
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: fb_class_change_features
+        script: feature_builders/class_change_features.py
+        timeout_seconds: 1800
+        ram_budget_mb: 1024
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: fb_interaction_features
+        script: feature_builders/interaction_features.py
+        timeout_seconds: 3600
+        ram_budget_mb: 2048
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: fb_precomputed_partant_joiner
+        script: feature_builders/precomputed_partant_joiner.py
+        timeout_seconds: 1800
+        ram_budget_mb: 1024
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: fb_precomputed_entity_joiner
+        script: feature_builders/precomputed_entity_joiner.py
+        timeout_seconds: 1800
+        ram_budget_mb: 1024
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: fb_elo_rating_builder
+        script: feature_builders/elo_rating_builder.py
+        timeout_seconds: 3600
+        ram_budget_mb: 2048
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: fb_recovery_features
+        script: feature_builders/recovery_features.py
+        timeout_seconds: 1800
+        ram_budget_mb: 1024
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: fb_fatigue_features
+        script: feature_builders/fatigue_features.py
+        timeout_seconds: 1800
+        ram_budget_mb: 1024
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      # --- feat_*.py ---
+      - name: feat_croisements
+        script: feat_croisements.py
+        timeout_seconds: 3600
+        ram_budget_mb: 2048
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: feat_historique
+        script: feat_historique.py
+        timeout_seconds: 3600
+        ram_budget_mb: 2048
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: feat_interactions
+        script: feat_interactions.py
+        timeout_seconds: 3600
+        ram_budget_mb: 2048
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: feat_jockey
+        script: feat_jockey.py
+        timeout_seconds: 3600
+        ram_budget_mb: 2048
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: feat_pedigree
+        script: feat_pedigree.py
+        timeout_seconds: 3600
+        ram_budget_mb: 2048
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: feat_sequences
+        script: feat_sequences.py
+        timeout_seconds: 3600
+        ram_budget_mb: 2048
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: feat_temporel
+        script: feat_temporel.py
+        timeout_seconds: 1800
+        ram_budget_mb: 1024
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: feat_cheval_jockey_affinity
+        script: feat_cheval_jockey_affinity.py
+        timeout_seconds: 3600
+        ram_budget_mb: 2048
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: feat_cheval_hippodrome_affinity
+        script: feat_cheval_hippodrome_affinity.py
+        timeout_seconds: 3600
+        ram_budget_mb: 2048
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: feat_cheval_distance_affinity
+        script: feat_cheval_distance_affinity.py
+        timeout_seconds: 3600
+        ram_budget_mb: 2048
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: feat_cheval_terrain_affinity
+        script: feat_cheval_terrain_affinity.py
+        timeout_seconds: 3600
+        ram_budget_mb: 2048
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: feat_jockey_entraineur_combo
+        script: feat_jockey_entraineur_combo.py
+        timeout_seconds: 3600
+        ram_budget_mb: 2048
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: feat_entraineur_hippodrome
+        script: feat_entraineur_hippodrome.py
+        timeout_seconds: 3600
+        ram_budget_mb: 2048
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: feat_value_betting
+        script: feat_value_betting.py
+        timeout_seconds: 1800
+        ram_budget_mb: 1024
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: feat_meteo_terrain_interaction
+        script: feat_meteo_terrain_interaction.py
+        timeout_seconds: 1800
+        ram_budget_mb: 1024
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: feat_pedigree_discipline_match
+        script: feat_pedigree_discipline_match.py
+        timeout_seconds: 3600
+        ram_budget_mb: 2048
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: feat_field_strength
+        script: feat_field_strength.py
+        timeout_seconds: 3600
+        ram_budget_mb: 2048
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      # --- calc scripts (41-49) ---
+      - name: calc_41_sequences_performances
+        script: 41_sequences_performances.py
+        timeout_seconds: 3600
+        ram_budget_mb: 2048
+        supports_resume: true
+        depends_on: [mega_merge]
+
+      - name: calc_42_croisement_racing_post_pmu
+        script: 42_croisement_racing_post_pmu.py
+        timeout_seconds: 3600
+        ram_budget_mb: 2048
+        supports_resume: true
+        depends_on: [mega_merge]
+
+      - name: calc_43_croisement_meteo_courses
+        script: 43_croisement_meteo_courses.py
+        timeout_seconds: 1800
+        ram_budget_mb: 1024
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: calc_44_croisement_pedigree_partants
+        script: 44_croisement_pedigree_partants.py
+        timeout_seconds: 3600
+        ram_budget_mb: 2048
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: calc_45_graphe_relations_gnn
+        script: 45_graphe_relations_gnn.py
+        timeout_seconds: 7200
+        ram_budget_mb: 4096
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: calc_46_track_bias_speed_class
+        script: 46_track_bias_speed_class.py
+        timeout_seconds: 3600
+        ram_budget_mb: 2048
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: calc_48_parse_conditions_texte
+        script: 48_parse_conditions_texte.py
+        timeout_seconds: 1800
+        ram_budget_mb: 1024
+        supports_resume: false
+        depends_on: [mega_merge]
+
+      - name: calc_49_ecart_cotes_internet_national
+        script: 49_ecart_cotes_internet_national.py
+        timeout_seconds: 1800
+        ram_budget_mb: 1024
+        supports_resume: false
+        depends_on: [mega_merge]
+
+  # ===========================================================================
+  # Phase 8 — Master features
+  # ===========================================================================
+  - phase: 8
+    name: "Master features"
+    description: "Assemblage final de la matrice de features (400+ colonnes)"
+    ram_budget_mb: 4096
+    parallel: false
+    scripts:
+      - name: master_features
+        script: master_feature_builder.py
+        timeout_seconds: 14400       # 4 heures (2 passes sur 17 Go)
+        ram_budget_mb: 4096
+        supports_resume: true
+        depends_on: all_phase_7      # special: depend de TOUS les scripts phase 7
+
+  # ===========================================================================
+  # Phase 9 — Quality
+  # ===========================================================================
+  - phase: 9
+    name: "Quality"
+    description: "Tests de qualite, validation et rapport final"
+    ram_budget_mb: 1024
+    parallel: false
+    scripts:
+      - name: quality
+        script: quality/run_all_tests.py
+        timeout_seconds: 3600
+        ram_budget_mb: 1024
+        supports_resume: false
+        depends_on: [master_features]
+
+      - name: generate_labels
+        script: generate_labels.py
+        timeout_seconds: 3600
+        ram_budget_mb: 1024
+        supports_resume: false
+        depends_on: [master_features]
+
+      - name: convert_parquet
+        script: convert_features_parquet.py
+        timeout_seconds: 3600
+        ram_budget_mb: 2048
+        supports_resume: false
+        depends_on: [master_features]
+
+# =============================================================================
+# Scraper phases (Phase 0 — collecte brute, en amont du pipeline)
+# =============================================================================
+# Les scrapers (scripts 00-99) ne font pas partie du pipeline de
+# transformation. Ils sont lances separement via batch_scraper.py ou
+# manuellement. Leurs parametres de resume sont geres par checkpoint
+# individuel dans chaque script.
+#
+# Scripts avec support --resume / checkpoint :
+#   01_calendrier_reunions.py, 02_liste_courses.py, 02b_liste_courses_2013.py,
+#   02b_scraper_letrot.py, 04_resultats.py, 12_pedigree_scraper.py,
+#   13_meteo_historique.py, 14_pedigree_scraper.py, 16_collecte_nanaelie_2004_2013.py,
+#   21_rapports_definitifs.py, 22_performances_detaillees.py,
+#   23_pronostics_equidia.py, 24_canalturf_scraper.py, 26_geny_scraper.py,
+#   27_citations_enjeux.py, 28_combinaisons_marche.py, 30_smarkets_exchange.py,
+#   36_pedigree_query.py, 37_rpscrape_racing_post.py, 38_rapports_internet.py,
+#   39_reunions_enrichies.py, 51-99 (tous les scrapers externes).
+# =============================================================================
