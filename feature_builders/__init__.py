@@ -15,6 +15,7 @@ from .equipement_features import build_equipement_features
 from .poids_features import build_poids_features
 from .musique_features import build_musique_features
 from .temps_features import build_temps_features
+from .temporal_advanced_features import build_temporal_advanced_features
 from .profil_cheval_features import build_profil_cheval_features
 from .field_strength_builder import build_field_strength_features
 from .pace_profile_builder import build_pace_profiles
@@ -35,6 +36,7 @@ __all__ = [
     "build_poids_features",
     "build_musique_features",
     "build_temps_features",
+    "build_temporal_advanced_features",
     "build_profil_cheval_features",
     "build_field_strength_features",
     "build_pace_profiles",
