@@ -140,6 +140,9 @@ def build_dag() -> Dict[str, Step]:
         "feature_builders/interaction_features.py",
         "feature_builders/precomputed_partant_joiner.py",
         "feature_builders/precomputed_entity_joiner.py",
+        "feature_builders/elo_rating_builder.py",
+        "feature_builders/recovery_features.py",
+        "feature_builders/fatigue_features.py",
     ]
     for script in feature_builder_scripts:
         name = "fb_" + Path(script).stem
