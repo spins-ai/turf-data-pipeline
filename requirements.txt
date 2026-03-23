@@ -1,15 +1,28 @@
+# Web scraping
 requests
 beautifulsoup4
 lxml
+cloudscraper
+playwright
+
+# Data parsing & streaming
 ijson
+pyyaml
+
+# Data processing
 pandas
 numpy
-urllib3
-meteostat
+pyarrow
+
+# Statistics & ML
 scikit-learn
 scipy
 xgboost
 lightgbm
 catboost
-pyarrow
-pyyaml
+
+# Weather
+meteostat
+
+# HTTP
+urllib3
