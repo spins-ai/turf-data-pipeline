@@ -2,7 +2,7 @@
 
 Auto-generated from `output/features/features_matrix.jsonl` (sample: 500 rows).
 
-**Total features: 291**
+**Total features: 313**
 
 ## Features by Builder
 
@@ -15,8 +15,10 @@ Auto-generated from `output/features/features_matrix.jsonl` (sample: 500 rows).
 | compteurs | 5 |
 | cote_features | 2 |
 | distance_features | 2 |
+| elo_rating_features | 6 |
 | entourage_features | 9 |
 | equipement_features | 12 |
+| fatigue_features | 7 |
 | flags | 6 |
 | forme_features | 1 |
 | gains_features | 2 |
@@ -33,10 +35,11 @@ Auto-generated from `output/features/features_matrix.jsonl` (sample: 500 rows).
 | profil_cheval_features | 21 |
 | programme_features | 19 |
 | rapport_features | 40 |
+| recovery_features | 9 |
 | taux_features | 1 |
 | temps_features | 15 |
 | valeur_base_features | 4 |
-| **Total** | **291** |
+| **Total** | **313** |
 
 ## Detailed Feature List
 
@@ -181,6 +184,17 @@ Auto-generated from `output/features/features_matrix.jsonl` (sample: 500 rows).
 | `ent_jockey_taux_place` | float | 89.8% |
 | `ent_jockey_taux_victoire` | float | 89.8% |
 
+### elo_rating_features (6 features)
+
+| Feature | Type | Fill Rate |
+|---------|------|-----------|
+| `elo_cheval` | float | N/A |
+| `elo_jockey` | float | N/A |
+| `elo_entraineur` | float | N/A |
+| `elo_combined` | float | N/A |
+| `elo_cheval_delta` | float | N/A |
+| `nb_races_elo` | int | N/A |
+
 ### equipement_features (12 features)
 
 | Feature | Type | Fill Rate |
@@ -197,6 +211,18 @@ Auto-generated from `output/features/features_matrix.jsonl` (sample: 500 rows).
 | `equip_oeilleres_change` | unknown | 0.0% |
 | `equip_oeilleres_removed` | unknown | 0.0% |
 | `equip_poids_monte_change` | int | 100.0% |
+
+### fatigue_features (7 features)
+
+| Feature | Type | Fill Rate |
+|---------|------|-----------|
+| `fatigue_30j` | float | N/A |
+| `fatigue_60j` | float | N/A |
+| `fatigue_90j` | float | N/A |
+| `fatigue_distance_ponderee` | float | N/A |
+| `intensite_recente` | float | N/A |
+| `sequence_courses` | int | N/A |
+| `tendance_fatigue` | float | N/A |
 
 ### flags (6 features)
 
@@ -435,6 +461,20 @@ Auto-generated from `output/features/features_matrix.jsonl` (sample: 500 rows).
 | `rap_rapport_uid` | str | 97.2% |
 | `rap_rapports_raw` | list | 97.2% |
 | `rap_type_pari` | str | 97.2% |
+
+### recovery_features (9 features)
+
+| Feature | Type | Fill Rate |
+|---------|------|-----------|
+| `jours_repos` | int | N/A |
+| `repos_optimal` | bool | N/A |
+| `perf_apres_repos_court` | float | N/A |
+| `perf_apres_repos_moyen` | float | N/A |
+| `perf_apres_repos_long` | float | N/A |
+| `repos_vs_moyenne` | float | N/A |
+| `nb_courses_30j` | int | N/A |
+| `nb_courses_60j` | int | N/A |
+| `nb_courses_90j` | int | N/A |
 
 ### taux_features (1 features)
 
