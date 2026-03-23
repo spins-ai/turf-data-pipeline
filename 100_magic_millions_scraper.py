@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Script 100 -- Scraping Magic Millions
+Script 100 -- Scraping Magic Millions (Playwright version)
 Source : magicmillions.com.au - Magic Millions AU horse sales
 Collecte : lots vendus, prix, pedigrees, acheteurs, vendeurs, catalogues
 CRITIQUE pour : Sales Model, Pedigree Valuation, Investment Analysis
+
+Requires:
+    pip install playwright beautifulsoup4
+    playwright install chromium
 """
 
 import argparse
@@ -17,29 +21,28 @@ import re
 import time
 from datetime import datetime, timedelta
 
-import requests
+from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeout
 from bs4 import BeautifulSoup
+from utils.playwright import launch_browser, accept_cookies
 
 SCRIPT_NAME = "100_magic_millions"
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output", SCRIPT_NAME)
 CACHE_DIR = os.path.join(OUTPUT_DIR, "cache")
+HTML_CACHE_DIR = os.path.join(OUTPUT_DIR, "html_cache")
 CHECKPOINT_FILE = os.path.join(OUTPUT_DIR, ".checkpoint.json")
 
 os.makedirs(CACHE_DIR, exist_ok=True)
+os.makedirs(HTML_CACHE_DIR, exist_ok=True)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
-from utils.scraping import smart_pause, fetch_with_retry, append_jsonl, load_checkpoint, save_checkpoint, create_session
+from utils.scraping import smart_pause, append_jsonl, load_checkpoint, save_checkpoint
+from utils.html_parsing import extract_embedded_json, extract_data_attributes
 
 log = setup_logging("100_magic_millions")
 
-USER_AGENTS = [
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15",
-    "Mozilla/5.0 (X11; Linux x86_64; rv:122.0) Gecko/20100101 Firefox/122.0",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
-]
+MAX_RETRIES = 3
+DEFAULT_TIMEOUT_MS = 60_000
 
 BASE_URL = "https://www.magicmillions.com.au"
 
@@ -62,8 +65,37 @@ SALE_TYPES = [
 SALE_YEARS = list(range(2015, 2027))
 
 
+# NOTE: Local version kept because it returns HTML string (page.content()) instead of bool
+def navigate_with_retry(page, url, retries=MAX_RETRIES):
+    """Navigate to url with retry logic. Returns HTML string or None."""
+    for attempt in range(1, retries + 1):
+        try:
+            resp = page.goto(url, wait_until="networkidle", timeout=DEFAULT_TIMEOUT_MS)
+            if resp and resp.status >= 400:
+                log.warning("  HTTP %d on %s (attempt %d/%d)",
+                            resp.status, url, attempt, retries)
+                if resp.status == 429:
+                    time.sleep(60 * attempt)
+                elif resp.status == 403:
+                    time.sleep(30 * attempt)
+                else:
+                    time.sleep(5 * attempt)
+                continue
+            page.wait_for_load_state("domcontentloaded")
+            time.sleep(1.5)
+            return page.content()
+        except PlaywrightTimeout:
+            log.warning("  Timeout on %s (attempt %d/%d)", url, attempt, retries)
+            time.sleep(10 * attempt)
+        except Exception as exc:
+            log.warning("  Navigation error: %s (attempt %d/%d)",
+                        str(exc)[:200], attempt, retries)
+            time.sleep(5 * attempt)
+    log.error("  Failed after %d retries: %s", retries, url)
+    return None
 
-def scrape_sale_results_page(session, page_url, sale_name, year):
+
+def scrape_sale_results_page(page, page_url, sale_name, year):
     """Scrape sale results page (catalogue/results listing)."""
     url_hash = re.sub(r'[^a-zA-Z0-9]', '_', page_url[-80:])
     cache_file = os.path.join(CACHE_DIR, f"sale_{url_hash}.json")
@@ -71,11 +103,16 @@ def scrape_sale_results_page(session, page_url, sale_name, year):
         with open(cache_file, "r", encoding="utf-8", errors="replace") as f:
             return json.load(f)
 
-    resp = fetch_with_retry(session, page_url)
-    if not resp:
+    html = navigate_with_retry(page, page_url)
+    if not html:
         return []
 
-    soup = BeautifulSoup(resp.text, "html.parser")
+    # Save raw HTML to cache
+    html_file = os.path.join(HTML_CACHE_DIR, f"sale_{url_hash}.html")
+    with open(html_file, "w", encoding="utf-8") as f:
+        f.write(html)
+
+    soup = BeautifulSoup(html, "html.parser")
     records = []
 
     # -- Results tables --
@@ -230,70 +267,9 @@ def scrape_sale_results_page(session, page_url, sale_name, year):
                     record["clearance_pct"] = float(clearance_match.group(1))
                 records.append(record)
 
-    # -- Embedded JSON --
-    for script in soup.find_all("script"):
-        script_text = script.string or ""
-        for m in re.finditer(r'(?:var|let|const)\s+(\w+)\s*=\s*(\[[\s\S]{50,}?\]);', script_text):
-            try:
-                data = json.loads(m.group(2))
-                records.append({
-                    "source": "magic_millions",
-                    "type": "embedded_data",
-                    "sale_name": sale_name,
-                    "year": year,
-                    "var_name": m.group(1),
-                    "data": data,
-                    "scraped_at": datetime.now().isoformat(),
-                })
-            except json.JSONDecodeError:
-                pass
-        for m in re.finditer(r'(?:var|let|const)\s+(\w+)\s*=\s*(\{[\s\S]{50,}?\});', script_text):
-            try:
-                data = json.loads(m.group(2))
-                records.append({
-                    "source": "magic_millions",
-                    "type": "embedded_object",
-                    "sale_name": sale_name,
-                    "year": year,
-                    "var_name": m.group(1),
-                    "data": data,
-                    "scraped_at": datetime.now().isoformat(),
-                })
-            except json.JSONDecodeError:
-                pass
-
-    for script in soup.find_all("script", {"type": "application/json"}):
-        try:
-            data = json.loads(script.string or "")
-            records.append({
-                "source": "magic_millions",
-                "type": "script_json",
-                "sale_name": sale_name,
-                "year": year,
-                "data_id": script.get("id", ""),
-                "data": data,
-                "scraped_at": datetime.now().isoformat(),
-            })
-        except json.JSONDecodeError:
-            pass
-
-    # -- Data attributes --
-    for el in soup.find_all(attrs=lambda attrs: attrs and any(
-            k.startswith("data-") and any(kw in k for kw in
-            ["lot", "horse", "price", "sale", "sire", "dam", "buyer"])
-            for k in attrs)):
-        data_attrs = {k: v for k, v in el.attrs.items() if k.startswith("data-")}
-        if data_attrs:
-            records.append({
-                "source": "magic_millions",
-                "type": "data_attributes",
-                "sale_name": sale_name,
-                "year": year,
-                "tag": el.name,
-                "text": el.get_text(strip=True)[:200],
-                "attributes": data_attrs,
-                "scraped_at": datetime.now().isoformat(),
-            })
+    # -- Embedded JSON and data attributes --
+    records.extend(extract_embedded_json(soup, str(year), "magic_millions"))
+    records.extend(extract_data_attributes(soup, str(year), "magic_millions"))
 
     with open(cache_file, "w", encoding="utf-8", errors="replace") as f:
         json.dump(records, f, ensure_ascii=True, indent=2)
@@ -301,7 +277,7 @@ def scrape_sale_results_page(session, page_url, sale_name, year):
     return records
 
 
-def scrape_lot_detail(session, lot_url, sale_name, year):
+def scrape_lot_detail(page, lot_url, sale_name, year):
     """Scrape individual lot detail page."""
     url_hash = re.sub(r'[^a-zA-Z0-9]', '_', lot_url[-80:])
     cache_file = os.path.join(CACHE_DIR, f"lot_{url_hash}.json")
@@ -309,11 +285,16 @@ def scrape_lot_detail(session, lot_url, sale_name, year):
         with open(cache_file, "r", encoding="utf-8", errors="replace") as f:
             return json.load(f)
 
-    resp = fetch_with_retry(session, lot_url)
-    if not resp:
+    html = navigate_with_retry(page, lot_url)
+    if not html:
         return []
 
-    soup = BeautifulSoup(resp.text, "html.parser")
+    # Save raw HTML to cache
+    html_file = os.path.join(HTML_CACHE_DIR, f"lot_{url_hash}.html")
+    with open(html_file, "w", encoding="utf-8") as f:
+        f.write(html)
+
+    soup = BeautifulSoup(html, "html.parser")
     records = []
 
     # Extract all text content with structure
@@ -377,6 +358,10 @@ def scrape_lot_detail(session, lot_url, sale_name, year):
     if len(record) > 5:  # Only add if we got meaningful data
         records.insert(0, record)
 
+    # Embedded JSON and data attributes
+    records.extend(extract_embedded_json(soup, str(year), "magic_millions"))
+    records.extend(extract_data_attributes(soup, str(year), "magic_millions"))
+
     with open(cache_file, "w", encoding="utf-8", errors="replace") as f:
         json.dump(records, f, ensure_ascii=True, indent=2)
 
@@ -395,7 +380,7 @@ def main():
     args = parser.parse_args()
 
     log.info("=" * 60)
-    log.info("SCRIPT 100 -- Magic Millions AU Sales Scraper")
+    log.info("SCRIPT 100 -- Magic Millions AU Sales Scraper (Playwright)")
     log.info(f"  Sale types : {len(SALE_TYPES)}")
     log.info(f"  Years : {SALE_YEARS[0]}-{SALE_YEARS[-1]}")
     log.info("=" * 60)
@@ -405,118 +390,144 @@ def main():
     if args.resume and done_urls:
         log.info(f"  Reprise checkpoint: {len(done_urls)} pages deja traitees")
 
-    session = create_session(USER_AGENTS)
     output_file = os.path.join(OUTPUT_DIR, "magic_millions_data.jsonl")
 
-    total_records = 0
-    page_count = 0
-    all_lot_urls = []
+    pw = sync_playwright().start()
+    browser, context, page = None, None, None
+    try:
+        browser, context, page = launch_browser(pw)
+        log.info("Browser launched (headless Chromium)")
 
-    # Phase 1: Scrape sale results pages
-    log.info("  Phase 1: Pages de resultats de ventes")
-    for year in SALE_YEARS:
-        for sale_type in SALE_TYPES:
-            if page_count >= args.max_pages:
-                break
+        # Accept cookies on first navigation
+        first_nav = True
 
-            # Try multiple URL patterns
-            urls_to_try = [
-                f"{BASE_URL}/sales/{year}/{sale_type}/results",
-                f"{BASE_URL}/sales/{sale_type}/{year}/results",
-                f"{BASE_URL}/sales-results/{year}/{sale_type}",
-                f"{BASE_URL}/{year}-{sale_type}/results",
-                f"{BASE_URL}/sales/{year}/{sale_type}",
-            ]
+        total_records = 0
+        page_count = 0
+        all_lot_urls = []
 
-            for url in urls_to_try:
-                if url in done_urls:
-                    continue
+        # Phase 1: Scrape sale results pages
+        log.info("  Phase 1: Pages de resultats de ventes")
+        for year in SALE_YEARS:
+            for sale_type in SALE_TYPES:
+                if page_count >= args.max_pages:
+                    break
 
-                records = scrape_sale_results_page(session, url, sale_type, year)
-                if records:
-                    for rec in records:
-                        append_jsonl(output_file, rec)
-                        total_records += 1
-                        # Collect lot detail URLs
-                        detail_url = rec.get("detail_url")
-                        if detail_url and args.scrape_details:
-                            all_lot_urls.append((sale_type, year, detail_url))
+                # Try multiple URL patterns
+                urls_to_try = [
+                    f"{BASE_URL}/sales/{year}/{sale_type}/results",
+                    f"{BASE_URL}/sales/{sale_type}/{year}/results",
+                    f"{BASE_URL}/sales-results/{year}/{sale_type}",
+                    f"{BASE_URL}/{year}-{sale_type}/results",
+                    f"{BASE_URL}/sales/{year}/{sale_type}",
+                ]
 
-                done_urls.add(url)
-                page_count += 1
+                for url in urls_to_try:
+                    if url in done_urls:
+                        continue
 
-                if records:
-                    log.info(f"    {year} {sale_type}: {len(records)} records")
-                    break  # Found data, stop trying URL patterns
+                    records = scrape_sale_results_page(page, url, sale_type, year)
 
-                smart_pause(1.0, 0.5)
+                    if first_nav:
+                        accept_cookies(page)
+                        first_nav = False
 
-            if page_count % 20 == 0:
-                save_checkpoint(CHECKPOINT_FILE, {"done_urls": list(done_urls),
-                                 "total_records": total_records})
-
-            if page_count % 60 == 0:
-                session.close()
-                session = create_session(USER_AGENTS)
-                time.sleep(random.uniform(5, 15))
-
-    # Phase 2: Scrape lot detail pages (if enabled)
-    if args.scrape_details and all_lot_urls:
-        log.info(f"  Phase 2: Detail des lots ({len(all_lot_urls)} lots)")
-        for sale_type, year, lot_url in all_lot_urls:
-            if lot_url in done_urls:
-                continue
-            if page_count >= args.max_pages:
-                break
-
-            records = scrape_lot_detail(session, lot_url, sale_type, year)
-            if records:
-                for rec in records:
-                    append_jsonl(output_file, rec)
-                    total_records += 1
-
-            done_urls.add(lot_url)
-            page_count += 1
-
-            if page_count % 20 == 0:
-                log.info(f"    lots: pages={page_count} records={total_records}")
-                save_checkpoint(CHECKPOINT_FILE, {"done_urls": list(done_urls),
-                                 "total_records": total_records})
-
-            if page_count % 60 == 0:
-                session.close()
-                session = create_session(USER_AGENTS)
-                time.sleep(random.uniform(5, 15))
-
-            smart_pause(1.5, 0.8)
-
-    # Phase 3: Discover additional pages from main site
-    log.info("  Phase 3: Decouverte de pages additionnelles")
-    main_resp = fetch_with_retry(session, BASE_URL)
-    if main_resp:
-        main_soup = BeautifulSoup(main_resp.text, "html.parser")
-        for a in main_soup.find_all("a", href=True):
-            href = a["href"]
-            if any(kw in href.lower() for kw in ["sale", "result", "catalogue",
-                                                   "lot", "statistics"]):
-                if href.startswith("/"):
-                    href = BASE_URL + href
-                if href.startswith("http") and href not in done_urls and page_count < args.max_pages:
-                    records = scrape_sale_results_page(session, href, "discovered", 0)
                     if records:
                         for rec in records:
                             append_jsonl(output_file, rec)
                             total_records += 1
-                    done_urls.add(href)
+                            # Collect lot detail URLs
+                            detail_url = rec.get("detail_url")
+                            if detail_url and args.scrape_details:
+                                all_lot_urls.append((sale_type, year, detail_url))
+
+                    done_urls.add(url)
                     page_count += 1
-                    smart_pause()
 
-    save_checkpoint(CHECKPOINT_FILE, {"done_urls": list(done_urls),
-                     "total_records": total_records, "status": "done"})
+                    if records:
+                        log.info(f"    {year} {sale_type}: {len(records)} records")
+                        break  # Found data, stop trying URL patterns
 
-    log.info("=" * 60)
-    log.info(f"TERMINE: {page_count} pages, {total_records} records -> {output_file}")
-    log.info("=" * 60)
+                    smart_pause(1.0, 0.5)
+
+                if page_count % 20 == 0:
+                    save_checkpoint(CHECKPOINT_FILE, {"done_urls": list(done_urls),
+                                     "total_records": total_records})
+
+        # Phase 2: Scrape lot detail pages (if enabled)
+        if args.scrape_details and all_lot_urls:
+            log.info(f"  Phase 2: Detail des lots ({len(all_lot_urls)} lots)")
+            for sale_type, year, lot_url in all_lot_urls:
+                if lot_url in done_urls:
+                    continue
+                if page_count >= args.max_pages:
+                    break
+
+                records = scrape_lot_detail(page, lot_url, sale_type, year)
+                if records:
+                    for rec in records:
+                        append_jsonl(output_file, rec)
+                        total_records += 1
+
+                done_urls.add(lot_url)
+                page_count += 1
+
+                if page_count % 20 == 0:
+                    log.info(f"    lots: pages={page_count} records={total_records}")
+                    save_checkpoint(CHECKPOINT_FILE, {"done_urls": list(done_urls),
+                                     "total_records": total_records})
+
+                smart_pause(1.5, 0.8)
+
+        # Phase 3: Discover additional pages from main site
+        log.info("  Phase 3: Decouverte de pages additionnelles")
+        main_html = navigate_with_retry(page, BASE_URL)
+        if main_html:
+            main_soup = BeautifulSoup(main_html, "html.parser")
+            for a in main_soup.find_all("a", href=True):
+                href = a["href"]
+                if any(kw in href.lower() for kw in ["sale", "result", "catalogue",
+                                                       "lot", "statistics"]):
+                    if href.startswith("/"):
+                        href = BASE_URL + href
+                    if href.startswith("http") and href not in done_urls and page_count < args.max_pages:
+                        records = scrape_sale_results_page(page, href, "discovered", 0)
+                        if records:
+                            for rec in records:
+                                append_jsonl(output_file, rec)
+                                total_records += 1
+                        done_urls.add(href)
+                        page_count += 1
+                        smart_pause()
+
+        save_checkpoint(CHECKPOINT_FILE, {"done_urls": list(done_urls),
+                         "total_records": total_records, "status": "done"})
+
+        log.info("=" * 60)
+        log.info(f"TERMINE: {page_count} pages, {total_records} records -> {output_file}")
+        log.info("=" * 60)
+
+    finally:
+        # Graceful cleanup
+        try:
+            if page and not page.is_closed():
+                page.close()
+        except Exception:
+            pass
+        try:
+            if context:
+                context.close()
+        except Exception:
+            pass
+        try:
+            if browser:
+                browser.close()
+        except Exception:
+            pass
+        try:
+            pw.stop()
+        except Exception:
+            pass
+        log.info("Browser closed")
 
 
 if __name__ == "__main__":

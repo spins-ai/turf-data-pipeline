@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Script 94 -- Scraping Harness Racing Australia
+Script 94 -- Scraping Harness Racing Australia (Playwright version)
 Source : harness.org.au - Harness Racing Australia data
 Collecte : results trot AU, horse records, driver stats, meeting results
 CRITIQUE pour : Trot Model International, Harness Cross-Validation
+
+Requires:
+    pip install playwright beautifulsoup4
+    playwright install chromium
 """
 
 import argparse
@@ -17,35 +21,63 @@ import re
 import time
 from datetime import datetime, timedelta
 
-import requests
+from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeout
 from bs4 import BeautifulSoup
+from utils.playwright import launch_browser, accept_cookies
 
 SCRIPT_NAME = "94_harness_au"
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output", SCRIPT_NAME)
 CACHE_DIR = os.path.join(OUTPUT_DIR, "cache")
+HTML_CACHE_DIR = os.path.join(OUTPUT_DIR, "html_cache")
 CHECKPOINT_FILE = os.path.join(OUTPUT_DIR, ".checkpoint.json")
 
 os.makedirs(CACHE_DIR, exist_ok=True)
+os.makedirs(HTML_CACHE_DIR, exist_ok=True)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
-from utils.scraping import smart_pause, fetch_with_retry, load_checkpoint, save_checkpoint, append_jsonl, create_session
+from utils.scraping import smart_pause, load_checkpoint, save_checkpoint, append_jsonl
+from utils.html_parsing import extract_embedded_json, extract_data_attributes
 
 log = setup_logging("94_harness_au")
 
-USER_AGENTS = [
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15",
-    "Mozilla/5.0 (X11; Linux x86_64; rv:122.0) Gecko/20100101 Firefox/122.0",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
-]
+MAX_RETRIES = 3
+DEFAULT_TIMEOUT_MS = 60_000
 
 BASE_URL = "https://www.harness.org.au"
 
 
+# NOTE: Local version kept because it returns HTML string (page.content()) instead of bool
+def navigate_with_retry(page, url, retries=MAX_RETRIES):
+    """Navigate to url with retry logic. Returns HTML string or None."""
+    for attempt in range(1, retries + 1):
+        try:
+            resp = page.goto(url, wait_until="networkidle", timeout=DEFAULT_TIMEOUT_MS)
+            if resp and resp.status >= 400:
+                log.warning("  HTTP %d on %s (attempt %d/%d)",
+                            resp.status, url, attempt, retries)
+                if resp.status == 429:
+                    time.sleep(60 * attempt)
+                elif resp.status == 403:
+                    time.sleep(30 * attempt)
+                else:
+                    time.sleep(5 * attempt)
+                continue
+            page.wait_for_load_state("domcontentloaded")
+            time.sleep(1.5)
+            return page.content()
+        except PlaywrightTimeout:
+            log.warning("  Timeout on %s (attempt %d/%d)", url, attempt, retries)
+            time.sleep(10 * attempt)
+        except Exception as exc:
+            log.warning("  Navigation error: %s (attempt %d/%d)",
+                        str(exc)[:200], attempt, retries)
+            time.sleep(5 * attempt)
+    log.error("  Failed after %d retries: %s", retries, url)
+    return None
 
-def scrape_harness_day(session, date_str):
+
+def scrape_harness_day(page, date_str):
     """Scrape harness racing results for a given day."""
     cache_file = os.path.join(CACHE_DIR, f"day_{date_str}.json")
     if os.path.exists(cache_file):
@@ -65,11 +97,17 @@ def scrape_harness_day(session, date_str):
 
     records = []
     for url in urls_to_try:
-        resp = fetch_with_retry(session, url)
-        if not resp:
+        html = navigate_with_retry(page, url)
+        if not html:
             continue
 
-        soup = BeautifulSoup(resp.text, "html.parser")
+        # Save raw HTML to cache
+        url_hash = re.sub(r'[^a-zA-Z0-9]', '_', url[-60:])
+        html_file = os.path.join(HTML_CACHE_DIR, f"{date_str}_{url_hash}.html")
+        with open(html_file, "w", encoding="utf-8") as f:
+            f.write(html)
+
+        soup = BeautifulSoup(html, "html.parser")
 
         # -- Results tables --
         for table in soup.find_all("table"):
@@ -183,35 +221,8 @@ def scrape_harness_day(session, date_str):
                     })
 
         # -- Embedded JSON --
-        for script in soup.find_all("script"):
-            script_text = script.string or ""
-            for m in re.finditer(r'(?:var|let|const)\s+(\w+)\s*=\s*(\[[\s\S]{50,}?\]);', script_text):
-                try:
-                    data = json.loads(m.group(2))
-                    records.append({
-                        "date": date_str,
-                        "source": "harness_au",
-                        "type": "embedded_data",
-                        "var_name": m.group(1),
-                        "data": data,
-                        "scraped_at": datetime.now().isoformat(),
-                    })
-                except json.JSONDecodeError:
-                    pass
-
-        for script in soup.find_all("script", {"type": "application/json"}):
-            try:
-                data = json.loads(script.string or "")
-                records.append({
-                    "date": date_str,
-                    "source": "harness_au",
-                    "type": "script_json",
-                    "data_id": script.get("id", ""),
-                    "data": data,
-                    "scraped_at": datetime.now().isoformat(),
-                })
-            except json.JSONDecodeError:
-                pass
+        records.extend(extract_embedded_json(soup, date_str, "harness_au"))
+        records.extend(extract_data_attributes(soup, date_str, "harness_au"))
 
         smart_pause(1.0, 0.5)
         break  # Stop after first successful URL
@@ -237,7 +248,7 @@ def main():
     end_date = datetime.strptime(args.end, "%Y-%m-%d") if args.end else datetime.now()
 
     log.info("=" * 60)
-    log.info("SCRIPT 94 -- Harness Racing Australia Scraper")
+    log.info("SCRIPT 94 -- Harness Racing Australia Scraper (Playwright)")
     log.info(f"  Periode : {start_date.date()} -> {end_date.date()}")
     log.info("=" * 60)
 
@@ -248,42 +259,72 @@ def main():
         start_date = resume_date
         log.info(f"  Reprise au checkpoint : {start_date.date()}")
 
-    session = create_session(USER_AGENTS)
     output_file = os.path.join(OUTPUT_DIR, "harness_au_data.jsonl")
 
-    current = start_date
-    day_count = 0
-    total_records = 0
+    pw = sync_playwright().start()
+    browser, context, page = None, None, None
+    try:
+        browser, context, page = launch_browser(pw)
+        log.info("Browser launched (headless Chromium)")
 
-    while current <= end_date:
-        date_str = current.strftime("%Y-%m-%d")
-        records = scrape_harness_day(session, date_str)
+        # Accept cookies on first navigation
+        first_nav = True
 
-        if records:
-            for rec in records:
-                append_jsonl(output_file, rec)
-                total_records += 1
+        current = start_date
+        day_count = 0
+        total_records = 0
 
-        day_count += 1
+        while current <= end_date:
+            date_str = current.strftime("%Y-%m-%d")
+            records = scrape_harness_day(page, date_str)
 
-        if day_count % 30 == 0:
-            log.info(f"  {date_str} | jours={day_count} records={total_records}")
-            save_checkpoint(CHECKPOINT_FILE, {"last_date": date_str, "total_records": total_records})
+            if first_nav and records is not None:
+                accept_cookies(page)
+                first_nav = False
 
-        if day_count % 80 == 0:
-            session.close()
-            session = create_session(USER_AGENTS)
-            time.sleep(random.uniform(5, 15))
+            if records:
+                for rec in records:
+                    append_jsonl(output_file, rec)
+                    total_records += 1
 
-        current += timedelta(days=1)
-        smart_pause(1.0, 0.5)
+            day_count += 1
 
-    save_checkpoint(CHECKPOINT_FILE, {"last_date": end_date.strftime("%Y-%m-%d"),
-                     "total_records": total_records, "status": "done"})
+            if day_count % 30 == 0:
+                log.info(f"  {date_str} | jours={day_count} records={total_records}")
+                save_checkpoint(CHECKPOINT_FILE, {"last_date": date_str, "total_records": total_records})
 
-    log.info("=" * 60)
-    log.info(f"TERMINE: {day_count} jours, {total_records} records -> {output_file}")
-    log.info("=" * 60)
+            current += timedelta(days=1)
+            smart_pause(1.0, 0.5)
+
+        save_checkpoint(CHECKPOINT_FILE, {"last_date": end_date.strftime("%Y-%m-%d"),
+                         "total_records": total_records, "status": "done"})
+
+        log.info("=" * 60)
+        log.info(f"TERMINE: {day_count} jours, {total_records} records -> {output_file}")
+        log.info("=" * 60)
+
+    finally:
+        # Graceful cleanup
+        try:
+            if page and not page.is_closed():
+                page.close()
+        except Exception:
+            pass
+        try:
+            if context:
+                context.close()
+        except Exception:
+            pass
+        try:
+            if browser:
+                browser.close()
+        except Exception:
+            pass
+        try:
+            pw.stop()
+        except Exception:
+            pass
+        log.info("Browser closed")
 
 
 if __name__ == "__main__":
