@@ -2,7 +2,8 @@
 # Données volumineuses (sur disque, pas sur GitHub)
 # ══════════════════════════════════════════════
 output/
-data_master/
+data_master/*
+!data_master/MANIFEST.json
 logs/
 *.log
 *.json.tmp
