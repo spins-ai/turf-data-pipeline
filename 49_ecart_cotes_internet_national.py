@@ -45,13 +45,57 @@ log = setup_logging("49_ecart_cotes_internet_national")
 
 
 def load_rapports_internet():
-    """Charge les rapports internet indexés par course_uid."""
+    """Charge les rapports internet indexés par course_uid.
+
+    Les données réelles de 38_rapports_internet sont au format par pari :
+        {course_uid, typePari, audience, combinaison, dividende, miseBase, ...}
+    On agrège pour chaque course_uid les rapports simple gagnant/placé
+    dans un dict compatible avec le format attendu par compute_ecart_features.
+    """
     index = {}
     for path in [os.path.join(BASE_DIR, "output", "38_rapports_internet", "rapports_internet.jsonl"),
                  os.path.join(BASE_DIR, "output", "38_rapports_internet", "rapports_internet.json")]:
         if not os.path.exists(path):
             continue
         log.info(f"Chargement rapports internet: {path}")
+
+        def process_record(r):
+            uid = r.get("course_uid", "")
+            if not uid:
+                return
+            type_pari = r.get("typePari", "")
+
+            # Initialiser l'entrée si besoin
+            if uid not in index:
+                index[uid] = {
+                    "course_uid": uid,
+                    "date_reunion_iso": r.get("date_reunion_iso", ""),
+                    "hippodrome": r.get("hippodrome", ""),
+                }
+
+            entry = index[uid]
+
+            # Format réel: typePari indique le type, dividende est le montant,
+            # miseBase est la base (150 centimes = 1.50 EUR)
+            dividende = r.get("dividende")
+            if dividende is None:
+                return
+
+            # Rapports internet : chercher dans toutes les audiences
+            # (NATIONAL, REGIONAL, LOCAL)
+            if type_pari == "E_SIMPLE_GAGNANT":
+                # Garder le rapport simple gagnant (dividende en centimes pour mise de 150 centimes)
+                # On garde la première valeur trouvée (ou la NATIONAL si disponible)
+                audience = r.get("audience", "")
+                if "rapport_simple_gagnant" not in entry or audience == "NATIONAL":
+                    entry["rapport_simple_gagnant"] = dividende
+                    entry["audience_gagnant"] = audience
+            elif type_pari == "E_SIMPLE_PLACE":
+                # Accumuler les rapports placé
+                places = entry.get("_places", [])
+                places.append(dividende)
+                entry["_places"] = places
+
         if path.endswith(".jsonl"):
             with open(path, "r", encoding="utf-8") as f:
                 for line in f:
@@ -60,9 +104,7 @@ def load_rapports_internet():
                         continue
                     try:
                         r = json.loads(line)
-                        uid = r.get("course_uid", "")
-                        if uid:
-                            index[uid] = r
+                        process_record(r)
                     except json.JSONDecodeError:
                         continue
         else:
@@ -70,12 +112,17 @@ def load_rapports_internet():
                 data = json.load(f)
             if isinstance(data, list):
                 for r in data:
-                    uid = r.get("course_uid", "")
-                    if uid:
-                        index[uid] = r
+                    process_record(r)
             del data
         break
-    log.info(f"  {len(index)} rapports internet indexés")
+
+    # Post-traitement : convertir les places accumulées
+    for uid, entry in index.items():
+        places = entry.pop("_places", [])
+        if places:
+            entry["rapport_simple_place_moy"] = round(sum(places) / len(places), 1)
+
+    log.info(f"  {len(index)} rapports internet indexés (agrégés par course)")
     return index
 
 
