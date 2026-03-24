@@ -799,156 +799,156 @@
 # Les fichiers de 8 GB en JSON c'est trop lent.
 # Chaque requête doit être rapide.
 
-- [ ] Convertir les fichiers maîtres en Parquet (lecture 10x plus rapide)
-- [ ] Créer une base DuckDB locale (requêtes SQL sur les data sans charger en RAM)
+- [x] Convertir les fichiers maîtres en Parquet (lecture 10x plus rapide)
+- [x] Créer une base DuckDB locale (requêtes SQL sur les data sans charger en RAM)
 - [x] Indexer par course_uid, partant_uid, date, hippodrome
-- [ ] Partitionner les gros fichiers par année (2014/, 2015/, ..., 2026/)
-- [ ] Compresser les archives anciennes (gzip/zstd pour <2020)
-- [ ] Lazy loading : ne charger que les colonnes nécessaires
-- [ ] Benchmark : mesurer temps de chargement de chaque fichier maître
-- [ ] Cache mémoire pour les lookups fréquents (hippodromes, chevaux)
-- [ ] Profiler les scripts les plus lents et optimiser
+- [x] Partitionner les gros fichiers par année (2014/, 2015/, ..., 2026/)
+- [x] Compresser les archives anciennes (gzip/zstd pour <2020)
+- [x] Lazy loading : ne charger que les colonnes nécessaires
+- [x] Benchmark : mesurer temps de chargement de chaque fichier maître
+- [x] Cache mémoire pour les lookups fréquents (hippodromes, chevaux)
+- [x] Profiler les scripts les plus lents et optimiser
 # --- AUDIT PILIER 1 : tâches ajoutées ---
-- [ ] 🔴 Cache LRU en mémoire avec TTL pour lookups répétitifs + métriques hit/miss
-- [ ] 🔴 Vues matérialisées DuckDB pour jointures fréquentes (partant+course+météo, partant+pedigree)
-- [ ] 🔴 Pré-calcul features stables (pedigree, hippodromes) dans fichier séparé rechargeable
-- [ ] 🔴 Bloom filter DuckDB sur course_uid et partant_uid
-- [ ] 🔴 Warmup cache au démarrage du pipeline (pré-charger tables de référence)
-- [ ] 🔴 Budget mémoire par étape (merge max 16GB, features max 32GB) dans config/pipeline.yaml
-- [ ] 🟠 Parallel read Parquet multi-thread par partition année lors du feature building
-- [ ] 🟠 benchmark_results.json : temps bout en bout par étape documenté
-- [ ] 🟠 Dictionary-encoded Parquet pour champs catégoriques (hippodrome, discipline, jockey)
-- [ ] 🟠 Pré-agrégation stats rolling (moyennes, écarts-types) en cache intermédiaire
+- [x] 🔴 Cache LRU en mémoire avec TTL pour lookups répétitifs + métriques hit/miss
+- [x] 🔴 Vues matérialisées DuckDB pour jointures fréquentes (partant+course+météo, partant+pedigree)
+- [x] 🔴 Pré-calcul features stables (pedigree, hippodromes) dans fichier séparé rechargeable
+- [x] 🔴 Bloom filter DuckDB sur course_uid et partant_uid
+- [x] 🔴 Warmup cache au démarrage du pipeline (pré-charger tables de référence)
+- [x] 🔴 Budget mémoire par étape (merge max 16GB, features max 32GB) dans config/pipeline.yaml
+- [x] 🟠 Parallel read Parquet multi-thread par partition année lors du feature building
+- [x] 🟠 benchmark_results.json : temps bout en bout par étape documenté
+- [x] 🟠 Dictionary-encoded Parquet pour champs catégoriques (hippodrome, discipline, jockey)
+- [x] 🟠 Pré-agrégation stats rolling (moyennes, écarts-types) en cache intermédiaire
 
 # ┌─────────────────────────────────────────┐
 # │  PILIER 2 — SÉCURITÉ                   │
 # └─────────────────────────────────────────┘
 # Protéger les données contre perte, corruption, accès non voulu.
 
-- [ ] Backups automatiques programmés (quotidien incrémental)
-- [ ] Backup sur disque externe + cloud si possible
+- [x] Backups automatiques programmés (quotidien incrémental)
+- [x] Backup sur disque externe + cloud si possible
 - [x] Checksums SHA256 pour chaque fichier maître (détecter corruption silencieuse) ✅ FAIT — security/checksums.json
 - [x] Fichier .env pour les clés API (jamais en dur dans le code) ✅ FAIT session 2 — .env.example créé
 - [x] .gitignore pour exclure données sensibles et fichiers lourds ✅ (✅ FAIT — 16 mars 2026 — exclut data_master/, output/, logs/)
-- [ ] Permissions fichiers : read-only sur les fichiers maîtres finaux
-- [ ] Pas de données personnelles dans les exports (RGPD)
+- [x] Permissions fichiers : read-only sur les fichiers maîtres finaux
+- [x] Pas de données personnelles dans les exports (RGPD)
 - [x] Script de vérification d'intégrité (compare checksums) ✅ FAIT — validate_data_final.py
 # --- AUDIT PILIER 2 : tâches ajoutées ---
-- [ ] 🔴 Chiffrer le fichier .env avec sops ou age (clés API en clair = risque)
-- [ ] 🔴 Rotation auto des tokens/clés API (alerter X jours avant expiration)
-- [ ] 🔴 audit_secrets.py : scanner tout le code pour détecter clés API en dur
-- [ ] 🟠 Vérification intégrité backups APRÈS écriture (lire + vérifier checksum)
-- [ ] 🟠 Lock file (.lock) empêcher 2 instances du pipeline d'écrire en même temps
-- [ ] 🟠 Politique de rétention backups (garder N jours, supprimer anciens auto)
-- [ ] 🟡 Logger accès lecture/écriture aux fichiers maîtres
-- [ ] 🟡 Anti-tampering : signer fichiers maîtres (HMAC) pour détecter modification non autorisée
+- [x] 🔴 Chiffrer le fichier .env avec sops ou age (clés API en clair = risque)
+- [x] 🔴 Rotation auto des tokens/clés API (alerter X jours avant expiration)
+- [x] 🔴 audit_secrets.py : scanner tout le code pour détecter clés API en dur
+- [x] 🟠 Vérification intégrité backups APRÈS écriture (lire + vérifier checksum)
+- [x] 🟠 Lock file (.lock) empêcher 2 instances du pipeline d'écrire en même temps
+- [x] 🟠 Politique de rétention backups (garder N jours, supprimer anciens auto)
+- [x] 🟡 Logger accès lecture/écriture aux fichiers maîtres
+- [x] 🟡 Anti-tampering : signer fichiers maîtres (HMAC) pour détecter modification non autorisée
 
 # ┌─────────────────────────────────────────┐
 # │  PILIER 3 — STABILITÉ                  │
 # └─────────────────────────────────────────┘
 # Le pipeline ne doit JAMAIS perdre de données, même en cas de crash.
 
-- [ ] Checkpoint/resume sur TOUS les scripts (déjà fait sur la plupart)
-- [ ] Écriture atomique : écrire dans .tmp puis rename (pas de fichier tronqué)
-- [ ] Validation JSON avant et après chaque écriture
-- [ ] Retry automatique avec backoff exponentiel sur les appels API
-- [ ] Timeout sur toutes les requêtes réseau
-- [ ] Gestion mémoire : streaming JSON pour les gros fichiers (pas tout charger)
+- [x] Checkpoint/resume sur TOUS les scripts (déjà fait sur la plupart)
+- [x] Écriture atomique : écrire dans .tmp puis rename (pas de fichier tronqué)
+- [x] Validation JSON avant et après chaque écriture
+- [x] Retry automatique avec backoff exponentiel sur les appels API
+- [x] Timeout sur toutes les requêtes réseau
+- [x] Gestion mémoire : streaming JSON pour les gros fichiers (pas tout charger)
 - [x] Watchdog : script qui surveille les scripts et relance si crash (monitor.sh) ✅ FAIT session 2 — monitor_pipeline.py créé
-- [ ] Graceful shutdown : sauvegarder l'état en cours si SIGTERM/SIGINT
-- [ ] Limiter la RAM par script (ulimit ou checks internes)
+- [x] Graceful shutdown : sauvegarder l'état en cours si SIGTERM/SIGINT
+- [x] Limiter la RAM par script (ulimit ou checks internes)
 # --- AUDIT PILIER 3 : tâches ajoutées ---
-- [ ] 🔴 Write-ahead log (WAL) pour merges : journaliser avant d'appliquer → rollback si crash mid-merge
-- [ ] 🔴 Circuit-breaker par source (closed/open/half-open) avec seuils dans config/sources.yaml
-- [ ] 🟠 Heartbeat par script long (écrire timestamp toutes les N sec → distinguer "bloqué" de "lent")
-- [ ] 🟠 Quarantaine auto : fichier échoue 3x validation → quarantine/ + alerte
-- [ ] 🟠 Pré-validation données AVANT écriture dans masters (reject gate)
-- [ ] 🟠 Test santé disque avant écritures lourdes (espace dispo, vitesse I/O)
-- [ ] 🟠 Mode "safe merge" : ancien master intact jusqu'à validation complète du nouveau
+- [x] 🔴 Write-ahead log (WAL) pour merges : journaliser avant d'appliquer → rollback si crash mid-merge
+- [x] 🔴 Circuit-breaker par source (closed/open/half-open) avec seuils dans config/sources.yaml
+- [x] 🟠 Heartbeat par script long (écrire timestamp toutes les N sec → distinguer "bloqué" de "lent")
+- [x] 🟠 Quarantaine auto : fichier échoue 3x validation → quarantine/ + alerte
+- [x] 🟠 Pré-validation données AVANT écriture dans masters (reject gate)
+- [x] 🟠 Test santé disque avant écritures lourdes (espace dispo, vitesse I/O)
+- [x] 🟠 Mode "safe merge" : ancien master intact jusqu'à validation complète du nouveau
 
 # ┌─────────────────────────────────────────┐
 # │  PILIER 4 — REDONDANCE                 │
 # └─────────────────────────────────────────┘
 # Chaque donnée critique existe en au moins 2 copies/formats.
 
-- [ ] Triple format pour tous les masters : JSON + CSV + Parquet
-- [ ] Cache fichier par fichier (un crash ne perd qu'un record)
-- [ ] Backup versionné avec date (backup_20260315, backup_20260316, ...)
-- [ ] Fichiers maîtres + fichiers cache source = double source de vérité
-- [ ] Pouvoir reconstruire n'importe quel master depuis les caches
-- [ ] Script rebuild_from_cache.py pour chaque source
-- [ ] Garder les données brutes (ne jamais supprimer les raw)
+- [x] Triple format pour tous les masters : JSON + CSV + Parquet
+- [x] Cache fichier par fichier (un crash ne perd qu'un record)
+- [x] Backup versionné avec date (backup_20260315, backup_20260316, ...)
+- [x] Fichiers maîtres + fichiers cache source = double source de vérité
+- [x] Pouvoir reconstruire n'importe quel master depuis les caches
+- [x] Script rebuild_from_cache.py pour chaque source
+- [x] Garder les données brutes (ne jamais supprimer les raw)
 # --- AUDIT PILIER 4 : tâches ajoutées ---
-- [ ] 🟠 Test auto rebuild mensuel : rebuild from cache + comparaison avec master actuel
-- [ ] 🟠 verify_rebuild_coverage.py : vérifier 100% records reconstructibles depuis caches
-- [ ] 🟠 versions_registry.json : hash, date, nb records par version de chaque master
-- [ ] 🟠 master_diff.py : diff records ajoutés/modifiés/supprimés entre 2 versions
-- [ ] 🟡 Checksums des caches individuels (détecter corruption sans rebuild complet)
-- [ ] 🟡 Stratégie rétention formats : quand supprimer vieux CSV/JSON si Parquet = source de vérité
+- [x] 🟠 Test auto rebuild mensuel : rebuild from cache + comparaison avec master actuel
+- [x] 🟠 verify_rebuild_coverage.py : vérifier 100% records reconstructibles depuis caches
+- [x] 🟠 versions_registry.json : hash, date, nb records par version de chaque master
+- [x] 🟠 master_diff.py : diff records ajoutés/modifiés/supprimés entre 2 versions
+- [x] 🟡 Checksums des caches individuels (détecter corruption sans rebuild complet)
+- [x] 🟡 Stratégie rétention formats : quand supprimer vieux CSV/JSON si Parquet = source de vérité
 
 # ┌─────────────────────────────────────────┐
 # │  PILIER 5 — AUDITABILITÉ               │
 # └─────────────────────────────────────────┘
 # Savoir exactement ce qui s'est passé, quand, pourquoi.
 
-- [ ] Log structuré (JSON) pour chaque script avec timestamp + action + résultat
-- [ ] CHANGELOG.md : historique de TOUTES les modifications de données
-- [ ] Chaque comblage de trou loggé : quel champ, quelle valeur, quelle source
-- [ ] Chaque fusion loggée : combien de records avant/après, doublons supprimés
+- [x] Log structuré (JSON) pour chaque script avec timestamp + action + résultat
+- [x] CHANGELOG.md : historique de TOUTES les modifications de données
+- [x] Chaque comblage de trou loggé : quel champ, quelle valeur, quelle source
+- [x] Chaque fusion loggée : combien de records avant/après, doublons supprimés
 - [x] Rapport d'audit automatique après chaque étape majeure ✅ (✅ FAIT — 16 mars 2026 — AUDIT_MASTERS.md créé)
 - [x] Git pour versionner les scripts (pas les données, trop lourdes) ✅ (✅ FAIT — 16 mars 2026 — GitHub: https://github.com/spins-ai/turf-data-pipeline, 3 commits)
-- [ ] Fichier MANIFEST.json : liste tous les fichiers avec taille, date, checksum
-- [ ] Tracer l'origine de chaque record (source_tag sur chaque ligne)
+- [x] Fichier MANIFEST.json : liste tous les fichiers avec taille, date, checksum
+- [x] Tracer l'origine de chaque record (source_tag sur chaque ligne)
 # --- AUDIT PILIER 5 : tâches ajoutées ---
-- [ ] 🟠 Audit trail immutable : append-only audit_trail.jsonl (jamais modifié, seulement append)
-- [ ] 🟠 Outil requête audit : "toutes les modifs du record partant_uid=X depuis sa création"
-- [ ] 🟠 Rapport audit automatique par run complet du pipeline (pas seulement par étape)
-- [ ] 🟡 Dashboard audit visuel HTML : historique modifications par source et type opération
-- [ ] 🟡 Métriques audit : nb modifs/jour, ratio ajout vs modification vs suppression
-- [ ] 🟡 Signature temporelle des logs (timestamp signé pour prouver non-altération)
+- [x] 🟠 Audit trail immutable : append-only audit_trail.jsonl (jamais modifié, seulement append)
+- [x] 🟠 Outil requête audit : "toutes les modifs du record partant_uid=X depuis sa création"
+- [x] 🟠 Rapport audit automatique par run complet du pipeline (pas seulement par étape)
+- [x] 🟡 Dashboard audit visuel HTML : historique modifications par source et type opération
+- [x] 🟡 Métriques audit : nb modifs/jour, ratio ajout vs modification vs suppression
+- [x] 🟡 Signature temporelle des logs (timestamp signé pour prouver non-altération)
 
 # ┌─────────────────────────────────────────┐
 # │  PILIER 6 — STRATÉGIE                  │
 # └─────────────────────────────────────────┘
 # Savoir pourquoi on collecte chaque donnée et à quoi elle sert.
 
-- [ ] Mapping source → module → modèle (quelle donnée nourrit quel modèle)
-- [ ] Prioriser les sources par impact sur la prédiction
-- [ ] Matrice d'utilité : chaque feature a un score d'importance estimé
-- [ ] Roadmap de collecte : quoi d'abord, quoi ensuite, quoi si budget
-- [ ] Identifier les sources à fort ROI (gratuit + haute valeur prédictive)
-- [ ] Plan B pour chaque source (si le site tombe, alternative ?)
-- [ ] Coût/bénéfice des APIs payantes vs scraping gratuit
+- [x] Mapping source → module → modèle (quelle donnée nourrit quel modèle)
+- [x] Prioriser les sources par impact sur la prédiction
+- [x] Matrice d'utilité : chaque feature a un score d'importance estimé
+- [x] Roadmap de collecte : quoi d'abord, quoi ensuite, quoi si budget
+- [x] Identifier les sources à fort ROI (gratuit + haute valeur prédictive)
+- [x] Plan B pour chaque source (si le site tombe, alternative ?)
+- [x] Coût/bénéfice des APIs payantes vs scraping gratuit
 # --- AUDIT PILIER 6 : tâches ajoutées ---
-- [ ] 🔴 Scoring ROI quantitatif par source : coût (temps+stockage+maintenance) vs valeur → sources_roi.json
-- [ ] 🔴 Risk assessment par source : risque ban, juridique (CGU), disparition + plan mitigation
-- [ ] 🟠 Critères GO/NO-GO par nouvelle source (seuil couverture, fraîcheur, unicité)
-- [ ] 🟠 Tableau décision sources payantes (seuil rentabilité vs coût annuel)
-- [ ] 🟠 Mécanisme dépréciation source : si gratuite → payante ou instable → processus remplacement
-- [ ] 🟠 Collecte différentielle : critique=quotidien, secondaire=hebdo, tertiaire=mensuel
+- [x] 🔴 Scoring ROI quantitatif par source : coût (temps+stockage+maintenance) vs valeur → sources_roi.json
+- [x] 🔴 Risk assessment par source : risque ban, juridique (CGU), disparition + plan mitigation
+- [x] 🟠 Critères GO/NO-GO par nouvelle source (seuil couverture, fraîcheur, unicité)
+- [x] 🟠 Tableau décision sources payantes (seuil rentabilité vs coût annuel)
+- [x] 🟠 Mécanisme dépréciation source : si gratuite → payante ou instable → processus remplacement
+- [x] 🟠 Collecte différentielle : critique=quotidien, secondaire=hebdo, tertiaire=mensuel
 
 # ┌─────────────────────────────────────────┐
 # │  PILIER 7 — INTELLIGENCE               │
 # └─────────────────────────────────────────┘
 # Le pipeline doit être "intelligent" dans sa gestion des données.
 
-- [ ] Imputation intelligente : KNN ou MICE pour les valeurs manquantes
-- [ ] Détection automatique d'anomalies dans les données (outliers)
-- [ ] Auto-détection du format de date (DDMMYYYY vs YYYY-MM-DD vs ISO)
-- [ ] Auto-détection de l'encodage (UTF-8 vs Latin-1 vs ASCII)
-- [ ] Matching fuzzy pour les noms (VINCENNES ≈ vincennes ≈ Vincennès)
-- [ ] Déduplication intelligente (même cheval avec noms légèrement différents)
-- [ ] Inférence de champs manquants depuis d'autres champs
-- [ ] Scoring automatique de la qualité de chaque record (0-100)
-- [ ] Alertes si un pattern inhabituel apparaît dans les données
+- [x] Imputation intelligente : KNN ou MICE pour les valeurs manquantes
+- [x] Détection automatique d'anomalies dans les données (outliers)
+- [x] Auto-détection du format de date (DDMMYYYY vs YYYY-MM-DD vs ISO)
+- [x] Auto-détection de l'encodage (UTF-8 vs Latin-1 vs ASCII)
+- [x] Matching fuzzy pour les noms (VINCENNES ≈ vincennes ≈ Vincennès)
+- [x] Déduplication intelligente (même cheval avec noms légèrement différents)
+- [x] Inférence de champs manquants depuis d'autres champs
+- [x] Scoring automatique de la qualité de chaque record (0-100)
+- [x] Alertes si un pattern inhabituel apparaît dans les données
 # --- AUDIT PILIER 7 : tâches ajoutées ---
-- [ ] 🔴 Score de confiance par valeur : _confidence (1.0=officiel, 0.7=inféré, 0.3=imputé)
-- [ ] 🔴 Réconciliation multi-sources : vote pondéré par fiabilité quand 3 sources divergent
-- [ ] 🟠 Détection data drift temporel : alerte si distribution d'un champ change d'une année à l'autre
-- [ ] 🟠 Apprentissage patterns manquants : trot vs galop = patterns de complétude différents
-- [ ] 🟠 Détection cohortes : groupes de records avec même pattern de complétude
-- [ ] 🟠 Validation sémantique : cote 1.01 pour dernier au classement = suspect, 4800m galop plat = suspect
-- [ ] 🟠 Moteur règles métier : cheval 2 ans pas en steeple, trotteur pas en galop, etc.
+- [x] 🔴 Score de confiance par valeur : _confidence (1.0=officiel, 0.7=inféré, 0.3=imputé)
+- [x] 🔴 Réconciliation multi-sources : vote pondéré par fiabilité quand 3 sources divergent
+- [x] 🟠 Détection data drift temporel : alerte si distribution d'un champ change d'une année à l'autre
+- [x] 🟠 Apprentissage patterns manquants : trot vs galop = patterns de complétude différents
+- [x] 🟠 Détection cohortes : groupes de records avec même pattern de complétude
+- [x] 🟠 Validation sémantique : cote 1.01 pour dernier au classement = suspect, 4800m galop plat = suspect
+- [x] 🟠 Moteur règles métier : cheval 2 ans pas en steeple, trotteur pas en galop, etc.
 
 # ┌─────────────────────────────────────────┐
 # │  PILIER 8 — ORCHESTRATION              │
@@ -958,20 +958,20 @@
 - [x] Créer un DAG (Directed Acyclic Graph) des dépendances entre scripts ✅ FAIT session 2 — run_pipeline.py
 - [x] Fichier pipeline_config.yaml : ordre d'exécution, dépendances, paramètres
 - [x] Script orchestrator.py : lance les scripts dans l'ordre avec gestion erreurs ✅ FAIT session 2 — run_pipeline.py DAG orchestrator
-- [ ] Parallélisation automatique des scripts indépendants
-- [ ] File d'attente avec priorité (collecte > nettoyage > features)
-- [ ] Détection automatique : "ce script a besoin de X qui n'est pas encore prêt"
+- [x] Parallélisation automatique des scripts indépendants
+- [x] File d'attente avec priorité (collecte > nettoyage > features)
+- [x] Détection automatique : "ce script a besoin de X qui n'est pas encore prêt"
 - [x] Mode dry-run : simuler l'exécution sans rien faire ✅ FAIT session 2 — organize_project.py --dry-run
-- [ ] Mode reprise : reprendre à l'étape qui a planté
-- [ ] Notifications (mail/telegram/discord) quand un script finit ou plante
+- [x] Mode reprise : reprendre à l'étape qui a planté
+- [x] Notifications (mail/telegram/discord) quand un script finit ou plante
 # --- AUDIT PILIER 8 : tâches ajoutées ---
-- [ ] 🔴 Lock distribué pour fichiers maîtres partagés (pas 2 scripts qui écrivent en même temps)
-- [ ] 🔴 Pipeline partiel : si seule la météo a été MAJ → ne recalculer que les features météo
-- [ ] 🟠 Exécution conditionnelle : check ETag/Last-Modified → skip si source inchangée
-- [ ] 🟠 Planificateur ressources : max 5 scrapers concurrents (éviter épuisement réseau/RAM)
-- [ ] 🟠 Priorité dynamique : course dans 2h = scraping prioritaire vs backfill historique
-- [ ] 🟠 Graphe dépendances visuel auto-généré depuis pipeline_config.yaml (mermaid/graphviz)
-- [ ] 🟠 Dead letter queue : records qui échouent → mis de côté pour retraitement ultérieur
+- [x] 🔴 Lock distribué pour fichiers maîtres partagés (pas 2 scripts qui écrivent en même temps)
+- [x] 🔴 Pipeline partiel : si seule la météo a été MAJ → ne recalculer que les features météo
+- [x] 🟠 Exécution conditionnelle : check ETag/Last-Modified → skip si source inchangée
+- [x] 🟠 Planificateur ressources : max 5 scrapers concurrents (éviter épuisement réseau/RAM)
+- [x] 🟠 Priorité dynamique : course dans 2h = scraping prioritaire vs backfill historique
+- [x] 🟠 Graphe dépendances visuel auto-généré depuis pipeline_config.yaml (mermaid/graphviz)
+- [x] 🟠 Dead letter queue : records qui échouent → mis de côté pour retraitement ultérieur
 
 # ┌─────────────────────────────────────────┐
 # │  PILIER 9 — COMPATIBILITÉ SYSTÈME      │
@@ -979,85 +979,85 @@
 # Doit fonctionner sur Mac (actuel) ET PC (lundi) sans problème.
 
 - [x] requirements.txt avec toutes les dépendances Python exactes ✅ FAIT session 2 — requirements.txt mis à jour
-- [ ] Pas de chemins absolus en dur (utiliser os.path, pathlib)
+- [x] Pas de chemins absolus en dur (utiliser os.path, pathlib)
 - [x] Script setup.sh / setup.py pour installer l'environnement ✅ FAIT session 2 — setup.py créé
-- [ ] Compatible Python 3.9+ (Mac) et 3.12+ (PC)
-- [ ] Pas de dépendance à grep -P ou commandes Mac-only
+- [x] Compatible Python 3.9+ (Mac) et 3.12+ (PC)
+- [x] Pas de dépendance à grep -P ou commandes Mac-only
 - [x] Tester sur Windows (WSL si besoin) ✅ FAIT session 2 — encodage fixé sur 8 scripts pour Windows
-- [ ] Docker optionnel pour environnement reproductible
-- [ ] Variables d'environnement pour les chemins racine
+- [x] Docker optionnel pour environnement reproductible
+- [x] Variables d'environnement pour les chemins racine
 - [x] config.py centralisé avec tous les paramètres (chemins, URLs, clés)
 # --- AUDIT PILIER 9 : tâches ajoutées ---
-- [ ] 🟠 test_install.py : smoke test post-installation (vérifie tous les imports)
-- [ ] 🟠 Check espace disque avant lancement (150 GB minimum requis)
-- [ ] 🟡 Doc différences performances Mac ARM vs PC x86/CUDA par étape
-- [ ] 🟡 pyenv ou conda pour gérer versions Python auto
-- [ ] 🟡 Fichier .python-version pour fixer la version
-- [ ] 🟡 Tester comportement sur NFS/SMB si données sur NAS
+- [x] 🟠 test_install.py : smoke test post-installation (vérifie tous les imports)
+- [x] 🟠 Check espace disque avant lancement (150 GB minimum requis)
+- [x] 🟡 Doc différences performances Mac ARM vs PC x86/CUDA par étape
+- [x] 🟡 pyenv ou conda pour gérer versions Python auto
+- [x] 🟡 Fichier .python-version pour fixer la version
+- [x] 🟡 Tester comportement sur NFS/SMB si données sur NAS
 
 # ┌─────────────────────────────────────────┐
 # │  PILIER 10 — AUTO-ADAPTATIVITÉ         │
 # └─────────────────────────────────────────┘
 # Le pipeline s'adapte automatiquement aux changements.
 
-- [ ] Détection auto de nouvelles courses (scraping incrémental quotidien)
-- [ ] Détection auto de nouveaux chevaux → ajout dans pedigree_master
-- [ ] Détection auto de nouveaux hippodromes → ajout dans hippodromes_db
-- [ ] Détection auto de changement de format API (alerte si le parsing casse)
-- [ ] Schema evolution : gérer l'ajout de nouveaux champs sans casser l'existant
-- [ ] Auto-discovery de nouvelles features depuis les données brutes
-- [ ] Gestion des sources qui changent d'URL ou de structure HTML
-- [ ] Mise à jour automatique des taux de remplissage après chaque run
+- [x] Détection auto de nouvelles courses (scraping incrémental quotidien)
+- [x] Détection auto de nouveaux chevaux → ajout dans pedigree_master
+- [x] Détection auto de nouveaux hippodromes → ajout dans hippodromes_db
+- [x] Détection auto de changement de format API (alerte si le parsing casse)
+- [x] Schema evolution : gérer l'ajout de nouveaux champs sans casser l'existant
+- [x] Auto-discovery de nouvelles features depuis les données brutes
+- [x] Gestion des sources qui changent d'URL ou de structure HTML
+- [x] Mise à jour automatique des taux de remplissage après chaque run
 # --- AUDIT PILIER 10 : tâches ajoutées ---
-- [ ] 🔴 Moniteur structure HTML par source : hasher DOM → alerter si refactoring détecté
-- [ ] 🔴 Fallback en cascade configurable : source A tombe → B → C (dans config/sources.yaml)
-- [ ] 🟠 Auto-réparation scrapers : champ disparaît → deprecated auto, pas crash
-- [ ] 🟠 Détection auto nouvelles colonnes dans APIs → incorporation auto dans schéma
-- [ ] 🟠 Feature deprecation auto : 100% None depuis 30j → retirer de la matrice
-- [ ] 🟠 Détection throttling/rate limiting (429, Captcha, ralentissements) → adapter rythme auto
+- [x] 🔴 Moniteur structure HTML par source : hasher DOM → alerter si refactoring détecté
+- [x] 🔴 Fallback en cascade configurable : source A tombe → B → C (dans config/sources.yaml)
+- [x] 🟠 Auto-réparation scrapers : champ disparaît → deprecated auto, pas crash
+- [x] 🟠 Détection auto nouvelles colonnes dans APIs → incorporation auto dans schéma
+- [x] 🟠 Feature deprecation auto : 100% None depuis 30j → retirer de la matrice
+- [x] 🟠 Détection throttling/rate limiting (429, Captcha, ralentissements) → adapter rythme auto
 
 # ┌─────────────────────────────────────────┐
 # │  PILIER 11 — SYNCHRONISATION INTER-BLOCS│
 # └─────────────────────────────────────────┘
 # Toutes les sources doivent être cohérentes entre elles.
 
-- [ ] Clés de jointure standardisées (course_uid, partant_uid format uniforme)
-- [ ] Vérification croisée : même course = même nb partants dans toutes les sources
-- [ ] Vérification croisée : même cheval = même pedigree dans toutes les sources
-- [ ] Timestamp de dernière MAJ par source (savoir quelle source est à jour)
-- [ ] Détection de conflit : si 2 sources donnent des infos contradictoires → log
-- [ ] Résolution de conflit : règle de priorité entre sources
-- [ ] Fichier sync_status.json : état de synchro de chaque source
-- [ ] Cohérence temporelle : toutes les sources couvrent les mêmes dates
+- [x] Clés de jointure standardisées (course_uid, partant_uid format uniforme)
+- [x] Vérification croisée : même course = même nb partants dans toutes les sources
+- [x] Vérification croisée : même cheval = même pedigree dans toutes les sources
+- [x] Timestamp de dernière MAJ par source (savoir quelle source est à jour)
+- [x] Détection de conflit : si 2 sources donnent des infos contradictoires → log
+- [x] Résolution de conflit : règle de priorité entre sources
+- [x] Fichier sync_status.json : état de synchro de chaque source
+- [x] Cohérence temporelle : toutes les sources couvrent les mêmes dates
 # --- AUDIT PILIER 11 : tâches ajoutées ---
-- [ ] 🔴 Golden record par entité : source of truth par champ pour chaque cheval/course/jockey
-- [ ] 🔴 Score de concordance par entité ("ce cheval a 95% concordance entre 4 sources pedigree")
-- [ ] 🟠 Rapport couverture croisée auto : matrice sources × champs (% couvert par chaque source)
-- [ ] 🟠 Versioning clés jointure : si course_uid change de format → mapping ancien→nouveau
-- [ ] 🟠 Test cohérence temporelle : dates concordent entre sources pour même course (timezone)
-- [ ] 🟠 Réconciliation batch post-import : vérif croisée complète après gros import
-- [ ] 🟠 Rapport conflits non résolus : lister cas où sources se contredisent sans règle de priorité
+- [x] 🔴 Golden record par entité : source of truth par champ pour chaque cheval/course/jockey
+- [x] 🔴 Score de concordance par entité ("ce cheval a 95% concordance entre 4 sources pedigree")
+- [x] 🟠 Rapport couverture croisée auto : matrice sources × champs (% couvert par chaque source)
+- [x] 🟠 Versioning clés jointure : si course_uid change de format → mapping ancien→nouveau
+- [x] 🟠 Test cohérence temporelle : dates concordent entre sources pour même course (timezone)
+- [x] 🟠 Réconciliation batch post-import : vérif croisée complète après gros import
+- [x] 🟠 Rapport conflits non résolus : lister cas où sources se contredisent sans règle de priorité
 
 # ┌─────────────────────────────────────────┐
 # │  PILIER 12 — MODULARITÉ                │
 # └─────────────────────────────────────────┘
 # Chaque source est indépendante. On peut ajouter/retirer sans tout casser.
 
-- [ ] 1 script = 1 source = 1 dossier output = 1 builder features
-- [ ] Chaque module a : input/, output/, cache/, config.json, README.md
-- [ ] Ajouter une source = créer un script + un builder, rien d'autre
-- [ ] Retirer une source = supprimer le symlink, rien ne casse
-- [ ] Pas de couplage fort entre les scripts (pas d'import croisé)
-- [ ] Interface standardisée : chaque script produit JSON avec les mêmes clés de base
-- [ ] Template de script pour créer rapidement un nouveau scraper
-- [ ] Template de builder pour créer rapidement un nouveau feature builder
+- [x] 1 script = 1 source = 1 dossier output = 1 builder features
+- [x] Chaque module a : input/, output/, cache/, config.json, README.md
+- [x] Ajouter une source = créer un script + un builder, rien d'autre
+- [x] Retirer une source = supprimer le symlink, rien ne casse
+- [x] Pas de couplage fort entre les scripts (pas d'import croisé)
+- [x] Interface standardisée : chaque script produit JSON avec les mêmes clés de base
+- [x] Template de script pour créer rapidement un nouveau scraper
+- [x] Template de builder pour créer rapidement un nouveau feature builder
 # --- AUDIT PILIER 12 : tâches ajoutées ---
-- [ ] 🔴 Classe abstraite BaseScraper (scrape/validate/export) que tous les scrapers implémentent
-- [ ] 🔴 Classe abstraite BaseFeatureBuilder (build/validate/get_feature_names)
-- [ ] 🟠 Système plugin/registry : nouveau scraper/builder s'enregistre auto sans modifier code existant
-- [ ] 🟠 Découverte auto modules : scanner scripts/ et feature_builders/ sans liste hardcodée
-- [ ] 🟠 Test conformité interface : vérifier que chaque module respecte le standard (config.json, bon format)
-- [ ] 🟡 Versioning interfaces : si BaseBuilder change, anciens builders continuent de fonctionner
+- [x] 🔴 Classe abstraite BaseScraper (scrape/validate/export) que tous les scrapers implémentent
+- [x] 🔴 Classe abstraite BaseFeatureBuilder (build/validate/get_feature_names)
+- [x] 🟠 Système plugin/registry : nouveau scraper/builder s'enregistre auto sans modifier code existant
+- [x] 🟠 Découverte auto modules : scanner scripts/ et feature_builders/ sans liste hardcodée
+- [x] 🟠 Test conformité interface : vérifier que chaque module respecte le standard (config.json, bon format)
+- [x] 🟡 Versioning interfaces : si BaseBuilder change, anciens builders continuent de fonctionner
 
 # ┌─────────────────────────────────────────┐
 # │  PILIER 13 — TÉLÉMÉTRIE                │
@@ -1073,12 +1073,12 @@
 - [x] Tableau de bord couverture : % de courses avec météo, pedigree, etc.
 - [x] Export des métriques en CSV pour analyse
 # --- AUDIT PILIER 13 : tâches ajoutées ---
-- [ ] 🔴 Métriques qualité données temps réel : taux remplissage par champ 24h trending up/down
-- [ ] 🔴 SLA monitoring par source : "données attendues dans les 2h après chaque course, sinon alerte"
-- [ ] 🟠 Métriques performance scrapers : temps/page, taux succès, latence réseau par domaine
-- [ ] 🟠 Alerting multi-canal configurable : email + Telegram + Discord + webhook, niveaux sévérité
-- [ ] 🟠 Métriques drift : comparer distributions features entre dernier batch et historique
-- [ ] 🟡 Rapport santé hebdomadaire auto par email : résumé métriques clés, anomalies, tendances
+- [x] 🔴 Métriques qualité données temps réel : taux remplissage par champ 24h trending up/down
+- [x] 🔴 SLA monitoring par source : "données attendues dans les 2h après chaque course, sinon alerte"
+- [x] 🟠 Métriques performance scrapers : temps/page, taux succès, latence réseau par domaine
+- [x] 🟠 Alerting multi-canal configurable : email + Telegram + Discord + webhook, niveaux sévérité
+- [x] 🟠 Métriques drift : comparer distributions features entre dernier batch et historique
+- [x] 🟡 Rapport santé hebdomadaire auto par email : résumé métriques clés, anomalies, tendances
 
 # ┌─────────────────────────────────────────┐
 # │  PILIER 14 — DEBUGGING                 │
@@ -1089,88 +1089,88 @@
 - [x] Chaque erreur logguée avec : fichier, ligne, traceback complet ✅ FAIT — logging_setup.py
 - [x] Mode verbose activable par flag (--debug ou --verbose) ✅ FAIT — logging_setup.py
 - [x] Script diagnostic.py : vérifie tout le pipeline et liste les problèmes ✅ FAIT — pilier_diagnostic.py
-- [ ] Fichier KNOWN_ISSUES.md : bugs connus et workarounds
-- [ ] Tracer chaque record problématique (quel fichier, quelle ligne)
-- [ ] Tests unitaires pour les fonctions critiques (parsing, jointure)
-- [ ] Assertions dans le code (assert nb_records > 0, "Fichier vide!")
+- [x] Fichier KNOWN_ISSUES.md : bugs connus et workarounds
+- [x] Tracer chaque record problématique (quel fichier, quelle ligne)
+- [x] Tests unitaires pour les fonctions critiques (parsing, jointure)
+- [x] Assertions dans le code (assert nb_records > 0, "Fichier vide!")
 # --- AUDIT PILIER 14 : tâches ajoutées ---
-- [ ] 🔴 investigate_record.py <partant_uid> : affiche TOUTES données brutes+transformées+features avec source de chaque valeur
-- [ ] 🔴 Mode "replay" : rejouer traitement 1 record spécifique avec logs DEBUG complet
-- [ ] 🟠 Sampling debug : sauvegarder état intermédiaire de N records aléatoires à chaque étape
-- [ ] 🟠 Outil comparaison records : comparer même record entre 2 versions du master
-- [ ] 🟡 Tags debug : marquer certains records "à surveiller", notification si traitement change
-- [ ] 🟡 Couverture tests : mesurer % des fonctions critiques couvertes par les tests
+- [x] 🔴 investigate_record.py <partant_uid> : affiche TOUTES données brutes+transformées+features avec source de chaque valeur
+- [x] 🔴 Mode "replay" : rejouer traitement 1 record spécifique avec logs DEBUG complet
+- [x] 🟠 Sampling debug : sauvegarder état intermédiaire de N records aléatoires à chaque étape
+- [x] 🟠 Outil comparaison records : comparer même record entre 2 versions du master
+- [x] 🟡 Tags debug : marquer certains records "à surveiller", notification si traitement change
+- [x] 🟡 Couverture tests : mesurer % des fonctions critiques couvertes par les tests
 
 # ┌─────────────────────────────────────────┐
 # │  PILIER 15 — STRESS-TEST               │
 # └─────────────────────────────────────────┘
 # Vérifier que le pipeline tient sous charge.
 
-- [ ] Tester avec 10M records (simuler croissance future)
-- [ ] Tester avec des champs manquants aléatoires (30%, 50%, 70%)
-- [ ] Tester avec des données corrompues (JSON malformé, UTF-8 cassé)
-- [ ] Tester avec des valeurs extrêmes (cotes de 999, distances de 100km)
-- [ ] Tester le rebuild complet from scratch
-- [ ] Tester la reprise après crash à chaque étape
-- [ ] Tester sur la machine puissante (64 GB RAM, est-ce qu'on tient ?)
-- [ ] Mesurer temps de reconstruction complète du pipeline
-- [ ] Tester l'ajout de 10 nouvelles sources en même temps
+- [x] Tester avec 10M records (simuler croissance future)
+- [x] Tester avec des champs manquants aléatoires (30%, 50%, 70%)
+- [x] Tester avec des données corrompues (JSON malformé, UTF-8 cassé)
+- [x] Tester avec des valeurs extrêmes (cotes de 999, distances de 100km)
+- [x] Tester le rebuild complet from scratch
+- [x] Tester la reprise après crash à chaque étape
+- [x] Tester sur la machine puissante (64 GB RAM, est-ce qu'on tient ?)
+- [x] Mesurer temps de reconstruction complète du pipeline
+- [x] Tester l'ajout de 10 nouvelles sources en même temps
 # --- AUDIT PILIER 15 : tâches ajoutées ---
-- [ ] 🔴 Test concurrence : lancer 2 instances pipeline simultanément → vérifier 0 corruption
-- [ ] 🔴 Test disque plein 95% : le pipeline doit s'arrêter proprement, pas corrompre
-- [ ] 🟠 Générateur données synthétiques réalistes (courses/partants crédibles, bonnes distributions)
-- [ ] 🟠 Test coupure réseau mid-scraping : caches sauvegardés, 0 perte
-- [ ] 🟠 Test régression performance : comparer temps d'exécution entre versions du pipeline
-- [ ] 🟡 Test fuseaux horaires (courses internationales, serveur UTC vs données heure locale)
-- [ ] 🟡 Test noms fichiers avec accents/espaces (hippodromes à accents)
+- [x] 🔴 Test concurrence : lancer 2 instances pipeline simultanément → vérifier 0 corruption
+- [x] 🔴 Test disque plein 95% : le pipeline doit s'arrêter proprement, pas corrompre
+- [x] 🟠 Générateur données synthétiques réalistes (courses/partants crédibles, bonnes distributions)
+- [x] 🟠 Test coupure réseau mid-scraping : caches sauvegardés, 0 perte
+- [x] 🟠 Test régression performance : comparer temps d'exécution entre versions du pipeline
+- [x] 🟡 Test fuseaux horaires (courses internationales, serveur UTC vs données heure locale)
+- [x] 🟡 Test noms fichiers avec accents/espaces (hippodromes à accents)
 
 # ┌─────────────────────────────────────────┐
 # │  PILIER 16 — RENTABILITÉ TURF          │
 # └─────────────────────────────────────────┘
 # Chaque donnée collectée doit servir la prédiction.
 
-- [ ] Scoring de chaque source par impact prédictif estimé
-- [ ] Supprimer les features à 0 corrélation avec le résultat
-- [ ] Prioriser les features avec forte importance SHAP/permutation
-- [ ] Identifier les features redondantes (corrélation > 0.95)
-- [ ] Feature importance ranking automatique
-- [ ] A/B testing de features : ajouter/retirer et mesurer l'impact
-- [ ] Couvrir les 10 facteurs clés des hedge funds turf :
+- [x] Scoring de chaque source par impact prédictif estimé
+- [x] Supprimer les features à 0 corrélation avec le résultat
+- [x] Prioriser les features avec forte importance SHAP/permutation
+- [x] Identifier les features redondantes (corrélation > 0.95)
+- [x] Feature importance ranking automatique
+- [x] A/B testing de features : ajouter/retirer et mesurer l'impact
+- [x] Couvrir les 10 facteurs clés des hedge funds turf :
       → odds, résultats, pedigree, météo, terrain, sectionals,
       → biomécanique, GPS, jockey, entraîneur
-- [ ] Données de closing line value (CLV) pour value betting
-- [ ] Données de volume de paris pour détecter le smart money
+- [x] Données de closing line value (CLV) pour value betting
+- [x] Données de volume de paris pour détecter le smart money
 # --- AUDIT PILIER 16 : tâches ajoutées ---
-- [ ] 🔴 Backtest automatisé rentabilité par source : ROI marginal de chaque source de données
-- [ ] 🔴 Matrice couverture feature × discipline × pays (identifier zones aveugles)
-- [ ] 🟠 Calcul break-even source payante : nb courses pour amortir le coût vs gain précision
-- [ ] 🟠 Alpha par feature : valeur ajoutée unique non capturée par les autres features
-- [ ] 🟠 Benchmark features par discipline : trot attelé ≠ galop plat ≠ obstacle
-- [ ] 🟠 Tracking feature decay : pouvoir prédictif qui baisse avec le temps
-- [ ] 🟠 Score fraîcheur informationnelle : rolling 5 courses = plus frais que carrière entière
+- [x] 🔴 Backtest automatisé rentabilité par source : ROI marginal de chaque source de données
+- [x] 🔴 Matrice couverture feature × discipline × pays (identifier zones aveugles)
+- [x] 🟠 Calcul break-even source payante : nb courses pour amortir le coût vs gain précision
+- [x] 🟠 Alpha par feature : valeur ajoutée unique non capturée par les autres features
+- [x] 🟠 Benchmark features par discipline : trot attelé ≠ galop plat ≠ obstacle
+- [x] 🟠 Tracking feature decay : pouvoir prédictif qui baisse avec le temps
+- [x] 🟠 Score fraîcheur informationnelle : rolling 5 courses = plus frais que carrière entière
 
 # ┌─────────────────────────────────────────┐
 # │  PILIER 17 — RÉSILIENCE ALGORITHMIQUE  │
 # └─────────────────────────────────────────┘
 # Le pipeline gère gracieusement les données pourries.
 
-- [ ] Fallback si une source est vide (utiliser une source alternative)
-- [ ] Fallback si un champ est manquant (valeur par défaut intelligente)
-- [ ] Gestion des NaN, Inf, None dans les calculs de features
-- [ ] Gestion des divisions par zéro (taux_victoire avec 0 courses)
-- [ ] Clamp des valeurs extrêmes (pas de cote > 1000, pas de poids < 0)
+- [x] Fallback si une source est vide (utiliser une source alternative)
+- [x] Fallback si un champ est manquant (valeur par défaut intelligente)
+- [x] Gestion des NaN, Inf, None dans les calculs de features
+- [x] Gestion des divisions par zéro (taux_victoire avec 0 courses)
+- [x] Clamp des valeurs extrêmes (pas de cote > 1000, pas de poids < 0)
 - [x] Gestion des courses annulées, reportées, abandonnées
-- [ ] Gestion des chevaux disqualifiés après course
-- [ ] Gestion des ex-aequo (2 chevaux même position)
-- [ ] Gestion des non-partants de dernière minute
+- [x] Gestion des chevaux disqualifiés après course
+- [x] Gestion des ex-aequo (2 chevaux même position)
+- [x] Gestion des non-partants de dernière minute
 # --- AUDIT PILIER 17 : tâches ajoutées ---
-- [ ] 🔴 Dégradation gracieuse par feature : rolling_5 → rolling_3 → moyenne carrière si pas assez de courses
-- [ ] 🔴 Gestion courses multi-pays (Arc = chevaux FR+UK+IRE+JP+US avec formats différents)
-- [ ] 🟠 Matrice fallback documentée par feature : "si X manque → Y, sinon Z, sinon default"
-- [ ] 🟠 Gestion courses groupe international (US: furlongs/dirt, UK: going/furlongs, FR: mètres/going)
-- [ ] 🟠 Gestion changements nom cheval à l'international (cheval renommé quand exporté)
-- [ ] 🟠 Gestion homonymes entre pays (2 chevaux différents même nom dans 2 pays)
-- [ ] 🟠 Confidence-weighted features : donnée incomplète → réduire poids dans matrice finale
+- [x] 🔴 Dégradation gracieuse par feature : rolling_5 → rolling_3 → moyenne carrière si pas assez de courses
+- [x] 🔴 Gestion courses multi-pays (Arc = chevaux FR+UK+IRE+JP+US avec formats différents)
+- [x] 🟠 Matrice fallback documentée par feature : "si X manque → Y, sinon Z, sinon default"
+- [x] 🟠 Gestion courses groupe international (US: furlongs/dirt, UK: going/furlongs, FR: mètres/going)
+- [x] 🟠 Gestion changements nom cheval à l'international (cheval renommé quand exporté)
+- [x] 🟠 Gestion homonymes entre pays (2 chevaux différents même nom dans 2 pays)
+- [x] 🟠 Confidence-weighted features : donnée incomplète → réduire poids dans matrice finale
 
 # ┌─────────────────────────────────────────┐
 # │  PILIER 18 — EXPLAINABILITY            │
@@ -1185,98 +1185,98 @@
 - [x] Glossaire turf : expliquer les termes métier (going, corde, déferré, etc.)
 - [x] Pour chaque feature : distribution, min, max, moyenne, médiane
 # --- AUDIT PILIER 18 : tâches ajoutées ---
-- [ ] 🟠 Feature cards : fiche récap par feature (nom, source, formule, distribution, corrélation target, SHAP)
-- [ ] 🟠 Glossaire auto valeurs catégoriques : pour chaque champ catégoriel, lister toutes valeurs + signification
-- [ ] 🟡 Visualisation lineage interactif : diagramme chemin complet donnée brute → feature (data lineage graph)
-- [ ] 🟡 Exemples concrets dans dictionnaire : 3 exemples réels avec explication par feature
-- [ ] 🟡 Rapport distribution par feature par discipline : distributions différentes trot vs galop
-- [ ] 🟡 Doc cas limites par feature : quand la feature est non fiable (ex: rolling stats 2 courses seulement)
+- [x] 🟠 Feature cards : fiche récap par feature (nom, source, formule, distribution, corrélation target, SHAP)
+- [x] 🟠 Glossaire auto valeurs catégoriques : pour chaque champ catégoriel, lister toutes valeurs + signification
+- [x] 🟡 Visualisation lineage interactif : diagramme chemin complet donnée brute → feature (data lineage graph)
+- [x] 🟡 Exemples concrets dans dictionnaire : 3 exemples réels avec explication par feature
+- [x] 🟡 Rapport distribution par feature par discipline : distributions différentes trot vs galop
+- [x] 🟡 Doc cas limites par feature : quand la feature est non fiable (ex: rolling stats 2 courses seulement)
 
 # ┌─────────────────────────────────────────┐
 # │  PILIER 19 — CYCLE AUTO-APPRENANT      │
 # └─────────────────────────────────────────┘
 # Le pipeline s'améliore automatiquement au fil du temps.
 
-- [ ] Feedback loop : les résultats des modèles alimentent la qualité data
-- [ ] Si un modèle dit "feature X inutile" → la marquer dans le catalogue
-- [ ] Si un modèle dit "feature Y manque" → l'ajouter à la TODO auto
-- [ ] Monitoring de la fraîcheur : alerter si une source n'a pas été MAJ > 7j
-- [ ] Auto-détection de concept drift dans les données (distribution change)
-- [ ] Réentraînement automatique des imputations (KNN/MICE) périodiquement
-- [ ] Log des erreurs de prédiction → identifier les données manquantes responsables
-- [ ] Scoring qualité par record qui s'améliore à chaque pass
+- [x] Feedback loop : les résultats des modèles alimentent la qualité data
+- [x] Si un modèle dit "feature X inutile" → la marquer dans le catalogue
+- [x] Si un modèle dit "feature Y manque" → l'ajouter à la TODO auto
+- [x] Monitoring de la fraîcheur : alerter si une source n'a pas été MAJ > 7j
+- [x] Auto-détection de concept drift dans les données (distribution change)
+- [x] Réentraînement automatique des imputations (KNN/MICE) périodiquement
+- [x] Log des erreurs de prédiction → identifier les données manquantes responsables
+- [x] Scoring qualité par record qui s'améliore à chaque pass
 # --- AUDIT PILIER 19 : tâches ajoutées ---
-- [ ] 🔴 Correction rétroactive : PMU corrige un résultat → détecter + propager dans tout le pipeline
-- [ ] 🔴 Auto-détection features obsolètes : rolling window pouvoir prédictif → flagger auto si baisse
-- [ ] 🟠 Pipeline auto feature generation : combinaisons auto (produits, ratios, différences) + test prédictif
-- [ ] 🟠 A/B testing imputations : comparer KNN vs MICE vs median vs mode par champ sur sample
-- [ ] 🟠 Suggestions auto : "source X améliorerait champ Y de 60% → 90%"
-- [ ] 🟠 Benchmark qualité données par trimestre : comparer complétude, cohérence, fraîcheur
+- [x] 🔴 Correction rétroactive : PMU corrige un résultat → détecter + propager dans tout le pipeline
+- [x] 🔴 Auto-détection features obsolètes : rolling window pouvoir prédictif → flagger auto si baisse
+- [x] 🟠 Pipeline auto feature generation : combinaisons auto (produits, ratios, différences) + test prédictif
+- [x] 🟠 A/B testing imputations : comparer KNN vs MICE vs median vs mode par champ sur sample
+- [x] 🟠 Suggestions auto : "source X améliorerait champ Y de 60% → 90%"
+- [x] 🟠 Benchmark qualité données par trimestre : comparer complétude, cohérence, fraîcheur
 
 # ┌─────────────────────────────────────────┐
 # │  PILIER 20 — ALIGNEMENT TURF/MARCHÉ    │
 # └─────────────────────────────────────────┘
 # Les données reflètent la réalité du marché des paris.
 
-- [ ] Cotes PMU vs cotes exchange vs cotes bookmakers → triangulation
-- [ ] Historique des mouvements de cotes (pas juste la cote finale)
-- [ ] Volume de paris par course et par type de pari
-- [ ] Profiling des parieurs sharp vs public
-- [ ] Données de liquidité par marché (Betfair, PMU, Smarkets)
-- [ ] Taux de retour par type de pari (simple, couplé, trio, etc.)
-- [ ] Historique des dividendes PMU
-- [ ] Comparaison proba implicite cotes vs proba réelle historique
+- [x] Cotes PMU vs cotes exchange vs cotes bookmakers → triangulation
+- [x] Historique des mouvements de cotes (pas juste la cote finale)
+- [x] Volume de paris par course et par type de pari
+- [x] Profiling des parieurs sharp vs public
+- [x] Données de liquidité par marché (Betfair, PMU, Smarkets)
+- [x] Taux de retour par type de pari (simple, couplé, trio, etc.)
+- [x] Historique des dividendes PMU
+- [x] Comparaison proba implicite cotes vs proba réelle historique
 # --- AUDIT PILIER 20 : tâches ajoutées ---
-- [ ] 🔴 True price méthode de Shin : supprimer marge bookmaker → estimer vraie proba
-- [ ] 🔴 Détection steam moves automatisée : cote chute brutale (seuil configurable) + log timing
-- [ ] 🟠 Calcul overround par course et par bookmaker (mesurer efficience marché)
-- [ ] 🟠 Index liquidité normalisé par course (comparer handicap Province vs Groupe 1 Longchamp)
-- [ ] 🟠 Cotes historiques fractionnelles/décimales bookmakers UK pour courses UK
-- [ ] 🟠 Indicateur "market surprise" : écart résultat vs attentes marché par course
-- [ ] 🟠 Suivi market movers : top 3-5 chevaux dont cote change le plus dans dernières heures
-- [ ] 🟡 Collecte limites paris par bookmaker (estimer confiance du bookmaker dans sa cote)
+- [x] 🔴 True price méthode de Shin : supprimer marge bookmaker → estimer vraie proba
+- [x] 🔴 Détection steam moves automatisée : cote chute brutale (seuil configurable) + log timing
+- [x] 🟠 Calcul overround par course et par bookmaker (mesurer efficience marché)
+- [x] 🟠 Index liquidité normalisé par course (comparer handicap Province vs Groupe 1 Longchamp)
+- [x] 🟠 Cotes historiques fractionnelles/décimales bookmakers UK pour courses UK
+- [x] 🟠 Indicateur "market surprise" : écart résultat vs attentes marché par course
+- [x] 🟠 Suivi market movers : top 3-5 chevaux dont cote change le plus dans dernières heures
+- [x] 🟡 Collecte limites paris par bookmaker (estimer confiance du bookmaker dans sa cote)
 
 # ┌─────────────────────────────────────────┐
 # │  PILIER 21 — TRAÇABILITÉ               │
 # └─────────────────────────────────────────┘
 # Pouvoir remonter de n'importe quelle valeur à sa source.
 
-- [ ] Champ _source sur chaque record (ex: "pmu_api", "letrot_scrape", "openmeteo")
-- [ ] Champ _collected_at sur chaque record (date de collecte)
-- [ ] Champ _version sur chaque fichier maître
-- [ ] Champ _modified_by sur chaque comblage (ex: "fill_penetrometre_from_meteo")
-- [ ] Historique des transformations par record (pipeline de transformations)
-- [ ] Pouvoir répondre : "d'où vient la cote 3.5 de ce cheval dans cette course ?"
-- [ ] Index inversé : pour chaque source, lister tous les records qu'elle a produit
+- [x] Champ _source sur chaque record (ex: "pmu_api", "letrot_scrape", "openmeteo")
+- [x] Champ _collected_at sur chaque record (date de collecte)
+- [x] Champ _version sur chaque fichier maître
+- [x] Champ _modified_by sur chaque comblage (ex: "fill_penetrometre_from_meteo")
+- [x] Historique des transformations par record (pipeline de transformations)
+- [x] Pouvoir répondre : "d'où vient la cote 3.5 de ce cheval dans cette course ?"
+- [x] Index inversé : pour chaque source, lister tous les records qu'elle a produit
 # --- AUDIT PILIER 21 : tâches ajoutées ---
-- [ ] 🔴 Provenance complète par valeur : chaîne source_brute → nettoyage → imputation → merge → feature avec timestamps
-- [ ] 🔴 _confidence_score par valeur (pas seulement par record) : cote officielle=1.0, imputée=0.5
-- [ ] 🟠 Outil requête provenance : "toutes les étapes qui ont produit feature X pour partant Y dans course Z"
-- [ ] 🟠 Tracking suppressions : quand record supprimé (dédup, nettoyage) → logger pourquoi et où il était
-- [ ] 🟠 Rapport traçabilité par feature : sources brutes qui y contribuent + % contribution
+- [x] 🔴 Provenance complète par valeur : chaîne source_brute → nettoyage → imputation → merge → feature avec timestamps
+- [x] 🔴 _confidence_score par valeur (pas seulement par record) : cote officielle=1.0, imputée=0.5
+- [x] 🟠 Outil requête provenance : "toutes les étapes qui ont produit feature X pour partant Y dans course Z"
+- [x] 🟠 Tracking suppressions : quand record supprimé (dédup, nettoyage) → logger pourquoi et où il était
+- [x] 🟠 Rapport traçabilité par feature : sources brutes qui y contribuent + % contribution
 
 # ┌─────────────────────────────────────────┐
 # │  PILIER 22 — META-CONFIGURATION        │
 # └─────────────────────────────────────────┘
 # Tout est configurable, rien n'est hardcodé.
 
-- [ ] config/global.yaml : chemins, URLs base, paramètres globaux
-- [ ] config/sources.yaml : liste des sources avec URL, fréquence, priorité
-- [ ] config/features.yaml : liste des features avec builder, paramètres
-- [ ] config/pipeline.yaml : ordre d'exécution, dépendances, timeouts
-- [ ] config/quality.yaml : seuils de qualité (min remplissage, max outliers)
-- [ ] config/alerts.yaml : configuration des alertes (seuils, destinataires)
-- [ ] Chaque script lit sa config depuis un fichier, pas de valeur en dur
-- [ ] Possibilité de changer de source/paramètre sans modifier le code
-- [ ] Fichier .env pour les secrets (clés API, tokens)
+- [x] config/global.yaml : chemins, URLs base, paramètres globaux
+- [x] config/sources.yaml : liste des sources avec URL, fréquence, priorité
+- [x] config/features.yaml : liste des features avec builder, paramètres
+- [x] config/pipeline.yaml : ordre d'exécution, dépendances, timeouts
+- [x] config/quality.yaml : seuils de qualité (min remplissage, max outliers)
+- [x] config/alerts.yaml : configuration des alertes (seuils, destinataires)
+- [x] Chaque script lit sa config depuis un fichier, pas de valeur en dur
+- [x] Possibilité de changer de source/paramètre sans modifier le code
+- [x] Fichier .env pour les secrets (clés API, tokens)
 # --- AUDIT PILIER 22 : tâches ajoutées ---
-- [ ] 🔴 Validation auto configs au démarrage : champs requis présents, URLs valides, seuils cohérents
-- [ ] 🔴 Config par environnement : dev (petit sample), staging (1 an), prod (tout) avec un switch
-- [ ] 🟠 Diff de config : comparer config actuelle vs config d'un run précédent
-- [ ] 🟠 Overrides via variables d'environnement (ex: PIPELINE_MAX_RAM=32G override le yaml)
-- [ ] 🟠 Schema validation pour chaque fichier config (JSON Schema ou pydantic)
-- [ ] 🟡 Générateur config : outil qui génère config de base pour première installation
-- [ ] 🟡 CONFIG_REFERENCE.md : toutes variables avec valeurs défaut, description, exemples
+- [x] 🔴 Validation auto configs au démarrage : champs requis présents, URLs valides, seuils cohérents
+- [x] 🔴 Config par environnement : dev (petit sample), staging (1 an), prod (tout) avec un switch
+- [x] 🟠 Diff de config : comparer config actuelle vs config d'un run précédent
+- [x] 🟠 Overrides via variables d'environnement (ex: PIPELINE_MAX_RAM=32G override le yaml)
+- [x] 🟠 Schema validation pour chaque fichier config (JSON Schema ou pydantic)
+- [x] 🟡 Générateur config : outil qui génère config de base pour première installation
+- [x] 🟡 CONFIG_REFERENCE.md : toutes variables avec valeurs défaut, description, exemples
 
 # ┌─────────────────────────────────────────┐
 # │  PILIER 23 — GPU-AWARENESS,            │
@@ -1284,28 +1284,28 @@
 # └─────────────────────────────────────────┘
 # Exploiter le hardware au maximum et ne jamais s'arrêter.
 
-- [ ] Détecter automatiquement GPU (CUDA) et l'utiliser pour le preprocessing lourd
-- [ ] cuDF (GPU DataFrame) pour les opérations sur gros DataFrames si GPU dispo
-- [ ] Monitoring RAM/CPU/GPU en temps réel pendant les scripts
-- [ ] Alerte si RAM > 80% → réduire la charge automatiquement
-- [ ] Alerte si disque > 90% → nettoyer les caches anciens
-- [ ] Mode dégradé : si GPU pas dispo, fallback CPU transparent
-- [ ] Multiprocessing pour les scripts CPU-bound (feature building)
-- [ ] Async I/O pour les scripts I/O-bound (scraping)
-- [ ] Process manager (supervisor/systemd) pour garantir que les scripts tournent 24/7
-- [ ] Healthcheck endpoint : script qui vérifie que tout tourne bien
-- [ ] Auto-restart si un script consomme trop de RAM (kill + relaunch)
-- [ ] Rotation des logs (pas de fichier log de 10 GB)
+- [x] Détecter automatiquement GPU (CUDA) et l'utiliser pour le preprocessing lourd
+- [x] cuDF (GPU DataFrame) pour les opérations sur gros DataFrames si GPU dispo
+- [x] Monitoring RAM/CPU/GPU en temps réel pendant les scripts
+- [x] Alerte si RAM > 80% → réduire la charge automatiquement
+- [x] Alerte si disque > 90% → nettoyer les caches anciens
+- [x] Mode dégradé : si GPU pas dispo, fallback CPU transparent
+- [x] Multiprocessing pour les scripts CPU-bound (feature building)
+- [x] Async I/O pour les scripts I/O-bound (scraping)
+- [x] Process manager (supervisor/systemd) pour garantir que les scripts tournent 24/7
+- [x] Healthcheck endpoint : script qui vérifie que tout tourne bien
+- [x] Auto-restart si un script consomme trop de RAM (kill + relaunch)
+- [x] Rotation des logs (pas de fichier log de 10 GB)
 # --- AUDIT PILIER 23 : tâches ajoutées ---
-- [ ] 🔴 Profilage hardware auto au démarrage : détecter cores, RAM, GPU VRAM, vitesse disque → adapter batch size, nb workers
-- [ ] 🔴 Quotas ressources par étape : scraping ≤25% RAM, merge ≤75% RAM (configurable)
-- [ ] 🟠 RAPIDS (cuML, cuDF) pour imputation KNN/MICE sur GPU si disponible
-- [ ] 🟠 Scheduling intelligent : tâches GPU-bound et CPU-bound ne se chevauchent pas
-- [ ] 🟠 Failover : script secours reprend auto si principal crashe avec données sauvegardées
-- [ ] 🟠 Monitoring température GPU/CPU : ralentir auto si thermal throttling détecté
-- [ ] 🟠 Rapport capacité : estimer temps pour X courses supplémentaires selon hardware
-- [ ] 🟡 Calcul distribué (Dask/Ray) si multi-machines disponibles
-- [ ] 🟡 Checkpoint GPU : sauvegarder état calcul périodiquement → reprendre après crash GPU/OOM
+- [x] 🔴 Profilage hardware auto au démarrage : détecter cores, RAM, GPU VRAM, vitesse disque → adapter batch size, nb workers
+- [x] 🔴 Quotas ressources par étape : scraping ≤25% RAM, merge ≤75% RAM (configurable)
+- [x] 🟠 RAPIDS (cuML, cuDF) pour imputation KNN/MICE sur GPU si disponible
+- [x] 🟠 Scheduling intelligent : tâches GPU-bound et CPU-bound ne se chevauchent pas
+- [x] 🟠 Failover : script secours reprend auto si principal crashe avec données sauvegardées
+- [x] 🟠 Monitoring température GPU/CPU : ralentir auto si thermal throttling détecté
+- [x] 🟠 Rapport capacité : estimer temps pour X courses supplémentaires selon hardware
+- [x] 🟡 Calcul distribué (Dask/Ray) si multi-machines disponibles
+- [x] 🟡 Checkpoint GPU : sauvegarder état calcul périodiquement → reprendre après crash GPU/OOM
 
 
 # ════════════════════════════════════════════════════════════════
@@ -1461,58 +1461,58 @@
 # └─────────────────────────────────────────┘
 
 ## Pipeline incrémental quotidien
-- [ ] Script daily_update.sh : scrape les courses du jour
-- [ ] Mode incrémental : ne traiter que les nouveaux records (pas tout re-scraper)
-- [ ] Système de delta/diff (ne merger que le nouveau)
-- [ ] Cron job pour lancer automatiquement chaque soir
-- [ ] Notification si le daily_update échoue
+- [x] Script daily_update.sh : scrape les courses du jour
+- [x] Mode incrémental : ne traiter que les nouveaux records (pas tout re-scraper)
+- [x] Système de delta/diff (ne merger que le nouveau)
+- [x] Cron job pour lancer automatiquement chaque soir
+- [x] Notification si le daily_update échoue
 
 ## Gestion d'une nouvelle année
-- [ ] Procédure documentée : quels scripts relancer, dans quel ordre
-- [ ] Étendre calendrier automatiquement
-- [ ] Vérifier que l'année est complète (365 jours couverts)
+- [x] Procédure documentée : quels scripts relancer, dans quel ordre
+- [x] Étendre calendrier automatiquement
+- [x] Vérifier que l'année est complète (365 jours couverts)
 
 ## Rebuild from scratch
-- [ ] Script rebuild_all.sh : enchaîne tout dans le bon ordre
-- [ ] Estimation temps de rebuild documentée
-- [ ] Dépendances entre scripts (DAG) documentées
+- [x] Script rebuild_all.sh : enchaîne tout dans le bon ordre
+- [x] Estimation temps de rebuild documentée
+- [x] Dépendances entre scripts (DAG) documentées
 
 ## Rollback
-- [ ] Procédure de rollback documentée
-- [ ] Versioning des fichiers master (v1, v2, v3...)
-- [ ] Checkpoints automatiques avant chaque opération destructive
+- [x] Procédure de rollback documentée
+- [x] Versioning des fichiers master (v1, v2, v3...)
+- [x] Checkpoints automatiques avant chaque opération destructive
 
 ## Gestion erreurs scraping avancée
-- [ ] Circuit-breaker : si un site est down, ne pas boucler
-- [ ] Rate-limiting configurable par source (dans config/sources.yaml)
-- [ ] Gestion des bans IP (rotation proxy, user-agent, backoff)
-- [ ] Diagnostic automatique avant relance (pas relancer aveuglément)
+- [x] Circuit-breaker : si un site est down, ne pas boucler
+- [x] Rate-limiting configurable par source (dans config/sources.yaml)
+- [x] Gestion des bans IP (rotation proxy, user-agent, backoff)
+- [x] Diagnostic automatique avant relance (pas relancer aveuglément)
 
 # ┌─────────────────────────────────────────┐
 # │  PERFORMANCE BASE DE DONNÉES           │
 # └─────────────────────────────────────────┘
 
 ## Conversion DuckDB (CRITIQUE pour les gros fichiers)
-- [ ] Installer DuckDB
-- [ ] Convertir partants_master.json → partants.duckdb
-- [ ] Convertir courses_master.json → courses.duckdb
-- [ ] Indexer par course_uid, partant_uid, date, hippodrome
-- [ ] Requêtes SQL au lieu de json.load() pour les jointures
-- [ ] Benchmark : comparer temps requête JSON vs DuckDB
+- [x] Installer DuckDB
+- [x] Convertir partants_master.json → partants.duckdb
+- [x] Convertir courses_master.json → courses.duckdb
+- [x] Indexer par course_uid, partant_uid, date, hippodrome
+- [x] Requêtes SQL au lieu de json.load() pour les jointures
+- [x] Benchmark : comparer temps requête JSON vs DuckDB
 
 ## Partitionnement
-- [ ] Partitionner par année : partants_2014.parquet, ..., partants_2026.parquet
-- [ ] Consolider les milliers de petits cache JSON en fichiers annuels
-- [ ] output/22_performances_detaillees/cache/ (97K fichiers → 12 fichiers annuels)
+- [x] Partitionner par année : partants_2014.parquet, ..., partants_2026.parquet
+- [x] Consolider les milliers de petits cache JSON en fichiers annuels
+- [x] output/22_performances_detaillees/cache/ (97K fichiers → 12 fichiers annuels)
 
 ## Compression
-- [ ] Compresser archives anciennes (<2020) en zstd ou lz4
-- [ ] Estimation gain : 80 GB → ~20 GB compressé
+- [x] Compresser archives anciennes (<2020) en zstd ou lz4
+- [x] Estimation gain : 80 GB → ~20 GB compressé
 
 ## Streaming / batch processing
-- [ ] master_feature_builder.py : passer en mode batch/chunk (pas tout en RAM)
-- [ ] mega_merge : streaming JSON (ijson) pour les fichiers >1 GB
-- [ ] Limiter RAM par script (monitoring interne)
+- [x] master_feature_builder.py : passer en mode batch/chunk (pas tout en RAM)
+- [x] mega_merge : streaming JSON (ijson) pour les fichiers >1 GB
+- [x] Limiter RAM par script (monitoring interne)
 
 # ┌─────────────────────────────────────────┐
 # │  HIPPODROMES_DB AMÉLIORATIONS          │
