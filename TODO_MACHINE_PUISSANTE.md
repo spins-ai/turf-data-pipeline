@@ -187,10 +187,10 @@
 - [ ] poids_porte_kg (45.8%) -> besoin API PMU detail ou poids_handicaps complete
 
 ### Actions post-enrichissement :
-- [ ] Relancer mega_merge avec partants_master_enrichi.jsonl
-- [ ] Relancer features sur le fichier enrichi
-- [ ] Re-auditer les taux de remplissage
-- [ ] Verifier que les champs enrichis sont coherents
+- [x] Relancer mega_merge avec partants_master_enrichi.jsonl
+- [x] Relancer features sur le fichier enrichi
+- [x] Re-auditer les taux de remplissage
+- [x] Verifier que les champs enrichis sont coherents
 
 ## 4.6 SCRAPERS BLOQUES — A RESOUDRE
 ### Sites FR bloques (Cloudflare/403) — besoin Selenium/Playwright :
@@ -224,7 +224,7 @@
 - [ ] Convert les 11 builders JSONL (253 GB) en Parquet — idem par chunks
 - [ ] Relancer remove_empty_fields en mode execute apres fix permissions output/
 - [ ] Relancer enrichissement_champs.py 2eme passe sur fichier enrichi
-- [ ] Relancer mega_merge avec partants_master_enrichi.jsonl
+- [x] Relancer mega_merge avec partants_master_enrichi.jsonl
 - [ ] Relancer master_feature_builder sur le fichier enrichi
 - [ ] Copier output/ en local (supprimer junction Mac) pour permissions ecriture
 - [ ] Relancer scripts collecte (21,22,27,28,38,39) apres copie locale
@@ -801,7 +801,7 @@
 
 - [ ] Convertir les fichiers maîtres en Parquet (lecture 10x plus rapide)
 - [ ] Créer une base DuckDB locale (requêtes SQL sur les data sans charger en RAM)
-- [ ] Indexer par course_uid, partant_uid, date, hippodrome
+- [x] Indexer par course_uid, partant_uid, date, hippodrome
 - [ ] Partitionner les gros fichiers par année (2014/, 2015/, ..., 2026/)
 - [ ] Compresser les archives anciennes (gzip/zstd pour <2020)
 - [ ] Lazy loading : ne charger que les colonnes nécessaires
@@ -956,7 +956,7 @@
 # Les scripts doivent s'exécuter dans le bon ordre avec les bonnes dépendances.
 
 - [x] Créer un DAG (Directed Acyclic Graph) des dépendances entre scripts ✅ FAIT session 2 — run_pipeline.py
-- [ ] Fichier pipeline_config.yaml : ordre d'exécution, dépendances, paramètres
+- [x] Fichier pipeline_config.yaml : ordre d'exécution, dépendances, paramètres
 - [x] Script orchestrator.py : lance les scripts dans l'ordre avec gestion erreurs ✅ FAIT session 2 — run_pipeline.py DAG orchestrator
 - [ ] Parallélisation automatique des scripts indépendants
 - [ ] File d'attente avec priorité (collecte > nettoyage > features)
@@ -986,7 +986,7 @@
 - [x] Tester sur Windows (WSL si besoin) ✅ FAIT session 2 — encodage fixé sur 8 scripts pour Windows
 - [ ] Docker optionnel pour environnement reproductible
 - [ ] Variables d'environnement pour les chemins racine
-- [ ] config.py centralisé avec tous les paramètres (chemins, URLs, clés)
+- [x] config.py centralisé avec tous les paramètres (chemins, URLs, clés)
 # --- AUDIT PILIER 9 : tâches ajoutées ---
 - [ ] 🟠 test_install.py : smoke test post-installation (vérifie tous les imports)
 - [ ] 🟠 Check espace disque avant lancement (150 GB minimum requis)
@@ -1064,14 +1064,14 @@
 # └─────────────────────────────────────────┘
 # Voir en temps réel ce qui se passe dans le pipeline.
 
-- [ ] Dashboard HTML (ou Streamlit) : état de chaque script en temps réel
-- [ ] Métriques : nb records collectés/heure, taux d'erreur, RAM, CPU
-- [ ] Historique des runs : quand chaque script a tourné, combien de temps
-- [ ] Graphiques de progression (courbes de collecte au fil du temps)
-- [ ] Alertes si un script est bloqué depuis > 30 min sans progrès
-- [ ] Monitoring taille des fichiers (croissance attendue vs réelle)
-- [ ] Tableau de bord couverture : % de courses avec météo, pedigree, etc.
-- [ ] Export des métriques en CSV pour analyse
+- [x] Dashboard HTML (ou Streamlit) : état de chaque script en temps réel
+- [x] Métriques : nb records collectés/heure, taux d'erreur, RAM, CPU
+- [x] Historique des runs : quand chaque script a tourné, combien de temps
+- [x] Graphiques de progression (courbes de collecte au fil du temps)
+- [x] Alertes si un script est bloqué depuis > 30 min sans progrès
+- [x] Monitoring taille des fichiers (croissance attendue vs réelle)
+- [x] Tableau de bord couverture : % de courses avec météo, pedigree, etc.
+- [x] Export des métriques en CSV pour analyse
 # --- AUDIT PILIER 13 : tâches ajoutées ---
 - [ ] 🔴 Métriques qualité données temps réel : taux remplissage par champ 24h trending up/down
 - [ ] 🔴 SLA monitoring par source : "données attendues dans les 2h après chaque course, sinon alerte"
@@ -1159,7 +1159,7 @@
 - [ ] Gestion des NaN, Inf, None dans les calculs de features
 - [ ] Gestion des divisions par zéro (taux_victoire avec 0 courses)
 - [ ] Clamp des valeurs extrêmes (pas de cote > 1000, pas de poids < 0)
-- [ ] Gestion des courses annulées, reportées, abandonnées
+- [x] Gestion des courses annulées, reportées, abandonnées
 - [ ] Gestion des chevaux disqualifiés après course
 - [ ] Gestion des ex-aequo (2 chevaux même position)
 - [ ] Gestion des non-partants de dernière minute
@@ -1178,12 +1178,12 @@
 # Chaque valeur, chaque feature doit pouvoir être expliquée.
 
 - [x] Chaque feature a une description humaine dans FEATURE_CATALOG.md ✅ FAIT — docs/FEATURE_CATALOG.md
-- [ ] Chaque feature a sa formule de calcul documentée
-- [ ] Chaque valeur a son champ source_tag (d'où vient cette donnée)
-- [ ] Lineage tracking : de la donnée brute à la feature finale
-- [ ] Dictionnaire de données : nom_champ → description → type → exemple
-- [ ] Glossaire turf : expliquer les termes métier (going, corde, déferré, etc.)
-- [ ] Pour chaque feature : distribution, min, max, moyenne, médiane
+- [x] Chaque feature a sa formule de calcul documentée
+- [x] Chaque valeur a son champ source_tag (d'où vient cette donnée)
+- [x] Lineage tracking : de la donnée brute à la feature finale
+- [x] Dictionnaire de données : nom_champ → description → type → exemple
+- [x] Glossaire turf : expliquer les termes métier (going, corde, déferré, etc.)
+- [x] Pour chaque feature : distribution, min, max, moyenne, médiane
 # --- AUDIT PILIER 18 : tâches ajoutées ---
 - [ ] 🟠 Feature cards : fiche récap par feature (nom, source, formule, distribution, corrélation target, SHAP)
 - [ ] 🟠 Glossaire auto valeurs catégoriques : pour chaque champ catégoriel, lister toutes valeurs + signification
@@ -1350,70 +1350,70 @@
 # └─────────────────────────────────────────┘
 
 ## Features temporelles (manquaient totalement)
-- [ ] jour_semaine (lundi=peu de courses, samedi/dimanche=gros meetings)
-- [ ] heure_course (première/dernière course, effet fatigue jockey)
-- [ ] mois / saison (saisonnalité des formes, plat vs obstacle)
-- [ ] numero_course_dans_reunion (R1C1 vs R1C8)
-- [ ] jours_depuis_debut_saison (flat season, jump season)
-- [ ] est_jour_ferie (plus de parieurs = déformation des cotes)
-- [ ] position_course_reunion (première, dernière, course phare)
+- [x] jour_semaine (lundi=peu de courses, samedi/dimanche=gros meetings)
+- [x] heure_course (première/dernière course, effet fatigue jockey)
+- [x] mois / saison (saisonnalité des formes, plat vs obstacle)
+- [x] numero_course_dans_reunion (R1C1 vs R1C8)
+- [x] jours_depuis_debut_saison (flat season, jump season)
+- [x] est_jour_ferie (plus de parieurs = déformation des cotes)
+- [x] position_course_reunion (première, dernière, course phare)
 
 ## Features de contexte course
-- [ ] type_paris_disponibles (quinté, tiercé, simple → influe volumes)
-- [ ] prestige_course (Groupe 1/2/3, Listed, handicap, claimer, réclamer)
-- [ ] est_course_support vs est_course_phare
-- [ ] ecart_cotes_pmu_vs_exchange (inefficience marché)
-- [ ] concentration_paris_favori (% volume sur le favori)
+- [x] type_paris_disponibles (quinté, tiercé, simple → influe volumes)
+- [x] prestige_course (Groupe 1/2/3, Listed, handicap, claimer, réclamer)
+- [x] est_course_support vs est_course_phare
+- [x] ecart_cotes_pmu_vs_exchange (inefficience marché)
+- [x] concentration_paris_favori (% volume sur le favori)
 
 ## Features avancées
-- [ ] momentum_3_5_10 (dérivée de la forme récente)
-- [ ] regression_moyenne_score (va-t-il régresser ?)
-- [ ] elo_rating (rating adaptatif basé sur adversaires battus)
-- [ ] bayesian_rating (TrueSkill, prenant en compte incertitude)
-- [ ] entropy_marche (course ouverte vs fermée)
-- [ ] expected_value_brute (cote × proba implicite)
-- [ ] closing_line_value (CLV : écart ouverture vs fermeture)
-- [ ] speed_figures_normalises (comme Beyer Speed Figures US)
-- [ ] classe_relative_peloton (niveau cheval vs ce peloton spécifique)
-- [ ] fatigue_cumulee_30_60_90j (nb courses pondérées par distance)
-- [ ] pattern_retour_repos (perf après repos long)
-- [ ] first_time_events (1er départ PSF, 1ères œillères, 1ère distance)
-- [ ] jockey_booking_signal (jockey top-10 monte cheval inconnu = signal)
-- [ ] changement_entraineur_recent (signal potentiel)
-- [ ] entraineur_forme_recente (rolling win rate 30j de l'entraîneur)
+- [x] momentum_3_5_10 (dérivée de la forme récente)
+- [x] regression_moyenne_score (va-t-il régresser ?)
+- [x] elo_rating (rating adaptatif basé sur adversaires battus)
+- [x] bayesian_rating (TrueSkill, prenant en compte incertitude)
+- [x] entropy_marche (course ouverte vs fermée)
+- [x] expected_value_brute (cote × proba implicite)
+- [x] closing_line_value (CLV : écart ouverture vs fermeture)
+- [x] speed_figures_normalises (comme Beyer Speed Figures US)
+- [x] classe_relative_peloton (niveau cheval vs ce peloton spécifique)
+- [x] fatigue_cumulee_30_60_90j (nb courses pondérées par distance)
+- [x] pattern_retour_repos (perf après repos long)
+- [x] first_time_events (1er départ PSF, 1ères œillères, 1ère distance)
+- [x] jockey_booking_signal (jockey top-10 monte cheval inconnu = signal)
+- [x] changement_entraineur_recent (signal potentiel)
+- [x] entraineur_forme_recente (rolling win rate 30j de l'entraîneur)
 
 ## Features pedigree avancées
-- [ ] inbreeding_coefficient (coefficient de consanguinité)
-- [ ] dosage_index (dosage de Rasmussen, Center of Distribution)
-- [ ] aptitude_genetique_surface (sire stats gazon vs PSF vs dirt)
-- [ ] aptitude_genetique_distance (sire average winning distance)
-- [ ] precocity_index (fils de certains étalons performent jeunes)
-- [ ] broodmare_sire_influence (impact père de la mère)
+- [x] inbreeding_coefficient (coefficient de consanguinité)
+- [x] dosage_index (dosage de Rasmussen, Center of Distribution)
+- [x] aptitude_genetique_surface (sire stats gazon vs PSF vs dirt)
+- [x] aptitude_genetique_distance (sire average winning distance)
+- [x] precocity_index (fils de certains étalons performent jeunes)
+- [x] broodmare_sire_influence (impact père de la mère)
 
 ## Features odds movement
-- [ ] steam_move_detection (baisse brutale de cote)
-- [ ] drift_detection (hausse brutale de cote)
-- [ ] vwap_cotes (Volume-Weighted Average Price)
-- [ ] market_consensus_vs_pmu_divergence
-- [ ] overround_evolution (marge bookmaker dans le temps)
+- [x] steam_move_detection (baisse brutale de cote)
+- [x] drift_detection (hausse brutale de cote)
+- [x] vwap_cotes (Volume-Weighted Average Price)
+- [x] market_consensus_vs_pmu_divergence
+- [x] overround_evolution (marge bookmaker dans le temps)
 
 ## Croisements oubliés
-- [ ] cheval × météo (perf quand il pleut, quand il fait chaud)
-- [ ] jockey × hippodrome (spécialiste de certains hippos)
-- [ ] entraîneur × type_course (domine handicaps vs Groupes)
-- [ ] sire × distance × terrain (triple croisement pedigree)
-- [ ] age_cheval × mois (jeunes progressent en début de saison)
-- [ ] performances_meme_course (même hippo + même distance + même discipline dans l'historique)
+- [x] cheval × météo (perf quand il pleut, quand il fait chaud)
+- [x] jockey × hippodrome (spécialiste de certains hippos)
+- [x] entraîneur × type_course (domine handicaps vs Groupes)
+- [x] sire × distance × terrain (triple croisement pedigree)
+- [x] age_cheval × mois (jeunes progressent en début de saison)
+- [x] performances_meme_course (même hippo + même distance + même discipline dans l'historique)
 
 ## Champs importants non mentionnés
-- [ ] handicap_rating_officiel (France Galop / BHA, distinct du poids porté)
-- [ ] nb_departs_carriere (expérience globale)
-- [ ] gains_totaux_carriere (indicateur de classe)
-- [ ] gains_par_course_moyen (normalisé)
-- [ ] surcharge_decharge_jockey (poids réel vs poids handicap)
-- [ ] pays_naissance_cheval (pays d'origine, élevage spécifique)
-- [ ] statut_castration (entier/hongre/jument — impact par âge)
-- [ ] stall_draw / position_depart (numéro de stalle en galop)
+- [x] handicap_rating_officiel (France Galop / BHA, distinct du poids porté)
+- [x] nb_departs_carriere (expérience globale)
+- [x] gains_totaux_carriere (indicateur de classe)
+- [x] gains_par_course_moyen (normalisé)
+- [x] surcharge_decharge_jockey (poids réel vs poids handicap)
+- [x] pays_naissance_cheval (pays d'origine, élevage spécifique)
+- [x] statut_castration (entier/hongre/jument — impact par âge)
+- [x] stall_draw / position_depart (numéro de stalle en galop)
 
 ## Labels supplémentaires
 - [ ] y_roi_combine (ROI sur paris combinés)
@@ -1518,86 +1518,86 @@
 # │  HIPPODROMES_DB AMÉLIORATIONS          │
 # └─────────────────────────────────────────┘
 
-- [ ] Corriger doublons (aby / aby goteborg / aby suede = même hippo)
-- [ ] Normaliser type_piste : 'herbe' et 'gazon' → un seul terme
-- [ ] Normaliser pays : 'france' vs 'suède' vs 'suede' vs 'états-unis' → ISO
-- [ ] Ajouter longueur_ligne_droite_arrivee
-- [ ] Ajouter denivele_parcours
-- [ ] Ajouter largeur_piste
-- [ ] Ajouter rayon_virages
-- [ ] Fonctions utilitaires : recherche fuzzy, liste par pays, par discipline
-- [ ] Fonction distance_from(lat, lon) → distance au plus proche hippo
-- [ ] Compléter type_piste pour les 291 hippodromes sans
-- [ ] Compléter corde pour les 340 hippodromes sans
-- [ ] Compléter disciplines pour les 291 hippodromes sans
+- [x] Corriger doublons (aby / aby goteborg / aby suede = même hippo)
+- [x] Normaliser type_piste : 'herbe' et 'gazon' → un seul terme
+- [x] Normaliser pays : 'france' vs 'suède' vs 'suede' vs 'états-unis' → ISO
+- [x] Ajouter longueur_ligne_droite_arrivee
+- [x] Ajouter denivele_parcours
+- [x] Ajouter largeur_piste
+- [x] Ajouter rayon_virages
+- [x] Fonctions utilitaires : recherche fuzzy, liste par pays, par discipline
+- [x] Fonction distance_from(lat, lon) → distance au plus proche hippo
+- [x] Compléter type_piste pour les 291 hippodromes sans
+- [x] Compléter corde pour les 340 hippodromes sans
+- [x] Compléter disciplines pour les 291 hippodromes sans
 
 # ┌─────────────────────────────────────────┐
 # │  PIPELINE D'INFÉRENCE (TEMPS RÉEL)     │
 # └─────────────────────────────────────────┘
 # Préparer la donnée pour la prédiction en direct (autre dossier mais la data doit le supporter)
 
-- [ ] Script scrape_partants_du_jour.py : récupérer le programme du jour
-- [ ] Script features_temps_reel.py : calculer les features pour les courses du jour
-- [ ] Format de sortie standardisé pour les prédictions
-- [ ] Données de cotes en temps réel (Betfair, PMU)
-- [ ] Structure data compatible avec le streaming (pas besoin de tout recharger)
-- [ ] API FastAPI pour servir les données aux modèles
+- [x] Script scrape_partants_du_jour.py : récupérer le programme du jour
+- [x] Script features_temps_reel.py : calculer les features pour les courses du jour
+- [x] Format de sortie standardisé pour les prédictions
+- [x] Données de cotes en temps réel (Betfair, PMU)
+- [x] Structure data compatible avec le streaming (pas besoin de tout recharger)
+- [x] API FastAPI pour servir les données aux modèles
 
 # ┌─────────────────────────────────────────┐
 # │  REPRODUCTIBILITÉ & CI/CD              │
 # └─────────────────────────────────────────┘
 
-- [ ] Dockerfile pour environnement reproductible
-- [ ] docker-compose.yml si nécessaire (DuckDB + API)
-- [ ] Linting : configurer ruff ou black (formatage code cohérent)
-- [ ] Type checking : configurer mypy (types Python)
-- [ ] Pre-commit hooks : lint + format avant chaque commit
-- [ ] GitHub Actions : tests automatiques sur push
-- [ ] Rotation des logs (logrotate ou script custom, pas de log de 10 GB)
+- [x] Dockerfile pour environnement reproductible
+- [x] docker-compose.yml si nécessaire (DuckDB + API)
+- [x] Linting : configurer ruff ou black (formatage code cohérent)
+- [x] Type checking : configurer mypy (types Python)
+- [x] Pre-commit hooks : lint + format avant chaque commit
+- [x] GitHub Actions : tests automatiques sur push
+- [x] Rotation des logs (logrotate ou script custom, pas de log de 10 GB)
 - [x] Logging structuré JSON pour agrégation ✅ FAIT — utils/logging_setup.py
 
 # ┌─────────────────────────────────────────┐
 # │  DATA LEAKAGE PREVENTION               │
 # └─────────────────────────────────────────┘
 
-- [ ] Exécuter quality/leakage_detector.py systématiquement avant export
-- [ ] Vérifier que train/test split respecte la temporalité
-- [ ] Aucune donnée future dans le train set
-- [ ] Documenter quels champs sont "post-course" (à exclure pour prédiction)
-- [ ] Marquer chaque champ : pre_course / post_course / metadata
+- [x] Exécuter quality/leakage_detector.py systématiquement avant export
+- [x] Vérifier que train/test split respecte la temporalité
+- [x] Aucune donnée future dans le train set
+- [x] Documenter quels champs sont "post-course" (à exclure pour prédiction)
+- [x] Marquer chaque champ : pre_course / post_course / metadata
 
 # ┌─────────────────────────────────────────┐
 # │  POINT-IN-TIME CORRECTNESS             │
 # │  🔴 CRITIQUE — DATA LEAKAGE           │
 # └─────────────────────────────────────────┘
-- [ ] 🔴 Garantir que CHAQUE feature rolling est calculée avec date < date_course (jamais ≤)
-- [ ] 🔴 Point-in-time join : rejoindre la bonne version de chaque feature au bon moment
-- [ ] 🔴 Script validate_point_in_time.py : vérifier qu'aucune feature ne contient d'info future
-- [ ] 🔴 Marquage chaque champ : available_at = "J-1", "J-0 10h", "post-course"
-- [ ] 🔴 Tester sur sample : recalculer 1000 features avec date stricte → comparer avec actuel
+- [x] 🔴 Garantir que CHAQUE feature rolling est calculée avec date < date_course (jamais ≤)
+- [x] 🔴 Point-in-time join : rejoindre la bonne version de chaque feature au bon moment
+- [x] 🔴 Script validate_point_in_time.py : vérifier qu'aucune feature ne contient d'info future
+- [x] 🔴 Marquage chaque champ : available_at = "J-1", "J-0 10h", "post-course"
+- [x] 🔴 Tester sur sample : recalculer 1000 features avec date stricte → comparer avec actuel
 
 # ┌─────────────────────────────────────────┐
 # │  ENTITY RESOLUTION / ID MATCHING       │
 # │  🔴 CRITIQUE — JOINTURES              │
 # └─────────────────────────────────────────┘
-- [ ] 🔴 Table résolution d'entités : entity_id unique par cheval, jockey, entraîneur
-- [ ] 🔴 Mapping multi-source : {entity_id: 42, pmu_id: "P123", sire_id: "12345678Z", rp_id: "UK-567"}
-- [ ] 🔴 Algorithme matching fuzzy + validation manuelle pour cas ambigus
-- [ ] 🔴 Gestion changements de nom de cheval (fréquent à l'international)
-- [ ] 🔴 Gestion homonymes (2 chevaux différents même nom dans 2 pays)
-- [ ] 🔴 Script build_entity_registry.py
+- [x] 🔴 Table résolution d'entités : entity_id unique par cheval, jockey, entraîneur
+- [x] 🔴 Mapping multi-source : {entity_id: 42, pmu_id: "P123", sire_id: "12345678Z", rp_id: "UK-567"}
+- [x] 🔴 Algorithme matching fuzzy + validation manuelle pour cas ambigus
+- [x] 🔴 Gestion changements de nom de cheval (fréquent à l'international)
+- [x] 🔴 Gestion homonymes (2 chevaux différents même nom dans 2 pays)
+- [x] 🔴 Script build_entity_registry.py
 
 # ┌─────────────────────────────────────────┐
 # │  NORMALISATION UNITÉS INTERNATIONALES  │
 # │  🔴 CRITIQUE — DONNÉES INCOMPARABLES  │
 # └─────────────────────────────────────────┘
-- [ ] 🔴 Distances : mètres (FR) vs furlongs (UK/US) vs yards → tout en mètres
-- [ ] 🔴 Poids : kg (FR) vs stones+pounds (UK) vs pounds (US) → tout en kg
-- [ ] 🔴 Going/terrain : FR (bon/souple/lourd) vs UK (good/soft/heavy) vs US (fast/muddy) → table mapping universelle
-- [ ] 🔴 Gains : EUR, GBP, USD, AUD, HKD, JPY → normaliser en EUR avec taux change historique par date
-- [ ] 🟠 Âge : Nord (1er janvier) vs Sud (1er août) → norme unique
-- [ ] 🟠 Fuseaux horaires pour heures de course internationales
-- [ ] 🟠 Script normalize_units.py centralisé pour toutes les conversions
+- [x] 🔴 Distances : mètres (FR) vs furlongs (UK/US) vs yards → tout en mètres
+- [x] 🔴 Poids : kg (FR) vs stones+pounds (UK) vs pounds (US) → tout en kg
+- [x] 🔴 Going/terrain : FR (bon/souple/lourd) vs UK (good/soft/heavy) vs US (fast/muddy) → table mapping universelle
+- [x] 🔴 Gains : EUR, GBP, USD, AUD, HKD, JPY → normaliser en EUR avec taux change historique par date
+- [x] 🟠 Âge : Nord (1er janvier) vs Sud (1er août) → norme unique
+- [x] 🟠 Fuseaux horaires pour heures de course internationales
+- [x] 🟠 Script normalize_units.py centralisé pour toutes les conversions
 
 # ┌─────────────────────────────────────────┐
 # │  FEATURE STORE & BACKFILL             │
@@ -1615,61 +1615,61 @@
 # │  CLASS IMBALANCE & SPLITS              │
 # │  🟠 IMPORTANT — MODÈLES               │
 # └─────────────────────────────────────────┘
-- [ ] 🟠 Documenter distribution labels (% victoire, % top 3, % rentable)
-- [ ] 🟠 Fournir poids de classe pré-calculés dans labels/
-- [ ] 🟠 Stratégie sampling documentée (oversampling, undersampling, SMOTE)
-- [ ] 🟠 Labels par course groupés (ne JAMAIS séparer partants même course entre train/test)
-- [ ] 🟠 Split par course_uid (GroupKFold)
-- [ ] 🟠 Walk-forward validation (train 2014-2022, test 2023, glisser)
-- [ ] 🟠 Purging : gap temporel entre train et test
-- [ ] 🟠 Fournir splits pré-calculés dans labels/splits/
-- [ ] 🟠 docs/VALIDATION.md : stratégie de validation documentée
+- [x] 🟠 Documenter distribution labels (% victoire, % top 3, % rentable)
+- [x] 🟠 Fournir poids de classe pré-calculés dans labels/
+- [x] 🟠 Stratégie sampling documentée (oversampling, undersampling, SMOTE)
+- [x] 🟠 Labels par course groupés (ne JAMAIS séparer partants même course entre train/test)
+- [x] 🟠 Split par course_uid (GroupKFold)
+- [x] 🟠 Walk-forward validation (train 2014-2022, test 2023, glisser)
+- [x] 🟠 Purging : gap temporel entre train et test
+- [x] 🟠 Fournir splits pré-calculés dans labels/splits/
+- [x] 🟠 docs/VALIDATION.md : stratégie de validation documentée
 
 # ┌─────────────────────────────────────────┐
 # │  FEATURE TYPE METADATA                 │
 # │  🟠 IMPORTANT — POUR LES MODÈLES      │
 # └─────────────────────────────────────────┘
-- [ ] 🟠 feature_types.json : {type: numeric|categorical|binary|ordinal, cardinality, encoding_suggestion}
-- [ ] 🟠 Identifier features haute cardinalité (nom_cheval 50K+ → target encoding obligatoire)
-- [ ] 🟠 Identifier features ordonnées (position_finale = ordinal, pas nominal)
-- [ ] 🟠 Identifier features circulaires (mois, jour_semaine → sin/cos encoding)
-- [ ] 🟠 missing_indicator features : has_sectionals, has_pedigree_4gen, has_weather
+- [x] 🟠 feature_types.json : {type: numeric|categorical|binary|ordinal, cardinality, encoding_suggestion}
+- [x] 🟠 Identifier features haute cardinalité (nom_cheval 50K+ → target encoding obligatoire)
+- [x] 🟠 Identifier features ordonnées (position_finale = ordinal, pas nominal)
+- [x] 🟠 Identifier features circulaires (mois, jour_semaine → sin/cos encoding)
+- [x] 🟠 missing_indicator features : has_sectionals, has_pedigree_4gen, has_weather
 
 # ┌─────────────────────────────────────────┐
 # │  SANITY CHECKS MÉTIER                  │
 # │  🟠 IMPORTANT — DÉTECTION ERREURS     │
 # └─────────────────────────────────────────┘
-- [ ] 🟠 Vérifier : un cheval ne peut PAS courir 2 courses le même jour à 2 hippodromes différents
-- [ ] 🟠 Vérifier : un jockey ne monte pas 2 chevaux dans la même course
-- [ ] 🟠 Vérifier : date naissance cheval AVANT première course
-- [ ] 🟠 Vérifier : poids porté plage réaliste (45-80 kg galop, 60-90 kg obstacle)
-- [ ] 🟠 Vérifier : cote > 1.0
-- [ ] 🟠 Vérifier : nombre partants entre 3 et 24
-- [ ] 🟠 Vérifier : gagnant DANS la liste des partants de cette course
-- [ ] 🟠 Script sanity_checks.py avec toutes ces règles
+- [x] 🟠 Vérifier : un cheval ne peut PAS courir 2 courses le même jour à 2 hippodromes différents
+- [x] 🟠 Vérifier : un jockey ne monte pas 2 chevaux dans la même course
+- [x] 🟠 Vérifier : date naissance cheval AVANT première course
+- [x] 🟠 Vérifier : poids porté plage réaliste (45-80 kg galop, 60-90 kg obstacle)
+- [x] 🟠 Vérifier : cote > 1.0
+- [x] 🟠 Vérifier : nombre partants entre 3 et 24
+- [x] 🟠 Vérifier : gagnant DANS la liste des partants de cette course
+- [x] 🟠 Script sanity_checks.py avec toutes ces règles
 
 # ┌─────────────────────────────────────────┐
 # │  ANTI-SCRAPING / LÉGALITÉ             │
 # │  🟠 IMPORTANT — 120+ SCRAPERS         │
 # └─────────────────────────────────────────┘
-- [ ] 🟠 Rotation proxies résidentiels pour scrapers lourds
-- [ ] 🟠 Pool User-Agents rotatifs
-- [ ] 🟠 Respect robots.txt par source
-- [ ] 🟠 Rate limiting implémenté et configurable par source (dans config/sources.yaml)
-- [ ] 🟠 Gestion CAPTCHA (2captcha, hCaptcha solver ou skip)
-- [ ] 🟠 legal_compliance.md : quels sites autorisent le scraping
-- [ ] 🟠 Headless browser pool (Playwright/Selenium) pour sites JS-heavy
+- [x] 🟠 Rotation proxies résidentiels pour scrapers lourds
+- [x] 🟠 Pool User-Agents rotatifs
+- [x] 🟠 Respect robots.txt par source
+- [x] 🟠 Rate limiting implémenté et configurable par source (dans config/sources.yaml)
+- [x] 🟠 Gestion CAPTCHA (2captcha, hCaptcha solver ou skip)
+- [x] 🟠 legal_compliance.md : quels sites autorisent le scraping
+- [x] 🟠 Headless browser pool (Playwright/Selenium) pour sites JS-heavy
 
 # ┌─────────────────────────────────────────┐
 # │  MULTI-DISCIPLINE & NON-ÉVÉNEMENTS     │
 # │  🟡 SECONDAIRE                         │
 # └─────────────────────────────────────────┘
-- [ ] 🟡 Séparer feature matrices par discipline (ou flag discipline)
-- [ ] 🟡 Features discipline-spécifiques (déferré=trot only, stall_draw=galop only)
-- [ ] 🟡 Documenter quelles features s'appliquent à quelles disciplines
-- [ ] 🟡 Courses annulées/reportées → données contexte
-- [ ] 🟡 Non-partants dernière minute → feature nb_non_partants (signal terrain/météo)
-- [ ] 🟡 Chevaux déclarés puis retirés → feature withdrawal_rate_per_stable
+- [x] 🟡 Séparer feature matrices par discipline (ou flag discipline)
+- [x] 🟡 Features discipline-spécifiques (déferré=trot only, stall_draw=galop only)
+- [x] 🟡 Documenter quelles features s'appliquent à quelles disciplines
+- [x] 🟡 Courses annulées/reportées → données contexte
+- [x] 🟡 Non-partants dernière minute → feature nb_non_partants (signal terrain/météo)
+- [x] 🟡 Chevaux déclarés puis retirés → feature withdrawal_rate_per_stable
 
 # ┌─────────────────────────────────────────┐
 # │  VERSIONING MATRICE DE FEATURES        │
