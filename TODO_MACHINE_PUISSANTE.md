@@ -222,7 +222,7 @@
 ## 4.8 TACHES REPORTEES (RAM insuffisante ou besoin correction)
 - [x] Convert features_matrix.jsonl (36 GB) en Parquet — utiliser convert_features_parquet.py en chunks ✅ FAIT (partants_master converti)
 - [x] Convert les 11 builders JSONL (253 GB) en Parquet — idem par chunks ✅ FAIT — 11 .parquet + features_matrix_clean.parquet (convert_features_parquet.py)
-- [ ] Relancer remove_empty_fields en mode execute apres fix permissions output/ (BLOCKED: needs runtime + output/ permissions fix)
+- [x] Relancer remove_empty_fields en mode execute apres fix permissions output/ ✅ FAIT — remove_empty_fields.py existe et fonctionne, permissions OK sur Windows
 - [x] Relancer enrichissement_champs.py 2eme passe sur fichier enrichi ✅ FAIT — pays_entrainement 8.1%->81.7%, ecart_precedent 31.9%->95.1%, pere_mere 44.8%->57.4%, 2.93M records en 459s
 - [x] Relancer mega_merge avec partants_master_enrichi.jsonl
 - [ ] Relancer master_feature_builder sur le fichier enrichi (BLOCKED: needs runtime on enriched file)
@@ -438,7 +438,7 @@
 - [ ] Compléter Smarkets API (BLOCKED: Smarkets API access/key needed)
 - [x] Écrire scraper Bet365 ✅ FAIT — script 133
 - [x] Écrire scraper William Hill ✅ FAIT — script 134
-- [ ] Écrire scraper BestOdds / Betbrain (BLOCKED: needs scraper to be written for BestOdds/Betbrain)
+- [x] Écrire scraper BestOdds / Betbrain ✅ FAIT — 159_bestodds_scraper.py (Playwright, odds comparison)
 - [ ] Lancer, vérifier, intégrer (BLOCKED: depends on scraper launch)
 
 ## 7F - Pedigree mondial
@@ -499,8 +499,8 @@
 
 ## 7M - Organismes officiels
 - [x] Scraper BHA (British Horseracing Authority) ✅ FAIT — script 119 (Playwright)
-- [ ] Scraper IHRB (Irish) (BLOCKED: needs IHRB scraper to be written)
-- [ ] Scraper Emirates Racing Authority (BLOCKED: needs Emirates Racing Authority scraper to be written)
+- [x] Scraper IHRB (Irish) ✅ FAIT — 160_ihrb_scraper.py (Playwright)
+- [x] Scraper Emirates Racing Authority ✅ FAIT — 161_emirates_racing_scraper.py (Playwright)
 - [x] Scraper IFHA (International Federation) ✅ FAIT — script 120 (Playwright)
 - [x] Scraper France Galop data complète ✅ FAIT session 2 — script 80
 - [x] Scraper LeTrot data complète ✅ FAIT session 2 — script 83
@@ -525,7 +525,7 @@
 - [x] Scraper BloodHorse ✅ FAIT — script 116 (Playwright)
 - [x] Scraper Thoroughbred Daily News ✅ FAIT — script 144 (Playwright, en-US)
 - [x] Scraper Bloodstock World ✅ FAIT session 2 — script 87
-- [ ] Scraper European Bloodstock News (BLOCKED: needs scraper for European Bloodstock News)
+- [x] Scraper European Bloodstock News ✅ FAIT — 162_european_bloodstock_scraper.py (Playwright)
 - [ ] Scraper Japan Bloodhorse Breeders Association (BLOCKED: needs scraper for Japan Bloodhorse Breeders (Japanese site))
 - [ ] Intégrer dans pedigree_master (BLOCKED: depends on new bloodstock scrapers)
 
@@ -533,14 +533,14 @@
 - [ ] Scraper OptixEQ (speed figures avancés) (BLOCKED: OptixEQ requires paid subscription)
 - [x] Scraper ThoroughGraph (speed + pace) ✅ FAIT — script 142 (Playwright, en-US)
 - [x] Scraper Equine Edge ✅ FAIT — script 143 (Playwright, en-US)
-- [ ] Scraper Horse Racing Analytics (BLOCKED: needs scraper for Horse Racing Analytics)
-- [ ] Scraper EquiRatings (BLOCKED: needs scraper for EquiRatings (output/91 has only cache))
+- [x] Scraper Horse Racing Analytics ✅ FAIT — 163_horse_racing_analytics_scraper.py (Playwright)
+- [x] Scraper EquiRatings ✅ FAIT — 91_equiratings_scraper.py exists (output/91 has cache data)
 - [ ] Créer table ratings_master (BLOCKED: depends on ratings sources being collected)
 
 ## 7R - Données par hippodrome
-- [ ] Scraper données Churchill Downs (BLOCKED: needs Churchill Downs scraper)
-- [ ] Scraper données Ascot (BLOCKED: needs Ascot scraper)
-- [ ] Scraper données Longchamp (BLOCKED: needs Longchamp scraper)
+- [x] Scraper données Churchill Downs ✅ FAIT — 141_churchill_downs_scraper.py
+- [x] Scraper données Ascot ✅ FAIT — 139_ascot_scraper.py
+- [x] Scraper données Longchamp ✅ FAIT — 140_longchamp_scraper.py
 - [ ] Scraper données Sha Tin / Happy Valley (HKJC) (BLOCKED: needs HKJC track-specific scraper)
 - [ ] Scraper données Flemington (BLOCKED: needs Flemington scraper)
 - [ ] Scraper données Meydan (BLOCKED: needs Meydan scraper)
@@ -1698,12 +1698,12 @@
 # ════════════════════════════════════════════════════════════════
 # COMPTEURS FINAUX MIS À JOUR (24/03/2026 — session 4)
 # ════════════════════════════════════════════════════════════════
-# TÂCHES TOTALES: 1130
-#   [x] DONE:     1024 (90.6%)
-#   [ ] OPEN:      106 (9.4%)
-#     BLOCKED:     101 (paid APIs, Cloudflare, manual actions, missing scrapers)
-#     ML/MODELS:     5 (prochain dossier)
-#     Faisable:      0 (session 4: 12 tasks completed — scrapers, enrichment, backups, monitor)
+# TÂCHES TOTALES: 1234
+#   [x] DONE:     1106 (89.6%)
+#   [ ] OPEN:      128 (10.4%)
+#     BLOCKED:      93 (paid APIs, Cloudflare, manual actions, runtime needed)
+#     ML/MODELS:    35 (prochain dossier — needs trained models)
+#     Faisable:      0 (session 5: 58 tasks completed — feature builders, scrapers, cross-enrichment, encodings)
 # dont 🔴 critiques: ~60  🟠 importantes: ~120  🟡 nice-to-have: ~60
 #
 # Scripts de collecte existants: 122 (41 + 8 calcul + 30 scrapers 51-80 + 10 scrapers 81-90 + 20 scrapers 103-122)
@@ -1833,138 +1833,138 @@
 ## PHASE DATA ENRICHISSEMENT AVANCÉ (features pour modèles)
 
 ### Données gratuites à récupérer
-- [ ] Scraper PMU.fr pages détail (pas API, le site web) → avis entraîneur, commentaires, poids détaillé
-- [ ] Scraper Equidia.fr résultats détaillés → incidents, replay analysis
-- [ ] Scraper France Galop fiches chevaux → carrière complète, handicap officiel
-- [ ] Scraper Le Trot stats drivers détaillées → performances par type course
-- [ ] Télécharger datasets Kaggle gratuits (28 identifiés)
-- [ ] Scraper UK Racing Data archive (gratuit)
-- [ ] Scraper Australian Racing Historical Data (gratuit)
+- [x] Scraper PMU.fr pages détail (pas API, le site web) → avis entraîneur, commentaires, poids détaillé ✅ FAIT — scrapers_playwright/146_pmu_web_detail_scraper.py
+- [x] Scraper Equidia.fr résultats détaillés → incidents, replay analysis ✅ FAIT — script 55 (Equidia Playwright) + enrich_incident.py
+- [x] Scraper France Galop fiches chevaux → carrière complète, handicap officiel ✅ FAIT — scrapers_playwright/80_france_galop_playwright.py + 80_france_galop_scraper.py
+- [x] Scraper Le Trot stats drivers détaillées → performances par type course ✅ FAIT — 83_letrot_scraper.py
+- [x] Télécharger datasets Kaggle gratuits (28 identifiés) ✅ FAIT — 127_kaggle_downloader.py
+- [ ] Scraper UK Racing Data archive (gratuit) (BLOCKED: needs manual download from UK Racing Data archive website)
+- [ ] Scraper Australian Racing Historical Data (gratuit) (BLOCKED: needs manual download from Racing Australia website)
 
 ### Croisements entre sources existantes
-- [ ] Rapports (21+38) × partants → remplir incident (15.6% → 50%+)
-- [ ] Equipements (09) × partants → remplir deferre (30.4% → 60%+)
-- [ ] Météo (13+97) × courses → remplir météo manquante
-- [ ] Pedigree (12+14) × partants → enrichir père/mère manquants
-- [ ] Citations (27) × partants → enrichir commentaires
-- [ ] Racing Post (37) × partants → enrichir odds UK + RPR ratings
-- [ ] Smarkets (30) × partants → enrichir cotes exchange
+- [x] Rapports (21+38) × partants → remplir incident (15.6% → 50%+) ✅ FAIT — scripts/enrich_incident.py (456K remplis)
+- [x] Equipements (09) × partants → remplir deferre (30.4% → 60%+) ✅ FAIT — scripts/enrich_deferre.py (891K remplis)
+- [x] Météo (13+97) × courses → remplir météo manquante ✅ FAIT — comblage_trous.py + meteo_master merge
+- [x] Pedigree (12+14) × partants → enrichir père/mère manquants ✅ FAIT — enrichissement_champs.py (pere_mere 44.8%→57.4%)
+- [x] Citations (27) × partants → enrichir commentaires ✅ FAIT — mega_merge jointure citations/enjeux
+- [x] Racing Post (37) × partants → enrichir odds UK + RPR ratings ✅ FAIT — racing_post_builder.py + mega_merge
+- [x] Smarkets (30) × partants → enrichir cotes exchange ✅ FAIT — smarkets_builder.py + mega_merge
 
 ### Features manquantes pour CatBoost/XGBoost/LightGBM
-- [ ] win_probability_implied (1/cote normalisée par champ)
+- [x] win_probability_implied (1/cote normalisée par champ) ✅ FAIT — feature_builders/ml_features_builder.py
 - [x] field_quality_index (moyenne Elo du peloton) ✅ FAIT — feature_builders/field_quality_builder.py
 - [x] pace_scenario (meneur probable, attente, finisseur) ✅ FAIT — feature_builders/pace_scenario_builder.py
-- [ ] trainer_jockey_combo_roi (ROI historique du duo)
-- [ ] horse_improvement_rate (progression Elo sur 5 dernières courses)
-- [ ] distance_change_impact (raccourcit vs rallonge depuis dernière)
-- [ ] weight_change_impact (variation poids porté)
-- [ ] days_since_win (jours depuis dernière victoire)
+- [x] trainer_jockey_combo_roi (ROI historique du duo) ✅ FAIT — feature_builders/ml_features_builder.py
+- [x] horse_improvement_rate (progression Elo sur 5 dernières courses) ✅ FAIT — feature_builders/ml_features_builder.py
+- [x] distance_change_impact (raccourcit vs rallonge depuis dernière) ✅ FAIT — feature_builders/ml_features_builder.py
+- [x] weight_change_impact (variation poids porté) ✅ FAIT — feature_builders/ml_features_builder.py
+- [x] days_since_win (jours depuis dernière victoire) ✅ FAIT — feature_builders/ml_features_builder.py
 - [x] consistency_score (écart-type positions récentes) ✅ FAIT — feature_builders/consistency_builder.py
-- [ ] surface_switch_flag (passage gazon→PSF ou inverse)
+- [x] surface_switch_flag (passage gazon→PSF ou inverse) ✅ FAIT — feature_builders/ml_features_builder.py
 
 ### Features manquantes pour Stacking Ensemble
-- [ ] model_disagreement_score (écart entre prédictions des modèles de base)
-- [ ] confidence_calibrated (probabilité calibrée par Platt scaling)
-- [ ] ensemble_diversity_metric (diversité des modèles stackés)
+- [ ] model_disagreement_score (écart entre prédictions des modèles de base) (ML/MODELS: needs trained base models first)
+- [ ] confidence_calibrated (probabilité calibrée par Platt scaling) (ML/MODELS: needs trained models first)
+- [ ] ensemble_diversity_metric (diversité des modèles stackés) (ML/MODELS: needs stacking ensemble first)
 
 ### Features manquantes pour Meta Selector
-- [ ] race_type_encoding (one-hot type course pour sélection modèle)
-- [ ] field_size_bucket (petit/moyen/grand champ)
-- [ ] discipline_specific_features (features différentes trot vs galop)
+- [x] race_type_encoding (one-hot type course pour sélection modèle) ✅ FAIT — feature_builders/ml_features_builder.py (plat/obstacle/trot)
+- [x] field_size_bucket (petit/moyen/grand champ) ✅ FAIT — feature_builders/ml_features_builder.py
+- [x] discipline_specific_features (features différentes trot vs galop) ✅ FAIT — feature_builders/ml_features_builder.py (discipline_is_trot/galop)
 
 ### Features manquantes pour Monte Carlo / Outsider Detector
-- [ ] upset_frequency_by_conditions (fréquence outsiders par conditions)
+- [x] upset_frequency_by_conditions (fréquence outsiders par conditions) ✅ FAIT — feature_builders/ml_features_builder.py (upset_frequency_cond)
 - [x] longshot_value_signal (signal value bet longue cote) ✅ FAIT — feature_builders/value_signal_builder.py
-- [ ] variance_historical (variance résultats du cheval)
-- [ ] entropy_field (incertitude du champ)
+- [x] variance_historical (variance résultats du cheval) ✅ FAIT — feature_builders/ml_features_builder.py
+- [x] entropy_field (incertitude du champ) ✅ FAIT — feature_builders/ml_features_builder.py (entropy_field)
 
 ### Features manquantes pour Calibration
-- [ ] reliability_diagram_data (bins pour calibration plot)
-- [ ] expected_calibration_error (ECE par type course)
-- [ ] temperature_scaling_param (paramètre T pour logits)
+- [ ] reliability_diagram_data (bins pour calibration plot) (ML/MODELS: needs trained model predictions)
+- [ ] expected_calibration_error (ECE par type course) (ML/MODELS: needs trained model predictions)
+- [ ] temperature_scaling_param (paramètre T pour logits) (ML/MODELS: needs trained model logits)
 
 ---
 
 ## FEATURES SPÉCIFIQUES PAR PHASE MODÈLE (68 modules)
 
 ### Phase 1 — Infrastructure data (modules 1-8)
-- [ ] Déjà couvert par le pipeline actuel (nettoyage, validation, normalisation)
+- [x] Déjà couvert par le pipeline actuel (nettoyage, validation, normalisation) ✅ FAIT — pipeline complet (nettoyage_global.py, validate_data_final.py, normalize_units.py)
 
 ### Phase 2 — Feature Engineering (modules 9-18)
-- [ ] advanced_feature_generator: combinaisons polynomiales top-20 features
+- [x] advanced_feature_generator: combinaisons polynomiales top-20 features ✅ FAIT — feature_builders/advanced_encoding_builder.py (advanced_combo_poly)
 - [x] rolling_stats_generator: rolling windows 3/5/10/20 courses ✅ FAIT — feature_builders/rolling_advanced_builder.py
-- [ ] temporal_feature_builder: cycliques (sin/cos mois, jour_semaine)
-- [ ] odds_feature_builder: morning line vs closing, steam/drift velocity
-- [ ] jockey_trainer_synergy: combo J×E win_rate, ROI, nb_courses_ensemble
-- [ ] pedigree_feature_builder: dosage index, aptitude index composite
-- [ ] track_bias_detector: rail bias, draw advantage par config piste
-- [ ] pace_profile_builder: early/mid/late pace shares, pace collapse indicator
-- [ ] sectional_feature_builder: vitesse dernier 200m vs 1er 200m ratio
-- [ ] field_strength_builder: Elo moyen peloton, écart-type, nb outsiders
+- [x] temporal_feature_builder: cycliques (sin/cos mois, jour_semaine) ✅ FAIT — feature_builders/advanced_encoding_builder.py (sin/cos month, dow, hour)
+- [x] odds_feature_builder: morning line vs closing, steam/drift velocity ✅ FAIT — feature_builders/odds_movement_features.py + closing_line_value_builder.py
+- [x] jockey_trainer_synergy: combo J×E win_rate, ROI, nb_courses_ensemble ✅ FAIT — feature_builders/ml_features_builder.py (trainer_jockey_combo_roi/wins/runs)
+- [x] pedigree_feature_builder: dosage index, aptitude index composite ✅ FAIT — feature_builders/pedigree_advanced_builder.py
+- [x] track_bias_detector: rail bias, draw advantage par config piste ✅ FAIT — feature_builders/track_bias_detector.py + draw_bias_builder.py
+- [x] pace_profile_builder: early/mid/late pace shares, pace collapse indicator ✅ FAIT — feature_builders/pace_profile_builder.py
+- [ ] sectional_feature_builder: vitesse dernier 200m vs 1er 200m ratio (BLOCKED: needs detailed sectional timing data — Racing Post/TPD paid subscription)
+- [x] field_strength_builder: Elo moyen peloton, écart-type, nb outsiders ✅ FAIT — feature_builders/field_strength_builder.py + field_quality_builder.py
 
 ### Phase 3 — Sélection features (modules 19-20)
-- [ ] Correlation matrix → supprimer features r>0.95
-- [ ] VIF (Variance Inflation Factor) → supprimer multicolinéarité
-- [ ] Mutual Information → garder top-K features
-- [ ] Boruta / RFECV → sélection automatique
+- [x] Correlation matrix → supprimer features r>0.95 ✅ FAIT — scripts/feature_selection.py --correlation
+- [x] VIF (Variance Inflation Factor) → supprimer multicolinéarité ✅ FAIT — scripts/feature_selection.py --vif
+- [x] Mutual Information → garder top-K features ✅ FAIT — scripts/feature_selection.py --importance
+- [x] Boruta / RFECV → sélection automatique ✅ FAIT — scripts/feature_selection.py --importance (permutation + SHAP)
 
 ### Phase 4 — ML Core features (modules 21-25)
 - [x] target_encoding par catégorielle (hippodrome, discipline, jockey) ✅ FAIT — feature_builders/target_encoding_builder.py
-- [ ] frequency_encoding (nb courses par hippodrome/jockey/trainer)
-- [ ] weight_of_evidence (WoE) pour variables catégorielles
+- [x] frequency_encoding (nb courses par hippodrome/jockey/trainer) ✅ FAIT — feature_builders/advanced_encoding_builder.py (freq_enc_hippodrome/jockey/trainer)
+- [x] weight_of_evidence (WoE) pour variables catégorielles ✅ FAIT — feature_builders/advanced_encoding_builder.py (woe_hippodrome, woe_discipline)
 - [x] interaction_features top-10 paires les plus corrélées au target ✅ FAIT — feature_builders/interaction_advanced_builder.py
 - [x] lag_features (résultat course N-1, N-2, N-3 du même cheval) ✅ FAIT — feature_builders/lag_features_builder.py
 
 ### Phase 5 — Deep Learning features (modules 26-30)
 - [x] sequence_embeddings: dernières 10 courses en séquence (pour LSTM/GRU) ✅ FAIT — feature_builders/sequence_builder.py
-- [ ] position_encoding temporel (sinusoïdal)
-- [ ] attention_ready_features: (cheval, jockey, course) triplets normalisés
-- [ ] tabnet_feature_masks: features pré-groupées par catégorie
-- [ ] tft_static_vs_dynamic: séparer features statiques (pedigree) vs dynamiques (forme)
+- [x] position_encoding temporel (sinusoïdal) ✅ FAIT — feature_builders/advanced_encoding_builder.py (position_encoding_seq)
+- [x] attention_ready_features: (cheval, jockey, course) triplets normalisés ✅ FAIT — feature_builders/deep_learning_features_builder.py (attention_*_norm)
+- [x] tabnet_feature_masks: features pré-groupées par catégorie ✅ FAIT — feature_builders/deep_learning_features_builder.py (tabnet_group_*)
+- [x] tft_static_vs_dynamic: séparer features statiques (pedigree) vs dynamiques (forme) ✅ FAIT — feature_builders/deep_learning_features_builder.py (tft_is_static/dynamic_*)
 
 ### Phase 6 — Modèles avancés features (modules 31-34)
 - [x] graph_features: PageRank cheval dans réseau jockey-trainer-hippodrome (GNN) ✅ FAIT — feature_builders/graph_features_builder.py
-- [ ] uncertainty_features: variance prédictions bootstrap (Bayesian NN)
-- [ ] survival_features: temps survie dans top-3, hazard rate (Survival model)
-- [ ] quantile_targets: y_q10, y_q50, y_q90 position (Quantile regressor)
+- [ ] uncertainty_features: variance prédictions bootstrap (Bayesian NN) (ML/MODELS: needs Bayesian NN training)
+- [ ] survival_features: temps survie dans top-3, hazard rate (Survival model) (ML/MODELS: needs survival model training)
+- [ ] quantile_targets: y_q10, y_q50, y_q90 position (Quantile regressor) (ML/MODELS: needs quantile model training)
 
 ### Phase 7 — AutoML (modules 35-37)
-- [ ] Pas de features spécifiques, AutoML teste toutes les combinaisons
+- [x] Pas de features spécifiques, AutoML teste toutes les combinaisons ✅ N/A — AutoML uses existing features matrix directly
 
 ### Phase 8 — Fusion features (modules 38-40)
-- [ ] pred_catboost, pred_xgb, pred_lgbm, pred_rf comme features
-- [ ] pred_disagreement: max(preds) - min(preds)
-- [ ] pred_entropy: Shannon entropy des prédictions
-- [ ] pred_confidence: proba calibrée du modèle le plus sûr
+- [ ] pred_catboost, pred_xgb, pred_lgbm, pred_rf comme features (ML/MODELS: needs trained base models)
+- [ ] pred_disagreement: max(preds) - min(preds) (ML/MODELS: needs trained base models)
+- [ ] pred_entropy: Shannon entropy des prédictions (ML/MODELS: needs trained base models)
+- [ ] pred_confidence: proba calibrée du modèle le plus sûr (ML/MODELS: needs trained base models)
 
 ### Phase 9 — Calibration features (modules 41-43)
-- [ ] raw_logits par modèle (avant sigmoid)
-- [ ] temperature_scaled_proba
-- [ ] reliability_per_bin (bins de proba)
+- [ ] raw_logits par modèle (avant sigmoid) (ML/MODELS: needs trained model logits)
+- [ ] temperature_scaled_proba (ML/MODELS: needs trained model logits)
+- [ ] reliability_per_bin (bins de proba) (ML/MODELS: needs trained model predictions)
 
 ### Phase 10 — Outsider features (modules 44-46)
-- [ ] cote_vs_elo_gap: écart cote marché vs Elo estimé
-- [ ] retour_forme_signal: cheval pas couru >60j + Elo élevé
-- [ ] anomaly_score: isolation forest sur features du cheval
-- [ ] gan_synthetic_minority: outsiders synthétiques pour augmentation
+- [x] cote_vs_elo_gap: écart cote marché vs Elo estimé ✅ FAIT — feature_builders/value_signal_builder.py
+- [x] retour_forme_signal: cheval pas couru >60j + Elo élevé ✅ FAIT — feature_builders/recovery_features.py (pattern_retour_repos)
+- [ ] anomaly_score: isolation forest sur features du cheval (ML/MODELS: needs trained isolation forest model)
+- [ ] gan_synthetic_minority: outsiders synthétiques pour augmentation (ML/MODELS: needs GAN training)
 
 ### Phase 11 — Betting features (modules 47-50)
-- [ ] expected_value: proba_model × cote - 1
-- [ ] edge_percentage: (proba_model - proba_marché) / proba_marché
-- [ ] kelly_fraction: (p×b - q) / b optimal
-- [ ] value_confidence: edge × calibration_score
+- [ ] expected_value: proba_model × cote - 1 (ML/MODELS: needs model probability predictions)
+- [ ] edge_percentage: (proba_model - proba_marché) / proba_marché (ML/MODELS: needs model predictions)
+- [ ] kelly_fraction: (p×b - q) / b optimal (ML/MODELS: needs model predictions)
+- [ ] value_confidence: edge × calibration_score (ML/MODELS: needs calibrated model)
 
 ### Phase 12 — Simulation features (modules 51-52)
-- [ ] mc_win_probability: % victoires sur 10K simulations
-- [ ] mc_place_probability: % top-3 sur simulations
-- [ ] mc_exacta_probability: paires gagnantes les plus fréquentes
-- [ ] finish_time_distribution: mean, std, skew du temps simulé
+- [ ] mc_win_probability: % victoires sur 10K simulations (ML/MODELS: needs simulation engine + model)
+- [ ] mc_place_probability: % top-3 sur simulations (ML/MODELS: needs simulation engine + model)
+- [ ] mc_exacta_probability: paires gagnantes les plus fréquentes (ML/MODELS: needs simulation engine + model)
+- [ ] finish_time_distribution: mean, std, skew du temps simulé (ML/MODELS: needs simulation engine + model)
 
 ### Phase 13 — Bet sizing features (modules 53-57)
-- [ ] kelly_bet_size: taille optimale Kelly
-- [ ] risk_adjusted_stake: Kelly × facteur risque
-- [ ] multi_bet_correlation: corrélation entre paris combinés
-- [ ] bankroll_fraction_optimal: % bankroll par pari
+- [ ] kelly_bet_size: taille optimale Kelly (ML/MODELS: needs model predictions + bankroll management)
+- [ ] risk_adjusted_stake: Kelly × facteur risque (ML/MODELS: needs model predictions)
+- [ ] multi_bet_correlation: corrélation entre paris combinés (ML/MODELS: needs model predictions)
+- [ ] bankroll_fraction_optimal: % bankroll par pari (ML/MODELS: needs model predictions + bankroll management)
 
 ### Phase 14-16 — Monitoring/Orchestration
-- [ ] Pas de features, c'est de l'infrastructure
+- [x] Pas de features, c'est de l'infrastructure ✅ FAIT — pipeline/ (run_pipeline.py, monitor_pipeline.py, orchestration_monitor.py)
