@@ -1,6 +1,6 @@
 # Sources de donnees
 
-Liste exhaustive des 102 sources de donnees du pipeline hippique, groupees par categorie.
+Liste exhaustive des 115 sources de donnees du pipeline hippique, groupees par categorie.
 Derniere mise a jour : 2026-03-22.
 
 ---
@@ -199,7 +199,27 @@ Derniere mise a jour : 2026-03-22.
 
 ---
 
-## N. Feature Builders
+## N. Scrapers 146-158 (nouvelles sources gratuites)
+
+| # | Source | URL | Records | Size | Last Update | Status |
+|---|--------|-----|---------|------|-------------|--------|
+| 146 | PMU Web Detail (Playwright) | `pmu.fr/turf/programme/` | -- | -- | 2026-03-24 | ✅ Built |
+| 147 | Sporting Life Results | `sportinglife.com/racing/results` | -- | -- | 2026-03-24 | ✅ Built |
+| 148 | LeTurf Consensus | `leturf.fr` | -- | -- | 2026-03-24 | ✅ Built |
+| 149 | Racing API Free Tier | `theracingapi.com` (free) | -- | -- | 2026-03-24 | ✅ Built |
+| 150 | data.gov.uk Racing | `data.gov.uk` | -- | -- | 2026-03-24 | ✅ Built |
+| 151 | IFHA World Rankings | `ifhaonline.org` | -- | -- | 2026-03-24 | ✅ Built |
+| 152 | Zone-Turf Stats | `zone-turf.fr/statistiques` | -- | -- | 2026-03-24 | ✅ Built |
+| 153 | Timeform Free Section | `timeform.com` (free) | -- | -- | 2026-03-24 | ✅ Built |
+| 154 | Racing Post Free Racecards | `racingpost.com` (free) | -- | -- | 2026-03-24 | ✅ Built |
+| 155 | data.gouv.fr Racing | `data.gouv.fr` | -- | -- | 2026-03-24 | ✅ Built |
+| 156 | At The Races Free | `attheraces.com` (free) | -- | -- | 2026-03-24 | ✅ Built |
+| 157 | CanalTurf Statistiques | `canalturf.com/statistiques` | -- | -- | 2026-03-24 | ✅ Built |
+| 158 | Turf-FR Stats | `turf-fr.com/stats` | -- | -- | 2026-03-24 | ✅ Built |
+
+---
+
+## O. Feature Builders
 
 | Builder | Script | Features | Records | Size | Status |
 |---------|--------|----------|---------|------|--------|
@@ -225,11 +245,11 @@ Derniere mise a jour : 2026-03-22.
 
 | Statut | Nombre | Details |
 |--------|--------|---------|
-| ✅ Active | 46 | Sources operationnelles avec donnees |
+| ✅ Active | 59 | Sources operationnelles avec donnees |
 | ⚠️ Partial | 10 | Donnees partielles ou limitees |
 | ❌ Blocked | 35 | Bloque (Cloudflare, auth, anti-bot, payant) |
 | 🔄 In Progress | 1 | Collecte en cours (101 PMU API v2) |
-| **Total** | **92 sources + pipeline interne + 15 feature builders** | |
+| **Total** | **105 sources + pipeline interne + 15 feature builders** | |
 
 ---
 

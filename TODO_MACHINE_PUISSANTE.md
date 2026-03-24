@@ -546,6 +546,21 @@
 - [ ] Scraper données Meydan (BLOCKED: needs Meydan scraper)
 - [ ] Enrichir hippodromes_db.py avec tout (BLOCKED: depends on hippodrome scrapers)
 
+## 7T - Scrapers 146-158 (nouvelles sources gratuites)
+- [x] Script 146 — PMU Web Detail Scraper (Playwright, pmu.fr) ✅ FAIT
+- [x] Script 147 — Sporting Life Results Scraper (Playwright, sportinglife.com) ✅ FAIT
+- [x] Script 148 — LeTurf Consensus Scraper (Playwright, leturf.fr) ✅ FAIT
+- [x] Script 149 — Racing API Free Tier Scraper (HTTP/REST, theracingapi.com) ✅ FAIT
+- [x] Script 150 — data.gov.uk Horse Racing Datasets Downloader (HTTP) ✅ FAIT
+- [x] Script 151 — IFHA World Rankings Scraper (Playwright, ifhaonline.org) ✅ FAIT
+- [x] Script 152 — Zone-Turf Stats Scraper (Playwright, zone-turf.fr) ✅ FAIT
+- [x] Script 153 — Timeform Free Section Scraper (Playwright, timeform.com) ✅ FAIT
+- [x] Script 154 — Racing Post Free Racecards Scraper (Playwright, racingpost.com) ✅ FAIT
+- [x] Script 155 — data.gouv.fr Horse Racing Datasets Scraper (HTTP) ✅ FAIT
+- [x] Script 156 — At The Races Free Racecards Scraper (Playwright, attheraces.com) ✅ FAIT
+- [x] Script 157 — CanalTurf Statistiques Scraper (Playwright, canalturf.com) ✅ FAIT
+- [x] Script 158 — Turf-FR Stats Scraper (Playwright, turf-fr.com) ✅ FAIT
+
 ## 7S - Backup après collecte massive
 - [ ] Sauvegarder tout le dossier (BLOCKED: manual backup action after massive collection)
 - [x] Versionner les fichiers maîtres \u2705 FAIT - versions_registry.json exists in data_master/ with SHA256 checksums
@@ -1837,14 +1852,14 @@
 
 ### Features manquantes pour CatBoost/XGBoost/LightGBM
 - [ ] win_probability_implied (1/cote normalisée par champ)
-- [ ] field_quality_index (moyenne Elo du peloton)
-- [ ] pace_scenario (meneur probable, attente, finisseur)
+- [x] field_quality_index (moyenne Elo du peloton) ✅ FAIT — feature_builders/field_quality_builder.py
+- [x] pace_scenario (meneur probable, attente, finisseur) ✅ FAIT — feature_builders/pace_scenario_builder.py
 - [ ] trainer_jockey_combo_roi (ROI historique du duo)
 - [ ] horse_improvement_rate (progression Elo sur 5 dernières courses)
 - [ ] distance_change_impact (raccourcit vs rallonge depuis dernière)
 - [ ] weight_change_impact (variation poids porté)
 - [ ] days_since_win (jours depuis dernière victoire)
-- [ ] consistency_score (écart-type positions récentes)
+- [x] consistency_score (écart-type positions récentes) ✅ FAIT — feature_builders/consistency_builder.py
 - [ ] surface_switch_flag (passage gazon→PSF ou inverse)
 
 ### Features manquantes pour Stacking Ensemble
@@ -1859,7 +1874,7 @@
 
 ### Features manquantes pour Monte Carlo / Outsider Detector
 - [ ] upset_frequency_by_conditions (fréquence outsiders par conditions)
-- [ ] longshot_value_signal (signal value bet longue cote)
+- [x] longshot_value_signal (signal value bet longue cote) ✅ FAIT — feature_builders/value_signal_builder.py
 - [ ] variance_historical (variance résultats du cheval)
 - [ ] entropy_field (incertitude du champ)
 
@@ -1877,7 +1892,7 @@
 
 ### Phase 2 — Feature Engineering (modules 9-18)
 - [ ] advanced_feature_generator: combinaisons polynomiales top-20 features
-- [ ] rolling_stats_generator: rolling windows 3/5/10/20 courses
+- [x] rolling_stats_generator: rolling windows 3/5/10/20 courses ✅ FAIT — feature_builders/rolling_advanced_builder.py
 - [ ] temporal_feature_builder: cycliques (sin/cos mois, jour_semaine)
 - [ ] odds_feature_builder: morning line vs closing, steam/drift velocity
 - [ ] jockey_trainer_synergy: combo J×E win_rate, ROI, nb_courses_ensemble
@@ -1894,21 +1909,21 @@
 - [ ] Boruta / RFECV → sélection automatique
 
 ### Phase 4 — ML Core features (modules 21-25)
-- [ ] target_encoding par catégorielle (hippodrome, discipline, jockey)
+- [x] target_encoding par catégorielle (hippodrome, discipline, jockey) ✅ FAIT — feature_builders/target_encoding_builder.py
 - [ ] frequency_encoding (nb courses par hippodrome/jockey/trainer)
 - [ ] weight_of_evidence (WoE) pour variables catégorielles
-- [ ] interaction_features top-10 paires les plus corrélées au target
-- [ ] lag_features (résultat course N-1, N-2, N-3 du même cheval)
+- [x] interaction_features top-10 paires les plus corrélées au target ✅ FAIT — feature_builders/interaction_advanced_builder.py
+- [x] lag_features (résultat course N-1, N-2, N-3 du même cheval) ✅ FAIT — feature_builders/lag_features_builder.py
 
 ### Phase 5 — Deep Learning features (modules 26-30)
-- [ ] sequence_embeddings: dernières 10 courses en séquence (pour LSTM/GRU)
+- [x] sequence_embeddings: dernières 10 courses en séquence (pour LSTM/GRU) ✅ FAIT — feature_builders/sequence_builder.py
 - [ ] position_encoding temporel (sinusoïdal)
 - [ ] attention_ready_features: (cheval, jockey, course) triplets normalisés
 - [ ] tabnet_feature_masks: features pré-groupées par catégorie
 - [ ] tft_static_vs_dynamic: séparer features statiques (pedigree) vs dynamiques (forme)
 
 ### Phase 6 — Modèles avancés features (modules 31-34)
-- [ ] graph_features: PageRank cheval dans réseau jockey-trainer-hippodrome (GNN)
+- [x] graph_features: PageRank cheval dans réseau jockey-trainer-hippodrome (GNN) ✅ FAIT — feature_builders/graph_features_builder.py
 - [ ] uncertainty_features: variance prédictions bootstrap (Bayesian NN)
 - [ ] survival_features: temps survie dans top-3, hazard rate (Survival model)
 - [ ] quantile_targets: y_q10, y_q50, y_q90 position (Quantile regressor)

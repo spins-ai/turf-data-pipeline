@@ -158,6 +158,16 @@ def build_dag() -> Dict[str, Step]:
         "feature_builders/trainer_form_builder.py",
         "feature_builders/jockey_form_builder.py",
         "feature_builders/hippodrome_expertise_builder.py",
+        "feature_builders/lag_features_builder.py",
+        "feature_builders/field_quality_builder.py",
+        "feature_builders/target_encoding_builder.py",
+        "feature_builders/pace_scenario_builder.py",
+        "feature_builders/value_signal_builder.py",
+        "feature_builders/consistency_builder.py",
+        "feature_builders/sequence_builder.py",
+        "feature_builders/graph_features_builder.py",
+        "feature_builders/interaction_advanced_builder.py",
+        "feature_builders/rolling_advanced_builder.py",
     ]
     for script in feature_builder_scripts:
         name = "fb_" + Path(script).stem

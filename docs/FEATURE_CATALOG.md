@@ -2,7 +2,7 @@
 
 Auto-generated from `output/features/features_matrix.jsonl` (sample: 500 rows).
 
-**Total features: 420**
+**Total features: 511+**
 
 ## Features by Builder
 
@@ -54,7 +54,24 @@ Auto-generated from `output/features/features_matrix.jsonl` (sample: 500 rows).
 | taux_features | 1 |
 | temps_features | 15 |
 | valeur_base_features | 4 |
-| **Total** | **420** |
+| lag_features_builder | 5 |
+| field_quality_builder | 5 |
+| target_encoding_builder | 6 |
+| pace_scenario_builder | 5 |
+| value_signal_builder | 5 |
+| consistency_builder | 5 |
+| sequence_builder | 6 |
+| graph_features_builder | 5 |
+| interaction_advanced_builder | 6 |
+| rolling_advanced_builder | 6 |
+| first_time_events_builder | 5 |
+| momentum_builder | 5 |
+| course_context_builder | 6 |
+| signal_features_builder | 5 |
+| cross_features_builder | 6 |
+| closing_line_value_builder | 4 |
+| career_stats_builder | 6 |
+| **Total** | **511+** |
 
 ## Detailed Feature List
 
@@ -693,4 +710,180 @@ Auto-generated from `output/features/features_matrix.jsonl` (sample: 500 rows).
 | `vb_log_proba` | unknown | 0.0% |
 | `vb_proba_implicite` | unknown | 0.0% |
 | `vb_proba_normalisee` | unknown | 0.0% |
+
+### lag_features_builder (5 features)
+
+| Feature | Type | Fill Rate |
+|---------|------|-----------|
+| `lag_position_1` | int | N/A |
+| `lag_position_2` | int | N/A |
+| `lag_position_3` | int | N/A |
+| `lag_cote_1` | float | N/A |
+| `lag_days_since_last` | int | N/A |
+
+### field_quality_builder (5 features)
+
+| Feature | Type | Fill Rate |
+|---------|------|-----------|
+| `field_elo_mean` | float | N/A |
+| `field_elo_std` | float | N/A |
+| `field_nb_outsiders` | int | N/A |
+| `field_nb_class_horses` | int | N/A |
+| `horse_elo_rank_in_field` | int | N/A |
+
+### target_encoding_builder (6 features)
+
+| Feature | Type | Fill Rate |
+|---------|------|-----------|
+| `te_hippodrome_win_rate` | float | N/A |
+| `te_jockey_win_rate` | float | N/A |
+| `te_trainer_win_rate` | float | N/A |
+| `te_discipline_win_rate` | float | N/A |
+| `te_distance_cat_win_rate` | float | N/A |
+| `te_month_win_rate` | float | N/A |
+
+### pace_scenario_builder (5 features)
+
+| Feature | Type | Fill Rate |
+|---------|------|-----------|
+| `pace_early_leader_prob` | float | N/A |
+| `pace_finisher_type` | int | N/A |
+| `pace_collapse_risk` | float | N/A |
+| `nb_front_runners` | int | N/A |
+| `pace_advantage` | int | N/A |
+
+### value_signal_builder (5 features)
+
+| Feature | Type | Fill Rate |
+|---------|------|-----------|
+| `expected_value` | float | N/A |
+| `edge_vs_market` | float | N/A |
+| `is_value_bet` | int | N/A |
+| `cote_vs_elo_gap` | float | N/A |
+| `smart_money_signal` | int | N/A |
+
+### consistency_builder (5 features)
+
+| Feature | Type | Fill Rate |
+|---------|------|-----------|
+| `position_std_5` | float | N/A |
+| `position_cv` | float | N/A |
+| `best_worst_gap` | int | N/A |
+| `dnf_rate` | float | N/A |
+| `improvement_trend` | float | N/A |
+
+### sequence_builder (6 features)
+
+| Feature | Type | Fill Rate |
+|---------|------|-----------|
+| `seq_positions_10` | list | N/A |
+| `seq_cotes_10` | list | N/A |
+| `seq_distances_10` | list | N/A |
+| `seq_jours_entre_10` | list | N/A |
+| `seq_is_winner_10` | list | N/A |
+| `seq_length` | int | N/A |
+
+### graph_features_builder (5 features)
+
+| Feature | Type | Fill Rate |
+|---------|------|-----------|
+| `graph_jockey_centrality` | int | N/A |
+| `graph_trainer_centrality` | int | N/A |
+| `graph_horse_connectivity` | int | N/A |
+| `graph_jt_combo_strength` | float | N/A |
+| `graph_hippo_diversity` | int | N/A |
+
+### interaction_advanced_builder (6 features)
+
+| Feature | Type | Fill Rate |
+|---------|------|-----------|
+| `elo_x_cote` | float | N/A |
+| `forme_x_distance_pref` | float | N/A |
+| `jockey_x_hippo_specialist` | float | N/A |
+| `age_x_distance` | float | N/A |
+| `fatigue_x_repos` | float | N/A |
+| `field_size_x_draw` | float | N/A |
+
+### rolling_advanced_builder (6 features)
+
+| Feature | Type | Fill Rate |
+|---------|------|-----------|
+| `rolling_earnings_5` | float | N/A |
+| `rolling_win_rate_10` | float | N/A |
+| `rolling_place_rate_10` | float | N/A |
+| `rolling_avg_cote_5` | float | N/A |
+| `rolling_avg_field_size_5` | float | N/A |
+| `rolling_distance_variety` | int | N/A |
+
+### first_time_events_builder (5 features)
+
+| Feature | Type | Fill Rate |
+|---------|------|-----------|
+| `first_time_psf` | int | N/A |
+| `first_time_distance_cat` | int | N/A |
+| `first_time_hippodrome` | int | N/A |
+| `first_time_oeilleres` | int | N/A |
+| `nb_firsts_count` | int | N/A |
+
+### momentum_builder (5 features)
+
+| Feature | Type | Fill Rate |
+|---------|------|-----------|
+| `momentum_3` | float | N/A |
+| `momentum_5` | float | N/A |
+| `momentum_trend` | float | N/A |
+| `regression_to_mean` | float | N/A |
+| `form_volatility` | float | N/A |
+
+### course_context_builder (6 features)
+
+| Feature | Type | Fill Rate |
+|---------|------|-----------|
+| `course_prestige` | int | N/A |
+| `is_course_phare` | int | N/A |
+| `type_paris_level` | int | N/A |
+| `nb_partants_normalized` | float | N/A |
+| `allocation_per_partant` | float | N/A |
+| `is_handicap` | int | N/A |
+
+### signal_features_builder (5 features)
+
+| Feature | Type | Fill Rate |
+|---------|------|-----------|
+| `jockey_upgrade` | int | N/A |
+| `trainer_change_recent` | int | N/A |
+| `class_drop_after_win` | int | N/A |
+| `returning_from_break` | int | N/A |
+| `equipment_change` | int | N/A |
+
+### cross_features_builder (6 features)
+
+| Feature | Type | Fill Rate |
+|---------|------|-----------|
+| `horse_meteo_win_rate` | float | N/A |
+| `trainer_type_win_rate` | float | N/A |
+| `age_month_factor` | float | N/A |
+| `sire_distance_terrain_score` | float | N/A |
+| `same_course_history` | float | N/A |
+| `jockey_discipline_win_rate` | float | N/A |
+
+### closing_line_value_builder (4 features)
+
+| Feature | Type | Fill Rate |
+|---------|------|-----------|
+| `closing_line_value` | float | N/A |
+| `expected_value_brute` | float | N/A |
+| `cote_movement_pct` | float | N/A |
+| `is_value_bet` | int | N/A |
+
+### career_stats_builder (6 features)
+
+| Feature | Type | Fill Rate |
+|---------|------|-----------|
+| `nb_courses_carriere` | int | N/A |
+| `gains_carriere_total` | float | N/A |
+| `gains_par_course_moyen` | float | N/A |
+| `win_rate_carriere` | float | N/A |
+| `place_rate_carriere` | float | N/A |
+| `best_allocation_won` | float | N/A |
 
