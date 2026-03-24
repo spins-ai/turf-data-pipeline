@@ -469,7 +469,7 @@
 - [x] Investiguer accès Total Performance Data (TPD) ✅ FAIT — script 136
 - [ ] Scraper StrideMASTER données AU
 - [ ] Scraper Trakus données US
-- [ ] Scraper TurfTrax données UK
+- [x] Scraper TurfTrax données UK ✅ FAIT — script 145 (Playwright, en-GB)
 - [ ] Investiguer Equimetre France Galop
 - [ ] Scraper HKJC sectional tracking
 - [ ] Créer table sectionals_master
@@ -484,7 +484,7 @@
 
 ## 7K - Terrain / Going
 - [x] Scraper GoingStick data UK ✅ FAIT session 2 — script 78
-- [ ] Scraper TurfTrax going data
+- [x] Scraper TurfTrax going data ✅ FAIT — script 145 (Playwright, en-GB)
 - [x] Scraper Clerk of Course reports ✅ FAIT — script 113 (Playwright)
 - [ ] Scraper HKJC going reports
 - [x] Scraper Racing AU Track Conditions ✅ FAIT — script 114 (Playwright)
@@ -523,7 +523,7 @@
 
 ## 7P - Bloodstock & élevage
 - [x] Scraper BloodHorse ✅ FAIT — script 116 (Playwright)
-- [ ] Scraper Thoroughbred Daily News
+- [x] Scraper Thoroughbred Daily News ✅ FAIT — script 144 (Playwright, en-US)
 - [x] Scraper Bloodstock World ✅ FAIT session 2 — script 87
 - [ ] Scraper European Bloodstock News
 - [ ] Scraper Japan Bloodhorse Breeders Association
@@ -531,8 +531,8 @@
 
 ## 7Q - Stats avancées / Ratings pro
 - [ ] Scraper OptixEQ (speed figures avancés)
-- [ ] Scraper ThoroughGraph (speed + pace)
-- [ ] Scraper Equine Edge
+- [x] Scraper ThoroughGraph (speed + pace) ✅ FAIT — script 142 (Playwright, en-US)
+- [x] Scraper Equine Edge ✅ FAIT — script 143 (Playwright, en-US)
 - [ ] Scraper Horse Racing Analytics
 - [ ] Scraper EquiRatings
 - [ ] Créer table ratings_master
@@ -730,7 +730,7 @@
 
 ## 11.4 Backup FINAL
 - [ ] Sauvegarder la version finale complète
-- [ ] Créer un README dans le backup expliquant son contenu
+- [x] Créer un README dans le backup expliquant son contenu ✅ FAIT — backups/README.md (stratégie, restore, rétention)
 - [ ] Versionner avec date et stats (nb records, nb features, taille)
 - [ ] Copie sur disque externe si possible
 
@@ -1340,9 +1340,9 @@
 - [ ] Créer migrations/ (scripts de migration quand le schéma change)
 
 ## 0.3 Manifest et catalogues
-- [ ] Créer data_catalog.json : chaque source avec ses champs, clés jointure, dépendances
+- [x] Créer data_catalog.json : chaque source avec ses champs, clés jointure, dépendances ✅ FAIT — scripts/generate_data_catalog.py, 40 fichiers catalogués (81.5 GB)
 - [ ] Créer MANIFEST.json : tous les fichiers avec taille, date, checksum SHA256
-- [ ] Créer sources_status.json : dernière MAJ, nb records, taux erreur par source
+- [x] Créer sources_status.json : dernière MAJ, nb records, taux erreur par source ✅ FAIT — scripts/generate_sources_status.py, 138 scrapers (80 active, 13 blocked, 45 new)
 - [ ] Créer sync_status.json : état de synchronisation entre sources
 
 # ┌─────────────────────────────────────────┐

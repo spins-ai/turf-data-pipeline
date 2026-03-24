@@ -38,6 +38,7 @@ build/
 
 # Backups
 backup*/
+!backups/README.md
 *.bak
 
 # Claude worktrees
