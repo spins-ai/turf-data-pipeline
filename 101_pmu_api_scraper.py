@@ -72,7 +72,7 @@ def date_to_pmu(dt):
     return dt.strftime("%d%m%Y")
 
 
-def scrape_day(session, dt, output_programmes, output_participants, output_courses):
+def scrape_day(session, dt, output_programmes, output_participants, output_courses, output_rapports):
     """Scraper toutes les données PMU pour un jour donné."""
     date_pmu = date_to_pmu(dt)
     date_iso = dt.strftime("%Y-%m-%d")
@@ -213,6 +213,10 @@ def scrape_day(session, dt, output_programmes, output_participants, output_cours
                     cote_direct = p.get("dernierRapportDirect", {})
                     cote_ref = p.get("dernierRapportReference", {})
 
+                    # poidsConditionMonte is in decigrams, divide by 10 for kg
+                    raw_poids = p.get("poidsConditionMonte", None)
+                    poids_kg = raw_poids / 10.0 if raw_poids is not None else None
+
                     part_record = {
                         "date": date_iso,
                         "source": "pmu_api",
@@ -236,8 +240,10 @@ def scrape_day(session, dt, output_programmes, output_participants, output_cours
                         "nomPere": p.get("nomPere", ""),
                         "nomMere": p.get("nomMere", ""),
                         "placeCorde": p.get("placeCorde", None),
-                        "handicapDistance": p.get("handicapDistance", None),
-                        "poidsConditionMonte": p.get("poidsConditionMonte", None),
+                        "handicap_distance": p.get("handicapDistance", None),
+                        "handicap_poids": p.get("handicapPoids", None),
+                        "handicap_valeur": p.get("handicapValeur", None),
+                        "poids_condition_monte_kg": poids_kg,
                         "nombreCourses": p.get("nombreCourses", 0),
                         "nombreVictoires": p.get("nombreVictoires", 0),
                         "nombrePlaces": p.get("nombrePlaces", 0),
@@ -247,20 +253,56 @@ def scrape_day(session, dt, output_programmes, output_participants, output_cours
                         "cote_reference": cote_ref.get("rapport", None),
                         "cote_tendance": cote_ref.get("indicateurTendance", ""),
                         "ordreArrivee": p.get("ordreArrivee", None),
-                        "tempsObtenu": p.get("tempsObtenu", None),
-                        "reductionKm": p.get("reductionKilometrique", None),
+                        "temps_obtenu": p.get("tempsObtenu", None),
+                        "reduction_kilometrique": p.get("reductionKilometrique", None),
                         "allure": p.get("allure", ""),
-                        "avisEntraineur": p.get("avisEntraineur", ""),
+                        "avis_entraineur": p.get("avisEntraineur", ""),
                         "scraped_at": datetime.now().isoformat(),
                     }
                     # Commentaire après course par partant
                     cmt_p = p.get("commentaireApresCourse")
                     if isinstance(cmt_p, dict):
-                        part_record["commentaire"] = cmt_p.get("texte", "")
+                        part_record["commentaire_apres_course"] = cmt_p.get("texte", "")
+                    elif isinstance(cmt_p, str):
+                        part_record["commentaire_apres_course"] = cmt_p
 
                     append_jsonl(output_participants, part_record)
                     total_participants += 1
                     total_records += 1
+
+            # --- Rapports définitifs ---
+            cache_rapports = os.path.join(CACHE_DIR, f"rapports_{date_iso}_R{num_reunion}C{num_course}.json")
+            rapports_data = None
+            if os.path.exists(cache_rapports) and os.path.getsize(cache_rapports) > 2:
+                try:
+                    with open(cache_rapports, "r", encoding="utf-8") as f:
+                        rapports_data = json.load(f)
+                except (json.JSONDecodeError, ValueError, OSError):
+                    log.warning("  Cache corrompu: %s, re-téléchargement", cache_rapports)
+                    try:
+                        os.remove(cache_rapports)
+                    except OSError:
+                        pass
+            if rapports_data is None:
+                rapports_data = api_get(session, f"/programmes/{date_pmu}/R{num_reunion}/C{num_course}/rapports-definitifs")
+                if rapports_data:
+                    with open(cache_rapports, "w", encoding="utf-8") as f:
+                        json.dump(rapports_data, f, ensure_ascii=False)
+                    time.sleep(random.uniform(0.3, 0.8))
+
+            if rapports_data:
+                rapport_record = {
+                    "date": date_iso,
+                    "source": "pmu_api",
+                    "type": "rapports_definitifs",
+                    "num_reunion": num_reunion,
+                    "num_course": num_course,
+                    "hippodrome": hippo_nom,
+                    "rapports": rapports_data,
+                    "scraped_at": datetime.now().isoformat(),
+                }
+                append_jsonl(output_rapports, rapport_record)
+                total_records += 1
 
         # Pause entre réunions
         time.sleep(random.uniform(0.5, 1.5))
@@ -302,6 +344,7 @@ def main():
     output_programmes = os.path.join(OUTPUT_DIR, "pmu_programmes.jsonl")
     output_participants = os.path.join(OUTPUT_DIR, "pmu_participants.jsonl")
     output_courses = os.path.join(OUTPUT_DIR, "pmu_courses.jsonl")
+    output_rapports = os.path.join(OUTPUT_DIR, "pmu_rapports.jsonl")
 
     current = start_date
     day_count = 0
@@ -316,7 +359,7 @@ def main():
 
         date_str = current.strftime("%Y-%m-%d")
         courses, participants, records = scrape_day(
-            session, current, output_programmes, output_participants, output_courses
+            session, current, output_programmes, output_participants, output_courses, output_rapports
         )
 
         grand_total_courses += courses
@@ -366,6 +409,7 @@ def main():
     log.info(f"  Fichiers: {output_programmes}")
     log.info(f"           {output_participants}")
     log.info(f"           {output_courses}")
+    log.info(f"           {output_rapports}")
     log.info("=" * 60)
 
 
