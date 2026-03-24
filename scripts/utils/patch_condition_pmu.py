@@ -42,24 +42,13 @@ PMU_URL = "https://offline.turfinfo.api.pmu.fr/rest/client/1/programme/{date_ddm
 # ===========================================================================
 
 from utils.logging_setup import setup_logging
+from utils.scraping import create_session
 
 
 # ===========================================================================
 # HTTP
 # ===========================================================================
 
-def create_session() -> requests.Session:
-    session = requests.Session()
-    retry = Retry(total=3, backoff_factor=0.5, status_forcelist=[500, 502, 503, 504])
-    adapter = HTTPAdapter(max_retries=retry)
-    session.mount("https://", adapter)
-    session.mount("http://", adapter)
-    return session
-
-
-# ===========================================================================
-# CACHE
-# ===========================================================================
 
 class PmuConditionCache:
     def __init__(self, fichier: Path):

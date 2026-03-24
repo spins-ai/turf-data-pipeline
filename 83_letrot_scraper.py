@@ -28,6 +28,7 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
 from utils.scraping import smart_pause, fetch_with_retry, load_checkpoint, save_checkpoint, append_jsonl, create_session
+from utils.html_parsing import extract_race_links
 
 log = setup_logging("83_letrot")
 
@@ -39,19 +40,6 @@ USER_AGENTS = [
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:122.0) Gecko/20100101 Firefox/122.0",
 ]
-
-
-
-def extract_race_links(soup, date_str):
-    """Extraire les liens vers les courses individuelles depuis la page du jour."""
-    links = set()
-    # Pattern: /courses/2026-03-19/1400/1
-    pattern = re.compile(rf'/courses/{re.escape(date_str)}/(\d+)/(\d+)')
-    for a in soup.find_all("a", href=True):
-        m = pattern.search(a["href"])
-        if m:
-            links.add((m.group(1), m.group(2)))
-    return sorted(links)
 
 
 def scrape_race_page(session, date_str, hippo_id, race_num):
@@ -210,7 +198,7 @@ def scrape_day(session, date_str):
     race_links = []
     if resp:
         soup = BeautifulSoup(resp.text, "html.parser")
-        race_links = extract_race_links(soup, date_str)
+        race_links = extract_race_links(soup, base_url=BASE_URL)
 
     with open(cache_index, "w", encoding="utf-8") as f:
         json.dump(race_links, f)

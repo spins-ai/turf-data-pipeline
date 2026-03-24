@@ -46,6 +46,8 @@ from urllib3.util.retry import Retry
 from hippodromes_db import get_hippodrome_info
 from utils.logging_setup import setup_logging
 from utils.output import sauver_json, sauver_csv, sauver_parquet
+from utils.scraping import create_session
+# NOTE: local create_session had signature (retry_max: int = 3, backoff: float = 1.0), now uses utils.scraping version
 
 # ===========================================================================
 # CONFIGURATION
@@ -127,27 +129,6 @@ class MeteoJour:
 # CLIENT HTTP
 # ===========================================================================
 
-def create_session(retry_max: int = 3, backoff: float = 1.0) -> requests.Session:
-    session = requests.Session()
-    retry = Retry(
-        total=retry_max,
-        backoff_factor=backoff,
-        status_forcelist=[500, 502, 503, 504],  # 429 géré manuellement avec backoff
-        allowed_methods=["GET"],
-    )
-    adapter = HTTPAdapter(max_retries=retry)
-    session.mount("https://", adapter)
-    session.mount("http://", adapter)
-    session.headers.update({
-        "User-Agent": "TurfMeteoEnrichment/1.0 (data pipeline)",
-        "Accept": "application/json",
-    })
-    return session
-
-
-# ===========================================================================
-# CACHE METEO
-# ===========================================================================
 
 class MeteoCache:
     """Cache local persistant pour éviter les requêtes redondantes."""

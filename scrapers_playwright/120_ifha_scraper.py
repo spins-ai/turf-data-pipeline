@@ -34,6 +34,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."
 from utils.playwright import launch_browser, accept_cookies
 from utils.logging_setup import setup_logging
 from utils.scraping import smart_pause, append_jsonl, load_checkpoint, save_checkpoint
+from utils.html_parsing import extract_embedded_json_data
+from utils.html_parsing import extract_scraper_data_attributes
 
 SCRIPT_NAME = "120_ifha"
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "output", SCRIPT_NAME)
@@ -322,64 +324,6 @@ def extract_member_authorities(soup, date_str):
     return records
 
 
-def extract_embedded_json_data(soup, date_str):
-    """Extract JSON data from script tags."""
-    records = []
-    for script in soup.find_all("script", {"type": "application/json"}):
-        try:
-            data = json.loads(script.string or "")
-            if data and isinstance(data, dict):
-                records.append({
-                    "date": date_str,
-                    "source": "ifha",
-                    "type": "embedded_json",
-                    "data_id": script.get("id", ""),
-                    "data": data,
-                    "scraped_at": datetime.now().isoformat(),
-                })
-        except (json.JSONDecodeError, TypeError):
-            pass
-
-    for script in soup.find_all("script", {"id": "__NEXT_DATA__"}):
-        try:
-            data = json.loads(script.string or "")
-            page_props = data.get("props", {}).get("pageProps", {})
-            if page_props:
-                records.append({
-                    "date": date_str,
-                    "source": "ifha",
-                    "type": "next_data",
-                    "data": page_props,
-                    "scraped_at": datetime.now().isoformat(),
-                })
-        except (json.JSONDecodeError, TypeError):
-            pass
-
-    return records
-
-
-def extract_data_attributes(soup, date_str):
-    """Extract data-* attributes related to rankings/racing."""
-    records = []
-    keywords = ["horse", "rank", "rating", "country", "trainer",
-                "jockey", "category", "race", "grade", "stake"]
-    for el in soup.find_all(attrs=lambda attrs: attrs and any(
-            k.startswith("data-") and any(kw in k for kw in keywords)
-            for k in attrs)):
-        data_attrs = {k: v for k, v in el.attrs.items() if k.startswith("data-")}
-        if data_attrs:
-            records.append({
-                "date": date_str,
-                "source": "ifha",
-                "type": "data_attrs",
-                "tag": el.name,
-                "text": el.get_text(strip=True)[:200],
-                "attributes": data_attrs,
-                "scraped_at": datetime.now().isoformat(),
-            })
-    return records
-
-
 # ------------------------------------------------------------------
 # Main scraping functions
 # ------------------------------------------------------------------
@@ -415,8 +359,8 @@ def scrape_world_rankings(page, year, date_str):
     records = []
 
     records.extend(extract_rankings_table(soup, date_str))
-    records.extend(extract_embedded_json_data(soup, date_str))
-    records.extend(extract_data_attributes(soup, date_str))
+    records.extend(extract_embedded_json_data(soup, "ifha", date_str=date_str))
+    records.extend(extract_scraper_data_attributes(soup, "ifha", date_str=date_str))
 
     # Tag all with year
     for rec in records:
@@ -469,8 +413,8 @@ def scrape_graded_stakes_page(page, year, date_str):
     records = []
 
     records.extend(extract_graded_stakes(soup, date_str))
-    records.extend(extract_embedded_json_data(soup, date_str))
-    records.extend(extract_data_attributes(soup, date_str))
+    records.extend(extract_embedded_json_data(soup, "ifha", date_str=date_str))
+    records.extend(extract_scraper_data_attributes(soup, "ifha", date_str=date_str))
 
     for rec in records:
         rec["year"] = year
@@ -508,8 +452,8 @@ def scrape_international_results(page, year, date_str):
     records = []
 
     records.extend(extract_race_results(soup, date_str))
-    records.extend(extract_embedded_json_data(soup, date_str))
-    records.extend(extract_data_attributes(soup, date_str))
+    records.extend(extract_embedded_json_data(soup, "ifha", date_str=date_str))
+    records.extend(extract_scraper_data_attributes(soup, "ifha", date_str=date_str))
 
     for rec in records:
         rec["year"] = year
@@ -536,8 +480,8 @@ def scrape_member_directory(page, date_str):
     records = []
 
     records.extend(extract_member_authorities(soup, date_str))
-    records.extend(extract_embedded_json_data(soup, date_str))
-    records.extend(extract_data_attributes(soup, date_str))
+    records.extend(extract_embedded_json_data(soup, "ifha", date_str=date_str))
+    records.extend(extract_scraper_data_attributes(soup, "ifha", date_str=date_str))
 
     with open(cache_file, "w", encoding="utf-8") as f:
         json.dump(records, f, ensure_ascii=False, indent=2)

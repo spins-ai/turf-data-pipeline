@@ -39,14 +39,12 @@ OUTPUT_DIR = Path(__file__).resolve().parent / "../../output" / "11_sectionals"
 
 from utils.logging_setup import setup_logging
 from utils.output import sauver_json, sauver_csv, sauver_parquet
+from utils.loaders import load_json_safe
 
 
 # ===========================================================================
 # SAUVEGARDE
 # ===========================================================================
-
-
-
 
 
 # ===========================================================================
@@ -71,13 +69,6 @@ def redkm_ms_to_sec_str(redkm_ms: Optional[int]) -> Optional[str]:
 # ===========================================================================
 # TRAITEMENT
 # ===========================================================================
-
-def charger_json(path: Path, logger: logging.Logger) -> list[dict]:
-    logger.info("Chargement: %s", path)
-    with open(path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    logger.info("  %d entrees chargees", len(data))
-    return data
 
 
 def construire_sectionals(
@@ -247,8 +238,8 @@ def main():
         logger.error("Fichier introuvable: %s", courses_path)
         sys.exit(1)
 
-    partants = charger_json(partants_path, logger)
-    courses = charger_json(courses_path, logger)
+    partants = load_json_safe(partants_path, str(partants_path), logger)
+    courses = load_json_safe(courses_path, str(courses_path), logger)
     resultats = construire_sectionals(partants, courses, logger)
 
     # Export

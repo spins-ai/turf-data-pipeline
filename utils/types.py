@@ -12,7 +12,7 @@ Usage:
 
 from __future__ import annotations
 
-__all__ = ["safe_int", "safe_float", "utc_now_iso"]
+__all__ = ["safe_int", "safe_float", "utc_now_iso", "centimes_to_euros"]
 
 from datetime import datetime, timezone
 from typing import Any, Optional
@@ -94,3 +94,28 @@ def safe_float(val: Any, default: Optional[float] = None) -> Optional[float]:
         return float(val)
     except (ValueError, TypeError):
         return default
+
+
+def centimes_to_euros(centimes: Optional[int]) -> Optional[float]:
+    """Convert a price in centimes to euros.
+
+    Parameters
+    ----------
+    centimes : int or None
+        Amount in centimes.
+
+    Returns
+    -------
+    float or None
+        Amount in euros, or *None* if *centimes* is *None*.
+
+    Examples
+    --------
+    >>> centimes_to_euros(150)
+    1.5
+    >>> centimes_to_euros(None) is None
+    True
+    """
+    if centimes is None:
+        return None
+    return centimes / 100.0

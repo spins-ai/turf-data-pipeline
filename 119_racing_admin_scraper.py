@@ -31,6 +31,7 @@ from datetime import datetime, timedelta
 from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeout
 from bs4 import BeautifulSoup
 from utils.playwright import launch_browser, accept_cookies
+from utils.html_parsing import extract_embedded_json_data, extract_scraper_data_attributes
 
 SCRIPT_NAME = "119_racing_admin"
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output", SCRIPT_NAME)
@@ -239,63 +240,8 @@ def extract_tables(soup, date_str, source_key):
     return records
 
 
-def extract_embedded_json_data(soup, date_str, source_key):
-    """Extract JSON data from script tags."""
-    records = []
-    for script in soup.find_all("script", {"type": "application/json"}):
-        try:
-            data = json.loads(script.string or "")
-            if data and isinstance(data, dict):
-                records.append({
-                    "date": date_str,
-                    "source": source_key,
-                    "type": "embedded_json",
-                    "data_id": script.get("id", ""),
-                    "data": data,
-                    "scraped_at": datetime.now().isoformat(),
-                })
-        except (json.JSONDecodeError, TypeError):
-            pass
-
-    # __NEXT_DATA__ or similar SSR payloads
-    for script in soup.find_all("script", {"id": "__NEXT_DATA__"}):
-        try:
-            data = json.loads(script.string or "")
-            page_props = data.get("props", {}).get("pageProps", {})
-            if page_props:
-                records.append({
-                    "date": date_str,
-                    "source": source_key,
-                    "type": "next_data",
-                    "data": page_props,
-                    "scraped_at": datetime.now().isoformat(),
-                })
-        except (json.JSONDecodeError, TypeError):
-            pass
-
-    return records
 
 
-def extract_data_attributes(soup, date_str, source_key):
-    """Extract data-* attributes related to racing admin."""
-    records = []
-    keywords = ["fixture", "race", "licence", "trainer", "jockey", "horse",
-                "rule", "regulation", "member", "authority"]
-    for el in soup.find_all(attrs=lambda attrs: attrs and any(
-            k.startswith("data-") and any(kw in k for kw in keywords)
-            for k in attrs)):
-        data_attrs = {k: v for k, v in el.attrs.items() if k.startswith("data-")}
-        if data_attrs:
-            records.append({
-                "date": date_str,
-                "source": source_key,
-                "type": "data_attrs",
-                "tag": el.name,
-                "text": el.get_text(strip=True)[:200],
-                "attributes": data_attrs,
-                "scraped_at": datetime.now().isoformat(),
-            })
-    return records
 
 
 # ------------------------------------------------------------------
@@ -331,8 +277,8 @@ def scrape_admin_page(page, url, date_str, source_key):
             break
 
     # Extract all data types
-    records.extend(extract_embedded_json_data(soup, date_str, source_key))
-    records.extend(extract_data_attributes(soup, date_str, source_key))
+    records.extend(extract_embedded_json_data(soup, source_key, date_str=date_str))
+    records.extend(extract_scraper_data_attributes(soup, source_key, date_str=date_str))
     records.extend(extract_regulatory_data(soup, date_str, source_key))
     records.extend(extract_fixture_data(soup, date_str, source_key))
     records.extend(extract_member_directory(soup, date_str, source_key))

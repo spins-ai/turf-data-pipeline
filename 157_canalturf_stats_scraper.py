@@ -42,6 +42,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
 from utils.scraping import smart_pause, append_jsonl, load_checkpoint, save_checkpoint
 from utils.playwright import launch_browser, accept_cookies
+from utils.html_parsing import extract_embedded_json_data
+from utils.html_parsing import extract_scraper_data_attributes
 
 log = setup_logging("157_canalturf_stats")
 
@@ -212,46 +214,6 @@ def extract_sub_links(soup, section_path):
     return sorted(links)
 
 
-def extract_embedded_json_data(soup, section_type):
-    """Extract JSON data from script tags."""
-    records = []
-    for script in soup.find_all("script", {"type": "application/json"}):
-        try:
-            data = json.loads(script.string or "")
-            if data and isinstance(data, dict):
-                records.append({
-                    "source": "canalturf_stats",
-                    "type": f"{section_type}_json",
-                    "data_id": script.get("id", ""),
-                    "data": data,
-                    "scraped_at": datetime.now().isoformat(),
-                })
-        except (json.JSONDecodeError, TypeError):
-            pass
-    return records
-
-
-def extract_data_attributes(soup, section_type):
-    """Extract data-* attributes from stats elements."""
-    records = []
-    keywords = ["jockey", "entraineur", "trainer", "cheval", "horse",
-                "hippodrome", "stat", "rank", "score", "win", "course"]
-    for el in soup.find_all(attrs=lambda attrs: attrs and any(
-            k.startswith("data-") and any(kw in k for kw in keywords)
-            for k in attrs)):
-        data_attrs = {k: v for k, v in el.attrs.items() if k.startswith("data-")}
-        if data_attrs:
-            records.append({
-                "source": "canalturf_stats",
-                "type": f"{section_type}_data_attrs",
-                "tag": el.name,
-                "text": el.get_text(strip=True)[:200],
-                "attributes": data_attrs,
-                "scraped_at": datetime.now().isoformat(),
-            })
-    return records
-
-
 # ------------------------------------------------------------------
 # Main scraping functions
 # ------------------------------------------------------------------
@@ -282,8 +244,8 @@ def scrape_stats_section(page, section, output_file):
     soup = BeautifulSoup(html, "html.parser")
     records = []
 
-    records.extend(extract_embedded_json_data(soup, section_type))
-    records.extend(extract_data_attributes(soup, section_type))
+    records.extend(extract_embedded_json_data(soup, "canalturf_stats", date_str=section_type))
+    records.extend(extract_scraper_data_attributes(soup, "canalturf_stats", date_str=section_type))
     records.extend(extract_stats_tables(soup, section_type, section_label))
     records.extend(extract_ranking_blocks(soup, section_type, section_label))
     records.extend(extract_stats_summary(soup, section_type, section_label))
@@ -320,8 +282,8 @@ def scrape_sub_page(page, sub_url, parent_type, parent_label):
             break
 
     sub_type = f"{parent_type}_detail"
-    records.extend(extract_embedded_json_data(soup, sub_type))
-    records.extend(extract_data_attributes(soup, sub_type))
+    records.extend(extract_embedded_json_data(soup, "canalturf_stats", date_str=sub_type))
+    records.extend(extract_scraper_data_attributes(soup, "canalturf_stats", date_str=sub_type))
     records.extend(extract_stats_tables(soup, sub_type, f"{parent_label} > {page_title}"))
     records.extend(extract_ranking_blocks(soup, sub_type, f"{parent_label} > {page_title}"))
     records.extend(extract_stats_summary(soup, sub_type, f"{parent_label} > {page_title}"))

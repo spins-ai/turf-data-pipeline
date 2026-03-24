@@ -43,6 +43,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
 from utils.scraping import smart_pause, append_jsonl, load_checkpoint, save_checkpoint
 from utils.playwright import launch_browser, accept_cookies
+from utils.html_parsing import extract_embedded_json_data
+from utils.html_parsing import extract_scraper_data_attributes
 
 log = setup_logging("138_racing_admin_bha")
 
@@ -307,61 +309,6 @@ def extract_subpage_links(soup, section_path):
     return sorted(links)
 
 
-def extract_embedded_json_data(soup, section_type):
-    """Extract JSON data from script tags."""
-    records = []
-    for script in soup.find_all("script", {"type": "application/json"}):
-        try:
-            data = json.loads(script.string or "")
-            if data and isinstance(data, dict):
-                records.append({
-                    "source": "bha",
-                    "type": f"{section_type}_json",
-                    "data_id": script.get("id", ""),
-                    "data": data,
-                    "scraped_at": datetime.now().isoformat(),
-                })
-        except (json.JSONDecodeError, TypeError):
-            pass
-
-    for script in soup.find_all("script", {"id": "__NEXT_DATA__"}):
-        try:
-            data = json.loads(script.string or "")
-            page_props = data.get("props", {}).get("pageProps", {})
-            if page_props:
-                records.append({
-                    "source": "bha",
-                    "type": "next_data",
-                    "data": page_props,
-                    "scraped_at": datetime.now().isoformat(),
-                })
-        except (json.JSONDecodeError, TypeError):
-            pass
-
-    return records
-
-
-def extract_data_attributes(soup, section_type):
-    """Extract data-* attributes related to racing admin."""
-    records = []
-    keywords = ["course", "fixture", "going", "discipline", "suspension",
-                "jockey", "trainer", "horse", "penalty", "inquiry"]
-    for el in soup.find_all(attrs=lambda attrs: attrs and any(
-            k.startswith("data-") and any(kw in k for kw in keywords)
-            for k in attrs)):
-        data_attrs = {k: v for k, v in el.attrs.items() if k.startswith("data-")}
-        if data_attrs:
-            records.append({
-                "source": "bha",
-                "type": f"{section_type}_attrs",
-                "tag": el.name,
-                "text": el.get_text(strip=True)[:200],
-                "attributes": data_attrs,
-                "scraped_at": datetime.now().isoformat(),
-            })
-    return records
-
-
 # ------------------------------------------------------------------
 # Main scraping functions
 # ------------------------------------------------------------------
@@ -388,8 +335,8 @@ def scrape_section(page, section_path, section_type):
     records = []
 
     # Common extractors
-    records.extend(extract_embedded_json_data(soup, section_type))
-    records.extend(extract_data_attributes(soup, section_type))
+    records.extend(extract_embedded_json_data(soup, "bha", date_str=section_type))
+    records.extend(extract_scraper_data_attributes(soup, "bha", date_str=section_type))
     records.extend(extract_tables(soup, section_type))
 
     # Section-specific extractors
@@ -435,8 +382,8 @@ def scrape_subpage(page, sub_url, section_type):
             page_title = text
             break
 
-    records.extend(extract_embedded_json_data(soup, section_type))
-    records.extend(extract_data_attributes(soup, section_type))
+    records.extend(extract_embedded_json_data(soup, "bha", date_str=section_type))
+    records.extend(extract_scraper_data_attributes(soup, "bha", date_str=section_type))
     records.extend(extract_tables(soup, section_type))
 
     if "disciplinary" in section_type:
@@ -478,7 +425,7 @@ def scrape_going_reports_by_date(page, date_str):
     soup = BeautifulSoup(html, "html.parser")
     records = []
 
-    records.extend(extract_embedded_json_data(soup, "going_report"))
+    records.extend(extract_embedded_json_data(soup, "bha", date_str="going_report"))
     records.extend(extract_tables(soup, "going_report"))
     records.extend(extract_going_reports(soup))
 
@@ -506,7 +453,7 @@ def scrape_fixtures_by_date(page, date_str):
     soup = BeautifulSoup(html, "html.parser")
     records = []
 
-    records.extend(extract_embedded_json_data(soup, "fixture"))
+    records.extend(extract_embedded_json_data(soup, "bha", date_str="fixture"))
     records.extend(extract_tables(soup, "fixture"))
     records.extend(extract_fixtures(soup))
 

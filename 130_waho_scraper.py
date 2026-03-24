@@ -37,6 +37,7 @@ os.makedirs(HTML_CACHE_DIR, exist_ok=True)
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
 from utils.scraping import smart_pause, append_jsonl, load_checkpoint, save_checkpoint
+from utils.html_parsing import extract_embedded_json_data
 
 log = setup_logging("130_waho")
 
@@ -264,25 +265,6 @@ def extract_pedigree(soup, horse_id):
     return pedigree_record
 
 
-def extract_embedded_json_data(soup):
-    """Extract JSON data from script tags."""
-    records = []
-    for script in soup.find_all("script", {"type": "application/json"}):
-        try:
-            data = json.loads(script.string or "")
-            if data and isinstance(data, dict):
-                records.append({
-                    "source": "waho",
-                    "type": "embedded_json",
-                    "data_id": script.get("id", ""),
-                    "data": data,
-                    "scraped_at": datetime.now().isoformat(),
-                })
-        except (json.JSONDecodeError, TypeError):
-            pass
-    return records
-
-
 # ------------------------------------------------------------------
 # Search and pagination
 # ------------------------------------------------------------------
@@ -393,7 +375,7 @@ def scrape_by_letter(page, letter, output_file, checkpoint):
 
         soup = BeautifulSoup(html, "html.parser")
         records = extract_horse_details(soup, horse_url, horse_id)
-        records.extend(extract_embedded_json_data(soup))
+        records.extend(extract_embedded_json_data(soup, "waho"))
 
         # Cache detail records
         with open(detail_cache, "w", encoding="utf-8", newline="\n") as f:

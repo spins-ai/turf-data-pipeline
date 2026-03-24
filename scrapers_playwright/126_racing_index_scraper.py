@@ -27,6 +27,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."
 from utils.logging_setup import setup_logging
 from utils.scraping import smart_pause, append_jsonl, load_checkpoint, save_checkpoint
 from utils.playwright import launch_browser, accept_cookies
+from utils.html_parsing import extract_embedded_json_data
+from utils.html_parsing import extract_scraper_data_attributes
 
 log = setup_logging("126_racing_index_scraper")
 
@@ -300,69 +302,6 @@ def extract_results_table(soup, date_str, race_url=""):
 # Extraction: embedded JSON and data-attributes
 # ------------------------------------------------------------------
 
-def extract_embedded_json_data(soup, date_str):
-    """Extract JSON data from script tags."""
-    records = []
-    for script in soup.find_all("script", {"type": "application/json"}):
-        try:
-            data = json.loads(script.string or "")
-            if data and isinstance(data, dict):
-                records.append({
-                    "date": date_str,
-                    "source": "racingindex",
-                    "type": "embedded_json",
-                    "data_id": script.get("id", ""),
-                    "data": data,
-                    "scraped_at": datetime.now().isoformat(),
-                })
-        except (json.JSONDecodeError, TypeError):
-            pass
-
-    for script in soup.find_all("script", {"id": "__NEXT_DATA__"}):
-        try:
-            data = json.loads(script.string or "")
-            page_props = data.get("props", {}).get("pageProps", {})
-            if page_props:
-                records.append({
-                    "date": date_str,
-                    "source": "racingindex",
-                    "type": "next_data",
-                    "data": page_props,
-                    "scraped_at": datetime.now().isoformat(),
-                })
-        except (json.JSONDecodeError, TypeError):
-            pass
-
-    return records
-
-
-def extract_data_attributes(soup, date_str):
-    """Extract data-* attributes related to horses/racing."""
-    records = []
-    keywords = [
-        "horse", "runner", "jockey", "trainer", "odds", "sp",
-        "result", "position", "speed", "rating", "form", "index",
-    ]
-    for el in soup.find_all(
-        attrs=lambda attrs: attrs
-        and any(
-            k.startswith("data-") and any(kw in k for kw in keywords)
-            for k in attrs
-        )
-    ):
-        data_attrs = {k: v for k, v in el.attrs.items() if k.startswith("data-")}
-        if data_attrs:
-            records.append({
-                "date": date_str,
-                "source": "racingindex",
-                "type": "data_attrs",
-                "tag": el.name,
-                "text": el.get_text(strip=True)[:200],
-                "attributes": data_attrs,
-                "scraped_at": datetime.now().isoformat(),
-            })
-    return records
-
 
 # ------------------------------------------------------------------
 # Scrape: ratings / speed figures page
@@ -399,8 +338,8 @@ def scrape_ratings_page(page, date_str):
     soup = BeautifulSoup(html, "html.parser")
     records = []
 
-    records.extend(extract_embedded_json_data(soup, date_str))
-    records.extend(extract_data_attributes(soup, date_str))
+    records.extend(extract_embedded_json_data(soup, "racingindex", date_str=date_str))
+    records.extend(extract_scraper_data_attributes(soup, "racingindex", date_str=date_str))
     records.extend(extract_ratings(soup, date_str))
     records.extend(extract_results_table(soup, date_str))
 
@@ -449,8 +388,8 @@ def scrape_results_day(page, date_str):
     soup = BeautifulSoup(html, "html.parser")
     records = []
 
-    records.extend(extract_embedded_json_data(soup, date_str))
-    records.extend(extract_data_attributes(soup, date_str))
+    records.extend(extract_embedded_json_data(soup, "racingindex", date_str=date_str))
+    records.extend(extract_scraper_data_attributes(soup, "racingindex", date_str=date_str))
     records.extend(extract_ratings(soup, date_str))
     records.extend(extract_results_table(soup, date_str))
     records.extend(extract_race_analysis(soup, date_str))
@@ -548,8 +487,8 @@ def scrape_race_detail(page, race_url, date_str):
             break
 
     # Structured data
-    records.extend(extract_embedded_json_data(soup, date_str))
-    records.extend(extract_data_attributes(soup, date_str))
+    records.extend(extract_embedded_json_data(soup, "racingindex", date_str=date_str))
+    records.extend(extract_scraper_data_attributes(soup, "racingindex", date_str=date_str))
     records.extend(extract_ratings(soup, date_str))
     records.extend(extract_race_analysis(soup, date_str))
 
@@ -620,8 +559,8 @@ def scrape_leaderboard(page, date_str):
     soup = BeautifulSoup(html, "html.parser")
     records = []
 
-    records.extend(extract_embedded_json_data(soup, date_str))
-    records.extend(extract_data_attributes(soup, date_str))
+    records.extend(extract_embedded_json_data(soup, "racingindex", date_str=date_str))
+    records.extend(extract_scraper_data_attributes(soup, "racingindex", date_str=date_str))
     records.extend(extract_ratings(soup, date_str))
     records.extend(extract_results_table(soup, date_str))
 

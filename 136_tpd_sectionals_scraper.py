@@ -39,6 +39,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
 from utils.scraping import smart_pause, append_jsonl, load_checkpoint, save_checkpoint
 from utils.playwright import launch_browser, accept_cookies
+from utils.html_parsing import extract_embedded_json_data
+from utils.html_parsing import extract_scraper_data_attributes
+from utils.html_parsing import extract_race_links
 
 log = setup_logging("136_tpd_sectionals")
 
@@ -171,76 +174,6 @@ def extract_finishing_speed(soup, date_str):
     return records
 
 
-def extract_race_links(soup):
-    """Extract links to individual race sectional pages."""
-    links = set()
-    for a in soup.find_all("a", href=True):
-        href = a["href"]
-        if re.search(r'/(race|sectional|result|replay)/', href, re.I):
-            full_url = href if href.startswith("http") else f"{BASE_URL}{href}"
-            links.add(full_url)
-    return sorted(links)
-
-
-def extract_embedded_json_data(soup, date_str):
-    """Extract JSON data from script tags."""
-    records = []
-    for script in soup.find_all("script", {"type": "application/json"}):
-        try:
-            data = json.loads(script.string or "")
-            if data and isinstance(data, dict):
-                records.append({
-                    "date": date_str,
-                    "source": "tpd",
-                    "type": "embedded_json",
-                    "data_id": script.get("id", ""),
-                    "data": data,
-                    "scraped_at": datetime.now().isoformat(),
-                })
-        except (json.JSONDecodeError, TypeError):
-            pass
-
-    # __NEXT_DATA__ or similar SSR payloads
-    for script in soup.find_all("script", {"id": "__NEXT_DATA__"}):
-        try:
-            data = json.loads(script.string or "")
-            page_props = data.get("props", {}).get("pageProps", {})
-            if page_props:
-                records.append({
-                    "date": date_str,
-                    "source": "tpd",
-                    "type": "next_data",
-                    "data": page_props,
-                    "scraped_at": datetime.now().isoformat(),
-                })
-        except (json.JSONDecodeError, TypeError):
-            pass
-
-    return records
-
-
-def extract_data_attributes(soup, date_str):
-    """Extract data-* attributes related to sectionals and performance."""
-    records = []
-    keywords = ["horse", "runner", "sectional", "time", "speed", "stride",
-                "furlong", "finish", "split", "pace", "position"]
-    for el in soup.find_all(attrs=lambda attrs: attrs and any(
-            k.startswith("data-") and any(kw in k for kw in keywords)
-            for k in attrs)):
-        data_attrs = {k: v for k, v in el.attrs.items() if k.startswith("data-")}
-        if data_attrs:
-            records.append({
-                "date": date_str,
-                "source": "tpd",
-                "type": "data_attrs",
-                "tag": el.name,
-                "text": el.get_text(strip=True)[:200],
-                "attributes": data_attrs,
-                "scraped_at": datetime.now().isoformat(),
-            })
-    return records
-
-
 # ------------------------------------------------------------------
 # Main scraping functions
 # ------------------------------------------------------------------
@@ -266,14 +199,14 @@ def scrape_free_sectionals_index(page, date_str):
     records = []
 
     # Extract structured data
-    records.extend(extract_embedded_json_data(soup, date_str))
-    records.extend(extract_data_attributes(soup, date_str))
+    records.extend(extract_embedded_json_data(soup, "tpd", date_str=date_str))
+    records.extend(extract_scraper_data_attributes(soup, "tpd", date_str=date_str))
     records.extend(extract_sectional_tables(soup, date_str))
     records.extend(extract_stride_data(soup, date_str))
     records.extend(extract_finishing_speed(soup, date_str))
 
     # Extract venue/meeting blocks
-    race_links = extract_race_links(soup)
+    race_links = extract_race_links(soup, base_url=BASE_URL)
     for div in soup.find_all(["div", "section", "article"], class_=True):
         classes = " ".join(div.get("class", []))
         if any(kw in classes.lower() for kw in ["meeting", "venue", "card",
@@ -342,8 +275,8 @@ def scrape_race_sectionals(page, race_url, date_str):
         conditions["race_class"] = class_match.group(1)
 
     # Structured data extraction
-    records.extend(extract_embedded_json_data(soup, date_str))
-    records.extend(extract_data_attributes(soup, date_str))
+    records.extend(extract_embedded_json_data(soup, "tpd", date_str=date_str))
+    records.extend(extract_scraper_data_attributes(soup, "tpd", date_str=date_str))
     records.extend(extract_stride_data(soup, date_str))
     records.extend(extract_finishing_speed(soup, date_str))
 
@@ -419,8 +352,8 @@ def scrape_stride_page(page, date_str):
     soup = BeautifulSoup(html, "html.parser")
     records = []
 
-    records.extend(extract_embedded_json_data(soup, date_str))
-    records.extend(extract_data_attributes(soup, date_str))
+    records.extend(extract_embedded_json_data(soup, "tpd", date_str=date_str))
+    records.extend(extract_scraper_data_attributes(soup, "tpd", date_str=date_str))
     records.extend(extract_sectional_tables(soup, date_str))
     records.extend(extract_stride_data(soup, date_str))
 

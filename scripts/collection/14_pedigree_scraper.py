@@ -67,6 +67,7 @@ OUTPUT_JSONL = OUTPUT_DIR / "pedigrees_pq.jsonl"
 from utils.logging_setup import setup_logging
 from utils.normalize import normaliser_texte
 from utils.types import utc_now_iso
+from utils.scraping import create_session
 
 BASE_URL = "https://www.pedigreequery.com"
 REQUEST_PAUSE_S = 1.0
@@ -143,24 +144,6 @@ def cache_key_for_horse(nom: str, pere: str, mere: str) -> str:
 # ===========================================================================
 # HTTP SESSION
 # ===========================================================================
-
-def create_session() -> requests.Session:
-    session = requests.Session()
-    retry = Retry(
-        total=MAX_RETRIES,
-        backoff_factor=BACKOFF_FACTOR,
-        status_forcelist=[429, 500, 502, 503, 504],
-        allowed_methods=["GET"],
-    )
-    adapter = HTTPAdapter(max_retries=retry)
-    session.mount("https://", adapter)
-    session.mount("http://", adapter)
-    session.headers.update({
-        "User-Agent": USER_AGENT,
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.9,fr;q=0.5",
-    })
-    return session
 
 
 def safe_get(

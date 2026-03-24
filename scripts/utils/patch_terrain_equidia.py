@@ -39,31 +39,13 @@ EQUIDIA_URL = "https://www.equidia.fr/courses/{date}/R{num}/C1"
 # ===========================================================================
 
 from utils.logging_setup import setup_logging
+from utils.scraping import create_session
 
 
 # ===========================================================================
 # HTTP
 # ===========================================================================
 
-def create_session() -> requests.Session:
-    session = requests.Session()
-    retry = Retry(total=1, backoff_factor=0.3, status_forcelist=[500, 502, 503, 504])
-    adapter = HTTPAdapter(max_retries=retry, pool_maxsize=1, pool_connections=1)
-    session.mount("https://", adapter)
-    session.mount("http://", adapter)
-    session.headers.update({
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-                      "AppleWebKit/537.36 (KHTML, like Gecko) "
-                      "Chrome/120.0.0.0 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml",
-        "Accept-Language": "fr-FR,fr;q=0.9",
-    })
-    return session
-
-
-# ===========================================================================
-# CACHE
-# ===========================================================================
 
 class EquidiaCache:
     def __init__(self, fichier: Path):

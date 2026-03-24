@@ -93,25 +93,13 @@ class ResultatNanaelie:
 
 from utils.logging_setup import setup_logging
 from utils.output import sauver_json, sauver_csv, sauver_parquet
+from utils.scraping import create_session
 
 
 # ===========================================================================
 # HTTP
 # ===========================================================================
 
-def create_session() -> requests.Session:
-    session = requests.Session()
-    retry = Retry(total=3, backoff_factor=1.0, status_forcelist=[500, 502, 503, 504])
-    adapter = HTTPAdapter(max_retries=retry)
-    session.mount("https://", adapter)
-    session.mount("http://", adapter)
-    session.headers.update({"User-Agent": "Mozilla/5.0 (nanaelie-collector)"})
-    return session
-
-
-# ===========================================================================
-# UTILITAIRES
-# ===========================================================================
 
 def normaliser_hippodrome(lieu: str) -> str:
     """Normalise le nom d'hippodrome : minuscules, sans accents, espaces nettoyes."""

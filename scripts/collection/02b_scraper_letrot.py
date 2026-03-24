@@ -65,6 +65,8 @@ from utils.logging_setup import setup_logging
 from utils.normalize import normaliser_texte
 from utils.output import sauver_json, sauver_csv, sauver_parquet
 from utils.types import utc_now_iso
+from utils.scraping import create_session
+from utils.types import centimes_to_euros
 
 LETROT_BASE = "https://www.letrot.com"
 LETROT_PROGRAMME = f"{LETROT_BASE}/courses/programme"
@@ -364,23 +366,6 @@ class PartantNormalise:
 # HTTP
 # ===========================================================================
 
-def create_session() -> requests.Session:
-    session = requests.Session()
-    retry = Retry(total=3, backoff_factor=1.0, status_forcelist=[500, 502, 503, 504])
-    adapter = HTTPAdapter(max_retries=retry)
-    session.mount("https://", adapter)
-    session.mount("http://", adapter)
-    session.headers.update({
-        "User-Agent": USER_AGENT,
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "fr-FR,fr;q=0.9,en;q=0.5",
-    })
-    return session
-
-
-# ===========================================================================
-# UTILITAIRES
-# ===========================================================================
 
 def make_uid(*parts: str) -> str:
     h = hashlib.blake2b("|".join(str(p) for p in parts).encode(), digest_size=8)
@@ -397,14 +382,6 @@ def ms_to_hhmm(ts_ms: Optional[int]) -> str:
         return ""
 
 
-def centimes_to_euros(centimes: Optional[int]) -> Optional[float]:
-    if centimes is None:
-        return None
-    return centimes / 100.0
-
-
-# NOTE: Incompatible with utils.types.safe_int — this version does regex
-# extraction from strings, handles \xa0, commas as decimal separators, etc.
 def safe_int(val: Any) -> Optional[int]:
     """Extrait un entier depuis une valeur potentiellement textuelle."""
     if val is None:
@@ -1900,9 +1877,6 @@ def normaliser_partant(brute: PartantBrut, course_norm: CourseNormalisee) -> Par
 # ===========================================================================
 # SAUVEGARDE
 # ===========================================================================
-
-
-
 
 
 # ===========================================================================

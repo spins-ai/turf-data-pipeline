@@ -58,6 +58,8 @@ OUTPUT_DIR = Path(__file__).resolve().parent / "../../output" / "02_liste_course
 CACHE_DIR = OUTPUT_DIR / "cache"
 from utils.logging_setup import setup_logging
 from utils.types import utc_now_iso
+from utils.scraping import create_session
+from utils.types import centimes_to_euros
 
 PMU_API_BASE = "https://offline.turfinfo.api.pmu.fr/rest/client/1/programme"
 
@@ -299,18 +301,6 @@ class PartantNormalise:
 # HTTP
 # ===========================================================================
 
-def create_session() -> requests.Session:
-    session = requests.Session()
-    retry = Retry(total=3, backoff_factor=0.5, status_forcelist=[500, 502, 503, 504])
-    adapter = HTTPAdapter(max_retries=retry)
-    session.mount("https://", adapter)
-    session.mount("http://", adapter)
-    return session
-
-
-# ===========================================================================
-# UTILITAIRES
-# ===========================================================================
 
 def make_uid(*parts: str) -> str:
     h = hashlib.blake2b("|".join(str(p) for p in parts).encode(), digest_size=8)
@@ -326,16 +316,6 @@ def ms_to_hhmm(ts_ms: Optional[int]) -> str:
     except (OSError, ValueError):
         return ""
 
-
-def centimes_to_euros(centimes: Optional[int]) -> Optional[float]:
-    if centimes is None:
-        return None
-    return centimes / 100.0
-
-
-# ===========================================================================
-# CACHE
-# ===========================================================================
 
 class ReunionCache:
     """Cache des réponses API brutes par réunion."""

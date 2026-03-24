@@ -42,6 +42,10 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
 from utils.scraping import smart_pause, append_jsonl, load_checkpoint, save_checkpoint
 from utils.playwright import launch_browser, accept_cookies
+from utils.html_parsing import extract_embedded_json_data
+from utils.html_parsing import extract_scraper_data_attributes
+from utils.html_parsing import extract_runners_table
+from utils.html_parsing import extract_race_links
 
 log = setup_logging("143_equine_edge")
 
@@ -168,109 +172,6 @@ def extract_jockey_stats(soup, date_str):
     return records
 
 
-def extract_race_links(soup):
-    """Extract links to individual race or horse form pages."""
-    links = set()
-    for a in soup.find_all("a", href=True):
-        href = a["href"]
-        if re.search(r'/(form-guide|results?|horse|race|card)/', href, re.I):
-            full_url = href if href.startswith("http") else f"{BASE_URL}{href}"
-            links.add(full_url)
-    return sorted(links)
-
-
-def extract_runners_table(soup, date_str, race_url=""):
-    """Extract runner data from form guide or results tables."""
-    records = []
-    for table in soup.find_all("table"):
-        rows = table.find_all("tr")
-        headers = []
-        if rows:
-            headers = [th.get_text(strip=True).lower().replace(" ", "_").replace(".", "")
-                       for th in rows[0].find_all(["th", "td"])]
-        if len(headers) < 3:
-            continue
-
-        for row in rows[1:]:
-            cells = [td.get_text(strip=True) for td in row.find_all(["td", "th"])]
-            if not cells or len(cells) < 3:
-                continue
-            record = {
-                "date": date_str,
-                "source": "equine_edge",
-                "type": "runner",
-                "url": race_url,
-                "scraped_at": datetime.now().isoformat(),
-            }
-            for j, cell in enumerate(cells):
-                key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
-                record[key] = cell
-            for attr_name, attr_val in row.attrs.items():
-                if attr_name.startswith("data-"):
-                    clean = attr_name.replace("data-", "").replace("-", "_")
-                    record[clean] = attr_val
-            records.append(record)
-    return records
-
-
-def extract_embedded_json_data(soup, date_str):
-    """Extract JSON data from script tags."""
-    records = []
-    for script in soup.find_all("script", {"type": "application/json"}):
-        try:
-            data = json.loads(script.string or "")
-            if data and isinstance(data, dict):
-                records.append({
-                    "date": date_str,
-                    "source": "equine_edge",
-                    "type": "embedded_json",
-                    "data_id": script.get("id", ""),
-                    "data": data,
-                    "scraped_at": datetime.now().isoformat(),
-                })
-        except (json.JSONDecodeError, TypeError):
-            pass
-
-    for script in soup.find_all("script", {"id": "__NEXT_DATA__"}):
-        try:
-            data = json.loads(script.string or "")
-            page_props = data.get("props", {}).get("pageProps", {})
-            if page_props:
-                records.append({
-                    "date": date_str,
-                    "source": "equine_edge",
-                    "type": "next_data",
-                    "data": page_props,
-                    "scraped_at": datetime.now().isoformat(),
-                })
-        except (json.JSONDecodeError, TypeError):
-            pass
-
-    return records
-
-
-def extract_data_attributes(soup, date_str):
-    """Extract data-* attributes related to horses/racing."""
-    records = []
-    keywords = ["horse", "runner", "jockey", "trainer", "form", "rating",
-                "result", "position", "odds", "pattern", "stats"]
-    for el in soup.find_all(attrs=lambda attrs: attrs and any(
-            k.startswith("data-") and any(kw in k for kw in keywords)
-            for k in attrs)):
-        data_attrs = {k: v for k, v in el.attrs.items() if k.startswith("data-")}
-        if data_attrs:
-            records.append({
-                "date": date_str,
-                "source": "equine_edge",
-                "type": "data_attrs",
-                "tag": el.name,
-                "text": el.get_text(strip=True)[:200],
-                "attributes": data_attrs,
-                "scraped_at": datetime.now().isoformat(),
-            })
-    return records
-
-
 # ------------------------------------------------------------------
 # Main scraping functions
 # ------------------------------------------------------------------
@@ -294,14 +195,14 @@ def scrape_form_guide_page(page, date_str):
     soup = BeautifulSoup(html, "html.parser")
     records = []
 
-    records.extend(extract_embedded_json_data(soup, date_str))
-    records.extend(extract_data_attributes(soup, date_str))
+    records.extend(extract_embedded_json_data(soup, "equine_edge", date_str=date_str))
+    records.extend(extract_scraper_data_attributes(soup, "equine_edge", date_str=date_str))
     records.extend(extract_form_analysis(soup, date_str))
     records.extend(extract_trainer_patterns(soup, date_str))
     records.extend(extract_jockey_stats(soup, date_str))
-    records.extend(extract_runners_table(soup, date_str))
+    records.extend(extract_runners_table(soup, "equine_edge", date_str=date_str))
 
-    race_links = extract_race_links(soup)
+    race_links = extract_race_links(soup, base_url=BASE_URL)
 
     result = {"records": records, "race_links": race_links}
     with open(cache_file, "w", encoding="utf-8") as f:
@@ -351,8 +252,8 @@ def scrape_race_detail(page, race_url, date_str):
     if going_match:
         conditions["going"] = going_match.group(1).strip()
 
-    records.extend(extract_embedded_json_data(soup, date_str))
-    records.extend(extract_data_attributes(soup, date_str))
+    records.extend(extract_embedded_json_data(soup, "equine_edge", date_str=date_str))
+    records.extend(extract_scraper_data_attributes(soup, "equine_edge", date_str=date_str))
     records.extend(extract_form_analysis(soup, date_str))
     records.extend(extract_trainer_patterns(soup, date_str))
     records.extend(extract_jockey_stats(soup, date_str))
@@ -429,10 +330,10 @@ def scrape_results_day(page, date_str):
     soup = BeautifulSoup(html, "html.parser")
     records = []
 
-    records.extend(extract_embedded_json_data(soup, date_str))
-    records.extend(extract_data_attributes(soup, date_str))
+    records.extend(extract_embedded_json_data(soup, "equine_edge", date_str=date_str))
+    records.extend(extract_scraper_data_attributes(soup, "equine_edge", date_str=date_str))
     records.extend(extract_form_analysis(soup, date_str))
-    records.extend(extract_runners_table(soup, date_str, race_url=url))
+    records.extend(extract_runners_table(soup, "equine_edge", date_str=date_str, race_url=url))
 
     # Result-specific extraction
     for div in soup.find_all(["div", "section"], class_=True):

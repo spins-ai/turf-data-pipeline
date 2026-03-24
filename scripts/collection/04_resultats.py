@@ -49,6 +49,7 @@ OUTPUT_DIR = Path(__file__).resolve().parent / "../../output" / "04_resultats"
 from utils.logging_setup import setup_logging
 from utils.output import sauver_json, sauver_csv, sauver_parquet
 from utils.types import utc_now_iso
+from utils.scraping import create_session
 
 PMU_API_BASE = "https://offline.turfinfo.api.pmu.fr/rest/client/1/programme"
 # Endpoint: {base}/{DDMMYYYY}/R{num}/C{num}/rapports-definitifs
@@ -94,18 +95,6 @@ class RapportNormalise:
 # HTTP
 # ===========================================================================
 
-def create_session() -> requests.Session:
-    session = requests.Session()
-    retry = Retry(total=3, backoff_factor=0.5, status_forcelist=[500, 502, 503, 504])
-    adapter = HTTPAdapter(max_retries=retry)
-    session.mount("https://", adapter)
-    session.mount("http://", adapter)
-    return session
-
-
-# ===========================================================================
-# UTILITAIRES
-# ===========================================================================
 
 def make_uid(*parts: str) -> str:
     h = hashlib.blake2b("|".join(str(p) for p in parts).encode(), digest_size=8)
@@ -298,9 +287,6 @@ def parse_rapports(
 # ===========================================================================
 # SAUVEGARDE
 # ===========================================================================
-
-
-
 
 
 # ===========================================================================

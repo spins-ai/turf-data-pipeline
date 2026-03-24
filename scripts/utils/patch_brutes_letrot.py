@@ -50,31 +50,13 @@ LETROT_URL = "https://www.letrot.com/courses/{date}"
 # ===========================================================================
 
 from utils.logging_setup import setup_logging
+from utils.scraping import create_session
 
 
 # ===========================================================================
 # HTTP
 # ===========================================================================
 
-def create_session() -> requests.Session:
-    session = requests.Session()
-    retry = Retry(total=3, backoff_factor=1, status_forcelist=[500, 502, 503, 504])
-    adapter = HTTPAdapter(max_retries=retry)
-    session.mount("https://", adapter)
-    session.mount("http://", adapter)
-    session.headers.update({
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-                      "AppleWebKit/537.36 (KHTML, like Gecko) "
-                      "Chrome/120.0.0.0 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml",
-        "Accept-Language": "fr-FR,fr;q=0.9",
-    })
-    return session
-
-
-# ===========================================================================
-# PARSER LE TROT
-# ===========================================================================
 
 def extract_program_json(html_content: str) -> Optional[dict]:
     """Extrait le JSON du composant Vue meeting-day."""

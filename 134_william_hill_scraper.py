@@ -39,6 +39,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
 from utils.scraping import smart_pause, append_jsonl, load_checkpoint, save_checkpoint
 from utils.playwright import launch_browser, accept_cookies
+from utils.html_parsing import extract_runners_table
+from utils.html_parsing import extract_race_links
 
 log = setup_logging("134_william_hill")
 
@@ -90,17 +92,6 @@ def extract_meeting_links(soup):
     for a in soup.find_all("a", href=True):
         href = a["href"]
         if re.search(r'/betting/horse-racing/[a-z]', href, re.I):
-            full_url = href if href.startswith("http") else f"{BASE_URL}{href}"
-            links.add(full_url)
-    return sorted(links)
-
-
-def extract_race_links(soup):
-    """Extract links to individual races from a meeting page."""
-    links = set()
-    for a in soup.find_all("a", href=True):
-        href = a["href"]
-        if re.search(r'/betting/horse-racing/.+/\d{2}:\d{2}', href, re.I):
             full_url = href if href.startswith("http") else f"{BASE_URL}{href}"
             links.add(full_url)
     return sorted(links)
@@ -245,40 +236,6 @@ def extract_specials(soup, date_str):
     return records
 
 
-def extract_runners_table(soup, date_str, race_url=""):
-    """Extract runner data from HTML tables."""
-    records = []
-    for table in soup.find_all("table"):
-        rows = table.find_all("tr")
-        headers = []
-        if rows:
-            headers = [th.get_text(strip=True).lower().replace(" ", "_").replace(".", "")
-                       for th in rows[0].find_all(["th", "td"])]
-        if len(headers) < 3:
-            continue
-
-        for row in rows[1:]:
-            cells = [td.get_text(strip=True) for td in row.find_all(["td", "th"])]
-            if not cells or len(cells) < 3:
-                continue
-            record = {
-                "date": date_str,
-                "source": "william_hill",
-                "type": "runner",
-                "url": race_url,
-                "scraped_at": datetime.now().isoformat(),
-            }
-            for j, cell in enumerate(cells):
-                key = headers[j] if j < len(headers) and headers[j] else f"col_{j}"
-                record[key] = cell
-            for attr_name, attr_val in row.attrs.items():
-                if attr_name.startswith("data-"):
-                    clean = attr_name.replace("data-", "").replace("-", "_")
-                    record[clean] = attr_val
-            records.append(record)
-    return records
-
-
 def extract_embedded_json(soup, date_str):
     """Extract JSON data from script tags."""
     records = []
@@ -379,14 +336,14 @@ def scrape_meeting(page, meeting_url, date_str):
     records.extend(extract_embedded_json(soup, date_str))
     records.extend(extract_odds_data(soup, date_str, race_url=meeting_url))
     records.extend(extract_each_way_terms(soup, date_str))
-    records.extend(extract_runners_table(soup, date_str, race_url=meeting_url))
+    records.extend(extract_runners_table(soup, "william_hill", date_str=date_str, race_url=meeting_url))
 
     # Tag records with venue
     for rec in records:
         rec["venue"] = venue_name[:200]
 
     # Get individual race links
-    race_links = extract_race_links(soup)
+    race_links = extract_race_links(soup, base_url=BASE_URL)
 
     result = {"records": records, "race_links": race_links, "venue": venue_name}
     with open(cache_file, "w", encoding="utf-8") as f:
@@ -445,7 +402,7 @@ def scrape_race_detail(page, race_url, date_str):
     records.extend(extract_embedded_json(soup, date_str))
     records.extend(extract_odds_data(soup, date_str, race_url=race_url))
     records.extend(extract_each_way_terms(soup, date_str))
-    records.extend(extract_runners_table(soup, date_str, race_url=race_url))
+    records.extend(extract_runners_table(soup, "william_hill", date_str=date_str, race_url=race_url))
 
     # Tag records
     for rec in records:

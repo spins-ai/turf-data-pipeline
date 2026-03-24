@@ -38,6 +38,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
 from utils.scraping import smart_pause, append_jsonl, load_checkpoint, save_checkpoint
 from utils.playwright import launch_browser, accept_cookies
+from utils.html_parsing import extract_race_links
 
 log = setup_logging("147_sporting_life_results")
 
@@ -82,16 +83,6 @@ def navigate_with_retry(page, url, retries=MAX_RETRIES):
 # ------------------------------------------------------------------
 # Extraction helpers
 # ------------------------------------------------------------------
-
-def extract_race_links(soup):
-    """Extract links to individual race result pages."""
-    links = set()
-    for a in soup.find_all("a", href=True):
-        href = a["href"]
-        if re.search(r'/racing/results?/', href, re.I):
-            full_url = href if href.startswith("http") else f"{BASE_URL}{href}"
-            links.add(full_url)
-    return sorted(links)
 
 
 def extract_rpr_ratings(soup, date_str):
@@ -301,7 +292,7 @@ def scrape_results_day(page, date_str):
     records.extend(extract_form_guide(soup, date_str))
 
     # Meeting/venue blocks
-    race_links = extract_race_links(soup)
+    race_links = extract_race_links(soup, base_url=BASE_URL)
     for div in soup.find_all(["div", "section"], class_=True):
         classes = " ".join(div.get("class", []))
         if any(kw in classes.lower() for kw in ["meeting", "venue", "race-header",

@@ -42,6 +42,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
 from utils.scraping import smart_pause, append_jsonl, load_checkpoint, save_checkpoint
 from utils.playwright import launch_browser, accept_cookies
+from utils.html_parsing import extract_embedded_json_data
+from utils.html_parsing import extract_scraper_data_attributes
 
 log = setup_logging("144_bloodstock_news")
 
@@ -227,64 +229,6 @@ def extract_article_links(soup):
     return sorted(links)
 
 
-def extract_embedded_json_data(soup, date_str):
-    """Extract JSON data from script tags."""
-    records = []
-    for script in soup.find_all("script", {"type": "application/json"}):
-        try:
-            data = json.loads(script.string or "")
-            if data and isinstance(data, dict):
-                records.append({
-                    "date": date_str,
-                    "source": "tdn_bloodstock",
-                    "type": "embedded_json",
-                    "data_id": script.get("id", ""),
-                    "data": data,
-                    "scraped_at": datetime.now().isoformat(),
-                })
-        except (json.JSONDecodeError, TypeError):
-            pass
-
-    for script in soup.find_all("script", {"id": "__NEXT_DATA__"}):
-        try:
-            data = json.loads(script.string or "")
-            page_props = data.get("props", {}).get("pageProps", {})
-            if page_props:
-                records.append({
-                    "date": date_str,
-                    "source": "tdn_bloodstock",
-                    "type": "next_data",
-                    "data": page_props,
-                    "scraped_at": datetime.now().isoformat(),
-                })
-        except (json.JSONDecodeError, TypeError):
-            pass
-
-    return records
-
-
-def extract_data_attributes(soup, date_str):
-    """Extract data-* attributes related to bloodstock/breeding."""
-    records = []
-    keywords = ["horse", "stallion", "sire", "dam", "sale", "lot",
-                "breeding", "bloodstock", "pedigree", "progeny"]
-    for el in soup.find_all(attrs=lambda attrs: attrs and any(
-            k.startswith("data-") and any(kw in k for kw in keywords)
-            for k in attrs)):
-        data_attrs = {k: v for k, v in el.attrs.items() if k.startswith("data-")}
-        if data_attrs:
-            records.append({
-                "date": date_str,
-                "source": "tdn_bloodstock",
-                "type": "data_attrs",
-                "tag": el.name,
-                "text": el.get_text(strip=True)[:200],
-                "attributes": data_attrs,
-                "scraped_at": datetime.now().isoformat(),
-            })
-    return records
-
-
 # ------------------------------------------------------------------
 # Main scraping functions
 # ------------------------------------------------------------------
@@ -308,8 +252,8 @@ def scrape_stallion_page(page, date_str):
     soup = BeautifulSoup(html, "html.parser")
     records = []
 
-    records.extend(extract_embedded_json_data(soup, date_str))
-    records.extend(extract_data_attributes(soup, date_str))
+    records.extend(extract_embedded_json_data(soup, "tdn_bloodstock", date_str=date_str))
+    records.extend(extract_scraper_data_attributes(soup, "tdn_bloodstock", date_str=date_str))
     records.extend(extract_stallion_stats(soup, date_str))
     records.extend(extract_sire_rankings(soup, date_str))
 
@@ -337,8 +281,8 @@ def scrape_sales_page(page, date_str):
     soup = BeautifulSoup(html, "html.parser")
     records = []
 
-    records.extend(extract_embedded_json_data(soup, date_str))
-    records.extend(extract_data_attributes(soup, date_str))
+    records.extend(extract_embedded_json_data(soup, "tdn_bloodstock", date_str=date_str))
+    records.extend(extract_scraper_data_attributes(soup, "tdn_bloodstock", date_str=date_str))
     records.extend(extract_sales_data(soup, date_str))
 
     with open(cache_file, "w", encoding="utf-8") as f:
@@ -362,8 +306,8 @@ def scrape_article_detail(page, article_url, date_str):
     soup = BeautifulSoup(html, "html.parser")
     records = []
 
-    records.extend(extract_embedded_json_data(soup, date_str))
-    records.extend(extract_data_attributes(soup, date_str))
+    records.extend(extract_embedded_json_data(soup, "tdn_bloodstock", date_str=date_str))
+    records.extend(extract_scraper_data_attributes(soup, "tdn_bloodstock", date_str=date_str))
     records.extend(extract_stallion_stats(soup, date_str))
     records.extend(extract_sales_data(soup, date_str))
     records.extend(extract_breeding_news(soup, date_str))
@@ -389,8 +333,8 @@ def scrape_sire_list_page(page, date_str):
     soup = BeautifulSoup(html, "html.parser")
     records = []
 
-    records.extend(extract_embedded_json_data(soup, date_str))
-    records.extend(extract_data_attributes(soup, date_str))
+    records.extend(extract_embedded_json_data(soup, "tdn_bloodstock", date_str=date_str))
+    records.extend(extract_scraper_data_attributes(soup, "tdn_bloodstock", date_str=date_str))
     records.extend(extract_sire_rankings(soup, date_str))
     records.extend(extract_stallion_stats(soup, date_str))
 

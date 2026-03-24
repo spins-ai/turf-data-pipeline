@@ -34,6 +34,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from utils.logging_setup import setup_logging
 from utils.math import safe_mean as _safe_mean, safe_stdev as _safe_stdev
 from utils.output import sauver_json, sauver_csv, sauver_parquet
+from utils.loaders import load_json_safe
 
 # ===========================================================================
 # CONFIG
@@ -47,20 +48,6 @@ OUTPUT_DIR = _PROJECT_ROOT / "output" / "field_strength"
 # SAUVEGARDE
 # ===========================================================================
 
-
-
-
-
-def charger_json(path: Path, logger: logging.Logger) -> list[dict]:
-    logger.info("Chargement: %s", path)
-    with open(path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    logger.info("  %d entrees chargees", len(data))
-    return data
-
-# ===========================================================================
-# HELPERS
-# ===========================================================================
 
 def _win_rate(p: dict) -> float:
     """Historical win rate from career counters already available."""
@@ -310,7 +297,7 @@ def main():
         logger.error("Fichier introuvable: %s", input_path)
         sys.exit(1)
 
-    partants = charger_json(input_path, logger)
+    partants = load_json_safe(input_path, str(input_path), logger)
     resultats = build_field_strength_features(partants, logger)
 
     # Export

@@ -68,24 +68,13 @@ def _direction_vent_texte(deg: Optional[float]) -> str:
 
 from utils.logging_setup import setup_logging
 from utils.output import sauver_json, sauver_csv, sauver_parquet
+from utils.scraping import create_session
 
 
 # ===========================================================================
 # HTTP
 # ===========================================================================
 
-def create_session() -> requests.Session:
-    session = requests.Session()
-    retry = Retry(total=5, backoff_factor=2, status_forcelist=[500, 502, 503, 504, 429])
-    adapter = HTTPAdapter(max_retries=retry)
-    session.mount("https://", adapter)
-    session.mount("http://", adapter)
-    return session
-
-
-# ===========================================================================
-# CACHE
-# ===========================================================================
 
 class NasaCache:
     """Cache local pour éviter les requêtes redondantes."""

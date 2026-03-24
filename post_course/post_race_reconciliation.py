@@ -45,6 +45,7 @@ OUTPUT_DIR = _PROJECT_ROOT / "output" / "reconciliation"
 # ===========================================================================
 
 from utils.logging_setup import setup_logging
+from utils.loaders import load_json_safe
 
 
 # ===========================================================================
@@ -91,17 +92,6 @@ class ReconciliationReport:
 # CHARGEMENT
 # ===========================================================================
 
-def charger_json(path: Path, logger: logging.Logger) -> list[dict]:
-    logger.info("Chargement: %s", path)
-    with open(path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    logger.info("  %d entrees chargees", len(data))
-    return data
-
-
-# ===========================================================================
-# RECONCILIATION
-# ===========================================================================
 
 def _safe_log(p: float) -> float:
     """Log securise pour eviter log(0)."""
@@ -320,8 +310,8 @@ def main() -> None:
     logger.info("post_race_reconciliation.py")
     logger.info("=" * 70)
 
-    predictions = charger_json(Path(args.predictions), logger)
-    resultats = charger_json(Path(args.results), logger)
+    predictions = load_json_safe(Path(args.predictions), str(Path(args.predictions)), logger)
+    resultats = load_json_safe(Path(args.results), str(Path(args.results)), logger)
 
     report = reconcilier(predictions, resultats, logger)
     txt = format_report(report)
