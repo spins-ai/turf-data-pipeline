@@ -20,7 +20,9 @@ Defaults DATA_DIR to ./data_master
 from __future__ import annotations
 
 import argparse
+import csv
 import hashlib
+import io
 import json
 import os
 import random
@@ -66,24 +68,60 @@ DATE_RE = re.compile(r"(20[0-2]\d|201[3-9]|202[0-6])")
 # Helpers
 # ---------------------------------------------------------------------------
 
+def _detect_csv(path: Path) -> bool:
+    """Heuristic: check if a file is actually CSV despite its extension."""
+    try:
+        with open(path, "r", encoding="utf-8", errors="replace") as fh:
+            first_line = fh.readline(4096).strip()
+            if not first_line:
+                return False
+            # If the first line contains commas and does NOT start with { or [
+            # it's likely CSV
+            if first_line[0] not in ('{', '[') and ',' in first_line:
+                return True
+    except Exception:
+        pass
+    return False
+
+
+def stream_csv(path: Path, limit: int = 0) -> Iterator[dict]:
+    """Yield dicts from a CSV file using the header row as keys."""
+    with open(path, "r", encoding="utf-8", errors="replace", newline="") as fh:
+        reader = csv.DictReader(fh)
+        for i, row in enumerate(reader):
+            yield dict(row)
+            if limit and i + 1 >= limit:
+                break
+
+
 def stream_jsonl(path: Path, limit: int = 0) -> Iterator[dict]:
-    """Yield dicts from a JSONL file, one line at a time (low RAM)."""
+    """Yield dicts from a JSONL file, one line at a time (low RAM).
+    Falls back to CSV parsing if the file is actually CSV-formatted."""
+    # Detect if file is actually CSV despite .jsonl extension
+    if _detect_csv(path):
+        yield from stream_csv(path, limit)
+        return
     with open(path, "r", encoding="utf-8", errors="replace") as fh:
-        for i, line in enumerate(fh):
+        count = 0
+        for line in fh:
             line = line.strip()
             if not line:
                 continue
             try:
                 yield json.loads(line)
+                count += 1
             except json.JSONDecodeError:
                 continue
-            if limit and i + 1 >= limit:
+            if limit and count >= limit:
                 break
 
 
 def stream_json_or_jsonl(path: Path, limit: int = 0) -> Iterator[dict]:
-    """Stream records from .json (array or object) or .jsonl."""
+    """Stream records from .json (array or object) or .jsonl or .csv."""
     suffix = path.suffix.lower()
+    if suffix == ".csv":
+        yield from stream_csv(path, limit)
+        return
     if suffix == ".jsonl":
         yield from stream_jsonl(path, limit)
         return
@@ -152,7 +190,27 @@ def stream_json_or_jsonl(path: Path, limit: int = 0) -> Iterator[dict]:
 
 
 def count_records(path: Path) -> int:
-    """Count total records in a JSON/JSONL file via streaming."""
+    """Count total records in a JSON/JSONL/CSV file.
+
+    For .jsonl and .csv files, counts non-empty lines (fast, avoids parsing
+    every line in multi-GB files).  For .json files, falls back to full parse.
+    """
+    suffix = path.suffix.lower()
+    if suffix in (".jsonl", ".csv") or (suffix == ".jsonl" and _detect_csv(path)):
+        # Fast line counting -- subtract 1 for CSV header
+        is_csv = suffix == ".csv" or _detect_csv(path)
+        count = 0
+        with open(path, "rb") as fh:
+            while True:
+                chunk = fh.read(1024 * 1024 * 8)  # 8 MB chunks
+                if not chunk:
+                    break
+                count += chunk.count(b"\n")
+        # Subtract header for CSV
+        if is_csv and count > 0:
+            count -= 1
+        return max(count, 0)
+    # For .json files, stream and count
     count = 0
     for _ in stream_json_or_jsonl(path):
         count += 1
@@ -180,10 +238,17 @@ def resolve_file(data_dir: Path, name: str) -> Path | None:
         for alt in ALTERNATES.get(name, []):
             if alt in files:
                 return Path(root) / alt
-    # Also search parent project directories for labels/features
-    parent = data_dir.parent
-    for sub in ["labels", "feature_builders", "pipeline"]:
-        sub_dir = parent / sub
+    # Also search output/ subdirectories (labels, features) and parent project dirs
+    project_root = data_dir.parent
+    extra_dirs = [
+        project_root / "output" / "labels",
+        project_root / "output" / "features",
+        project_root / "output",
+        project_root / "labels",
+        project_root / "feature_builders",
+        project_root / "pipeline",
+    ]
+    for sub_dir in extra_dirs:
         if not sub_dir.is_dir():
             continue
         for root, _dirs, files in os.walk(sub_dir):
@@ -256,7 +321,10 @@ def check_uid_consistency(resolved: dict[str, Path]) -> ValidationResult:
     """Check 3: UID overlap across partants, labels, features."""
     result = ValidationResult("UID Consistency")
 
-    uid_fields = ["partant_uid", "course_uid", "uid", "id", "partant_id", "course_id"]
+    uid_fields = [
+        "partant_uid", "course_uid", "uid", "id", "partant_id", "course_id",
+        "join_key", "cle_partant", "reunion_uid", "horse_id",
+    ]
 
     def extract_uids(path: Path, limit: int) -> tuple[set[str], str]:
         uids: set[str] = set()
@@ -306,21 +374,33 @@ def check_uid_consistency(resolved: dict[str, Path]) -> ValidationResult:
     return result
 
 
+def _tail_lines(path: Path, n: int = 200) -> list[str]:
+    """Return the last *n* non-empty lines of a text file (efficient seek)."""
+    try:
+        size = path.stat().st_size
+        read_size = min(size, n * 8192)  # generous estimate
+        with open(path, "rb") as fh:
+            fh.seek(max(0, size - read_size))
+            tail = fh.read().decode("utf-8", errors="replace")
+        lines = [l for l in tail.splitlines() if l.strip()]
+        return lines[-n:]
+    except Exception:
+        return []
+
+
 def check_date_range(resolved: dict[str, Path]) -> ValidationResult:
     """Check 4: verify dates span 2013-2026."""
     result = ValidationResult("Date Range (2013-2026)")
 
     date_fields = [
-        "date_reunion", "date_course", "date", "dateReunion", "dateCourse",
+        "date_reunion_iso", "date_reunion", "date_course", "date",
+        "date_reunion_formatted", "dateReunion", "dateCourse",
         "date_heure", "jour", "created_at",
     ]
     years_found: set[int] = set()
 
-    # Check partants_master primarily, fall back to courses_master
-    for name in ["partants_master.jsonl", "courses_master.jsonl", "courses_master.json"]:
-        if name not in resolved:
-            continue
-        for rec in stream_json_or_jsonl(resolved[name], limit=5000):
+    def _extract_years_from_records(records: Iterator[dict]):
+        for rec in records:
             for f in date_fields:
                 val = rec.get(f)
                 if val is None:
@@ -329,6 +409,47 @@ def check_date_range(resolved: dict[str, Path]) -> ValidationResult:
                 m = DATE_RE.search(val_str)
                 if m:
                     years_found.add(int(m.group(1)))
+
+    # Check partants_master primarily, fall back to courses_master
+    for name in ["partants_master.jsonl", "courses_master.jsonl", "courses_master.json"]:
+        if name not in resolved:
+            continue
+        path = resolved[name]
+
+        # Sample from the HEAD of the file
+        _extract_years_from_records(stream_json_or_jsonl(path, limit=5000))
+
+        # Also sample from the TAIL of the file (for chronologically sorted data)
+        tail_lines = _tail_lines(path, n=5000)
+        is_csv = _detect_csv(path)
+        if is_csv:
+            # Re-read header to get column names
+            with open(path, "r", encoding="utf-8", errors="replace") as fh:
+                header = fh.readline().strip().split(",")
+            for line in tail_lines:
+                vals = line.split(",")
+                if len(vals) == len(header):
+                    rec = dict(zip(header, vals))
+                    for f in date_fields:
+                        val = rec.get(f)
+                        if val:
+                            m = DATE_RE.search(str(val))
+                            if m:
+                                years_found.add(int(m.group(1)))
+        else:
+            for line in tail_lines:
+                try:
+                    rec = json.loads(line)
+                    if isinstance(rec, dict):
+                        for f in date_fields:
+                            val = rec.get(f)
+                            if val:
+                                m = DATE_RE.search(str(val))
+                                if m:
+                                    years_found.add(int(m.group(1)))
+                except (json.JSONDecodeError, ValueError):
+                    continue
+
         if years_found:
             break
 
