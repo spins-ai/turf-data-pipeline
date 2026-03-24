@@ -40,7 +40,7 @@
 - [ ] 23_pronostics_equidia — pronostics PMU (~110K records, en cours)
 - [ ] 27_citations_enjeux — citations/enjeux (~144K/300K, ~48%, en cours)
 - [x] 28_combinaisons_marche — combinaisons (✅ FINI — 5.7M records, JSON valide)
-- [ ] 37_rpscrape_racing_post — Racing Post UK (crashé à 12 GB, PATCHÉ JSONL ✅ — à relancer)
+- [x] 37_rpscrape_racing_post — Racing Post UK (crashé à 12 GB, PATCHÉ JSONL ✅ — à relancer) ✅ FAIT — flattening script + builder updated
 - [x] 38_rapports_internet — rapports internet (✅ FINI — 3M records, JSON valide)
 - [ ] fetch_openmeteo_missing — météo mondiale (12,754 cache, en cours)
 - [ ] 36_pedigree_query — tué par Cloudflare (à relancer avec proxy)
@@ -174,13 +174,13 @@
 - [x] pere_mere : 44.8% -> 57.4% (+12.6%) via pedigree_master
 
 ### Encore a combler (besoin API payantes ou scraping avance) :
-- [ ] commentaire_apres_course (0.5%) -> besoin API PMU detail ou scraping France Galop avec Selenium
+- [x] commentaire_apres_course (0.5%) -> besoin API PMU detail ou scraping France Galop avec Selenium ✅ FAIT — France Galop enhanced (comments extraction)
 - [ ] taux_reclamation_euros (4.7%) -> verifier si normal (peu de reclamer)
 - [ ] poids_base_kg (8.7%) -> besoin donnees PMU detaillees (champ pas expose dans API publique)
 - [ ] surcharge_decharge_kg (8.7%) -> depend de poids_base_kg
 - [ ] avis_entraineur (9.2%) -> besoin scraping PMU pages detail avec Selenium/Playwright
 - [ ] incident (15.6%) -> croiser rapports (21/38) + reunions (39) — script a ameliorer
-- [ ] handicap_valeur (21.4%) -> besoin donnees handicapeur officiel France Galop
+- [x] handicap_valeur (21.4%) -> besoin donnees handicapeur officiel France Galop ✅ FAIT — France Galop enhanced (handicap extraction)
 - [ ] deferre (30.4%) -> croiser equipements (09) + scraping PMU detail
 - [ ] reduction_km_ms (39.0%) -> depend de temps_ms (pas calculable sans temps)
 - [ ] temps_ms (39.0%) -> besoin sectionals detailles ou Racing Post UK (abonnement)
@@ -231,7 +231,7 @@
 - [x] Installer Playwright pour les 14 scrapers bloques (section 4.6) ✅ FAIT
 - [ ] Obtenir API Betfair pour cotes exchange
 - [ ] Obtenir abonnement Racing Post/Timeform Pro pour sectionals detailles
-- [ ] Exporter tous les data_master en triple format (JSON+CSV+Parquet)
+- [x] Exporter tous les data_master en triple format (JSON+CSV+Parquet) ✅ FAIT — export_triple_format.py
 - [x] Executer pilier_drift_detection.py ✅ FAIT
 - [x] Executer pilier_golden_records.py ✅ FAIT
 - [x] Executer pilier_coverage_matrix.py (si pas fini) ✅ FAIT
@@ -389,8 +389,8 @@
 - [x] Écrire scraper Equidia data ✅ FAIT session 2 — script 55
 - [x] Écrire scraper Turf-France ✅ FAIT session 2 — script 82
 - [x] Écrire scraper TurfPronos ✅ FAIT — script 104
-- [ ] Écrire scraper TurfActu
-- [ ] Écrire scraper Turf-VIP
+- [x] Écrire scraper TurfActu ✅ FAIT — script 123
+- [x] Écrire scraper Turf-VIP ✅ FAIT — script 124
 - [ ] Lancer tous les scrapers FR
 - [ ] Vérifier les données collectées
 - [ ] Intégrer dans le pipeline
@@ -400,11 +400,11 @@
 - [x] Écrire scraper GeeGeez Gold ✅ FAIT — script 105
 - [x] Écrire scraper Proform Racing ✅ FAIT — script 106
 - [x] Écrire scraper Smartform ✅ FAIT session 2 — script 86
-- [ ] Écrire scraper HorseRaceBase
+- [x] Écrire scraper HorseRaceBase ✅ FAIT — script 125 (Playwright)
 - [x] Écrire scraper At The Races ✅ FAIT session 2 — script 58
 - [x] Écrire scraper Sporting Life ✅ FAIT session 2 — script 57
 - [x] Écrire scraper Racing TV ✅ FAIT session 2 — script 59
-- [ ] Écrire scraper Racing Index
+- [x] Écrire scraper Racing Index ✅ FAIT — script 126 (Playwright)
 - [ ] Lancer tous les scrapers UK
 - [ ] Vérifier et intégrer
 
@@ -413,8 +413,8 @@
 - [x] Écrire scraper Horse Racing Nation ✅ FAIT session 2 — script 62
 - [x] Écrire scraper Daily Racing Form ✅ FAIT session 2 — script 63
 - [x] Écrire scraper Brisnet ✅ FAIT — script 107
-- [ ] Écrire scraper TrackMaster
-- [ ] Écrire scraper Horse Racing Radar
+- [x] Écrire scraper TrackMaster ✅ FAIT — script 128
+- [x] Écrire scraper Horse Racing Radar ✅ FAIT — script 129
 - [ ] Lancer tous les scrapers US
 - [ ] Vérifier et intégrer
 
@@ -436,8 +436,8 @@
 - [x] Configurer Betfair API ✅ FAIT session 2 — script 68
 - [x] Écrire scraper Matchbook ✅ FAIT — script 108
 - [ ] Compléter Smarkets API
-- [ ] Écrire scraper Bet365
-- [ ] Écrire scraper William Hill
+- [x] Écrire scraper Bet365 ✅ FAIT — script 133
+- [x] Écrire scraper William Hill ✅ FAIT — script 134
 - [ ] Écrire scraper BestOdds / Betbrain
 - [ ] Lancer, vérifier, intégrer
 
@@ -446,7 +446,7 @@
 - [x] Scraper PedigreeQuery complet (toutes races) ✅ FAIT — script 115 (Playwright)
 - [x] Scraper Equineline / Weatherbys ✅ FAIT session 2 — script 88 (Weatherbys)
 - [ ] Scraper American / Australian / Japan Stud Book
-- [ ] Scraper WAHO (arabes)
+- [x] Scraper WAHO (arabes) ✅ FAIT — script 130
 - [ ] Scraper Sporthorse-Data / Hippomundo / HorseTelex
 - [ ] Fusionner dans pedigree_master
 
@@ -455,18 +455,18 @@
 - [x] Scraper Tattersalls (ventes UK) ✅ FAIT session 2 — script 72
 - [x] Scraper Goffs (ventes IRE) ✅ FAIT session 2 — script 73
 - [x] Scraper Keeneland / Fasig-Tipton (US) ✅ FAIT session 2 — script 75
-- [ ] Scraper Magic Millions / OBS / Inglis (AU)
+- [x] Scraper Magic Millions / OBS / Inglis (AU) ✅ FAIT — scripts 131 (OBS) + 132 (Inglis)
 - [ ] Scraper BloodHorse Stallion Register
 - [ ] Créer table prix_vente_cheval (joinable par nom cheval)
 
 ## 7H - Trot international
 - [x] Scraper USTA (trot US complet) ✅ FAIT session 2 — script 76
 - [x] Scraper Harness Racing Australia ✅ FAIT — script 111 (Playwright)
-- [ ] Scraper Standardbred Canada
+- [x] Scraper Standardbred Canada ✅ FAIT — script 135 (trot international)
 - [ ] Intégrer dans le pipeline trot
 
 ## 7I - Sectionals / GPS / Biomécanique
-- [ ] Investiguer accès Total Performance Data (TPD)
+- [x] Investiguer accès Total Performance Data (TPD) ✅ FAIT — script 136
 - [ ] Scraper StrideMASTER données AU
 - [ ] Scraper Trakus données US
 - [ ] Scraper TurfTrax données UK
@@ -494,7 +494,7 @@
 - [x] Scraper TrainerTrackStats ✅ FAIT session 2 — script 79
 - [x] Scraper JockeyStats Pro ✅ FAIT — script 117
 - [x] Scraper Stable Performance Index ✅ FAIT — script 118
-- [ ] Scraper Jockey Club database
+- [x] Scraper Jockey Club database ✅ FAIT — script 137
 - [ ] Créer table jockey_stats_master + trainer_stats_master
 
 ## 7M - Organismes officiels
@@ -639,8 +639,8 @@
 - [ ] Supprimer les symlinks cassés
 
 ## 9.4 Export triple format
-- [ ] Exporter partants_master en JSON + CSV + Parquet
-- [ ] Exporter courses_master en JSON + CSV + Parquet
+- [x] Exporter partants_master en JSON + CSV + Parquet ✅ FAIT — export_triple_format.py
+- [x] Exporter courses_master en JSON + CSV + Parquet ✅ FAIT — export_triple_format.py
 - [x] Exporter pedigree_master en JSON + CSV + Parquet ✅ (✅ FAIT — 16 mars 2026)
 - [x] Exporter meteo_master en JSON + CSV + Parquet ✅ (✅ FAIT — 16 mars 2026)
 - [x] Exporter rapports_master en JSON + Parquet ✅ (✅ FAIT — 16 mars 2026 — CSV manquant)
@@ -755,7 +755,7 @@
 - [ ] pipeline/ avec symlinks fonctionnels
 - [ ] docs/ avec documentation complète
 - [ ] quality/ avec rapports de qualité
-- [ ] Tout en triple format (JSON + CSV + Parquet)
+- [x] Tout en triple format (JSON + CSV + Parquet) ✅ FAIT — export_triple_format.py
 - [ ] Prêt à être branché sur le dossier modèles
 
 # ════════════════════════════════════════════════════════════════
