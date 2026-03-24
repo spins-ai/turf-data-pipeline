@@ -1,0 +1,158 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "partant_schema.json",
+  "title": "Partant",
+  "description": "Schema pour un enregistrement partant (cheval engage dans une course). Infere depuis partants_master.jsonl.",
+  "type": "object",
+  "required": [
+    "partant_uid",
+    "course_uid",
+    "date_reunion_iso",
+    "nom_cheval"
+  ],
+  "properties": {
+    "partant_uid": {
+      "type": "string",
+      "description": "Identifiant unique du partant (hash hex 16 chars)."
+    },
+    "course_uid": {
+      "type": "string",
+      "description": "Identifiant unique de la course."
+    },
+    "reunion_uid": {
+      "type": "string",
+      "description": "Identifiant unique de la reunion."
+    },
+    "cle_partant": {
+      "type": "string",
+      "description": "Cle composite date|hippodrome|Rx|Cx|numPmu."
+    },
+    "source": {
+      "type": "string",
+      "description": "Source des donnees (pmu, letrot, etc.)."
+    },
+    "date_reunion_iso": {
+      "type": "string",
+      "format": "date",
+      "description": "Date de la reunion au format ISO YYYY-MM-DD."
+    },
+    "hippodrome_normalise": {
+      "type": "string",
+      "description": "Nom normalise de l'hippodrome."
+    },
+    "numero_reunion": {
+      "type": "integer",
+      "description": "Numero de la reunion dans la journee."
+    },
+    "numero_course": {
+      "type": "integer",
+      "description": "Numero de la course dans la reunion."
+    },
+    "distance": {
+      "type": ["integer", "null"],
+      "description": "Distance de la course en metres."
+    },
+    "discipline": {
+      "type": ["string", "null"],
+      "description": "Discipline (trot_attele, trot_monte, plat, obstacle, etc.)."
+    },
+    "horse_id": {
+      "type": ["string", "null"],
+      "description": "Identifiant unique du cheval."
+    },
+    "nom_cheval": {
+      "type": "string",
+      "description": "Nom du cheval."
+    },
+    "num_pmu": {
+      "type": ["integer", "null"],
+      "description": "Numero PMU du partant dans la course."
+    },
+    "age": {
+      "type": ["integer", "null"],
+      "description": "Age du cheval en annees."
+    },
+    "sexe": {
+      "type": ["string", "null"],
+      "description": "Sexe du cheval (males, femelles, hongres)."
+    },
+    "race": {
+      "type": ["string", "null"],
+      "description": "Race du cheval."
+    },
+    "musique": {
+      "type": ["string", "null"],
+      "description": "Musique (historique des derniers resultats encode)."
+    },
+    "nb_courses_carriere": {
+      "type": ["integer", "null"],
+      "description": "Nombre total de courses en carriere."
+    },
+    "nb_victoires_carriere": {
+      "type": ["integer", "null"],
+      "description": "Nombre total de victoires en carriere."
+    },
+    "jockey_driver": {
+      "type": ["string", "null"],
+      "description": "Nom du jockey ou driver."
+    },
+    "entraineur": {
+      "type": ["string", "null"],
+      "description": "Nom de l'entraineur."
+    },
+    "proprietaire": {
+      "type": ["string", "null"],
+      "description": "Nom du proprietaire."
+    },
+    "pere": {
+      "type": ["string", "null"],
+      "description": "Nom du pere."
+    },
+    "mere": {
+      "type": ["string", "null"],
+      "description": "Nom de la mere."
+    },
+    "statut": {
+      "type": ["string", "null"],
+      "description": "Statut du partant (partant, non_partant)."
+    },
+    "position_arrivee": {
+      "type": ["integer", "null"],
+      "description": "Position a l'arrivee (null si non classe)."
+    },
+    "temps_ms": {
+      "type": ["integer", "null"],
+      "description": "Temps de course en millisecondes."
+    },
+    "is_gagnant": {
+      "type": ["boolean", "null"],
+      "description": "True si le cheval a gagne la course."
+    },
+    "is_place": {
+      "type": ["boolean", "null"],
+      "description": "True si le cheval est place (top 3)."
+    },
+    "is_disqualifie": {
+      "type": ["boolean", "null"],
+      "description": "True si le cheval est disqualifie."
+    },
+    "cote_finale": {
+      "type": ["number", "null"],
+      "description": "Cote finale PMU."
+    },
+    "cote_reference": {
+      "type": ["number", "null"],
+      "description": "Cote de reference (matin ou veille)."
+    },
+    "nombre_partants": {
+      "type": ["integer", "null"],
+      "description": "Nombre de partants dans la course."
+    },
+    "timestamp_collecte": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "Horodatage de la collecte ISO 8601."
+    }
+  },
+  "additionalProperties": true
+}

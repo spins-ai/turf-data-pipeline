@@ -1,0 +1,178 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "course_schema.json",
+  "title": "Course",
+  "description": "Schema pour un enregistrement course. Infere depuis courses_master.jsonl.",
+  "type": "object",
+  "required": [
+    "course_uid",
+    "date_reunion_iso",
+    "hippodrome_normalise",
+    "numero_course"
+  ],
+  "properties": {
+    "course_uid": {
+      "type": "string",
+      "description": "Identifiant unique de la course (hash hex 16 chars)."
+    },
+    "reunion_uid": {
+      "type": "string",
+      "description": "Identifiant unique de la reunion."
+    },
+    "cle_course": {
+      "type": "string",
+      "description": "Cle composite date|hippodrome|Rx|Cx."
+    },
+    "source": {
+      "type": "string",
+      "description": "Source des donnees (pmu, letrot, etc.)."
+    },
+    "date_reunion_iso": {
+      "type": "string",
+      "format": "date",
+      "description": "Date de la reunion au format ISO YYYY-MM-DD."
+    },
+    "hippodrome_normalise": {
+      "type": "string",
+      "description": "Nom normalise de l'hippodrome."
+    },
+    "hippodrome": {
+      "type": ["string", "null"],
+      "description": "Nom brut de l'hippodrome."
+    },
+    "pays": {
+      "type": ["string", "null"],
+      "description": "Pays de la course."
+    },
+    "numero_reunion": {
+      "type": ["integer", "null"],
+      "description": "Numero de la reunion dans la journee."
+    },
+    "numero_course": {
+      "type": "integer",
+      "description": "Numero de la course dans la reunion."
+    },
+    "libelle": {
+      "type": ["string", "null"],
+      "description": "Nom/libelle de la course (ex: PRIX DU CHESNAY)."
+    },
+    "distance": {
+      "type": ["integer", "null"],
+      "description": "Distance de la course en metres."
+    },
+    "parcours": {
+      "type": ["string", "null"],
+      "description": "Description du parcours."
+    },
+    "corde": {
+      "type": ["string", "null"],
+      "description": "Sens de la corde (gauche, droite)."
+    },
+    "discipline": {
+      "type": ["string", "null"],
+      "description": "Discipline (TROT_ATTELE, TROT_MONTE, PLAT, etc.)."
+    },
+    "specialite": {
+      "type": ["string", "null"],
+      "description": "Specialite de la course."
+    },
+    "conditions_texte": {
+      "type": ["string", "null"],
+      "description": "Texte complet des conditions de course."
+    },
+    "condition_sexe": {
+      "type": ["string", "null"],
+      "description": "Condition sur le sexe (tous_chevaux, males_et_hongres, femelles)."
+    },
+    "condition_age": {
+      "type": ["string", "null"],
+      "description": "Condition sur l'age (ex: 4_ans, 10_ans)."
+    },
+    "categorie": {
+      "type": ["string", "null"],
+      "description": "Categorie de la course (europeenne, apprentis, etc.)."
+    },
+    "mode_depart": {
+      "type": ["string", "null"],
+      "description": "Mode de depart (volte, autostart)."
+    },
+    "nombre_partants": {
+      "type": ["integer", "null"],
+      "description": "Nombre de partants declares."
+    },
+    "heure_depart": {
+      "type": ["string", "null"],
+      "description": "Heure de depart (HH:MM)."
+    },
+    "allocation_totale": {
+      "type": ["number", "null"],
+      "description": "Allocation totale en euros."
+    },
+    "allocation_1er": {
+      "type": ["number", "null"],
+      "description": "Allocation du premier en euros."
+    },
+    "type_piste": {
+      "type": ["string", "null"],
+      "description": "Type de piste (cendree, herbe, sable, etc.)."
+    },
+    "penetrometre": {
+      "type": ["string", "null"],
+      "description": "Etat du terrain (bon, souple, leger, etc.)."
+    },
+    "statut": {
+      "type": ["string", "null"],
+      "description": "Statut de la course (fin course, annulee, etc.)."
+    },
+    "ordre_arrivee": {
+      "type": ["array", "null"],
+      "description": "Ordre d'arrivee (tableau de tableaux pour dead-heats).",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "integer"
+        }
+      }
+    },
+    "duree_course_ms": {
+      "type": ["integer", "null"],
+      "description": "Duree de la course en millisecondes."
+    },
+    "incidents": {
+      "type": ["array", "null"],
+      "description": "Liste des incidents (DQ, non-partants, etc.).",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "numeroParticipants": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          }
+        }
+      }
+    },
+    "paris_types": {
+      "type": ["array", "null"],
+      "description": "Types de paris disponibles.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "timestamp_collecte": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "Horodatage de la collecte ISO 8601."
+    },
+    "url_source": {
+      "type": ["string", "null"],
+      "format": "uri",
+      "description": "URL source de la donnee."
+    }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "label_schema.json",
+  "title": "Label",
+  "description": "Schema pour un enregistrement label (variable cible pour l'entrainement). Infere depuis training_labels.jsonl et label_builder.py.",
+  "type": "object",
+  "required": [
+    "partant_uid",
+    "course_uid",
+    "date_reunion_iso"
+  ],
+  "properties": {
+    "join_key": {
+      "type": "string",
+      "description": "Cle de jointure (generalement identique a partant_uid)."
+    },
+    "partant_uid": {
+      "type": "string",
+      "description": "Identifiant unique du partant."
+    },
+    "course_uid": {
+      "type": "string",
+      "description": "Identifiant unique de la course."
+    },
+    "date_reunion_iso": {
+      "type": "string",
+      "format": "date",
+      "description": "Date de la reunion au format ISO YYYY-MM-DD."
+    },
+    "numReunion": {
+      "type": ["integer", "null"],
+      "description": "Numero de la reunion."
+    },
+    "numCourse": {
+      "type": ["integer", "null"],
+      "description": "Numero de la course."
+    },
+    "numPmu": {
+      "type": ["integer", "null"],
+      "description": "Numero PMU du partant."
+    },
+    "is_winner": {
+      "type": ["boolean", "null"],
+      "description": "True si le cheval a gagne la course."
+    },
+    "is_place": {
+      "type": ["boolean", "null"],
+      "description": "True si le cheval est place (top 3)."
+    },
+    "position": {
+      "type": ["integer", "null"],
+      "description": "Position d'arrivee (null si DNF/DQ)."
+    },
+    "is_dnf": {
+      "type": ["boolean", "null"],
+      "description": "True si did-not-finish (non classe, disqualifie, tombe)."
+    },
+    "cote_finale": {
+      "type": ["number", "null"],
+      "description": "Cote finale PMU."
+    },
+    "nb_partants": {
+      "type": ["integer", "null"],
+      "description": "Nombre de partants dans la course."
+    },
+    "roi_final_odds": {
+      "type": ["number", "null"],
+      "description": "ROI si mise gagnante a la cote finale."
+    },
+    "value_label": {
+      "type": ["boolean", "null"],
+      "description": "True si esperance positive (cote finale > 1/proba)."
+    }
+  },
+  "additionalProperties": true
+}

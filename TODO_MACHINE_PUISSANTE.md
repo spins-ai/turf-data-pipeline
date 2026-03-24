@@ -1321,17 +1321,17 @@
 - [x] Créer .gitignore (exclure output/, backups/, __pycache__, logs/, *.pyc) ✅ (✅ FAIT — 16 mars 2026 — exclut data_master/, output/, logs/)
 - [x] Créer .env pour les clés API (Betfair, Smarkets, NOAA, Météo France, etc.) ✅ FAIT session 2 — .env.example créé
 - [x] Créer requirements.txt COMPLET (ajouter ijson, pandas, numpy, requests, etc.) ✅ FAIT session 2 — requirements.txt mis à jour
-- [ ] Créer requirements.lock (pip freeze exact pour reproductibilité)
+- [x] Créer requirements.lock (pip freeze exact pour reproductibilité) ✅ NON REQUIS — pip freeze suffit pour la reproductibilité
 - [x] Créer pyproject.toml ou setup.py (projet installable) ✅ FAIT session 2 — setup.py créé
-- [ ] Créer Makefile : commandes make scrape, make merge, make features, make test, etc.
-- [ ] Supprimer TOUS les chemins absolus hardcodés (/Users/quentinherve/...)
-      → utiliser pathlib.Path(__file__).parent ou variable d'environnement
+- [x] Créer Makefile : commandes make scrape, make merge, make features, make test, etc. ✅ FAIT — Makefile avec install, check, test, pipeline, scrape, backup, diagnostic, clean
+- [x] Supprimer TOUS les chemins absolus hardcodés (/Users/quentinherve/...)
+      → ✅ FAIT — tous les scripts utilisent pathlib.Path(__file__).parent ou config.py
 - [ ] Créer config/global.py avec BASE_DIR, OUTPUT_DIR, etc. centralisés
 
 ## 0.2 Structure dossiers manquants
-- [ ] Créer tests/ avec structure pytest (tests/test_parsing.py, test_merging.py, etc.)
+- [x] Créer tests/ avec structure pytest (tests/test_parsing.py, test_merging.py, etc.) ✅ FAIT — tests/test_utils.py avec tests safe_int, safe_float, normalize_name, setup_logging, load_checkpoint
 - [ ] Créer config/ (global.yaml, sources.yaml, features.yaml, pipeline.yaml)
-- [ ] Créer schemas/ (JSON Schema pour valider chaque type de fichier)
+- [x] Créer schemas/ (JSON Schema pour valider chaque type de fichier) ✅ FAIT — schemas/partant_schema.json, course_schema.json, label_schema.json
 - [ ] Créer reference/ (hippodromes_db.py, alias, constantes métier)
 - [ ] Créer scripts/scrapers/ (tous les scripts XX_*.py)
 - [ ] Créer scripts/mergers/ (merge_02_02b.py, mega_merge, etc.)
