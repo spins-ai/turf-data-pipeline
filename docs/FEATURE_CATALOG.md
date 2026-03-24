@@ -2,7 +2,7 @@
 
 Auto-generated from `output/features/features_matrix.jsonl` (sample: 500 rows).
 
-**Total features: 379**
+**Total features: 402**
 
 ## Features by Builder
 
@@ -44,10 +44,14 @@ Auto-generated from `output/features/features_matrix.jsonl` (sample: 500 rows).
 | market_entropy_features | 6 |
 | draw_bias_builder | 6 |
 | speed_figure_builder | 7 |
+| class_consistency_builder | 6 |
+| going_preference_builder | 6 |
+| distance_preference_builder | 6 |
+| jockey_horse_affinity_builder | 5 |
 | taux_features | 1 |
 | temps_features | 15 |
 | valeur_base_features | 4 |
-| **Total** | **379** |
+| **Total** | **402** |
 
 ## Detailed Feature List
 
@@ -575,6 +579,49 @@ Auto-generated from `output/features/features_matrix.jsonl` (sample: 500 rows).
 | `speed_figure_rank` | int | N/A |
 | `speed_vs_class` | float | N/A |
 | `speed_consistency` | float | N/A |
+
+### class_consistency_builder (6 features)
+
+| Feature | Type | Fill Rate |
+|---------|------|-----------|
+| `class_avg_level` | float | N/A |
+| `class_std_level` | float | N/A |
+| `class_trend` | float | N/A |
+| `class_drop` | bool | N/A |
+| `class_rise` | bool | N/A |
+| `class_consistency_score` | float | N/A |
+
+### going_preference_builder (6 features)
+
+| Feature | Type | Fill Rate |
+|---------|------|-----------|
+| `going_pref_firm` | float | N/A |
+| `going_pref_good` | float | N/A |
+| `going_pref_soft` | float | N/A |
+| `going_pref_heavy` | float | N/A |
+| `going_pref_best` | str | N/A |
+| `going_pref_score` | float | N/A |
+
+### distance_preference_builder (6 features)
+
+| Feature | Type | Fill Rate |
+|---------|------|-----------|
+| `dist_pref_sprint` | float | N/A |
+| `dist_pref_mile` | float | N/A |
+| `dist_pref_inter` | float | N/A |
+| `dist_pref_stay` | float | N/A |
+| `dist_pref_best` | str | N/A |
+| `dist_pref_score` | float | N/A |
+
+### jockey_horse_affinity_builder (5 features)
+
+| Feature | Type | Fill Rate |
+|---------|------|-----------|
+| `jh_aff_nb_courses` | int | N/A |
+| `jh_aff_win_rate` | float | N/A |
+| `jh_aff_place_rate` | float | N/A |
+| `jh_aff_is_first_time` | bool | N/A |
+| `jh_aff_score` | float | N/A |
 
 ### taux_features (1 features)
 

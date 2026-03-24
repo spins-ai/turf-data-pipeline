@@ -151,9 +151,21 @@ def build_dag() -> Dict[str, Step]:
         "feature_builders/market_entropy_features.py",
         "feature_builders/draw_bias_builder.py",
         "feature_builders/speed_figure_builder.py",
+        "feature_builders/class_consistency_builder.py",
+        "feature_builders/going_preference_builder.py",
+        "feature_builders/distance_preference_builder.py",
+        "feature_builders/jockey_horse_affinity_builder.py",
     ]
     for script in feature_builder_scripts:
         name = "fb_" + Path(script).stem
+        add(name, script, depends_on=feat_deps, phase=7)
+
+    # labels/*.py
+    label_scripts = [
+        "labels/supplementary_labels.py",
+    ]
+    for script in label_scripts:
+        name = "lb_" + Path(script).stem
         add(name, script, depends_on=feat_deps, phase=7)
 
     # feat_*.py
