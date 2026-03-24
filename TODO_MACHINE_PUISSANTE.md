@@ -670,15 +670,15 @@
 - [x] Créer docs/PIPELINE.md — description du pipeline complet : ✅ FAIT session 2
       → flux de données, dépendances, ordre d'exécution
 - [x] Créer docs/HIPPODROMES.md — documentation hippodromes_db.py ✅ FAIT
-- [ ] Créer docs/PEDIGREE.md — documentation pedigree (sources, couverture)
-- [ ] Créer docs/METEO.md — documentation météo (sources, couverture)
+- [x] Créer docs/PEDIGREE.md — documentation pedigree (sources, couverture) ✅ FAIT
+- [x] Créer docs/METEO.md — documentation météo (sources, couverture) ✅ FAIT
 
 ## 10.2 Documentation technique
 - [x] Créer docs/INSTALL.md — comment installer les dépendances ✅ FAIT session 2
 - [x] Créer docs/SCRIPTS.md — comment lancer chaque script ✅ FAIT
 - [x] Créer docs/TROUBLESHOOTING.md — problèmes courants et solutions ✅ FAIT
-- [ ] Créer docs/BACKUP.md — procédure de backup/restore
-- [ ] Créer docs/MAINTENANCE.md — comment mettre à jour les données
+- [x] Créer docs/BACKUP.md — procédure de backup/restore ✅ FAIT
+- [x] Créer docs/MAINTENANCE.md — comment mettre à jour les données ✅ FAIT
 - [x] Créer docs/CHANGELOG.md — historique des modifications ✅ FAIT
 
 ## 10.3 Documentation pour la maintenance
