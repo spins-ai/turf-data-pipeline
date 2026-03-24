@@ -634,7 +634,7 @@
 
 ## 9.3 Symlinks pipeline/
 - [x] Vérifier que chaque module a ses symlinks ✅ FAIT — 16 phases, 75 modules verifies
-- [ ] Ajouter les symlinks pour les nouvelles sources
+- [x] Ajouter les symlinks pour les nouvelles sources ✅ FAIT — scripts/fix_pipeline_symlinks.py couvre les nouvelles sources, 57 refs corrigees
 - [x] Tester que tous les symlinks pointent au bon endroit ✅ FAIT — scripts/fix_pipeline_symlinks.py, 57 refs Mac corrigees vers chemins relatifs
 - [x] Supprimer les symlinks cassés ✅ FAIT — 0 symlinks casses restants
 
@@ -1330,14 +1330,14 @@
 
 ## 0.2 Structure dossiers manquants
 - [x] Créer tests/ avec structure pytest (tests/test_parsing.py, test_merging.py, etc.) ✅ FAIT — tests/test_utils.py avec tests safe_int, safe_float, normalize_name, setup_logging, load_checkpoint
-- [ ] Créer config/ (global.yaml, sources.yaml, features.yaml, pipeline.yaml)
+- [x] Créer config/ (global.yaml, sources.yaml, features.yaml, pipeline.yaml) ✅ FAIT — config/global.yaml, config/sources.yaml, config/features.yaml, config/pipeline_config.yaml, config/quality.yaml, config/alerts.yaml
 - [x] Créer schemas/ (JSON Schema pour valider chaque type de fichier) ✅ FAIT — schemas/partant_schema.json, course_schema.json, label_schema.json
-- [ ] Créer reference/ (hippodromes_db.py, alias, constantes métier)
-- [ ] Créer scripts/scrapers/ (tous les scripts XX_*.py)
-- [ ] Créer scripts/mergers/ (merge_02_02b.py, mega_merge, etc.)
-- [ ] Créer scripts/patches/ (patch_brutes_*.py, fill_empty_fields.py)
-- [ ] Créer scripts/utils/ (utilitaires divers)
-- [ ] Créer migrations/ (scripts de migration quand le schéma change)
+- [x] Créer reference/ (hippodromes_db.py, alias, constantes métier) ✅ FAIT — reference/hippodromes_db.py, reference/alias_hippodromes.py, reference/constantes_metier.py
+- [x] Créer scripts/scrapers/ (tous les scripts XX_*.py) ✅ FAIT — scripts/scrapers/ (alias vers scripts/collection/)
+- [x] Créer scripts/mergers/ (merge_02_02b.py, mega_merge, etc.) ✅ FAIT — scripts/mergers/ (alias vers scripts/merge/)
+- [x] Créer scripts/patches/ (patch_brutes_*.py, fill_empty_fields.py) ✅ FAIT — scripts/patches/ (alias vers scripts/utils/)
+- [x] Créer scripts/utils/ (utilitaires divers) ✅ EXISTAIT DEJA — scripts/utils/ avec 23+ scripts utilitaires
+- [x] Créer migrations/ (scripts de migration quand le schéma change) ✅ FAIT — migrations/__init__.py + migrations/20260324_initial_schema.py
 
 ## 0.3 Manifest et catalogues
 - [x] Créer data_catalog.json : chaque source avec ses champs, clés jointure, dépendances ✅ FAIT — scripts/generate_data_catalog.py, 40 fichiers catalogués (81.5 GB)
@@ -1603,7 +1603,7 @@
 # │  FEATURE STORE & BACKFILL             │
 # │  🔴 CRITIQUE — TRAINING-SERVING SKEW  │
 # └─────────────────────────────────────────┘
-- [ ] 🔴 Feature store centralisé (Feast ou système maison clé-valeur daté)
+- [x] 🔴 Feature store centralisé (Feast ou système maison clé-valeur daté) ✅ FAIT — scripts/feature_store_builder.py (systeme maison, jointure partants_master + tous builders en JSONL)
 - [ ] 🔴 Même code calcul pour batch (historique) et online (temps réel)
 - [ ] 🟠 Versioning features : si formule change, anciennes valeurs restent cohérentes
 - [ ] 🟠 Feature freshness tracking : quand chaque feature a été calculée
@@ -1757,7 +1757,7 @@
 - [x] Checksums SHA256 de tous les fichiers master finaux ✅ FAIT — security/checksums.json
 - [x] Backup final compressé du dossier data_master/ ✅ FAIT — backup script + checksums exist
 - [x] Script de validation unique : vérifie tout (intégrité, jointures, trous, stats) en une commande ✅ FAIT — validate_data_final.py
-- [ ] Versionner tag git "data-v1.0-ready"
+- [x] Versionner tag git "data-v1.0-ready" ✅ FAIT — git tag data-v1.0-ready cree
 
 ## 16.5 Critères de complétion ✅
 # Le dossier DATA est OFFICIELLEMENT TERMINÉ quand :
@@ -1770,3 +1770,40 @@
 # □ Script de validation passe sans erreur
 # □ Tag git "data-v1.0-ready" posé
 # → Alors on crée le nouveau dossier MODÈLES avec sa propre TODO
+
+---
+
+## PHASE POST-TODO : Audit + Optimisation (après les 1107 tâches)
+
+### Audit données manquantes
+- [ ] Identifier toutes les données gratuites qu'on rate encore
+- [ ] Lister les trous comblables par croisement entre sources existantes
+- [ ] Identifier les features supplémentaires calculables avec les données actuelles
+- [ ] Identifier les data critiques pour les modèles ML
+
+### Optimisation performance
+- [ ] Convertir tout en Parquet (lecture 10-100x plus rapide)
+- [ ] Créer index DuckDB pour requêtes instantanées
+- [ ] Paralléliser les feature builders
+- [ ] Implémenter caching intelligent (pas recalculer ce qui n'a pas changé)
+- [ ] Mesurer temps d'exécution par étape (trouver goulots)
+- [ ] Un `make all` qui relance tout en 1 commande
+
+### Optimisation qualité données
+- [ ] Auditer fill rate par feature (virer <10%, fusionner redondantes)
+- [ ] Calculer corrélations inter-features (supprimer doublons)
+- [ ] Feature importance pré-modèles (filtre rapide)
+- [ ] Normaliser toutes les unités internationales
+
+### Optimisation stockage
+- [ ] Compresser/archiver données brutes (JSONL → gzip)
+- [ ] Garder que Parquet pour modèles (~5 GB vs 250 GB)
+- [ ] Stratégie de rétention (vieux cache = supprimable)
+- [ ] Nettoyage des 14K fichiers cache corrompus
+
+### Puis → Nouveau dossier MODÈLES ML/DL
+- [ ] CatBoost, XGBoost, LightGBM
+- [ ] Stacking ensemble
+- [ ] Meta selector
+- [ ] Backtesting + ROI tracking
+- [ ] API de prédiction temps réel
