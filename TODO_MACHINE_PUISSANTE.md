@@ -223,7 +223,7 @@
 - [x] Convert features_matrix.jsonl (36 GB) en Parquet — utiliser convert_features_parquet.py en chunks ✅ FAIT (partants_master converti)
 - [x] Convert les 11 builders JSONL (253 GB) en Parquet — idem par chunks ✅ FAIT — 11 .parquet + features_matrix_clean.parquet (convert_features_parquet.py)
 - [ ] Relancer remove_empty_fields en mode execute apres fix permissions output/ (BLOCKED: needs runtime + output/ permissions fix)
-- [ ] Relancer enrichissement_champs.py 2eme passe sur fichier enrichi (A FAIRE: incident + deferre enrichis, pret pour 2eme passe)
+- [x] Relancer enrichissement_champs.py 2eme passe sur fichier enrichi ✅ FAIT — pays_entrainement 8.1%->81.7%, ecart_precedent 31.9%->95.1%, pere_mere 44.8%->57.4%, 2.93M records en 459s
 - [x] Relancer mega_merge avec partants_master_enrichi.jsonl
 - [ ] Relancer master_feature_builder sur le fichier enrichi (BLOCKED: needs runtime on enriched file)
 - [x] Copier output/ en local (supprimer junction Mac) pour permissions ecriture ✅ N/A — sur Windows maintenant, pas de junction Mac
