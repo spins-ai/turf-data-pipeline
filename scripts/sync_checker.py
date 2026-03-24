@@ -20,10 +20,7 @@ Usage :
 from __future__ import annotations
 
 import json
-import os
 import sys
-import time
-from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -34,17 +31,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from config import (  # noqa: E402
-    COURSES_MASTER,
-    DATA_MASTER_DIR,
-    FEATURES_DIR,
-    FEATURES_MATRIX,
-    LABELS_DIR,
-    PARTANTS_MASTER,
-    PARTANTS_MASTER_ENRICHI,
-    QUALITY_DIR,
-    TRAINING_LABELS,
-)
+from config import COURSES_MASTER, DATA_MASTER_DIR, FEATURES_MATRIX, PARTANTS_MASTER, PARTANTS_MASTER_ENRICHI, QUALITY_DIR, TRAINING_LABELS
 
 # ---------------------------------------------------------------------------
 # Constants

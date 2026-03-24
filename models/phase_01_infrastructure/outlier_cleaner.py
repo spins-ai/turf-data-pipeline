@@ -7,7 +7,6 @@ Supports clip, remove, or flag strategies.
 """
 
 import argparse
-import logging
 import os
 import sys
 from pathlib import Path

@@ -37,9 +37,7 @@ import logging
 import re
 import sys
 import time
-import unicodedata
-from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Optional
 

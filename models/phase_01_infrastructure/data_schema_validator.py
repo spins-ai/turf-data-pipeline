@@ -7,12 +7,10 @@ required fields, types, value ranges. Flag violations with a report.
 """
 
 import argparse
-import json
-import logging
 import os
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 import pandas as pd

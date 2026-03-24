@@ -21,7 +21,6 @@ Usage:
 
 from __future__ import annotations
 
-import ast
 import json
 import os
 import re
@@ -38,13 +37,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from config import (  # noqa: E402
-    BASE_DIR,
-    DATA_MASTER_DIR,
-    FEATURES_DIR,
-    OUTPUT_DIR,
-    QUALITY_DIR,
-)
+from config import DATA_MASTER_DIR, FEATURES_DIR, OUTPUT_DIR
 from utils.logging_setup import setup_logging  # noqa: E402
 
 _TODAY = datetime.now().strftime("%Y%m%d")

@@ -13,7 +13,7 @@ last run, etc.) and recent form metrics (victories and places over the last
 from __future__ import annotations
 
 import json
-from datetime import date, timedelta
+from datetime import date
 from pathlib import Path
 from typing import Any
 

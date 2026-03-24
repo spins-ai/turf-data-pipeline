@@ -22,10 +22,8 @@ import json
 import os
 import glob
 from collections import defaultdict
-from pathlib import Path
 
 import pandas as pd
-import numpy as np
 
 OUTPUT_DIR = os.path.join("../../output", "meteo_complete")
 os.makedirs(OUTPUT_DIR, exist_ok=True)

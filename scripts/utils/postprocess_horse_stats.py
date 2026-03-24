@@ -17,7 +17,6 @@ _sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), 
 
 import json, os, time
 from datetime import datetime
-from collections import Counter
 
 from utils.logging_setup import setup_logging
 log = setup_logging("postprocess_horse_stats")

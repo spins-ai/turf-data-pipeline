@@ -14,9 +14,8 @@ import random
 import re
 import sys
 import time
-from datetime import datetime, timedelta
+from datetime import datetime
 
-import requests
 from bs4 import BeautifulSoup
 
 SCRIPT_NAME = "75_keeneland"

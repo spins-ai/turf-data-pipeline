@@ -8,7 +8,6 @@ Temporal integrity: for any partant at date D, only races with date < D are used
 from __future__ import annotations
 
 import json
-import math
 from collections import defaultdict
 from datetime import datetime
 from typing import Optional

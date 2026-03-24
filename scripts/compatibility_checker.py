@@ -19,7 +19,6 @@ from __future__ import annotations
 
 import importlib
 import locale
-import os
 import platform
 import shutil
 import struct

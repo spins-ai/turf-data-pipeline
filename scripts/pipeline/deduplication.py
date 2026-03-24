@@ -26,8 +26,6 @@ _sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), 
 import json
 import os
 import sys
-from collections import Counter, defaultdict
-from pathlib import Path
 
 OUTPUT_DIR = os.path.join("../../output", "dedup")
 os.makedirs(OUTPUT_DIR, exist_ok=True)

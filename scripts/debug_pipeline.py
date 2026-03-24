@@ -21,8 +21,6 @@ Usage:
 
 from __future__ import annotations
 
-import json
-import os
 import re
 import sys
 import time
@@ -36,13 +34,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from config import (  # noqa: E402
-    BASE_DIR,
-    CACHE_DIR,
-    LOGS_DIR,
-    OUTPUT_DIR,
-    QUALITY_DIR,
-)
+from config import CACHE_DIR, LOGS_DIR, OUTPUT_DIR, QUALITY_DIR
 
 # ---------------------------------------------------------------------------
 # Constants

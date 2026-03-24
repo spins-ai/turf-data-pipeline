@@ -19,7 +19,6 @@ Usage:
 """
 
 import json
-import os
 import time
 from collections import defaultdict
 from pathlib import Path

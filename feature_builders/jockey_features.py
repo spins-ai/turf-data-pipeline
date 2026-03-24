@@ -10,7 +10,6 @@ from __future__ import annotations
 import json
 from collections import defaultdict
 from datetime import datetime, timedelta
-from typing import Optional
 
 from utils.math import safe_mean as _safe_mean, safe_rate as _safe_rate
 

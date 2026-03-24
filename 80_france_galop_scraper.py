@@ -18,10 +18,8 @@ Usage:
 import argparse
 import json
 import os
-import random
 import re
 import sys
-import time
 from datetime import datetime, timedelta
 
 from playwright.sync_api import sync_playwright

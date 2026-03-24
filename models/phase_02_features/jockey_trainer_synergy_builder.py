@@ -6,13 +6,11 @@ Duo win rate, synergy score, combo form, individual and pair statistics.
 """
 
 import argparse
-import logging
 import os
 import sys
 from pathlib import Path
 from typing import Optional
 
-import numpy as np
 import pandas as pd
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))

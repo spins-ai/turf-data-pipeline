@@ -41,13 +41,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from config import (  # noqa: E402
-    DATA_MASTER_DIR,
-    LABELS_DIR,
-    QUALITY_DIR,
-    TRAINING_LABELS,
-    PARTANTS_MASTER,
-)
+from config import QUALITY_DIR, TRAINING_LABELS, PARTANTS_MASTER
 
 # ---------------------------------------------------------------------------
 # Constants

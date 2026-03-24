@@ -20,9 +20,7 @@ import argparse
 import json
 import os
 import sys
-import random
 import re
-import time
 from datetime import datetime, timedelta
 
 from playwright.sync_api import sync_playwright

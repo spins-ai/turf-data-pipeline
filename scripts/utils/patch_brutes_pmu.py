@@ -22,11 +22,10 @@ import json
 import logging
 import sys
 import time
-from datetime import datetime, date
+from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
-import os
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry

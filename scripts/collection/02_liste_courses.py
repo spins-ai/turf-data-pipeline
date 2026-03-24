@@ -40,11 +40,10 @@ import json
 import logging
 import sys
 import time
-import unicodedata
 from dataclasses import asdict, dataclass, field
 from datetime import date, datetime, timezone
 from pathlib import Path
-from typing import Any, Optional
+from typing import Optional
 
 import requests
 from requests.adapters import HTTPAdapter

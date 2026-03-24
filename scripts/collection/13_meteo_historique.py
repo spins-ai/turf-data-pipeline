@@ -32,17 +32,16 @@ import sys as _sys, os as _os  # auto-added by organize_project.py
 _sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), '..', '..'))  # project root
 
 import argparse
-import csv
 import json
 import logging
 import math
 import sys
 import time
 from collections import defaultdict
-from dataclasses import asdict, dataclass, field
-from datetime import datetime, timedelta, timezone
+from dataclasses import asdict, dataclass
+from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Optional
+from typing import Optional
 
 import pandas as pd
 from meteostat import Point

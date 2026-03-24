@@ -13,11 +13,9 @@ from __future__ import annotations
 import argparse
 import json
 import csv
-import logging
 import os
 import sys
 import time
-from typing import Any
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 from utils.logging_setup import setup_logging

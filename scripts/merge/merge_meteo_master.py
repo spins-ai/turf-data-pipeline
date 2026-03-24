@@ -15,7 +15,7 @@ Output : data_master/meteo_master.json + .parquet + .csv
 import sys as _sys, os as _os  # auto-added by organize_project.py
 _sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), '..', '..'))  # project root
 
-import json, os, re, logging, sys, time
+import json, os, sys, time
 
 os.makedirs("../../data_master", exist_ok=True)
 os.makedirs("../../logs", exist_ok=True)

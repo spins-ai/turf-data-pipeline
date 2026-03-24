@@ -9,7 +9,6 @@ from __future__ import annotations
 import json
 import statistics
 from collections import defaultdict
-from typing import Optional
 
 
 def build_marche_features(partants: list[dict]) -> list[dict]:

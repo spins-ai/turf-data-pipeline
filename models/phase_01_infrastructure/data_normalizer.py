@@ -8,7 +8,6 @@ Save and load fitted scalers for inference.
 
 import argparse
 import json
-import logging
 import os
 import pickle
 import sys

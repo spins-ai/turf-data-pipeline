@@ -9,7 +9,6 @@ Hash-based cache invalidation to detect stale data.
 import argparse
 import hashlib
 import json
-import logging
 import os
 import sys
 import time

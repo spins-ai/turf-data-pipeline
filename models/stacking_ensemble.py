@@ -15,7 +15,6 @@ Aucun appel API : traitement 100% local.
 
 from __future__ import annotations
 
-import logging
 from pathlib import Path
 from typing import Optional
 

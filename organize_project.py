@@ -31,13 +31,11 @@ Produit migration_log.json pour tracer et permettre l'annulation.
 from __future__ import annotations
 
 import argparse
-import filecmp
 import hashlib
 import json
 
 import os
 import re
-import shutil
 import sys
 import time
 from dataclasses import asdict, dataclass, field

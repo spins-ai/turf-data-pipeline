@@ -41,22 +41,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from config import (  # noqa: E402
-    BASE_DIR,
-    COURSES_MASTER,
-    DATA_MASTER_DIR,
-    EQUIPEMENTS_MASTER,
-    EXPORTS_DIR,
-    FEATURES_DIR,
-    FEATURES_MATRIX,
-    LABELS_DIR,
-    LOGS_DIR,
-    OUTPUT_DIR,
-    PARTANTS_MASTER,
-    PARTANTS_MASTER_ENRICHI,
-    QUALITY_DIR,
-    TRAINING_LABELS,
-)
+from config import COURSES_MASTER, DATA_MASTER_DIR, EQUIPEMENTS_MASTER, EXPORTS_DIR, FEATURES_DIR, FEATURES_MATRIX, LABELS_DIR, LOGS_DIR, OUTPUT_DIR, PARTANTS_MASTER, PARTANTS_MASTER_ENRICHI, QUALITY_DIR, TRAINING_LABELS
 
 # ---------------------------------------------------------------------------
 # ANSI colors (with fallback for terminals that don't support them)

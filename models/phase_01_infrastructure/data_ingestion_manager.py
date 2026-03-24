@@ -8,13 +8,11 @@ Stream large JSONL files line-by-line and output clean DataFrames.
 
 import argparse
 import json
-import logging
 import os
 import sys
 from pathlib import Path
-from typing import Dict, Generator, List, Optional
+from typing import Generator, List, Optional
 
-import numpy as np
 import pandas as pd
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))

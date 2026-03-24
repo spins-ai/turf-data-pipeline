@@ -23,11 +23,9 @@ from __future__ import annotations
 
 import argparse
 import json
-import logging
 import sys
-from collections import Counter, defaultdict
+from collections import Counter
 from pathlib import Path
-from typing import Optional
 
 import numpy as np
 import pandas as pd

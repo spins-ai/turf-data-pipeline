@@ -22,7 +22,6 @@ import argparse
 import json
 import os
 import sys
-import time
 from datetime import datetime, timedelta
 
 SCRIPT_NAME = "149_racing_api_free"

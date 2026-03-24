@@ -16,7 +16,6 @@ import re
 import time
 from datetime import datetime, timedelta
 
-import requests
 
 SCRIPT_NAME = "96_noaa_weather"
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output", SCRIPT_NAME)

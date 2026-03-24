@@ -17,13 +17,10 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import json
 import logging
 import math
 import os
 import sys
-from collections import defaultdict
-from typing import Optional
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.logging_setup import setup_logging

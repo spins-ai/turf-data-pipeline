@@ -22,7 +22,6 @@ _sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), 
 import json
 import os
 import time
-from collections import defaultdict
 
 from utils.normalize import normalize_name as _shared_normalize_name
 

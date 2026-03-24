@@ -21,14 +21,11 @@ Usage:
 from __future__ import annotations
 
 import json
-import os
 import random
 import re
 import sys
-import time
 from datetime import datetime
 from pathlib import Path
-from typing import Any
 
 # ---------------------------------------------------------------------------
 # Project root
@@ -37,13 +34,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from config import (  # noqa: E402
-    DATA_MASTER_DIR,
-    LOGS_DIR,
-    OUTPUT_DIR,
-    PARTANTS_MASTER,
-    QUALITY_DIR,
-)
+from config import DATA_MASTER_DIR, OUTPUT_DIR, PARTANTS_MASTER, QUALITY_DIR
 from utils.logging_setup import setup_logging  # noqa: E402
 
 _TODAY = datetime.now().strftime("%Y%m%d")

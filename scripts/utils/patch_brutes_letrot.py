@@ -24,9 +24,9 @@ import logging
 import re
 import sys
 import time
-from datetime import date, timedelta
+from datetime import date
 from pathlib import Path
-from typing import Any, Optional
+from typing import Optional
 
 import requests
 from requests.adapters import HTTPAdapter

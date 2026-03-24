@@ -10,7 +10,6 @@ Integre les ~68K records Timeform dans partants_master.
 
 import json
 
-import os
 import re
 import sys
 import time

@@ -31,7 +31,6 @@ import sys as _sys, os as _os  # auto-added by organize_project.py
 _sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), '..', '..'))  # project root
 
 import json
-import os
 import re
 import time
 from collections import defaultdict

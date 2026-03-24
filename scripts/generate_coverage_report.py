@@ -4,7 +4,6 @@ Streams line-by-line to keep RAM under 2GB.
 """
 
 import json
-import sys
 import os
 from collections import Counter
 from datetime import datetime

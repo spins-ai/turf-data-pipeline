@@ -6,13 +6,11 @@ Rail bias, draw bias, pace bias per track per going (terrain condition).
 """
 
 import argparse
-import logging
 import os
 import sys
 from pathlib import Path
 from typing import Optional
 
-import numpy as np
 import pandas as pd
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))

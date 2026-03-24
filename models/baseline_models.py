@@ -20,12 +20,11 @@ Aucun appel API : traitement 100% local.
 
 from __future__ import annotations
 
-import logging
 import sys
 import warnings
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any, Optional
+from typing import Optional
 
 import numpy as np
 import pandas as pd

@@ -15,7 +15,6 @@ import re
 import time
 from datetime import datetime, timedelta
 
-import requests
 from bs4 import BeautifulSoup
 
 SCRIPT_NAME = "63_daily_racing_form"

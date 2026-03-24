@@ -16,7 +16,6 @@ _sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), 
 
 import argparse
 import json
-import os
 import shutil
 import subprocess
 import time

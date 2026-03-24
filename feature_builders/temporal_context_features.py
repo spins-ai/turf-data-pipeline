@@ -31,7 +31,6 @@ from datetime import date, datetime
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.logging_setup import setup_logging
-from utils.output import save_jsonl
 
 # ===========================================================================
 # CONFIG

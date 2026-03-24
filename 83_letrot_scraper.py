@@ -16,7 +16,6 @@ import re
 import time
 from datetime import datetime, timedelta
 
-import requests
 from bs4 import BeautifulSoup
 
 SCRIPT_NAME = "83_letrot"

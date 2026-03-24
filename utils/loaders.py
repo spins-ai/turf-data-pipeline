@@ -19,8 +19,6 @@ import json
 import logging
 import os
 import sys
-from pathlib import Path
-from typing import Any, Optional
 
 
 def load_jsonl(path: str, logger: logging.Logger) -> list[dict]:

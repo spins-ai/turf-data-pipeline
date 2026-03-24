@@ -18,7 +18,6 @@ import re
 import signal
 import sys
 from bs4 import BeautifulSoup
-from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging

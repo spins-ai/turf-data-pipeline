@@ -22,8 +22,6 @@ Usage:
 
 from __future__ import annotations
 
-import importlib
-import os
 import sys
 import time
 from collections import defaultdict, deque
@@ -38,10 +36,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from config import (  # noqa: E402
-    BASE_DIR,
-    QUALITY_DIR,
-)
+from config import QUALITY_DIR
 from utils.logging_setup import setup_logging  # noqa: E402
 
 _TODAY = datetime.now().strftime("%Y%m%d")

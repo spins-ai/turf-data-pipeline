@@ -37,12 +37,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from config import (  # noqa: E402
-    DATA_MASTER_DIR,
-    OUTPUT_ELO,
-    PARTANTS_MASTER,
-    QUALITY_DIR,
-)
+from config import OUTPUT_ELO, PARTANTS_MASTER, QUALITY_DIR
 from utils.logging_setup import setup_logging  # noqa: E402
 
 _TODAY = datetime.now().strftime("%Y%m%d")

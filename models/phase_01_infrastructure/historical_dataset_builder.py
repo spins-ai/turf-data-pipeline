@@ -7,11 +7,10 @@ Ensures point-in-time correctness: the model never sees data from the future.
 """
 
 import argparse
-import logging
 import os
 import sys
 from pathlib import Path
-from typing import Dict, Optional, Tuple
+from typing import Optional, Tuple
 
 import numpy as np
 import pandas as pd

@@ -15,7 +15,6 @@ import random
 import os
 import re
 import sys
-from datetime import datetime
 from bs4 import BeautifulSoup
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))

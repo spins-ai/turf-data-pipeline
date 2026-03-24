@@ -19,7 +19,6 @@ import argparse
 import json
 import logging
 import random
-import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional

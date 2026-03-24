@@ -15,11 +15,9 @@ Requires:
 
 import argparse
 import csv
-import io
 import json
 import os
 import sys
-import time
 from datetime import datetime
 
 SCRIPT_NAME = "150_data_gov_uk"

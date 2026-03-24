@@ -11,7 +11,6 @@ Integre les ~32K records Sporting Life dans partants_master.
 
 import json
 
-import os
 import re
 import sys
 import time

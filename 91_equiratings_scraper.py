@@ -15,10 +15,9 @@ import argparse
 import json
 import os
 import sys
-import random
 import re
 import time
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeout
 from bs4 import BeautifulSoup
@@ -36,7 +35,6 @@ os.makedirs(HTML_CACHE_DIR, exist_ok=True)
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils.logging_setup import setup_logging
 from utils.scraping import smart_pause, load_checkpoint, save_checkpoint, append_jsonl
-from utils.html_parsing import extract_embedded_json, extract_data_attributes
 
 log = setup_logging("91_equiratings")
 

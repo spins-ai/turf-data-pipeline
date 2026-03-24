@@ -38,7 +38,6 @@ _sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), 
 import json
 import os
 import sys
-from collections import defaultdict
 
 OUTPUT_DIR = "../../data_master"
 os.makedirs(OUTPUT_DIR, exist_ok=True)

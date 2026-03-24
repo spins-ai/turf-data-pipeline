@@ -18,9 +18,7 @@ Usage:
 import argparse
 import json
 import os
-import sys
 import time
-from collections import defaultdict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent

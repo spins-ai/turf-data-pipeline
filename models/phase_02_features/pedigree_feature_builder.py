@@ -6,13 +6,11 @@ Sire/dam stats by distance/terrain, stamina/speed index, inbreeding coefficient.
 """
 
 import argparse
-import logging
 import os
 import sys
 from pathlib import Path
 from typing import Dict, Optional
 
-import numpy as np
 import pandas as pd
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))

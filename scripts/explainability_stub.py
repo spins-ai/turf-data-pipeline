@@ -16,10 +16,9 @@ Usage :
 from __future__ import annotations
 
 import random
-import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 # ---------------------------------------------------------------------------
 # Project root

@@ -7,7 +7,6 @@ Uses musique (race history string) and positional data.
 """
 
 import argparse
-import logging
 import os
 import re
 import sys

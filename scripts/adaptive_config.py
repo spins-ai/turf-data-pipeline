@@ -14,11 +14,9 @@ Usage :
 
 from __future__ import annotations
 
-import math
 import os
 import platform
 import shutil
-import subprocess
 import sys
 import time
 from datetime import datetime, timezone

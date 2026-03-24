@@ -21,7 +21,6 @@ Usage:
 import argparse
 import json
 import math
-import os
 import random
 import sys
 from collections import Counter, defaultdict

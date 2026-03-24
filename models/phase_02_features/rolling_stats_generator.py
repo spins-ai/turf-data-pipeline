@@ -7,13 +7,11 @@ per horse. Point-in-time correct (only uses past data).
 """
 
 import argparse
-import logging
 import os
 import sys
 from pathlib import Path
 from typing import List, Optional
 
-import numpy as np
 import pandas as pd
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))

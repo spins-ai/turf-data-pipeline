@@ -13,8 +13,6 @@ Streams data in 100K-row chunks to keep RAM under 4 GB.
 from __future__ import annotations
 
 import json
-import os
-import sys
 import time
 from pathlib import Path
 

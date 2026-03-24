@@ -6,7 +6,6 @@ Days since last race, seasonal patterns, day of week, time-of-day effects.
 """
 
 import argparse
-import logging
 import os
 import sys
 from pathlib import Path

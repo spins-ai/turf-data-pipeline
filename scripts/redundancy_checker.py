@@ -18,12 +18,9 @@ Usage:
 
 from __future__ import annotations
 
-import json
-import os
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 # ---------------------------------------------------------------------------
 # Project root
@@ -32,19 +29,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from config import (  # noqa: E402
-    COURSES_MASTER,
-    DATA_MASTER_DIR,
-    FEATURES_DIR,
-    FEATURES_MATRIX,
-    LABELS_DIR,
-    LOGS_DIR,
-    OUTPUT_DIR,
-    PARTANTS_MASTER,
-    PARTANTS_MASTER_ENRICHI,
-    QUALITY_DIR,
-    TRAINING_LABELS,
-)
+from config import COURSES_MASTER, DATA_MASTER_DIR, OUTPUT_DIR, PARTANTS_MASTER, PARTANTS_MASTER_ENRICHI, QUALITY_DIR
 from utils.logging_setup import setup_logging  # noqa: E402
 
 _TODAY = datetime.now().strftime("%Y%m%d")

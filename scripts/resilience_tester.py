@@ -41,10 +41,9 @@ import importlib
 import json
 import sys
 import time
-import traceback
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable
+from typing import Callable
 
 # ---------------------------------------------------------------------------
 # Project root

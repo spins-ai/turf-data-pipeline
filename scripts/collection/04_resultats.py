@@ -24,16 +24,15 @@ import sys as _sys, os as _os  # auto-added by organize_project.py
 _sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), '..', '..'))  # project root
 
 import argparse
-import csv
 import hashlib
 import json
 import logging
 import sys
 import time
 from dataclasses import asdict, dataclass, field
-from datetime import date, datetime, timezone
+from datetime import date
 from pathlib import Path
-from typing import Any, Optional
+from typing import Optional
 
 import requests
 from requests.adapters import HTTPAdapter

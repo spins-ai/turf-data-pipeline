@@ -19,7 +19,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import logging
 import sys
 import warnings
 from pathlib import Path
@@ -33,7 +32,6 @@ from sklearn.metrics import (
     log_loss,
     roc_auc_score,
 )
-from sklearn.model_selection import StratifiedKFold
 
 try:
     import lightgbm as lgb

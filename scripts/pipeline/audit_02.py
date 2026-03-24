@@ -16,7 +16,7 @@ import os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 import sys
 from collections import Counter
-from datetime import datetime, timedelta
+from datetime import datetime
 from statistics import mean, median
 
 

@@ -24,7 +24,6 @@ import json
 import logging
 import sys
 import time
-from datetime import date as dt_date
 from pathlib import Path
 from typing import Optional
 

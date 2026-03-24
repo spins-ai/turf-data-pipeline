@@ -40,16 +40,7 @@ _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(_PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROJECT_ROOT))
 
-from config import (
-    DATA_MASTER_DIR,
-    EXPORTS_DIR,
-    FEATURES_DIR,
-    FEATURES_MATRIX,
-    FEATURES_MATRIX_PARQUET,
-    LABELS_DIR,
-    PARTANTS_MASTER,
-    TRAINING_LABELS,
-)
+from config import EXPORTS_DIR, FEATURES_MATRIX, FEATURES_MATRIX_PARQUET, PARTANTS_MASTER, TRAINING_LABELS
 
 # ---------------------------------------------------------------------------
 # ANSI helpers
