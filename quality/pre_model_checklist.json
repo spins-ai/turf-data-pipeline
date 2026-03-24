@@ -1,0 +1,13 @@
+{
+  "partants_master.jsonl_records": 2930290,
+  "features_matrix.jsonl_records": 2930290,
+  "training_labels.jsonl_records": 4861361,
+  "unique_fields_in_sample": 4851,
+  "label_overlap_pct": 1.75,
+  "date_range": "2013-2026",
+  "pass": 10,
+  "fail": 2,
+  "warn": 1,
+  "ready": false,
+  "elapsed_seconds": 1218.8
+}
