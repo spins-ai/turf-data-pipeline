@@ -1,0 +1,1225 @@
+{
+  "generated_at": "2026-03-24T20:42:56",
+  "output_dir": "C:\\Users\\celia\\turf-data-pipeline\\.claude\\worktrees\\naughty-bardeen\\output",
+  "data_master_dir": "C:\\Users\\celia\\turf-data-pipeline\\.claude\\worktrees\\naughty-bardeen\\data_master",
+  "sources": {
+    "00_enrichissement_meteo": {
+      "status": "empty",
+      "file_count": 0,
+      "total_size_bytes": 0,
+      "has_master": false
+    },
+    "01_calendrier_reunions": {
+      "status": "stale",
+      "file_count": 21,
+      "total_size_bytes": 644333646,
+      "total_size_mb": 614.5,
+      "last_modified": "2026-03-15T02:31:42",
+      "age_days": 9.8,
+      "has_master": false
+    },
+    "02_liste_courses": {
+      "status": "synced",
+      "file_count": 32626,
+      "total_size_bytes": 38437905417,
+      "total_size_mb": 36657.2,
+      "last_modified": "2026-03-21T22:28:43",
+      "age_days": 2.9,
+      "has_master": false
+    },
+    "02_liste_courses_raw_pmu": {
+      "status": "synced",
+      "file_count": 12,
+      "total_size_bytes": 14885156571,
+      "total_size_mb": 14195.6,
+      "last_modified": "2026-03-21T22:24:38",
+      "age_days": 2.9,
+      "has_master": false
+    },
+    "02_merged_intermediate": {
+      "status": "synced",
+      "file_count": 3,
+      "total_size_bytes": 10286563968,
+      "total_size_mb": 9810.0,
+      "last_modified": "2026-03-21T22:26:27",
+      "age_days": 2.9,
+      "has_master": false
+    },
+    "02b_liste_courses_2013": {
+      "status": "synced",
+      "file_count": 7301,
+      "total_size_bytes": 2400099470,
+      "total_size_mb": 2288.9,
+      "last_modified": "2026-03-19T17:20:18",
+      "age_days": 5.1,
+      "has_master": false
+    },
+    "02b_scraper_letrot": {
+      "status": "synced",
+      "file_count": 505,
+      "total_size_bytes": 1785379963,
+      "total_size_mb": 1702.7,
+      "last_modified": "2026-03-21T22:20:25",
+      "age_days": 2.9,
+      "has_master": false
+    },
+    "04_resultats": {
+      "status": "synced",
+      "file_count": 6,
+      "total_size_bytes": 4595669931,
+      "total_size_mb": 4382.8,
+      "last_modified": "2026-03-21T22:23:30",
+      "age_days": 2.9,
+      "has_master": false
+    },
+    "05_historique_chevaux": {
+      "status": "stale",
+      "file_count": 3,
+      "total_size_bytes": 340005283,
+      "total_size_mb": 324.3,
+      "last_modified": "2026-03-13T23:19:54",
+      "age_days": 10.9,
+      "has_master": false
+    },
+    "06_historique_jockeys": {
+      "status": "stale",
+      "file_count": 6,
+      "total_size_bytes": 14864734,
+      "total_size_mb": 14.2,
+      "last_modified": "2026-03-13T23:20:11",
+      "age_days": 10.9,
+      "has_master": false
+    },
+    "07_cotes_marche": {
+      "status": "stale",
+      "file_count": 3,
+      "total_size_bytes": 300066432,
+      "total_size_mb": 286.2,
+      "last_modified": "2026-03-13T23:20:39",
+      "age_days": 10.9,
+      "has_master": false
+    },
+    "08_pedigree": {
+      "status": "stale",
+      "file_count": 6,
+      "total_size_bytes": 20717645,
+      "total_size_mb": 19.8,
+      "last_modified": "2026-03-13T23:20:55",
+      "age_days": 10.9,
+      "has_master": false
+    },
+    "09_equipements": {
+      "status": "stale",
+      "file_count": 3,
+      "total_size_bytes": 334866219,
+      "total_size_mb": 319.4,
+      "last_modified": "2026-03-13T23:21:13",
+      "age_days": 10.9,
+      "has_master": false
+    },
+    "100_magic_millions": {
+      "status": "empty",
+      "file_count": 0,
+      "total_size_bytes": 0,
+      "has_master": false
+    },
+    "101_pmu_api": {
+      "status": "synced",
+      "file_count": 225547,
+      "total_size_bytes": 4639180430,
+      "total_size_mb": 4424.3,
+      "last_modified": "2026-03-24T20:33:00",
+      "age_days": 0.0,
+      "has_master": false
+    },
+    "102_racing_post": {
+      "status": "synced",
+      "file_count": 5,
+      "total_size_bytes": 22913,
+      "total_size_mb": 0.0,
+      "last_modified": "2026-03-21T22:21:24",
+      "age_days": 2.9,
+      "has_master": false
+    },
+    "10_poids_handicaps": {
+      "status": "stale",
+      "file_count": 3,
+      "total_size_bytes": 148324837,
+      "total_size_mb": 141.5,
+      "last_modified": "2026-03-13T23:21:32",
+      "age_days": 10.9,
+      "has_master": false
+    },
+    "11_sectionals": {
+      "status": "stale",
+      "file_count": 3,
+      "total_size_bytes": 139868407,
+      "total_size_mb": 133.4,
+      "last_modified": "2026-03-13T23:21:57",
+      "age_days": 10.9,
+      "has_master": false
+    },
+    "12_pedigree": {
+      "status": "synced",
+      "file_count": 548,
+      "total_size_bytes": 796571,
+      "total_size_mb": 0.8,
+      "last_modified": "2026-03-22T12:31:57",
+      "age_days": 2.3,
+      "has_master": false
+    },
+    "13_meteo_historique": {
+      "status": "synced",
+      "file_count": 4556,
+      "total_size_bytes": 34995124,
+      "total_size_mb": 33.4,
+      "last_modified": "2026-03-21T22:06:57",
+      "age_days": 2.9,
+      "has_master": false
+    },
+    "14_pedigree": {
+      "status": "synced",
+      "file_count": 44589,
+      "total_size_bytes": 76166977,
+      "total_size_mb": 72.6,
+      "last_modified": "2026-03-21T22:21:24",
+      "age_days": 2.9,
+      "has_master": false
+    },
+    "15_external_datasets": {
+      "status": "empty",
+      "file_count": 0,
+      "total_size_bytes": 0,
+      "has_master": false
+    },
+    "16_nanaelie": {
+      "status": "synced",
+      "file_count": 3321,
+      "total_size_bytes": 5680742,
+      "total_size_mb": 5.4,
+      "last_modified": "2026-03-21T22:06:52",
+      "age_days": 2.9,
+      "has_master": false
+    },
+    "17_sire_ifce": {
+      "status": "stale",
+      "file_count": 5,
+      "total_size_bytes": 1129453812,
+      "total_size_mb": 1077.1,
+      "last_modified": "2026-03-14T09:58:09",
+      "age_days": 10.4,
+      "has_master": false
+    },
+    "18_letrot_records": {
+      "status": "stale",
+      "file_count": 1,
+      "total_size_bytes": 2,
+      "total_size_mb": 0.0,
+      "last_modified": "2026-03-15T02:32:39",
+      "age_days": 9.8,
+      "has_master": false
+    },
+    "19_boturfers_stats": {
+      "status": "synced",
+      "file_count": 140,
+      "total_size_bytes": 143891,
+      "total_size_mb": 0.1,
+      "last_modified": "2026-03-22T12:32:52",
+      "age_days": 2.3,
+      "has_master": false
+    },
+    "20_ifce_stats": {
+      "status": "synced",
+      "file_count": 18,
+      "total_size_bytes": 215451,
+      "total_size_mb": 0.2,
+      "last_modified": "2026-03-21T22:21:24",
+      "age_days": 2.9,
+      "has_master": false
+    },
+    "21_rapports_definitifs": {
+      "status": "synced",
+      "file_count": 200103,
+      "total_size_bytes": 1239773668,
+      "total_size_mb": 1182.3,
+      "last_modified": "2026-03-24T19:52:52",
+      "age_days": 0.0,
+      "has_master": false
+    },
+    "22_performances_detaillees": {
+      "status": "synced",
+      "file_count": 97801,
+      "total_size_bytes": 13329255455,
+      "total_size_mb": 12711.8,
+      "last_modified": "2026-03-24T10:57:51",
+      "age_days": 0.4,
+      "has_master": false
+    },
+    "23_pronostics": {
+      "status": "synced",
+      "file_count": 204603,
+      "total_size_bytes": 519506884,
+      "total_size_mb": 495.4,
+      "last_modified": "2026-03-21T21:03:12",
+      "age_days": 3.0,
+      "has_master": false
+    },
+    "24_canalturf": {
+      "status": "synced",
+      "file_count": 9506,
+      "total_size_bytes": 14366493,
+      "total_size_mb": 13.7,
+      "last_modified": "2026-03-21T22:11:46",
+      "age_days": 2.9,
+      "has_master": false
+    },
+    "25_turfostats": {
+      "status": "synced",
+      "file_count": 35352,
+      "total_size_bytes": 26809702,
+      "total_size_mb": 25.6,
+      "last_modified": "2026-03-24T11:03:05",
+      "age_days": 0.4,
+      "has_master": false
+    },
+    "26_geny": {
+      "status": "synced",
+      "file_count": 2268,
+      "total_size_bytes": 70688288,
+      "total_size_mb": 67.4,
+      "last_modified": "2026-03-24T11:03:29",
+      "age_days": 0.4,
+      "has_master": false
+    },
+    "27_citations_enjeux": {
+      "status": "synced",
+      "file_count": 177703,
+      "total_size_bytes": 9158358091,
+      "total_size_mb": 8734.1,
+      "last_modified": "2026-03-24T20:43:24",
+      "age_days": 0.0,
+      "has_master": false
+    },
+    "28_combinaisons_marche": {
+      "status": "synced",
+      "file_count": 814,
+      "total_size_bytes": 2823453662,
+      "total_size_mb": 2692.7,
+      "last_modified": "2026-03-24T10:57:02",
+      "age_days": 0.4,
+      "has_master": false
+    },
+    "29_arqana_ventes": {
+      "status": "empty",
+      "file_count": 0,
+      "total_size_bytes": 0,
+      "has_master": false
+    },
+    "30_smarkets_exchange": {
+      "status": "synced",
+      "file_count": 5,
+      "total_size_bytes": 961133,
+      "total_size_mb": 0.9,
+      "last_modified": "2026-03-22T12:32:53",
+      "age_days": 2.3,
+      "has_master": false
+    },
+    "31_zone_turf": {
+      "status": "empty",
+      "file_count": 0,
+      "total_size_bytes": 0,
+      "has_master": false
+    },
+    "32_turfomania": {
+      "status": "empty",
+      "file_count": 0,
+      "total_size_bytes": 0,
+      "has_master": false
+    },
+    "33_turf_fr": {
+      "status": "empty",
+      "file_count": 0,
+      "total_size_bytes": 0,
+      "has_master": false
+    },
+    "34_unibet_cotes": {
+      "status": "empty",
+      "file_count": 0,
+      "total_size_bytes": 0,
+      "has_master": false
+    },
+    "35_meteo_france": {
+      "status": "stale",
+      "file_count": 40,
+      "total_size_bytes": 11386643,
+      "total_size_mb": 10.9,
+      "last_modified": "2026-03-14T16:23:07",
+      "age_days": 10.2,
+      "has_master": false
+    },
+    "36_pedigree_query": {
+      "status": "synced",
+      "file_count": 2,
+      "total_size_bytes": 3749161,
+      "total_size_mb": 3.6,
+      "last_modified": "2026-03-18T16:41:01",
+      "age_days": 6.2,
+      "has_master": false
+    },
+    "37_racing_post": {
+      "status": "synced",
+      "file_count": 6362,
+      "total_size_bytes": 4843157015,
+      "total_size_mb": 4618.8,
+      "last_modified": "2026-03-21T22:23:59",
+      "age_days": 2.9,
+      "has_master": false
+    },
+    "38_rapports_internet": {
+      "status": "synced",
+      "file_count": 3,
+      "total_size_bytes": 1679775326,
+      "total_size_mb": 1602.0,
+      "last_modified": "2026-03-24T10:58:22",
+      "age_days": 0.4,
+      "has_master": false
+    },
+    "39_reunions_enrichies": {
+      "status": "synced",
+      "file_count": 18925,
+      "total_size_bytes": 3480935532,
+      "total_size_mb": 3319.7,
+      "last_modified": "2026-03-24T20:05:06",
+      "age_days": 0.0,
+      "has_master": false
+    },
+    "40_enrichissement_partants": {
+      "status": "synced",
+      "file_count": 1,
+      "total_size_bytes": 732033446,
+      "total_size_mb": 698.1,
+      "last_modified": "2026-03-20T18:20:53",
+      "age_days": 4.1,
+      "has_master": false
+    },
+    "41_sequences": {
+      "status": "synced",
+      "file_count": 1,
+      "total_size_bytes": 2599360397,
+      "total_size_mb": 2478.9,
+      "last_modified": "2026-03-21T22:24:22",
+      "age_days": 2.9,
+      "has_master": false
+    },
+    "42_croisement_rp": {
+      "status": "synced",
+      "file_count": 1,
+      "total_size_bytes": 98,
+      "total_size_mb": 0.0,
+      "last_modified": "2026-03-23T22:01:47",
+      "age_days": 0.9,
+      "has_master": false
+    },
+    "43_croisement_meteo": {
+      "status": "synced",
+      "file_count": 1,
+      "total_size_bytes": 98,
+      "total_size_mb": 0.0,
+      "last_modified": "2026-03-23T22:01:47",
+      "age_days": 0.9,
+      "has_master": false
+    },
+    "44_croisement_pedigree": {
+      "status": "synced",
+      "file_count": 1,
+      "total_size_bytes": 438,
+      "total_size_mb": 0.0,
+      "last_modified": "2026-03-23T22:01:47",
+      "age_days": 0.9,
+      "has_master": false
+    },
+    "45_graphe_gnn": {
+      "status": "synced",
+      "file_count": 5,
+      "total_size_bytes": 2230220230,
+      "total_size_mb": 2126.9,
+      "last_modified": "2026-03-21T22:23:45",
+      "age_days": 2.9,
+      "has_master": false
+    },
+    "46_track_bias_speed": {
+      "status": "synced",
+      "file_count": 1,
+      "total_size_bytes": 1336066838,
+      "total_size_mb": 1274.2,
+      "last_modified": "2026-03-21T22:24:02",
+      "age_days": 2.9,
+      "has_master": false
+    },
+    "48_conditions_texte": {
+      "status": "synced",
+      "file_count": 1,
+      "total_size_bytes": 127236128,
+      "total_size_mb": 121.3,
+      "last_modified": "2026-03-21T22:22:16",
+      "age_days": 2.9,
+      "has_master": false
+    },
+    "49_ecart_cotes": {
+      "status": "synced",
+      "file_count": 1,
+      "total_size_bytes": 98,
+      "total_size_mb": 0.0,
+      "last_modified": "2026-03-23T22:01:47",
+      "age_days": 0.9,
+      "has_master": false
+    },
+    "51_zeturf": {
+      "status": "synced",
+      "file_count": 839,
+      "total_size_bytes": 133810815,
+      "total_size_mb": 127.6,
+      "last_modified": "2026-03-21T22:21:25",
+      "age_days": 2.9,
+      "has_master": false
+    },
+    "52_turfomania": {
+      "status": "synced",
+      "file_count": 246,
+      "total_size_bytes": 2446394,
+      "total_size_mb": 2.3,
+      "last_modified": "2026-03-21T22:21:25",
+      "age_days": 2.9,
+      "has_master": false
+    },
+    "53_paris_turf": {
+      "status": "synced",
+      "file_count": 200,
+      "total_size_bytes": 30359075,
+      "total_size_mb": 29.0,
+      "last_modified": "2026-03-21T22:21:25",
+      "age_days": 2.9,
+      "has_master": false
+    },
+    "54_turfinfo": {
+      "status": "synced",
+      "file_count": 1,
+      "total_size_bytes": 77,
+      "total_size_mb": 0.0,
+      "last_modified": "2026-03-21T20:15:05",
+      "age_days": 3.0,
+      "has_master": false
+    },
+    "55_equidia": {
+      "status": "synced",
+      "file_count": 1,
+      "total_size_bytes": 9596166,
+      "total_size_mb": 9.2,
+      "last_modified": "2026-03-21T22:21:25",
+      "age_days": 2.9,
+      "has_master": false
+    },
+    "55_equidia_data": {
+      "status": "synced",
+      "file_count": 1,
+      "total_size_bytes": 77,
+      "total_size_mb": 0.0,
+      "last_modified": "2026-03-24T20:33:55",
+      "age_days": 0.0,
+      "has_master": false
+    },
+    "56_timeform": {
+      "status": "synced",
+      "file_count": 810,
+      "total_size_bytes": 27838777,
+      "total_size_mb": 26.5,
+      "last_modified": "2026-03-21T22:21:25",
+      "age_days": 2.9,
+      "has_master": false
+    },
+    "57_sporting_life": {
+      "status": "synced",
+      "file_count": 1618,
+      "total_size_bytes": 14594608,
+      "total_size_mb": 13.9,
+      "last_modified": "2026-03-21T22:21:25",
+      "age_days": 2.9,
+      "has_master": false
+    },
+    "58_at_the_races": {
+      "status": "synced",
+      "file_count": 1,
+      "total_size_bytes": 56,
+      "total_size_mb": 0.0,
+      "last_modified": "2026-03-19T05:11:31",
+      "age_days": 5.6,
+      "has_master": false
+    },
+    "59_racing_tv": {
+      "status": "synced",
+      "file_count": 1617,
+      "total_size_bytes": 3309,
+      "total_size_mb": 0.0,
+      "last_modified": "2026-03-19T04:41:05",
+      "age_days": 5.7,
+      "has_master": false
+    },
+    "60_oddschecker": {
+      "status": "synced",
+      "file_count": 77,
+      "total_size_bytes": 329284,
+      "total_size_mb": 0.3,
+      "last_modified": "2026-03-24T20:41:28",
+      "age_days": 0.0,
+      "has_master": false
+    },
+    "61_equibase": {
+      "status": "synced",
+      "file_count": 2425,
+      "total_size_bytes": 143221,
+      "total_size_mb": 0.1,
+      "last_modified": "2026-03-21T22:21:25",
+      "age_days": 2.9,
+      "has_master": false
+    },
+    "62_horse_racing_nation": {
+      "status": "synced",
+      "file_count": 1734,
+      "total_size_bytes": 556831,
+      "total_size_mb": 0.5,
+      "last_modified": "2026-03-21T22:21:25",
+      "age_days": 2.9,
+      "has_master": false
+    },
+    "63_daily_racing_form": {
+      "status": "synced",
+      "file_count": 812,
+      "total_size_bytes": 1699,
+      "total_size_mb": 0.0,
+      "last_modified": "2026-03-22T02:54:34",
+      "age_days": 2.7,
+      "has_master": false
+    },
+    "64_punters": {
+      "status": "synced",
+      "file_count": 1,
+      "total_size_bytes": 56,
+      "total_size_mb": 0.0,
+      "last_modified": "2026-03-19T05:17:00",
+      "age_days": 5.6,
+      "has_master": false
+    },
+    "65_racenet": {
+      "status": "synced",
+      "file_count": 1,
+      "total_size_bytes": 56,
+      "total_size_mb": 0.0,
+      "last_modified": "2026-03-19T06:31:27",
+      "age_days": 5.6,
+      "has_master": false
+    },
+    "66_hkjc": {
+      "status": "synced",
+      "file_count": 1618,
+      "total_size_bytes": 683073,
+      "total_size_mb": 0.7,
+      "last_modified": "2026-03-21T22:21:25",
+      "age_days": 2.9,
+      "has_master": false
+    },
+    "67_jra": {
+      "status": "synced",
+      "file_count": 67,
+      "total_size_bytes": 15340,
+      "total_size_mb": 0.0,
+      "last_modified": "2026-03-21T22:21:25",
+      "age_days": 2.9,
+      "has_master": false
+    },
+    "68_betfair_exchange": {
+      "status": "synced",
+      "file_count": 1,
+      "total_size_bytes": 56,
+      "total_size_mb": 0.0,
+      "last_modified": "2026-03-19T05:44:57",
+      "age_days": 5.6,
+      "has_master": false
+    },
+    "69_oddsportal": {
+      "status": "synced",
+      "file_count": 1,
+      "total_size_bytes": 77,
+      "total_size_mb": 0.0,
+      "last_modified": "2026-03-19T04:38:41",
+      "age_days": 5.7,
+      "has_master": false
+    },
+    "70_betexplorer": {
+      "status": "empty",
+      "file_count": 0,
+      "total_size_bytes": 0,
+      "has_master": false
+    },
+    "71_allbreedpedigree": {
+      "status": "empty",
+      "file_count": 0,
+      "total_size_bytes": 0,
+      "has_master": false
+    },
+    "72_tattersalls": {
+      "status": "empty",
+      "file_count": 0,
+      "total_size_bytes": 0,
+      "has_master": false
+    },
+    "73_goffs": {
+      "status": "empty",
+      "file_count": 0,
+      "total_size_bytes": 0,
+      "has_master": false
+    },
+    "74_arqana": {
+      "status": "empty",
+      "file_count": 0,
+      "total_size_bytes": 0,
+      "has_master": false
+    },
+    "75_keeneland": {
+      "status": "synced",
+      "file_count": 1,
+      "total_size_bytes": 3696,
+      "total_size_mb": 0.0,
+      "last_modified": "2026-03-21T22:21:25",
+      "age_days": 2.9,
+      "has_master": false
+    },
+    "76_usta_trot": {
+      "status": "synced",
+      "file_count": 488,
+      "total_size_bytes": 2026967,
+      "total_size_mb": 1.9,
+      "last_modified": "2026-03-21T22:21:25",
+      "age_days": 2.9,
+      "has_master": false
+    },
+    "77_kaggle": {
+      "status": "empty",
+      "file_count": 0,
+      "total_size_bytes": 0,
+      "has_master": false
+    },
+    "78_goingstick": {
+      "status": "synced",
+      "file_count": 812,
+      "total_size_bytes": 1699,
+      "total_size_mb": 0.0,
+      "last_modified": "2026-03-23T10:20:52",
+      "age_days": 1.4,
+      "has_master": false
+    },
+    "79_trainer_stats": {
+      "status": "empty",
+      "file_count": 0,
+      "total_size_bytes": 0,
+      "has_master": false
+    },
+    "80_france_galop": {
+      "status": "synced",
+      "file_count": 2,
+      "total_size_bytes": 94979,
+      "total_size_mb": 0.1,
+      "last_modified": "2026-03-24T10:45:57",
+      "age_days": 0.4,
+      "has_master": false
+    },
+    "81_pronosoft": {
+      "status": "synced",
+      "file_count": 1,
+      "total_size_bytes": 77,
+      "total_size_mb": 0.0,
+      "last_modified": "2026-03-22T10:25:30",
+      "age_days": 2.4,
+      "has_master": false
+    },
+    "82_turf_fr": {
+      "status": "synced",
+      "file_count": 2,
+      "total_size_bytes": 1978710,
+      "total_size_mb": 1.9,
+      "last_modified": "2026-03-21T22:21:25",
+      "age_days": 2.9,
+      "has_master": false
+    },
+    "83_letrot": {
+      "status": "synced",
+      "file_count": 24736,
+      "total_size_bytes": 1029393907,
+      "total_size_mb": 981.7,
+      "last_modified": "2026-03-21T22:22:34",
+      "age_days": 2.9,
+      "has_master": false
+    },
+    "84_turfoo": {
+      "status": "synced",
+      "file_count": 238,
+      "total_size_bytes": 3785014,
+      "total_size_mb": 3.6,
+      "last_modified": "2026-03-21T22:21:25",
+      "age_days": 2.9,
+      "has_master": false
+    },
+    "85_racing_and_sports": {
+      "status": "synced",
+      "file_count": 1,
+      "total_size_bytes": 56,
+      "total_size_mb": 0.0,
+      "last_modified": "2026-03-19T05:02:08",
+      "age_days": 5.7,
+      "has_master": false
+    },
+    "86_smartform": {
+      "status": "synced",
+      "file_count": 1623,
+      "total_size_bytes": 3321,
+      "total_size_mb": 0.0,
+      "last_modified": "2026-03-21T22:13:05",
+      "age_days": 2.9,
+      "has_master": false
+    },
+    "87_bloodstock": {
+      "status": "empty",
+      "file_count": 0,
+      "total_size_bytes": 0,
+      "has_master": false
+    },
+    "88_weatherbys": {
+      "status": "empty",
+      "file_count": 0,
+      "total_size_bytes": 0,
+      "has_master": false
+    },
+    "89_singapore_pools": {
+      "status": "synced",
+      "file_count": 1620,
+      "total_size_bytes": 248440,
+      "total_size_mb": 0.2,
+      "last_modified": "2026-03-21T22:21:25",
+      "age_days": 2.9,
+      "has_master": false
+    },
+    "90_korea_racing": {
+      "status": "synced",
+      "file_count": 3245,
+      "total_size_bytes": 6565,
+      "total_size_mb": 0.0,
+      "last_modified": "2026-03-21T22:14:04",
+      "age_days": 2.9,
+      "has_master": false
+    },
+    "91_equiratings": {
+      "status": "synced",
+      "file_count": 9,
+      "total_size_bytes": 543,
+      "total_size_mb": 0.0,
+      "last_modified": "2026-03-20T17:58:19",
+      "age_days": 4.1,
+      "has_master": false
+    },
+    "92_optixeq": {
+      "status": "empty",
+      "file_count": 0,
+      "total_size_bytes": 0,
+      "has_master": false
+    },
+    "93_raceform": {
+      "status": "synced",
+      "file_count": 1,
+      "total_size_bytes": 2,
+      "total_size_mb": 0.0,
+      "last_modified": "2026-03-20T18:04:37",
+      "age_days": 4.1,
+      "has_master": false
+    },
+    "94_harness_au": {
+      "status": "synced",
+      "file_count": 23,
+      "total_size_bytes": 46,
+      "total_size_mb": 0.0,
+      "last_modified": "2026-03-20T18:08:16",
+      "age_days": 4.1,
+      "has_master": false
+    },
+    "95_standardbred_ca": {
+      "status": "empty",
+      "file_count": 0,
+      "total_size_bytes": 0,
+      "has_master": false
+    },
+    "96_noaa_weather": {
+      "status": "empty",
+      "file_count": 0,
+      "total_size_bytes": 0,
+      "has_master": false
+    },
+    "97_meteostat": {
+      "status": "empty",
+      "file_count": 0,
+      "total_size_bytes": 0,
+      "has_master": false
+    },
+    "98_turftrax": {
+      "status": "empty",
+      "file_count": 0,
+      "total_size_bytes": 0,
+      "has_master": false
+    },
+    "99_clerk_of_course": {
+      "status": "empty",
+      "file_count": 0,
+      "total_size_bytes": 0,
+      "has_master": false
+    },
+    "audit": {
+      "status": "synced",
+      "file_count": 2,
+      "total_size_bytes": 2213347,
+      "total_size_mb": 2.1,
+      "last_modified": "2026-03-19T06:27:52",
+      "age_days": 5.6,
+      "has_master": false
+    },
+    "comblage": {
+      "status": "synced",
+      "file_count": 2,
+      "total_size_bytes": 5122973587,
+      "total_size_mb": 4885.6,
+      "last_modified": "2026-03-21T22:27:26",
+      "age_days": 2.9,
+      "has_master": false
+    },
+    "dedup": {
+      "status": "synced",
+      "file_count": 5,
+      "total_size_bytes": 5468812687,
+      "total_size_mb": 5215.5,
+      "last_modified": "2026-03-21T22:25:29",
+      "age_days": 2.9,
+      "has_master": false
+    },
+    "elo_ratings": {
+      "status": "synced",
+      "file_count": 2,
+      "total_size_bytes": 657704852,
+      "total_size_mb": 627.2,
+      "last_modified": "2026-03-23T22:07:50",
+      "age_days": 0.9,
+      "has_master": false
+    },
+    "exports": {
+      "status": "synced",
+      "file_count": 7,
+      "total_size_bytes": 95800774299,
+      "total_size_mb": 91362.7,
+      "last_modified": "2026-03-21T22:30:39",
+      "age_days": 2.9,
+      "has_master": false
+    },
+    "features": {
+      "status": "synced",
+      "file_count": 27,
+      "total_size_bytes": 262788224757,
+      "total_size_mb": 250614.4,
+      "last_modified": "2026-03-23T22:11:07",
+      "age_days": 0.9,
+      "has_master": false
+    },
+    "field_strength": {
+      "status": "stale",
+      "file_count": 3,
+      "total_size_bytes": 270885343,
+      "total_size_mb": 258.3,
+      "last_modified": "2026-03-13T21:02:18",
+      "age_days": 11.0,
+      "has_master": false
+    },
+    "labels": {
+      "status": "synced",
+      "file_count": 6,
+      "total_size_bytes": 1480090439,
+      "total_size_mb": 1411.5,
+      "last_modified": "2026-03-23T18:39:52",
+      "age_days": 1.1,
+      "has_master": false
+    },
+    "meteo_complete": {
+      "status": "synced",
+      "file_count": 3,
+      "total_size_bytes": 164289285,
+      "total_size_mb": 156.7,
+      "last_modified": "2026-03-18T17:22:24",
+      "age_days": 6.1,
+      "has_master": false
+    },
+    "nettoyage": {
+      "status": "synced",
+      "file_count": 2,
+      "total_size_bytes": 4971332975,
+      "total_size_mb": 4741.0,
+      "last_modified": "2026-03-21T22:26:52",
+      "age_days": 2.9,
+      "has_master": false
+    },
+    "pedigree_complete": {
+      "status": "stale",
+      "file_count": 3,
+      "total_size_bytes": 50701576,
+      "total_size_mb": 48.4,
+      "last_modified": "2026-03-15T00:45:39",
+      "age_days": 9.8,
+      "has_master": false
+    },
+    "quality": {
+      "status": "synced",
+      "file_count": 11,
+      "total_size_bytes": 54339924,
+      "total_size_mb": 51.8,
+      "last_modified": "2026-03-24T20:41:51",
+      "age_days": 0.0,
+      "has_master": false
+    },
+    "rapports_merged": {
+      "status": "synced",
+      "file_count": 1,
+      "total_size_bytes": 682807170,
+      "total_size_mb": 651.2,
+      "last_modified": "2026-03-18T17:19:42",
+      "age_days": 6.1,
+      "has_master": false
+    }
+  },
+  "data_master_files": {
+    "course_profiles.jsonl": {
+      "size_bytes": 702884,
+      "size_mb": 0.7,
+      "last_modified": "2026-03-19T20:05:37"
+    },
+    "course_profiles.parquet": {
+      "size_bytes": 104324,
+      "size_mb": 0.1,
+      "last_modified": "2026-03-20T15:59:39"
+    },
+    "courses_externes.json": {
+      "size_bytes": 19624811,
+      "size_mb": 18.7,
+      "last_modified": "2026-03-18T17:20:17"
+    },
+    "courses_externes.parquet": {
+      "size_bytes": 257448,
+      "size_mb": 0.2,
+      "last_modified": "2026-03-18T17:20:18"
+    },
+    "courses_master.csv": {
+      "size_bytes": 235162542,
+      "size_mb": 224.3,
+      "last_modified": "2026-03-24T14:05:06"
+    },
+    "courses_master.jsonl": {
+      "size_bytes": 393648723,
+      "size_mb": 375.4,
+      "last_modified": "2026-03-19T20:19:54"
+    },
+    "courses_master.parquet": {
+      "size_bytes": 23162547,
+      "size_mb": 22.1,
+      "last_modified": "2026-03-20T15:59:29"
+    },
+    "data_catalog.json": {
+      "size_bytes": 11228,
+      "size_mb": 0.0,
+      "last_modified": "2026-03-24T14:51:18"
+    },
+    "equipements_master.csv": {
+      "size_bytes": 59092569,
+      "size_mb": 56.4,
+      "last_modified": "2026-03-24T20:42:25"
+    },
+    "equipements_master.json": {
+      "size_bytes": 225867649,
+      "size_mb": 215.4,
+      "last_modified": "2026-03-24T20:42:28"
+    },
+    "equipements_master.jsonl": {
+      "size_bytes": 225867649,
+      "size_mb": 215.4,
+      "last_modified": "2026-03-24T20:42:24"
+    },
+    "equipements_master.parquet": {
+      "size_bytes": 14448882,
+      "size_mb": 13.8,
+      "last_modified": "2026-03-24T20:42:31"
+    },
+    "horse_career_stats.jsonl": {
+      "size_bytes": 237358576,
+      "size_mb": 226.4,
+      "last_modified": "2026-03-19T19:57:02"
+    },
+    "horse_career_stats.parquet": {
+      "size_bytes": 16027194,
+      "size_mb": 15.3,
+      "last_modified": "2026-03-20T15:59:38"
+    },
+    "horse_profiles_externes.json": {
+      "size_bytes": 5750219,
+      "size_mb": 5.5,
+      "last_modified": "2026-03-18T17:20:17"
+    },
+    "horse_profiles_externes.parquet": {
+      "size_bytes": 820656,
+      "size_mb": 0.8,
+      "last_modified": "2026-03-18T17:20:18"
+    },
+    "horse_stats_master.json": {
+      "size_bytes": 2,
+      "size_mb": 0.0,
+      "last_modified": "2026-03-19T20:20:12"
+    },
+    "jockey_stats.jsonl": {
+      "size_bytes": 22512153,
+      "size_mb": 21.5,
+      "last_modified": "2026-03-19T20:00:37"
+    },
+    "jockey_stats.parquet": {
+      "size_bytes": 1917443,
+      "size_mb": 1.8,
+      "last_modified": "2026-03-20T15:59:39"
+    },
+    "MANIFEST.json": {
+      "size_bytes": 447214,
+      "size_mb": 0.4,
+      "last_modified": "2026-03-23T22:15:23"
+    },
+    "marche_master.csv": {
+      "size_bytes": 26719345,
+      "size_mb": 25.5,
+      "last_modified": "2026-03-22T12:53:09"
+    },
+    "marche_master.json": {
+      "size_bytes": 71130769,
+      "size_mb": 67.8,
+      "last_modified": "2026-03-19T20:20:12"
+    },
+    "marche_master.parquet": {
+      "size_bytes": 6675273,
+      "size_mb": 6.4,
+      "last_modified": "2026-03-18T17:19:56"
+    },
+    "mega_merge_rapport.json": {
+      "size_bytes": 165,
+      "size_mb": 0.0,
+      "last_modified": "2026-03-23T18:37:00"
+    },
+    "meteo_master.csv": {
+      "size_bytes": 40532658,
+      "size_mb": 38.7,
+      "last_modified": "2026-03-18T17:20:24"
+    },
+    "meteo_master.json": {
+      "size_bytes": 102975133,
+      "size_mb": 98.2,
+      "last_modified": "2026-03-19T20:19:56"
+    },
+    "meteo_master.parquet": {
+      "size_bytes": 6759073,
+      "size_mb": 6.4,
+      "last_modified": "2026-03-18T17:20:26"
+    },
+    "partants_master.jsonl": {
+      "size_bytes": 26151108026,
+      "size_mb": 24939.6,
+      "last_modified": "2026-03-23T18:37:00"
+    },
+    "partants_master.parquet": {
+      "size_bytes": 919562460,
+      "size_mb": 877.0,
+      "last_modified": "2026-03-23T22:17:08"
+    },
+    "partants_master_enrichi.jsonl": {
+      "size_bytes": 17740938961,
+      "size_mb": 16919.1,
+      "last_modified": "2026-03-19T20:19:44"
+    },
+    "partants_master_enrichi_sl.jsonl": {
+      "size_bytes": 17779010679,
+      "size_mb": 16955.4,
+      "last_modified": "2026-03-19T07:37:11"
+    },
+    "partants_master_enrichi_tf.jsonl": {
+      "size_bytes": 17722226334,
+      "size_mb": 16901.2,
+      "last_modified": "2026-03-19T07:37:11"
+    },
+    "pedigree_master.csv": {
+      "size_bytes": 194453086,
+      "size_mb": 185.4,
+      "last_modified": "2026-03-18T17:17:24"
+    },
+    "pedigree_master.json": {
+      "size_bytes": 466442929,
+      "size_mb": 444.8,
+      "last_modified": "2026-03-18T17:17:16"
+    },
+    "pedigree_master.parquet": {
+      "size_bytes": 29789818,
+      "size_mb": 28.4,
+      "last_modified": "2026-03-18T17:17:38"
+    },
+    "performances_master.json": {
+      "size_bytes": 474,
+      "size_mb": 0.0,
+      "last_modified": "2026-03-18T17:20:13"
+    },
+    "racing_post_master.json": {
+      "size_bytes": 2,
+      "size_mb": 0.0,
+      "last_modified": "2026-03-18T17:20:17"
+    },
+    "rapports_master.csv": {
+      "size_bytes": 4443791950,
+      "size_mb": 4237.9,
+      "last_modified": "2026-03-22T12:53:08"
+    },
+    "rapports_master.json": {
+      "size_bytes": 763836594,
+      "size_mb": 728.5,
+      "last_modified": "2026-03-19T20:20:10"
+    },
+    "rapports_master.parquet": {
+      "size_bytes": 71095500,
+      "size_mb": 67.8,
+      "last_modified": "2026-03-18T17:36:39"
+    },
+    "sources_status.json": {
+      "size_bytes": 55680,
+      "size_mb": 0.1,
+      "last_modified": "2026-03-24T14:51:55"
+    },
+    "trainer_stats.jsonl": {
+      "size_bytes": 23180913,
+      "size_mb": 22.1,
+      "last_modified": "2026-03-19T20:02:31"
+    },
+    "trainer_stats.parquet": {
+      "size_bytes": 1979663,
+      "size_mb": 1.9,
+      "last_modified": "2026-03-20T15:59:39"
+    }
+  },
+  "summary": {
+    "total_sources": 118,
+    "synced": 82,
+    "stale": 13,
+    "empty": 23,
+    "missing": 0,
+    "total_master_files": 43
+  }
+}

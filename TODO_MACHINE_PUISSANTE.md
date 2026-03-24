@@ -175,7 +175,7 @@
 
 ### Encore a combler (besoin API payantes ou scraping avance) :
 - [x] commentaire_apres_course (0.5%) -> besoin API PMU detail ou scraping France Galop avec Selenium ✅ FAIT — France Galop enhanced (comments extraction)
-- [ ] taux_reclamation_euros (4.7%) -> verifier si normal (peu de reclamer)
+- [x] taux_reclamation_euros (4.7%) -> verifier si normal (peu de reclamer) ✅ VERIFIE — 5.7% rempli, normal car seules les courses a reclamer ont ce champ (min=4000, max=54000 EUR, mean=13983)
 - [ ] poids_base_kg (8.7%) -> besoin donnees PMU detaillees (champ pas expose dans API publique)
 - [ ] surcharge_decharge_kg (8.7%) -> depend de poids_base_kg
 - [ ] avis_entraineur (9.2%) -> besoin scraping PMU pages detail avec Selenium/Playwright
@@ -369,7 +369,7 @@
 - [x] Exécuter master_feature_builder.py avec TOUS les builders ✅ FAIT session 2 — 36 GB features_matrix, 2.93M records
 - [x] Vérifier que la matrice contient 400+ colonnes ✅ FAIT session 2 — features from all builders
 - [x] Vérifier taux de remplissage par feature ✅ FAIT session 2
-- [ ] Supprimer features avec >90% de None
+- [x] Supprimer features avec >90% de None ✅ FAIT — scripts/remove_high_null_features.py ecrit + execute, 18 features >90% null identifiees et supprimees (output/quality/high_null_features_report.json)
 - [x] Log du nombre de features et stats ✅ FAIT session 2
 
 ## 6.5 Backup intermédiaire #4
@@ -648,7 +648,7 @@
 - [x] Exporter marche_master en JSON + Parquet ✅ (✅ FAIT — 16 mars 2026 — CSV manquant)
 - [x] Exporter features_matrix en JSON + CSV + Parquet ✅ FAIT — output/features/features_matrix.{json,csv,parquet} existent (1.7GB/399MB/768MB)
 - [x] Exporter labels en JSON + CSV + Parquet ✅ FAIT — output/labels/labels.{json,csv,parquet} + training_labels.{csv,jsonl,parquet} existent
-- [ ] Compléter les CSV manquants (rapports_master, equipements_master, marche_master)
+- [x] Compléter les CSV manquants (rapports_master, equipements_master, marche_master) ✅ FAIT — equipements_master.csv regenere (56 MB, 573K records), rapports_master.csv et marche_master.csv existaient deja
 
 # ┌─────────────────────────────────────────┐
 # │  ÉTAPE 10 — DOCUMENTATION              │
@@ -1326,7 +1326,7 @@
 - [x] Créer Makefile : commandes make scrape, make merge, make features, make test, etc. ✅ FAIT — Makefile avec install, check, test, pipeline, scrape, backup, diagnostic, clean
 - [x] Supprimer TOUS les chemins absolus hardcodés (/Users/quentinherve/...)
       → ✅ FAIT — tous les scripts utilisent pathlib.Path(__file__).parent ou config.py
-- [ ] Créer config/global.py avec BASE_DIR, OUTPUT_DIR, etc. centralisés
+- [x] Créer config/global.py avec BASE_DIR, OUTPUT_DIR, etc. centralisés ✅ FAIT — config/global_config.py + config/__init__.py, re-exporte tout depuis config.py
 
 ## 0.2 Structure dossiers manquants
 - [x] Créer tests/ avec structure pytest (tests/test_parsing.py, test_merging.py, etc.) ✅ FAIT — tests/test_utils.py avec tests safe_int, safe_float, normalize_name, setup_logging, load_checkpoint
@@ -1343,7 +1343,7 @@
 - [x] Créer data_catalog.json : chaque source avec ses champs, clés jointure, dépendances ✅ FAIT — scripts/generate_data_catalog.py, 40 fichiers catalogués (81.5 GB)
 - [x] Créer MANIFEST.json : tous les fichiers avec taille, date, checksum SHA256 ✅ FAIT — MANIFEST.json exists
 - [x] Créer sources_status.json : dernière MAJ, nb records, taux erreur par source ✅ FAIT — scripts/generate_sources_status.py, 138 scrapers (80 active, 13 blocked, 45 new)
-- [ ] Créer sync_status.json : état de synchronisation entre sources
+- [x] Créer sync_status.json : état de synchronisation entre sources ✅ FAIT — scripts/generate_sync_status.py ecrit + execute (118 sources: 82 synced, 13 stale, 23 empty, 43 master files)
 
 # ┌─────────────────────────────────────────┐
 # │  FEATURES OUBLIÉES                     │
