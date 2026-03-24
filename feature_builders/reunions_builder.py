@@ -33,7 +33,7 @@ from utils.output import save_jsonl
 # CONFIG
 # ===========================================================================
 
-REUNIONS_DEFAULT = os.path.join("output", "39_reunions_enrichies", "reunions.jsonl")
+REUNIONS_DEFAULT = os.path.join("output", "39_reunions_enrichies", "reunions_enrichies.jsonl")
 PARTANTS_DEFAULT = os.path.join("output", "02_liste_courses", "partants_normalises.jsonl")
 OUTPUT_DIR_DEFAULT = os.path.join("output", "reunions_features")
 
@@ -46,13 +46,17 @@ OUTPUT_DIR_DEFAULT = os.path.join("output", "reunions_features")
 # ===========================================================================
 
 def index_reunions(reunions: list, logger: logging.Logger) -> dict:
-    """Index reunions by (date, hippodrome_norm)."""
+    """Index reunions by (date, hippodrome_norm) and by course_uid."""
     idx = {}
     for rec in reunions:
         date = str(rec.get("date_reunion_iso", "") or rec.get("date", "") or "")[:10]
         hippo = (rec.get("hippodrome") or rec.get("nom_hippodrome") or "").lower().strip()
         if date and hippo:
             idx[(date, hippo)] = rec
+        # Index by course_uid for exact course-level match
+        course_uid = rec.get("course_uid")
+        if course_uid:
+            idx[("course_uid", str(course_uid))] = rec
     # Also index by reunion_uid if available
     for rec in reunions:
         uid = rec.get("reunion_uid") or rec.get("id_reunion")
@@ -74,7 +78,12 @@ def build_reunions_features(partants: list, reunion_idx: dict, logger: logging.L
         hippo = (p.get("hippodrome") or "").lower().strip()
 
         # Try multiple lookup strategies
-        reu = reunion_idx.get((date_iso, hippo))
+        course_uid = p.get("course_uid")
+        reu = None
+        if course_uid:
+            reu = reunion_idx.get(("course_uid", str(course_uid)))
+        if not reu:
+            reu = reunion_idx.get((date_iso, hippo))
         if not reu:
             uid = p.get("reunion_uid") or p.get("id_reunion")
             if uid:
@@ -87,15 +96,23 @@ def build_reunions_features(partants: list, reunion_idx: dict, logger: logging.L
         feat = {}
 
         # --- Weather features ---
+        # Support both nested meteo dict and flat meteo_* keys
         meteo = reu.get("meteo") or {}
         if isinstance(meteo, str):
             feat["reu_meteo_label"] = meteo
-        else:
+        elif isinstance(meteo, dict) and meteo:
             feat["reu_temperature"] = meteo.get("temperature")
             feat["reu_vent_vitesse"] = meteo.get("vent_vitesse") or meteo.get("wind_speed")
             feat["reu_vent_direction"] = meteo.get("vent_direction") or meteo.get("wind_direction")
             feat["reu_precipitation"] = meteo.get("precipitation") or meteo.get("pluie")
             feat["reu_meteo_label"] = meteo.get("label") or meteo.get("description")
+        else:
+            # Flat keys (e.g. from reunions_enrichies)
+            feat["reu_temperature"] = reu.get("meteo_temperature")
+            feat["reu_vent_vitesse"] = reu.get("meteo_force_vent")
+            feat["reu_vent_direction"] = reu.get("meteo_direction_vent")
+            feat["reu_precipitation"] = reu.get("meteo_precipitation")
+            feat["reu_meteo_label"] = reu.get("meteo_label") or reu.get("meteo_description")
 
         # Terrain from reunion
         terrain = reu.get("terrain") or reu.get("etat_terrain") or reu.get("going")
@@ -111,9 +128,15 @@ def build_reunions_features(partants: list, reunion_idx: dict, logger: logging.L
         feat["reu_non_partants"] = reu.get("nb_non_partants") or reu.get("non_partants_count") or 0
 
         # --- Betting information ---
-        feat["reu_type_pari"] = reu.get("type_pari") or reu.get("bet_types")
-        feat["reu_has_quinte"] = bool(reu.get("quinte") or reu.get("is_quinte"))
-        feat["reu_has_tierce"] = bool(reu.get("tierce") or reu.get("is_tierce"))
+        paris_types = reu.get("paris_types") or reu.get("type_pari") or reu.get("bet_types") or []
+        feat["reu_type_pari"] = paris_types
+        feat["reu_nb_types_paris"] = reu.get("nb_types_paris") or (len(paris_types) if isinstance(paris_types, list) else None)
+        if isinstance(paris_types, list):
+            feat["reu_has_quinte"] = any("QUINTE" in str(t).upper() for t in paris_types)
+            feat["reu_has_tierce"] = any("TIERCE" in str(t).upper() for t in paris_types)
+        else:
+            feat["reu_has_quinte"] = bool(reu.get("quinte") or reu.get("is_quinte"))
+            feat["reu_has_tierce"] = bool(reu.get("tierce") or reu.get("is_tierce"))
 
         # --- Audience / importance ---
         audience = reu.get("audience") or reu.get("affluence")
@@ -132,6 +155,7 @@ def build_reunions_features(partants: list, reunion_idx: dict, logger: logging.L
 
         # --- Meeting type ---
         feat["reu_type"] = reu.get("type_reunion") or reu.get("meeting_type")
+        feat["reu_discipline"] = reu.get("discipline")
         feat["reu_pays"] = reu.get("pays") or reu.get("country")
         feat["reu_nb_courses"] = reu.get("nb_courses") or reu.get("races_count")
 

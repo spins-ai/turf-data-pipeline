@@ -32,7 +32,7 @@ from utils.output import save_jsonl
 # CONFIG
 # ===========================================================================
 
-CT_DEFAULT = os.path.join("output", "24_canalturf", "canalturf.jsonl")
+CT_DEFAULT = os.path.join("output", "24_canalturf", "canalturf_chevaux.jsonl")
 PARTANTS_DEFAULT = os.path.join("output", "02_liste_courses", "partants_normalises.jsonl")
 OUTPUT_DIR_DEFAULT = os.path.join("output", "canalturf_features")
 

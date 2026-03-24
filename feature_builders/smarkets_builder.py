@@ -34,7 +34,7 @@ from utils.output import save_jsonl
 # CONFIG
 # ===========================================================================
 
-SMARKETS_DEFAULT = os.path.join("output", "30_smarkets", "smarkets.jsonl")
+SMARKETS_DEFAULT = os.path.join("output", "30_smarkets_exchange", "smarkets_exchange.jsonl")
 PARTANTS_DEFAULT = os.path.join("output", "02_liste_courses", "partants_normalises.jsonl")
 OUTPUT_DIR_DEFAULT = os.path.join("output", "smarkets_features")
 
@@ -55,7 +55,7 @@ def index_smarkets(smarkets_data: list, logger: logging.Logger) -> dict:
     """Index smarkets data by (date, horse_name_norm) for fast lookup."""
     idx = {}
     for rec in smarkets_data:
-        date = str(rec.get("date", "") or "")[:10]
+        date = str(rec.get("date", "") or rec.get("event_date", "") or "")[:10]
         horse = (rec.get("nom_cheval") or rec.get("runner_name") or "").upper().strip()
         if date and horse:
             key = (date, horse)
@@ -83,8 +83,8 @@ def build_smarkets_features(partants: list, smarkets_idx: dict, logger: logging.
         feat = {}
 
         # Back / Lay prices
-        back = sm.get("back_price") or sm.get("best_back")
-        lay = sm.get("lay_price") or sm.get("best_lay")
+        back = sm.get("back_price") or sm.get("best_back") or sm.get("best_back_odds")
+        lay = sm.get("lay_price") or sm.get("best_lay") or sm.get("best_lay_odds")
 
         try:
             back = float(back) if back else None
@@ -126,7 +126,7 @@ def build_smarkets_features(partants: list, smarkets_idx: dict, logger: logging.
             feat["sm_proba_mid"] = None
 
         # Volume
-        volume = sm.get("volume") or sm.get("matched_amount")
+        volume = sm.get("volume") or sm.get("matched_amount") or sm.get("market_volume")
         try:
             volume = float(volume) if volume else None
         except (ValueError, TypeError):
@@ -155,7 +155,7 @@ def build_smarkets_features(partants: list, smarkets_idx: dict, logger: logging.
         feat["sm_overround"] = sm.get("overround") or sm.get("market_overround")
 
         # Last traded price
-        ltp = sm.get("last_traded_price") or sm.get("ltp")
+        ltp = sm.get("last_traded_price") or sm.get("ltp") or sm.get("last_executed_odds")
         try:
             ltp = float(ltp) if ltp else None
         except (ValueError, TypeError):

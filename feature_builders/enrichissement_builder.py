@@ -32,7 +32,7 @@ from utils.output import save_jsonl
 # CONFIG
 # ===========================================================================
 
-ENRICHED_DEFAULT = os.path.join("output", "40_partants_enrichis", "partants_enrichis.jsonl")
+ENRICHED_DEFAULT = os.path.join("output", "40_enrichissement_partants", "enrichissement_partants.json")
 PARTANTS_DEFAULT = os.path.join("output", "02_liste_courses", "partants_normalises.jsonl")
 OUTPUT_DIR_DEFAULT = os.path.join("output", "enrichissement_features")
 
@@ -45,9 +45,12 @@ OUTPUT_DIR_DEFAULT = os.path.join("output", "enrichissement_features")
 # ===========================================================================
 
 def index_enriched(enriched_data: list, logger: logging.Logger) -> dict:
-    """Index enriched partants by partant_uid or (date, horse_name_norm)."""
+    """Index enriched partants by cle_partant, partant_uid, or (date, horse_name_norm)."""
     idx = {}
     for rec in enriched_data:
+        cle = rec.get("cle_partant")
+        if cle:
+            idx[("cle", str(cle))] = rec
         uid = rec.get("partant_uid")
         if uid:
             idx[("uid", str(uid))] = rec
@@ -67,11 +70,15 @@ def build_enrichissement_features(partants: list, enr_idx: dict, logger: logging
 
     enriched_count = 0
     for idx_i, p in enumerate(partants):
-        # Lookup
-        uid = p.get("partant_uid")
+        # Lookup — try cle_partant first (matches enrichissement_partants.json)
+        cle = p.get("cle_partant")
         enr = None
-        if uid:
-            enr = enr_idx.get(("uid", str(uid)))
+        if cle:
+            enr = enr_idx.get(("cle", str(cle)))
+        if not enr:
+            uid = p.get("partant_uid")
+            if uid:
+                enr = enr_idx.get(("uid", str(uid)))
         if not enr:
             date_iso = str(p.get("date_reunion_iso", "") or "")[:10]
             cheval = (p.get("nom_cheval") or "").upper().strip()
@@ -84,8 +91,8 @@ def build_enrichissement_features(partants: list, enr_idx: dict, logger: logging
         feat = {}
 
         # --- Decomposed gains ---
-        gains_place = enr.get("gains_place") or enr.get("gains_places")
-        gains_victoire = enr.get("gains_victoire") or enr.get("gains_victoires")
+        gains_place = enr.get("gains_place") or enr.get("gains_places") or enr.get("gains_place_euros")
+        gains_victoire = enr.get("gains_victoire") or enr.get("gains_victoires") or enr.get("gains_victoires_euros")
         gains_total = enr.get("gains_total") or enr.get("gains_carriere_euros")
 
         try:
@@ -111,8 +118,8 @@ def build_enrichissement_features(partants: list, enr_idx: dict, logger: logging
             feat["enr_ratio_gains_vic"] = None
 
         # --- Odds trend ---
-        cote_matin = enr.get("cote_matin") or enr.get("odds_morning")
-        cote_depart = enr.get("cote_depart") or enr.get("odds_start") or enr.get("rapport_probable")
+        cote_matin = enr.get("cote_matin") or enr.get("odds_morning") or enr.get("cote_ref_tendance")
+        cote_depart = enr.get("cote_depart") or enr.get("odds_start") or enr.get("rapport_probable") or enr.get("cote_tendance")
 
         try:
             cote_matin = float(cote_matin) if cote_matin else None
@@ -137,6 +144,19 @@ def build_enrichissement_features(partants: list, enr_idx: dict, logger: logging
             feat["enr_odds_drift_pct"] = None
             feat["enr_steam_move"] = None
             feat["enr_big_drift"] = None
+
+        # --- Favori / grosse prise flags from enrichissement ---
+        feat["enr_is_favori_direct"] = enr.get("is_favori_direct")
+        feat["enr_is_favori_ref"] = enr.get("is_favori_ref")
+        feat["enr_grosse_prise"] = enr.get("grosse_prise")
+
+        # --- Gains annee precedente ---
+        gains_annee_prec = enr.get("gains_annee_precedente_euros")
+        try:
+            gains_annee_prec = float(gains_annee_prec) if gains_annee_prec else None
+        except (ValueError, TypeError):
+            gains_annee_prec = None
+        feat["enr_gains_annee_prec"] = gains_annee_prec
 
         # --- Large bet detection ---
         enjeu = enr.get("enjeu_partant") or enr.get("volume_mises")

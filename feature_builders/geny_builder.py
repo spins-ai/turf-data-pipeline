@@ -33,7 +33,7 @@ from utils.output import save_jsonl
 # CONFIG
 # ===========================================================================
 
-GENY_DEFAULT = os.path.join("output", "26_geny", "geny.jsonl")
+GENY_DEFAULT = os.path.join("output", "26_geny", "geny_data.jsonl")
 PARTANTS_DEFAULT = os.path.join("output", "02_liste_courses", "partants_normalises.jsonl")
 OUTPUT_DIR_DEFAULT = os.path.join("output", "geny_features")
 

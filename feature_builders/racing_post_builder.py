@@ -35,7 +35,7 @@ from utils.output import save_jsonl
 # CONFIG
 # ===========================================================================
 
-RP_DEFAULT = os.path.join("output", "37_racing_post", "racing_post.jsonl")
+RP_DEFAULT = os.path.join("output", "37_racing_post", "racing_post_fr.jsonl")
 PARTANTS_DEFAULT = os.path.join("output", "02_liste_courses", "partants_normalises.jsonl")
 OUTPUT_DIR_DEFAULT = os.path.join("output", "racing_post_features")
 
