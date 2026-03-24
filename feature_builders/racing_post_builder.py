@@ -11,7 +11,7 @@ Only pre-race published ratings are used.
 
 Usage:
     python feature_builders/racing_post_builder.py
-    python feature_builders/racing_post_builder.py --rp-data output/37_racing_post/racing_post.jsonl
+    python feature_builders/racing_post_builder.py --rp-data output/37_racing_post/racing_post_flat.jsonl
 """
 
 from __future__ import annotations
@@ -35,7 +35,7 @@ from utils.output import save_jsonl
 # CONFIG
 # ===========================================================================
 
-RP_DEFAULT = os.path.join("output", "37_racing_post", "racing_post_fr.jsonl")
+RP_DEFAULT = os.path.join("output", "37_racing_post", "racing_post_flat.jsonl")
 PARTANTS_DEFAULT = os.path.join("output", "02_liste_courses", "partants_normalises.jsonl")
 OUTPUT_DIR_DEFAULT = os.path.join("output", "racing_post_features")
 
