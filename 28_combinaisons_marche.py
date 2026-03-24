@@ -124,7 +124,46 @@ def flatten_combinaisons(data, course_info):
 
     return records
 
+def export_cache_to_jsonl():
+    """Export cache to JSONL without scraping."""
+    jsonl_file = os.path.join(OUTPUT_DIR, "combinaisons_marche_cache.jsonl")
+    log.info(f"Export cache → {jsonl_file}")
+    count = 0
+    with open(jsonl_file, "w", encoding="utf-8") as fout:
+        for fname in sorted(os.listdir(CACHE_DIR)):
+            if not fname.endswith(".json"):
+                continue
+            cache_path = os.path.join(CACHE_DIR, fname)
+            try:
+                with open(cache_path, encoding="utf-8") as fin:
+                    data = json.load(fin)
+                if isinstance(data, list):
+                    for entry in data:
+                        fout.write(json.dumps(entry, ensure_ascii=False) + "\n")
+                        count += 1
+                elif data:
+                    fout.write(json.dumps(data, ensure_ascii=False) + "\n")
+                    count += 1
+            except Exception as e:
+                log.debug(f"  Erreur lecture cache {fname}: {e}")
+    log.info(f"  JSONL: {count} entrées → {jsonl_file}")
+    return count
+
+
 def main():
+    import argparse
+    parser = argparse.ArgumentParser(description="Script 28 — Combinaisons & Masse d'enjeux PMU")
+    parser.add_argument("--export", action="store_true",
+                        help="Export cache to JSONL without scraping")
+    args = parser.parse_args()
+
+    if args.export:
+        log.info("=" * 60)
+        log.info("SCRIPT 28 — Export cache → JSONL (--export)")
+        log.info("=" * 60)
+        export_cache_to_jsonl()
+        return
+
     log.info("=" * 60)
     log.info("SCRIPT 28 — Combinaisons & Masse d'enjeux PMU")
     log.info("=" * 60)
