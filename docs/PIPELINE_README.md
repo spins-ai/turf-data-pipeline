@@ -591,3 +591,64 @@ python run_pipeline.py
 
 - Each scraper has its own checkpoint; re-run the scraper to complete missing data
 - Use `--export` flag on scrapers 24, 25, 26 to regenerate JSONL from cache
+
+---
+
+## 11. Etape 12 : Verification finale (Pre-Model Checklist)
+
+Before starting ML training, run the pre-model checklist to confirm the data pipeline produced valid, complete outputs.
+
+```bash
+python scripts/pre_model_checklist.py
+```
+
+**Checks performed:**
+
+| # | Check | Threshold |
+|---|-------|-----------|
+| 1 | partants_master.jsonl exists | > 2M records |
+| 2 | features_matrix.jsonl exists | > 2M records |
+| 3 | training_labels.jsonl exists | > 2M records |
+| 4 | Feature count (unique fields in sample) | >= 400 |
+| 5 | Label alignment (partant_uid overlap) | > 95% |
+| 6 | Date range coverage | 2013-2026 |
+| 7 | No data leakage (leakage_prevention) | exit 0 |
+| 8 | Class imbalance report exists | file present |
+| 9 | Parquet exports exist | at least 1 |
+
+**Output:**
+- Console: READY / NOT READY verdict
+- `quality/pre_model_checklist.json`: machine-readable stats
+
+**Options:**
+
+```bash
+# Lower threshold for testing
+python scripts/pre_model_checklist.py --min-records 100000
+```
+
+### Creating the Release Tag (Etape 16)
+
+Once the checklist passes, create a versioned Git tag to lock the dataset:
+
+```bash
+python scripts/create_release_tag.py
+```
+
+This will:
+1. Run the pre-model checklist
+2. If READY, create an annotated tag `data-v1.0-ready` with pipeline stats
+3. Print next steps for model training
+
+**Options:**
+
+```bash
+# Custom tag name
+python scripts/create_release_tag.py --tag data-v2.0-ready
+
+# Force re-tag
+python scripts/create_release_tag.py --force
+
+# Skip checklist (use existing stats)
+python scripts/create_release_tag.py --skip-checklist
+```
