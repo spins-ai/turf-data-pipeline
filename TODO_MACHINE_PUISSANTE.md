@@ -1812,3 +1812,58 @@
 - [ ] Meta selector (ML/MODELS: prochain dossier)
 - [ ] Backtesting + ROI tracking (ML/MODELS: prochain dossier)
 - [ ] API de prédiction temps réel (ML/MODELS: prochain dossier)
+
+---
+
+## PHASE DATA ENRICHISSEMENT AVANCÉ (features pour modèles)
+
+### Données gratuites à récupérer
+- [ ] Scraper PMU.fr pages détail (pas API, le site web) → avis entraîneur, commentaires, poids détaillé
+- [ ] Scraper Equidia.fr résultats détaillés → incidents, replay analysis
+- [ ] Scraper France Galop fiches chevaux → carrière complète, handicap officiel
+- [ ] Scraper Le Trot stats drivers détaillées → performances par type course
+- [ ] Télécharger datasets Kaggle gratuits (28 identifiés)
+- [ ] Scraper UK Racing Data archive (gratuit)
+- [ ] Scraper Australian Racing Historical Data (gratuit)
+
+### Croisements entre sources existantes
+- [ ] Rapports (21+38) × partants → remplir incident (15.6% → 50%+)
+- [ ] Equipements (09) × partants → remplir deferre (30.4% → 60%+)
+- [ ] Météo (13+97) × courses → remplir météo manquante
+- [ ] Pedigree (12+14) × partants → enrichir père/mère manquants
+- [ ] Citations (27) × partants → enrichir commentaires
+- [ ] Racing Post (37) × partants → enrichir odds UK + RPR ratings
+- [ ] Smarkets (30) × partants → enrichir cotes exchange
+
+### Features manquantes pour CatBoost/XGBoost/LightGBM
+- [ ] win_probability_implied (1/cote normalisée par champ)
+- [ ] field_quality_index (moyenne Elo du peloton)
+- [ ] pace_scenario (meneur probable, attente, finisseur)
+- [ ] trainer_jockey_combo_roi (ROI historique du duo)
+- [ ] horse_improvement_rate (progression Elo sur 5 dernières courses)
+- [ ] distance_change_impact (raccourcit vs rallonge depuis dernière)
+- [ ] weight_change_impact (variation poids porté)
+- [ ] days_since_win (jours depuis dernière victoire)
+- [ ] consistency_score (écart-type positions récentes)
+- [ ] surface_switch_flag (passage gazon→PSF ou inverse)
+
+### Features manquantes pour Stacking Ensemble
+- [ ] model_disagreement_score (écart entre prédictions des modèles de base)
+- [ ] confidence_calibrated (probabilité calibrée par Platt scaling)
+- [ ] ensemble_diversity_metric (diversité des modèles stackés)
+
+### Features manquantes pour Meta Selector
+- [ ] race_type_encoding (one-hot type course pour sélection modèle)
+- [ ] field_size_bucket (petit/moyen/grand champ)
+- [ ] discipline_specific_features (features différentes trot vs galop)
+
+### Features manquantes pour Monte Carlo / Outsider Detector
+- [ ] upset_frequency_by_conditions (fréquence outsiders par conditions)
+- [ ] longshot_value_signal (signal value bet longue cote)
+- [ ] variance_historical (variance résultats du cheval)
+- [ ] entropy_field (incertitude du champ)
+
+### Features manquantes pour Calibration
+- [ ] reliability_diagram_data (bins pour calibration plot)
+- [ ] expected_calibration_error (ECE par type course)
+- [ ] temperature_scaling_param (paramètre T pour logits)
