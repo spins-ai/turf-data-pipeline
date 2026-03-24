@@ -155,6 +155,9 @@ def build_dag() -> Dict[str, Step]:
         "feature_builders/going_preference_builder.py",
         "feature_builders/distance_preference_builder.py",
         "feature_builders/jockey_horse_affinity_builder.py",
+        "feature_builders/trainer_form_builder.py",
+        "feature_builders/jockey_form_builder.py",
+        "feature_builders/hippodrome_expertise_builder.py",
     ]
     for script in feature_builder_scripts:
         name = "fb_" + Path(script).stem

@@ -2,7 +2,7 @@
 
 Auto-generated from `output/features/features_matrix.jsonl` (sample: 500 rows).
 
-**Total features: 402**
+**Total features: 420**
 
 ## Features by Builder
 
@@ -48,10 +48,13 @@ Auto-generated from `output/features/features_matrix.jsonl` (sample: 500 rows).
 | going_preference_builder | 6 |
 | distance_preference_builder | 6 |
 | jockey_horse_affinity_builder | 5 |
+| trainer_form_builder | 6 |
+| jockey_form_builder | 6 |
+| hippodrome_expertise_builder | 6 |
 | taux_features | 1 |
 | temps_features | 15 |
 | valeur_base_features | 4 |
-| **Total** | **402** |
+| **Total** | **420** |
 
 ## Detailed Feature List
 
@@ -622,6 +625,39 @@ Auto-generated from `output/features/features_matrix.jsonl` (sample: 500 rows).
 | `jh_aff_place_rate` | float | N/A |
 | `jh_aff_is_first_time` | bool | N/A |
 | `jh_aff_score` | float | N/A |
+
+### trainer_form_builder (6 features)
+
+| Feature | Type | Fill Rate |
+|---------|------|-----------|
+| `trainer_win_rate_30j` | float | N/A |
+| `trainer_place_rate_30j` | float | N/A |
+| `trainer_win_rate_90j` | float | N/A |
+| `trainer_place_rate_90j` | float | N/A |
+| `trainer_form_trend` | float | N/A |
+| `trainer_nb_runners_30j` | int | N/A |
+
+### jockey_form_builder (6 features)
+
+| Feature | Type | Fill Rate |
+|---------|------|-----------|
+| `jockey_win_rate_30j` | float | N/A |
+| `jockey_place_rate_30j` | float | N/A |
+| `jockey_win_rate_90j` | float | N/A |
+| `jockey_place_rate_90j` | float | N/A |
+| `jockey_form_trend` | float | N/A |
+| `jockey_nb_mounts_30j` | int | N/A |
+
+### hippodrome_expertise_builder (6 features)
+
+| Feature | Type | Fill Rate |
+|---------|------|-----------|
+| `hippo_exp_nb_courses` | int | N/A |
+| `hippo_exp_win_rate` | float | N/A |
+| `hippo_exp_place_rate` | float | N/A |
+| `hippo_exp_is_specialist` | bool | N/A |
+| `hippo_exp_avg_position` | float | N/A |
+| `hippo_exp_score` | float | N/A |
 
 ### taux_features (1 features)
 
