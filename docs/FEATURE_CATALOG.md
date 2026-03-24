@@ -2,7 +2,7 @@
 
 Auto-generated from `output/features/features_matrix.jsonl` (sample: 500 rows).
 
-**Total features: 313**
+**Total features: 379**
 
 ## Features by Builder
 
@@ -36,10 +36,18 @@ Auto-generated from `output/features/features_matrix.jsonl` (sample: 500 rows).
 | programme_features | 19 |
 | rapport_features | 40 |
 | recovery_features | 9 |
+| temporal_advanced_features | 7 |
+| temporal_context_features | 7 |
+| odds_movement_features | 5 |
+| pedigree_distance_aptitude | 6 |
+| bayesian_rating_builder | 8 |
+| market_entropy_features | 6 |
+| draw_bias_builder | 6 |
+| speed_figure_builder | 7 |
 | taux_features | 1 |
 | temps_features | 15 |
 | valeur_base_features | 4 |
-| **Total** | **313** |
+| **Total** | **379** |
 
 ## Detailed Feature List
 
@@ -475,6 +483,98 @@ Auto-generated from `output/features/features_matrix.jsonl` (sample: 500 rows).
 | `nb_courses_30j` | int | N/A |
 | `nb_courses_60j` | int | N/A |
 | `nb_courses_90j` | int | N/A |
+
+### temporal_advanced_features (7 features)
+
+| Feature | Type | Fill Rate |
+|---------|------|-----------|
+| `temp_jour_semaine` | int | N/A |
+| `temp_mois` | int | N/A |
+| `temp_saison` | str | N/A |
+| `temp_is_weekend` | bool | N/A |
+| `temp_is_quinte` | bool | N/A |
+| `temp_heure_course` | int | N/A |
+| `temp_position_dans_reunion` | int | N/A |
+
+### temporal_context_features (7 features)
+
+| Feature | Type | Fill Rate |
+|---------|------|-----------|
+| `temp_jour_semaine` | int | N/A |
+| `temp_mois` | int | N/A |
+| `temp_saison` | str | N/A |
+| `temp_is_weekend` | int | N/A |
+| `temp_is_jour_ferie` | int | N/A |
+| `temp_heure_course` | float | N/A |
+| `temp_nb_jours_depuis_debut_saison` | int | N/A |
+
+### odds_movement_features (5 features)
+
+| Feature | Type | Fill Rate |
+|---------|------|-----------|
+| `odds_drift_pct` | float | N/A |
+| `odds_steam_pct` | float | N/A |
+| `is_market_mover` | bool | N/A |
+| `odds_rank_change` | int | N/A |
+| `market_confidence` | float | N/A |
+
+### pedigree_distance_aptitude (6 features)
+
+| Feature | Type | Fill Rate |
+|---------|------|-----------|
+| `sire_win_rate_distance` | float | N/A |
+| `sire_win_rate_terrain` | float | N/A |
+| `dam_sire_win_rate` | float | N/A |
+| `inbreeding_coefficient` | float | N/A |
+| `stamina_index` | float | N/A |
+| `speed_index` | float | N/A |
+
+### bayesian_rating_builder (8 features)
+
+| Feature | Type | Fill Rate |
+|---------|------|-----------|
+| `bayes_horse_win_rate` | float | N/A |
+| `bayes_horse_place_rate` | float | N/A |
+| `bayes_jockey_win_rate` | float | N/A |
+| `bayes_jockey_roi` | float | N/A |
+| `bayes_trainer_win_rate` | float | N/A |
+| `bayes_trainer_strike_rate` | float | N/A |
+| `bayes_combo_jt_win` | float | N/A |
+| `bayes_confidence` | float | N/A |
+
+### market_entropy_features (6 features)
+
+| Feature | Type | Fill Rate |
+|---------|------|-----------|
+| `market_entropy` | float | N/A |
+| `market_overround` | float | N/A |
+| `implied_probability` | float | N/A |
+| `odds_vs_implied` | float | N/A |
+| `favourite_strength` | float | N/A |
+| `field_competitiveness` | int | N/A |
+
+### draw_bias_builder (6 features)
+
+| Feature | Type | Fill Rate |
+|---------|------|-----------|
+| `draw_win_rate` | float | N/A |
+| `draw_place_rate` | float | N/A |
+| `draw_advantage` | float | N/A |
+| `draw_inside_bias` | float | N/A |
+| `draw_position_normalized` | float | N/A |
+| `draw_nb_samples` | int | N/A |
+
+### speed_figure_builder (7 features)
+
+| Feature | Type | Fill Rate |
+|---------|------|-----------|
+| `speed_figure` | float | N/A |
+| `speed_figure_best` | float | N/A |
+| `speed_figure_avg` | float | N/A |
+| `speed_figure_trend` | float | N/A |
+| `speed_figure_rank` | int | N/A |
+| `speed_vs_class` | float | N/A |
+| `speed_consistency` | float | N/A |
 
 ### taux_features (1 features)
 
