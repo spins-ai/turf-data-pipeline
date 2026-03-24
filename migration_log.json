@@ -1,0 +1,1567 @@
+{
+  "version": 1,
+  "timestamp": "2026-03-24T21:04:56",
+  "root": "C:\\Users\\celia\\turf-data-pipeline\\.claude\\worktrees\\naughty-bardeen",
+  "total_files": 121,
+  "moved": 121,
+  "errors": 0,
+  "records": [
+    {
+      "original": "00_enrichissement_meteo.py",
+      "destination": "scripts\\collection\\00_enrichissement_meteo.py",
+      "sha256_before": "5dbdfdcc8cf64934dd388a6f72d653b6e2613f1d2cb9d30e264b7806d48d6bc0",
+      "sha256_after": "e1ff03ce004d387a24b1858090236eb196b0adeb5a6f87b4e7ed94e4af621e9f",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"logs\" -> \"../../logs\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "01_calendrier_reunions.py",
+      "destination": "scripts\\collection\\01_calendrier_reunions.py",
+      "sha256_before": "ffecf701f1e371577e3fc7fe0c215fa85e3ed49457855b73e7b4d0d723b0f1c7",
+      "sha256_after": "ba8398eb619e3a35d2c74e1803a4a3abbf7578df75790bc19d65262f92f887bf",
+      "path_changes": [
+        "  path: \"output/01_calendrier_reunions\" -> \"../../output/01_calendrier_reunions\"",
+        "  path: \"logs/01_calendrier_reunions_YYYY-MM-DD.log\" -> \"../../logs/01_calendrier_reunions_YYYY-MM-DD.log\"",
+        "  path: \"output/01_calendrier_reunions\" -> \"../../output/01_calendrier_reunions\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"logs\" -> \"../../logs\"",
+        "  bare dir: \"logs\" -> \"../../logs\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "02_liste_courses.py",
+      "destination": "scripts\\collection\\02_liste_courses.py",
+      "sha256_before": "27b23e64e6447f3d8175385c6bded94dcc93d2cf73beb26c0fb1b774289f07f9",
+      "sha256_after": "bf7bd0644e7274a9cd333e8b965fccb0dac4ffbc713d738b4c7cf6b07ca264d0",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "02b_liste_courses_2013.py",
+      "destination": "scripts\\collection\\02b_liste_courses_2013.py",
+      "sha256_before": "462326e51c776fdc46b54e3536da3c000afd8a486f2485fc11311b2665519a0a",
+      "sha256_after": "532bd4a31ebc88a3f53a0f077f8cf01de4fdfb6121333f70c38d1e2ea4a87da7",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "02b_scraper_letrot.py",
+      "destination": "scripts\\collection\\02b_scraper_letrot.py",
+      "sha256_before": "d593e483ad488660ff79b2eb56367d400e7b4511697d44644d5520b9e103965a",
+      "sha256_after": "0fefbf2113da8f59699064e4fe1658c895ec90f2885164e9ab947e3299e0d32e",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "04_resultats.py",
+      "destination": "scripts\\collection\\04_resultats.py",
+      "sha256_before": "11f91e38ceb41b015312d765b6cadd46b939f85b5879b75d9678dfd4ea355699",
+      "sha256_after": "19e927c703e2c5fcd09447ec1eb4a4e9b55a4d9a98b471e480bc21f8c63bf559",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "05_historique_chevaux.py",
+      "destination": "scripts\\collection\\05_historique_chevaux.py",
+      "sha256_before": "e4f1c635a773666ad9e291135f70b1d4aa0afeaafc24c1777d41f17782c44a9b",
+      "sha256_after": "8ea83b40ce089e3db40d0e0f0f23180681648a4d7c6dae530d1c03047f5efb33",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "06_historique_jockeys.py",
+      "destination": "scripts\\collection\\06_historique_jockeys.py",
+      "sha256_before": "bb2b7353b90d553118df225ffcca2602305a5202360d28bfdce45f2eae08f94a",
+      "sha256_after": "d3c3e1a3912b481cd782004157936d9e28dbee459aa4f32c01cf34773beff1da",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "07_cotes_marche.py",
+      "destination": "scripts\\collection\\07_cotes_marche.py",
+      "sha256_before": "15c7951303ddefe9a7dd045d5f3e2f121c324cc03768f3c54f76acdc5423bf62",
+      "sha256_after": "d25f64ec0c0e89f8c07241ac734814f1b5755dc0d493e1eb3f4a2cb85d9869d9",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "08_pedigree.py",
+      "destination": "scripts\\collection\\08_pedigree.py",
+      "sha256_before": "e9126eff43a40838be51f7737b6ae4303fa9b503efae5f8d73c1ede4b0f95f6f",
+      "sha256_after": "56807790e87d812d96eb38433085c830b4784155219b4314cbd9a161fe1b20c2",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "09_equipements.py",
+      "destination": "scripts\\collection\\09_equipements.py",
+      "sha256_before": "7dbc91b36167287cf9dc73b19632f0ca4758fc34a588ef7a4302aee1e50f07c2",
+      "sha256_after": "a1f68921897177aeb99a0794ada9457f7fa648ef770a1ecb647a008e22f8a422",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "10_poids_handicaps.py",
+      "destination": "scripts\\collection\\10_poids_handicaps.py",
+      "sha256_before": "5d9ec1014c0f6556c1861b00b954da64a898a1f77a907d3ca786a313531d3bfc",
+      "sha256_after": "8c3d60426a1650574bde431888da1f99e405e8c84a0e1b1aa450de34b4404229",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "11_sectionals.py",
+      "destination": "scripts\\collection\\11_sectionals.py",
+      "sha256_before": "4c403bcc66da41b3402056820468b1fe0c3fb6ebe5ef8facb263fd5a1559c31c",
+      "sha256_after": "5ea1466a6166155d5c4fa3e91dd3a5b2875d5218187535ae311bef0cdc93bf36",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "12_pedigree_scraper.py",
+      "destination": "scripts\\collection\\12_pedigree_scraper.py",
+      "sha256_before": "be59c87984ff0fe0138d36a50af6b6f5e22a6a8fdd0e9b6c341d5c18e8de325e",
+      "sha256_after": "0d4411175fc12133400deca86c5d849d99db6749cda7db495a12dd1c4939dc49",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "13_meteo_historique.py",
+      "destination": "scripts\\collection\\13_meteo_historique.py",
+      "sha256_before": "3591ee9102e76b12aebd14317a86db321ccd77b8b2bb3d010217b4adf48b1d45",
+      "sha256_after": "a1d9d91d5e4fc5e75d2ea8b8d111ec47570fd2d0b04f6236ed607f379631b4fe",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "14_pedigree_scraper.py",
+      "destination": "scripts\\collection\\14_pedigree_scraper.py",
+      "sha256_before": "831c9eb1972c8c20969e545036d1598ae1b7b9e5f631ba5dd74c530285f32dfc",
+      "sha256_after": "13699e43792851bbb34b2253c165b8ac78eb0f36649e46d84c3cbc27da45f14d",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "15_download_external_datasets.py",
+      "destination": "scripts\\collection\\15_download_external_datasets.py",
+      "sha256_before": "c94a1871c5e5e432f3bc07f8f84af3de180a98e462ed99916d7b7b7ae6dbd97e",
+      "sha256_after": "71f71df3e20a057fe0edb6b29c6dbb2d944332a700def00d97c0a6c99da9c149",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "16_collecte_nanaelie_2004_2013.py",
+      "destination": "scripts\\collection\\16_collecte_nanaelie_2004_2013.py",
+      "sha256_before": "0a557abb57bcbe55a23a49a255c084e62bddaa8e26e9e7079a46b5a98b7212ee",
+      "sha256_after": "2ab6123b81a6eccad95a930964a3ecadf87abb3c24e3fcd543102a0645052b19",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "17_process_sire.py",
+      "destination": "scripts\\collection\\17_process_sire.py",
+      "sha256_before": "76b05a81b73e810d8402e75054b35871a272771dc3dfcfe2f76640df2414ef2e",
+      "sha256_after": "8d0871505591ab5cd011ff8bd2e2e786a30b546c6e04cf8958aabcba589b893c",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "18_letrot_records.py",
+      "destination": "scripts\\collection\\18_letrot_records.py",
+      "sha256_before": "e8f03bbc10a49c08e617c734e88af416cba3be3bd97223ba864b38629c4e684c",
+      "sha256_after": "85eaae68b554387fef53b732bfcf5007a520096bfe204f2272412bce0122fa37",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "19_boturfers_stats.py",
+      "destination": "scripts\\collection\\19_boturfers_stats.py",
+      "sha256_before": "b507cbbb7b14facfd499ebcbf7f54faea40e68cc3db86ca61e4076d4fd63e209",
+      "sha256_after": "5f3f40e60bcd2f247cdc7596f0323030af254a0ed530c55cb7af53cb4b07a983",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "20_ifce_stats.py",
+      "destination": "scripts\\collection\\20_ifce_stats.py",
+      "sha256_before": "8d96161aca27e3f8d8b0c151fb3cb7b2e57795e970ea0cd4a68f0ec08660d217",
+      "sha256_after": "baad78268fe921eda748beb4ee1474cd7aecaa4457c07706226521ec71871c11",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "21_rapports_definitifs.py",
+      "destination": "scripts\\collection\\21_rapports_definitifs.py",
+      "sha256_before": "f2a15d9586c112dbd72f1e3d029a7acecccba627addd0c911caafa3324bfddfb",
+      "sha256_after": "b389db9dc543c69d4e29cd7b96162b19f7138441231362d77641ab76a4f51ddf",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "22_performances_detaillees.py",
+      "destination": "scripts\\collection\\22_performances_detaillees.py",
+      "sha256_before": "04a6ccc5384e880d18f6d484d1dd2a93db96e3134028f60f1eb89e7500128c18",
+      "sha256_after": "35d9bd4a3f6c0738701de4a622d279d99e0121411005f6fd84258ff1e6ba5172",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "23_pronostics_equidia.py",
+      "destination": "scripts\\collection\\23_pronostics_equidia.py",
+      "sha256_before": "c1732e30f7e4d3296474016d2ad0e7d455050f32633d955dd908eb16130b51f1",
+      "sha256_after": "715b8bd30411adc38f46327cfc3b761c54af791bb31a2b2d431ebc12030942fb",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "24_canalturf_scraper.py",
+      "destination": "scripts\\collection\\24_canalturf_scraper.py",
+      "sha256_before": "0a8038901c8fd46f8fb7aeb3b59a1630467273b5a4b48f97a610c5118ce359ff",
+      "sha256_after": "e77a7957aca74c41b297d7dd61b9177c0941cb97073049ad97501da2da4313fd",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "25_turfostats_scraper.py",
+      "destination": "scripts\\collection\\25_turfostats_scraper.py",
+      "sha256_before": "64dd90ba901ab6e130b5c98925c25a6ee107ec8d1d406747e3da1fcca4f84b9c",
+      "sha256_after": "e0e1cc9b4c2e7c10128ff8081d4ac461323af7c55ca8c0256512eb241129a04f",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "26_geny_scraper.py",
+      "destination": "scripts\\collection\\26_geny_scraper.py",
+      "sha256_before": "79c19481869c69937fa276de0c4a44d0a3c43cafbe919e4537710081457a1f2e",
+      "sha256_after": "140b5b1d65b328945d6ca754c7136ed4c4fe1f6163096998e6d7cacd94223236",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "27_citations_enjeux.py",
+      "destination": "scripts\\collection\\27_citations_enjeux.py",
+      "sha256_before": "1547e15e42fe51ab066b722b3c588b318abf3f16b3753b2a7aa422ee3d95ce71",
+      "sha256_after": "42f5ce067522199df41ff7627187b30667c1a3baaf75ac9d9b77f3a63492fd23",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "28_combinaisons_marche.py",
+      "destination": "scripts\\collection\\28_combinaisons_marche.py",
+      "sha256_before": "913348c7fef7000e46555a75930c5f40233a2e3311c19b86156c578650020370",
+      "sha256_after": "7f918ad57e04c62791fda517acb5696345f39c8b4270a3b5649c840e1b265a64",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "29_arqana_ventes.py",
+      "destination": "scripts\\collection\\29_arqana_ventes.py",
+      "sha256_before": "7818cf656db92544c1d0e3504df7d28466c9514308248380271f948e1430f48e",
+      "sha256_after": "db0be7c9469b70ffbc5648ec6abdc283deb09cd4b6d729bee95b12d39bcf8350",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "30_smarkets_exchange.py",
+      "destination": "scripts\\collection\\30_smarkets_exchange.py",
+      "sha256_before": "97c703285f794e307508d26e3f285f00c3aaad14edf68dedda8296d695ad4340",
+      "sha256_after": "d75880cf7693cec201770e0861aac824b18e100362a98def85a7844fbd7fba5d",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "31_zone_turf.py",
+      "destination": "scripts\\collection\\31_zone_turf.py",
+      "sha256_before": "d7c9c0762a8b16fa7a43256d938dad46bfee7b1721297598ed1c6f3c8ffd076e",
+      "sha256_after": "6dd21c556534a122a1e38b634c240ced90e94f9d40e067471b42c928114bd2f4",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "32_turfomania.py",
+      "destination": "scripts\\collection\\32_turfomania.py",
+      "sha256_before": "cb2c3fda2d44d728f4d8e48106c8d66b2a269e833f1eefb15efdfb79de502709",
+      "sha256_after": "7600671b4bf77b2a5fd64169eabc9fe19a4a4cdfc515d26e549a1a0f4934b76d",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "33_turf_fr.py",
+      "destination": "scripts\\collection\\33_turf_fr.py",
+      "sha256_before": "4e26450c04f05cc44fe4a906fd9381bfa0805f43e2ccd0e04196ea0a3e300833",
+      "sha256_after": "248cc54508190d96507ff6cdeb687937ce61474afdb2d26a02b4891839b61db3",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "34_unibet_cotes.py",
+      "destination": "scripts\\collection\\34_unibet_cotes.py",
+      "sha256_before": "a34adbc336f2cad22946ecc6a059ea38d00f84d05847390bd389d585270d4bd7",
+      "sha256_after": "3c5b5512ee7d7a6b075dbf5d3881cccfe26bf0ca80d0ccbdf24e3cd50428922a",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"data\" -> \"../../data\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "35_meteo_france_api.py",
+      "destination": "scripts\\collection\\35_meteo_france_api.py",
+      "sha256_before": "a388c0699004b729fd7afe9e5054d8732def8fd7d7c73dec3a80d8548dea9d26",
+      "sha256_after": "cc6b5aa3abe44b2e8f15b76081e29368e81da8cd6283b1ea842c39936c633300",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "36_pedigree_query.py",
+      "destination": "scripts\\collection\\36_pedigree_query.py",
+      "sha256_before": "16060ab8e0a85c0277ee2314a96e723fd2da616c554c22374964f6fb0fe0e5ca",
+      "sha256_after": "4a5eaa94e60383a7e747ab578fe84740ad6357d7ae9f2712118d146d8b12f0ae",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "37_rpscrape_racing_post.py",
+      "destination": "scripts\\collection\\37_rpscrape_racing_post.py",
+      "sha256_before": "cce0d74ceac6714953605bdfc2d5eb859ade5f2b6a8ab736cba1d6c68607006c",
+      "sha256_after": "372d6aea3b1bb590a830bf50c0b9a8675926acb77b8f72d446132baf9c12f49f",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "38_rapports_internet.py",
+      "destination": "scripts\\collection\\38_rapports_internet.py",
+      "sha256_before": "e580e63f2fc3a1c26d8323b8d069d8abdf37f6a40073e92bbf6c39c86c6e4a52",
+      "sha256_after": "f6eec901f425b01d56514006cb4d9b349beec28db04172809f6571bfc0baf7b6",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "39_reunions_enrichies.py",
+      "destination": "scripts\\collection\\39_reunions_enrichies.py",
+      "sha256_before": "0dee1239650a3aa17d3c33f10ae9a035bba002c294f3c6ba82b569dd34315b1e",
+      "sha256_after": "7b36ad2a3f660b800bdf2782e04a842b323a2592cf32b79070acf71d86c3b9ad",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "40_enrichissement_partants.py",
+      "destination": "scripts\\collection\\40_enrichissement_partants.py",
+      "sha256_before": "d7a08f292479957be85270646bf5f748393836e7081a5b220091b8172b23346e",
+      "sha256_after": "6525e86b4ba205bee0ed8b40fe8e7d4430c81d13b1bd65d53b5f8768217e4628",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "41_sequences_performances.py",
+      "destination": "scripts\\calcul\\41_sequences_performances.py",
+      "sha256_before": "bd15885ccd9a2cdd0e6d50004ec4b1d6cdac4b39d4923a8de3dec07a3ce83342",
+      "sha256_after": "9c6235ef82eb0ee1baf2b4860e1933ea43c2c2302199185e405032f0b3775fc0",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "42_croisement_racing_post_pmu.py",
+      "destination": "scripts\\calcul\\42_croisement_racing_post_pmu.py",
+      "sha256_before": "0ca1ee985c3ca862792d40441ec895ac95bd10f19eab14bb72ca4a7807307c28",
+      "sha256_after": "443a5ee3e142622d77e9b6e5352b41e719d74d53a3a1437bf4574d25b7efec18",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"data_master\" -> \"../../data_master\"",
+        "  bare dir: \"data_master\" -> \"../../data_master\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "43_croisement_meteo_courses.py",
+      "destination": "scripts\\calcul\\43_croisement_meteo_courses.py",
+      "sha256_before": "5814afa1e5baf3aea78591f640eb418006bc1e6ca7235c5d68c261c8493d67cc",
+      "sha256_after": "5be3928d737b695baf93435bd9846bb0878446e768c3d37b815580b769c30395",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"data_master\" -> \"../../data_master\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "44_croisement_pedigree_partants.py",
+      "destination": "scripts\\calcul\\44_croisement_pedigree_partants.py",
+      "sha256_before": "7de5a856dd8dfaa07cf9df9979d119fb4ce11bb319c5b433ab3926b935359c65",
+      "sha256_after": "55d58113ba29e391b167edbd640b37cc2453d61c4a1aec60dd4f89e1c391cd1c",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"data_master\" -> \"../../data_master\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "45_graphe_relations_gnn.py",
+      "destination": "scripts\\calcul\\45_graphe_relations_gnn.py",
+      "sha256_before": "60daaaf9bcd5863362542bdf04e307fd9ed671bb43f53cd74cd97a48f1b532cc",
+      "sha256_after": "4111d55321064a7254dde08a128a16c5a25ee95df3f52e9249996c5319bebf28",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "46_track_bias_speed_class.py",
+      "destination": "scripts\\calcul\\46_track_bias_speed_class.py",
+      "sha256_before": "a3aea2949b47b452414ad852c907e586f5e37bf7d104d2923e9c68c93b9002c6",
+      "sha256_after": "381885e60071f143fccf0c771c191525186d604b4bc9c45c8e518172d2189dca",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "48_parse_conditions_texte.py",
+      "destination": "scripts\\calcul\\48_parse_conditions_texte.py",
+      "sha256_before": "5ab2cd08059c1013302812658cc9e89185164dc628705944a604659c410c95f2",
+      "sha256_after": "49032ac1b8d632588ad1250574786529ad537b3b42f91b7d604acb29ae749450",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "49_ecart_cotes_internet_national.py",
+      "destination": "scripts\\calcul\\49_ecart_cotes_internet_national.py",
+      "sha256_before": "bb6b150dde874c9d75e021faed989efdd14aa958df3e358cfcaf513a735fafee",
+      "sha256_after": "77d44b6f71cbd41a2f287a0328eaaaa016938b7d22ba370fa902fac8f2c1d9e6",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "51_zeturf_scraper.py",
+      "destination": "scripts\\collection\\51_zeturf_scraper.py",
+      "sha256_before": "690a71de70a4d69a23d46a83a31076dc2c496d650bbe52179506469394d860c3",
+      "sha256_after": "62c7a754a26adcc2915a04aa137d5d24b84f2e5d1cf2719cb3e0b21ed0b36b55",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"data\" -> \"../../data\"",
+        "  bare dir: \"data\" -> \"../../data\"",
+        "  bare dir: \"data\" -> \"../../data\"",
+        "  bare dir: \"data\" -> \"../../data\"",
+        "  bare dir: \"data\" -> \"../../data\"",
+        "  bare dir: \"data\" -> \"../../data\"",
+        "  bare dir: \"data\" -> \"../../data\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "52_turfomania_scraper.py",
+      "destination": "scripts\\collection\\52_turfomania_scraper.py",
+      "sha256_before": "e7edbc3044ccb14dd05e2ef5e3868715ebde1d8f48a655a88e676c974a584e2e",
+      "sha256_after": "dcbd1d2fa00be2747e80dbe5822e668a58cc13983b157807d8e9f8043523bd1c",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "53_paris_turf_scraper.py",
+      "destination": "scripts\\collection\\53_paris_turf_scraper.py",
+      "sha256_before": "90c388564f15afef7dec2d31c6f62f22d9c6b5160f465494b19f4aa59ec25826",
+      "sha256_after": "369fe6e303e4c9e9a3ec0aefa13c08b17fbee703d9101a439c74f49998f22a7a",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "54_turfinfo_scraper.py",
+      "destination": "scripts\\collection\\54_turfinfo_scraper.py",
+      "sha256_before": "47c914c4e3b2aeb2e8c74944653b649d2ae18f3f76586df53aae369197ba5549",
+      "sha256_after": "023dfbf3b678dbdf70242328ae579bbc41c79c4427fcaf2c48c23f66e6749d4d",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "55_equidia_data_scraper.py",
+      "destination": "scripts\\collection\\55_equidia_data_scraper.py",
+      "sha256_before": "4e2e786edf5f7f31e990592cc830ed90ecb7355bc31e0c7375bc96acfbd5d9a7",
+      "sha256_after": "ab547480d770e84402f5e210d5484e3efc747b7d1c25319ad86624e180370d3c",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "56_timeform_scraper.py",
+      "destination": "scripts\\collection\\56_timeform_scraper.py",
+      "sha256_before": "6c2715c47cdb9516e012674517605cf2f16de566e80c72473976a73bd3621d6b",
+      "sha256_after": "2b816e8abc37fe8e9107b211cb0ff645ae3500cc571ffefe9f9089bea0cbc543",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"data\" -> \"../../data\"",
+        "  bare dir: \"data\" -> \"../../data\"",
+        "  bare dir: \"data\" -> \"../../data\"",
+        "  bare dir: \"data\" -> \"../../data\"",
+        "  bare dir: \"data\" -> \"../../data\"",
+        "  bare dir: \"data\" -> \"../../data\"",
+        "  bare dir: \"data\" -> \"../../data\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "57_sporting_life_scraper.py",
+      "destination": "scripts\\collection\\57_sporting_life_scraper.py",
+      "sha256_before": "ff4a1365d847407fe159568551152a029fa7bd1b9e1ac797d6a27254aa0b6d0e",
+      "sha256_after": "3b7566edfff4fa77cf861252d06edea0b781abff069d7f4db05d6fe6afd80c08",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "58_at_the_races_scraper.py",
+      "destination": "scripts\\collection\\58_at_the_races_scraper.py",
+      "sha256_before": "9b3627d24c6b2108140516d8b3082294718154288604f42834d2d8b667f34b92",
+      "sha256_after": "e1f74107394ce9070644c760bef37aa98893fbd52916cbc32a3c3bfa35f5510f",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "59_racing_tv_scraper.py",
+      "destination": "scripts\\collection\\59_racing_tv_scraper.py",
+      "sha256_before": "f6b7174b963196b9a10db2a52b8b69b097ef8ec5d1ec5962744932cf44ba80da",
+      "sha256_after": "e16bb4bcb5c4c797219f3bd50d23cad6f803846953eb2b628135f628d1af24a4",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "60_oddschecker_scraper.py",
+      "destination": "scripts\\collection\\60_oddschecker_scraper.py",
+      "sha256_before": "acc6e61ad460dc87a4d6e41df58388a3fbbb0439addef894d8574976cf3ab835",
+      "sha256_after": "fc2600ea4be63402e4950e2d1e23ff6fa459ca7d02453cdbb899be725f210a0e",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"data\" -> \"../../data\"",
+        "  bare dir: \"data\" -> \"../../data\"",
+        "  bare dir: \"data\" -> \"../../data\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "audit_02.py",
+      "destination": "scripts\\pipeline\\audit_02.py",
+      "sha256_before": "49a0637233e868f6101ef5e1210124224c5a23cc8d7432b8f5bd0224fd196625",
+      "sha256_after": "4fe25518fb16f036eb3d179df8a0fd6f525f86c69ecbedd54261a983e7c48740",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "audit_data_integrity.py",
+      "destination": "scripts\\pipeline\\audit_data_integrity.py",
+      "sha256_before": "ac133ac2c4f97254de38581133853fa5db63a19756c7b82fad33c120130fe75e",
+      "sha256_after": "528d3ea8f0ca04a38a9c4ade4cc9b7fe8299c7511f6d796c2f295adb3ea828c8",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"data_master\" -> \"../../data_master\"",
+        "  bare dir: \"data_master\" -> \"../../data_master\"",
+        "  bare dir: \"data_master\" -> \"../../data_master\"",
+        "  bare dir: \"data_master\" -> \"../../data_master\"",
+        "  bare dir: \"data_master\" -> \"../../data_master\"",
+        "  bare dir: \"data_master\" -> \"../../data_master\"",
+        "  bare dir: \"data_master\" -> \"../../data_master\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "audit_html_vs_json.py",
+      "destination": "scripts\\pipeline\\audit_html_vs_json.py",
+      "sha256_before": "2243f91c9f76696b39e3fc38da171e903450f5dd034849405f8207032b016ff4",
+      "sha256_after": "61c10d35c9d034e321295318577e9091ba80abc971243cbc4be7b88d0ffef249",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"logs\" -> \"../../logs\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "comblage_trous.py",
+      "destination": "scripts\\pipeline\\comblage_trous.py",
+      "sha256_before": "691094e205138dbdeeaac20fe2d5f1d6da8e6247ceb66604dd8c1fef7d48b5db",
+      "sha256_after": "525ca6b11d12e82eeb0c7dd0836d0c2222f61b7ddca24ad2d4c0157c9c2c3276",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"data_master\" -> \"../../data_master\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "deduplication.py",
+      "destination": "scripts\\pipeline\\deduplication.py",
+      "sha256_before": "6c94789fffd8280229bd6e57dd0210856eb0466fbd216a4749443b1cfe398c0c",
+      "sha256_after": "03a2c1d96e69b80d0cf709abbd97a8480eb57d53d5705b12f55ee64682f8e282",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: 'output' -> '../../output'",
+        "  bare dir: \"data_master\" -> \"../../data_master\"",
+        "  bare dir: \"data_master\" -> \"../../data_master\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "enrichissement_meteo_nasa.py",
+      "destination": "scripts\\utils\\enrichissement_meteo_nasa.py",
+      "sha256_before": "a59941b6046049eb2889ac5db3a31f46fa3740a1694d84ed697e5fb5c3442913",
+      "sha256_after": "5b70c8381dc4f78d0a635d41624c93886fff83f3e0faeec6106476df15c37fbb",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"logs\" -> \"../../logs\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "entity_resolution.py",
+      "destination": "scripts\\pipeline\\entity_resolution.py",
+      "sha256_before": "9c29c765da71fa443e312d8d7e86f2e6d50ad6a304d6bb7f2364ba9651fb0634",
+      "sha256_after": "97b9fa9f1ffcdf3a6bfece68472e40accf42599768afab2fd9cb904946ac90c9",
+      "path_changes": [
+        "  bare dir: \"data_master\" -> \"../../data_master\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "feat_cheval_distance_affinity.py",
+      "destination": "features\\feat_cheval_distance_affinity.py",
+      "sha256_before": "d93a7a8a16016a1dae1dd00ab7fd03f00222a5f93d3dd05de43baa9f12acaf9e",
+      "sha256_after": "f57bc11410a91726a1f7ce1dac4636a414298d6c746d908b19d38d1191e1efb2",
+      "path_changes": [],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "feat_cheval_hippodrome_affinity.py",
+      "destination": "features\\feat_cheval_hippodrome_affinity.py",
+      "sha256_before": "ba7b7ea0ff344ab7f73b3da82190d3a3973ef5b71246a7738323af111bc689a3",
+      "sha256_after": "35365d059f1f83a68d285688ec7c9dea51659f4d73bf09dbf9e3dbd39c2b4a12",
+      "path_changes": [],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "feat_cheval_jockey_affinity.py",
+      "destination": "features\\feat_cheval_jockey_affinity.py",
+      "sha256_before": "015d8c1dc06ee5165ee6eca787479d2cc79e352eb437d7e565c821c51a26e4db",
+      "sha256_after": "8ac6434c4542fd4bb7e88b5e2f093dd5a0a4bcbe54e06ec09dbe4744dff4bf53",
+      "path_changes": [],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "feat_cheval_terrain_affinity.py",
+      "destination": "features\\feat_cheval_terrain_affinity.py",
+      "sha256_before": "7fff8d31edf2326e75162603ecd884392334b11f804179d32e28acd12ebe62ce",
+      "sha256_after": "398312e1e4e01fe41e612d73a1770a7d6de0b983304ad974cb1b46a2e8888e34",
+      "path_changes": [],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "feat_croisements.py",
+      "destination": "features\\feat_croisements.py",
+      "sha256_before": "ea6eb41c50e0080e5b4e43f8d84f59c1eae0d04636c4a5c3b6fa8c547b6e1695",
+      "sha256_after": "a8784e8bc6fdb125d67b8c835791ee7a433238b6b7c5e237628e486ee55e8647",
+      "path_changes": [],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "feat_entraineur_hippodrome.py",
+      "destination": "features\\feat_entraineur_hippodrome.py",
+      "sha256_before": "a82462673e0f289e74727b6e0140e3286728c5e3e676c73cbd5dbdee4b28029c",
+      "sha256_after": "04a947360572aa765c7c8d363d40f7d878c19242e21efc344297188989a07ead",
+      "path_changes": [],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "feat_field_strength.py",
+      "destination": "features\\feat_field_strength.py",
+      "sha256_before": "7ad4c01c01d33b7702e3c091325ba68fdc96f99c2e1eae85f036b6fa6e5e8abd",
+      "sha256_after": "071157de258ca82dfe4d40d99a4f88830b7666fcacf31fbd4bc12a5bdb7ff567",
+      "path_changes": [],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "feat_historique.py",
+      "destination": "features\\feat_historique.py",
+      "sha256_before": "3cc22d6856ae04598be69215fe4d613598ab8ee27c5887ce4ef269c95c9269ef",
+      "sha256_after": "1273178d8f34ca42f0c01b30eaed61a161095c5756524c94f036cebeac869328",
+      "path_changes": [],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "feat_interactions.py",
+      "destination": "features\\feat_interactions.py",
+      "sha256_before": "85bbe745056bf9fa8cb561cf1812bc4c38fd0e7c4f9278a30069b2a99db69a4d",
+      "sha256_after": "9e95cb018ee9fffb7aba081a9fbf7da87672c2df1f10e5fec3b2563c5f13cf4e",
+      "path_changes": [],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "feat_jockey.py",
+      "destination": "features\\feat_jockey.py",
+      "sha256_before": "2baf31b8729df6d81d9c0fc4db6359239e4e77397becfb66673fa836c4c469fe",
+      "sha256_after": "39d7ec6e202be5669109de514c03ba671dc5e2d1d8954d63bfdd5992bac44b3f",
+      "path_changes": [],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "feat_jockey_entraineur_combo.py",
+      "destination": "features\\feat_jockey_entraineur_combo.py",
+      "sha256_before": "a8442e9dba62f0d1ea8b8fafa80600bdccaae4dc2cd178b24acb36a8a3550db4",
+      "sha256_after": "6e8c1fd17fd16f1ed890effef58cda8fcb89be660927908fa53c5f144cd3d616",
+      "path_changes": [],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "feat_meteo_terrain_interaction.py",
+      "destination": "features\\feat_meteo_terrain_interaction.py",
+      "sha256_before": "e6acc6d6f56dd8a1e1716dadd1af112bffbbe971664f01347e8d95567776a632",
+      "sha256_after": "f618339c23364539cd7f8bcfb9b55a3fba52f8507c0c08e3df0f2a5212578efe",
+      "path_changes": [],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "feat_pedigree.py",
+      "destination": "features\\feat_pedigree.py",
+      "sha256_before": "df8704659de83b28f152f2dd5e834346ffd3757e4192d468facdc51ba4ef8a92",
+      "sha256_after": "66792ffd142fd11bf76e7fb1dd4f331c5a88ef447776cf10397e31e89d0cc485",
+      "path_changes": [],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "feat_pedigree_discipline_match.py",
+      "destination": "features\\feat_pedigree_discipline_match.py",
+      "sha256_before": "b897a83ae30f736d2179bc2328aabab1492e066fe889016e51e370084c9a584c",
+      "sha256_after": "e83e3a200f2f0d7ca0ce67038c8963b74467e334ad46f7373189f771500367b7",
+      "path_changes": [],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "feat_sequences.py",
+      "destination": "features\\feat_sequences.py",
+      "sha256_before": "e11093be46b9fd4921465d097270add7e6f1cc15ef039011a93559e5d94bf61b",
+      "sha256_after": "d6ccc202753d7bdcfae9ee45ab1fdac678643944793218c9d3f53261b728be48",
+      "path_changes": [],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "feat_temporel.py",
+      "destination": "features\\feat_temporel.py",
+      "sha256_before": "189ca043cd0f8a1ecacbffbbdcee3c46bfbde07656f6258e5bcf0927c15f8370",
+      "sha256_after": "f46313e6c60e6486e39e26f66c8bbd56506b98c6f0e8ff140d55777c3cddd57b",
+      "path_changes": [],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "feat_value_betting.py",
+      "destination": "features\\feat_value_betting.py",
+      "sha256_before": "8250aab3b7e1959c68cdb872b002fa78c8859bd94772c8b2d0473f601fde9c74",
+      "sha256_after": "18a335c8b5087162c2d2c3fdb9c66a33d6f5ae71951a82f6de890709ec70996f",
+      "path_changes": [],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "feature_engineering.py",
+      "destination": "features\\feature_engineering.py",
+      "sha256_before": "a719cfa5a85e4e6ab2051496ec0f034da2cdf2d99040c39560dbef55ba8f864e",
+      "sha256_after": "ca06b1c04b5cc1b24024dcaa4b23fe1bf2e92d82e41f759f9f42a19cbf6fb704",
+      "path_changes": [
+        "  bare dir: \"data_master\" -> \"../data_master\""
+      ],
+      "timestamp": "2026-03-24T21:04:55"
+    },
+    {
+      "original": "fetch_openmeteo_missing.py",
+      "destination": "scripts\\utils\\fetch_openmeteo_missing.py",
+      "sha256_before": "6f48b3be06377844b51ade42e609cd278f5c731667e5802fc3e3a9f0197d839f",
+      "sha256_after": "b3765f60449b47d2475df4ed9c44370b64c97c21ef46258a79434a50a4b08fc2",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: 'output' -> '../../output'"
+      ],
+      "timestamp": "2026-03-24T21:04:56"
+    },
+    {
+      "original": "fill_empty_fields.py",
+      "destination": "scripts\\utils\\fill_empty_fields.py",
+      "sha256_before": "3207c4cd0658bf6163176c2fa2b8acbd5b6d884a16be212c85283602a3f07500",
+      "sha256_after": "3ace5f323fe934721e50c390dd654d983c3d273554e703dd041d1ea098e31e6b",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:56"
+    },
+    {
+      "original": "hippodromes_db.py",
+      "destination": "scripts\\utils\\hippodromes_db.py",
+      "sha256_before": "9dcf767b0f5240cddf213a97f78f8aebb124ecf27d4073075c59d7501c3aba8a",
+      "sha256_after": "abc7fecbe266017f0dd602dc342cf7893a846dca42d2a6cc30c62d159b26d475",
+      "path_changes": [],
+      "timestamp": "2026-03-24T21:04:56"
+    },
+    {
+      "original": "master_feature_builder.py",
+      "destination": "features\\master_feature_builder.py",
+      "sha256_before": "6144eb6ff205c1d51d9bcee87a9d92c04a6df545204ac079ff4dc48dc2afc8bc",
+      "sha256_after": "ce8292c4c4cdfc7fb2e1aba03d4001d274c877999b7622b95c3b97aa77a011e9",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../output\"",
+        "  bare dir: \"output\" -> \"../output\"",
+        "  bare dir: \"output\" -> \"../output\"",
+        "  bare dir: \"output\" -> \"../output\"",
+        "  bare dir: \"output\" -> \"../output\"",
+        "  bare dir: \"output\" -> \"../output\"",
+        "  bare dir: \"output\" -> \"../output\"",
+        "  bare dir: \"output\" -> \"../output\"",
+        "  bare dir: \"output\" -> \"../output\"",
+        "  bare dir: \"output\" -> \"../output\"",
+        "  bare dir: \"output\" -> \"../output\"",
+        "  bare dir: \"output\" -> \"../output\"",
+        "  bare dir: \"output\" -> \"../output\"",
+        "  bare dir: \"data_master\" -> \"../data_master\""
+      ],
+      "timestamp": "2026-03-24T21:04:56"
+    },
+    {
+      "original": "mega_merge_all_sources.py",
+      "destination": "scripts\\merge\\mega_merge_all_sources.py",
+      "sha256_before": "cab14d023a0ca5644f43d9c09adf911d78f3abb5a69efe51d184db8f66ca3995",
+      "sha256_after": "ee621832498508e2fea6501260354132a16ca2300587a6c5c370d5b7baec4129",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:56"
+    },
+    {
+      "original": "mega_merge_courses.py",
+      "destination": "scripts\\merge\\mega_merge_courses.py",
+      "sha256_before": "8821770b087fc9514f7cb8a0adc4c46a852290903abee157e0df3cbdfd779cac",
+      "sha256_after": "9f4e4fe438584cf70564c157147fae317613a3aa29f385a995ed384e5c460e09",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:56"
+    },
+    {
+      "original": "mega_merge_partants_master.py",
+      "destination": "scripts\\merge\\mega_merge_partants_master.py",
+      "sha256_before": "0dd4985100b87bff6ca1f90f8eb36ceb524aedd017ade3fef135cef97728cbb9",
+      "sha256_after": "2b8b5f6cdb007c32bd201e22780ae93b665e46507b0dbecd0b63c7a9172ddf5d",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"data_master\" -> \"../../data_master\"",
+        "  bare dir: \"data_master\" -> \"../../data_master\"",
+        "  bare dir: \"data_master\" -> \"../../data_master\"",
+        "  bare dir: \"data_master\" -> \"../../data_master\"",
+        "  bare dir: \"data_master\" -> \"../../data_master\"",
+        "  bare dir: \"data_master\" -> \"../../data_master\"",
+        "  bare dir: \"data_master\" -> \"../../data_master\"",
+        "  bare dir: \"data_master\" -> \"../../data_master\"",
+        "  bare dir: 'data' -> '../../data'"
+      ],
+      "timestamp": "2026-03-24T21:04:56"
+    },
+    {
+      "original": "merge_02_02b.py",
+      "destination": "scripts\\merge\\merge_02_02b.py",
+      "sha256_before": "09876af272288b9537678cc447a3b85208b7d4a3e9ab271494ba9c88e9d9eebf",
+      "sha256_after": "c7fa776dc62e853bcb527a64cac9443d54cd6430e46ef61f7d8cdacc5d380f3a",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:56"
+    },
+    {
+      "original": "merge_02_02b_courses_master.py",
+      "destination": "scripts\\merge\\merge_02_02b_courses_master.py",
+      "sha256_before": "27047d17c90b55b7d06959a7d1cf70cf00fff692518f7df4978f342eedb9996d",
+      "sha256_after": "147d067082eb1d14abe207d20acf2f5c5d6e86825e1bdca55f9750a4676901b9",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"data_master\" -> \"../../data_master\""
+      ],
+      "timestamp": "2026-03-24T21:04:56"
+    },
+    {
+      "original": "merge_all_enrichments.py",
+      "destination": "scripts\\merge\\merge_all_enrichments.py",
+      "sha256_before": "c9f88676558166aa674198d706331e2bafe645ad852d5f74251749504dc9f4c3",
+      "sha256_after": "71af40ea0667bf629658d21dbaaf1b4f7587c6a114daf691ccde5278e8079239",
+      "path_changes": [
+        "  bare dir: \"data_master\" -> \"../../data_master\""
+      ],
+      "timestamp": "2026-03-24T21:04:56"
+    },
+    {
+      "original": "merge_all_pedigree.py",
+      "destination": "scripts\\merge\\merge_all_pedigree.py",
+      "sha256_before": "556b2af4768cb78c929f73042340dbb065c65520b0c21650af3c5010c804bf66",
+      "sha256_after": "135624a8378e1c82ed66d112e36713593256f9db99b134a82c1f203dc60313d4",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"data\" -> \"../../data\""
+      ],
+      "timestamp": "2026-03-24T21:04:56"
+    },
+    {
+      "original": "merge_equipements_master.py",
+      "destination": "scripts\\merge\\merge_equipements_master.py",
+      "sha256_before": "b354467293fa5ce304cfcfe90e43dd06ad00b44810d80f95fd73993e16aa27b0",
+      "sha256_after": "cb6f47cea2759bca2d8daf53adcee1ee8a1339b8cf8fb7509e40357d3370612c",
+      "path_changes": [
+        "  path: 'data_master/equipements_master.parquet' -> '../../data_master/equipements_master.parquet'",
+        "  makedirs: data_master -> ../../data_master",
+        "  makedirs: logs -> ../../logs",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"data_master\" -> \"../../data_master\"",
+        "  bare dir: \"data_master\" -> \"../../data_master\""
+      ],
+      "timestamp": "2026-03-24T21:04:56"
+    },
+    {
+      "original": "merge_marche_master.py",
+      "destination": "scripts\\merge\\merge_marche_master.py",
+      "sha256_before": "91937a02a78287c23149f667f1793a537af4c3da5d1baf8fe4cdcabd9db6d289",
+      "sha256_after": "c725a3af8f8f50f507fc23d32f26a0d5ec6bfb8c2c14eb8d251a23521f017683",
+      "path_changes": [
+        "  path: 'data_master/marche_master.parquet' -> '../../data_master/marche_master.parquet'",
+        "  makedirs: data_master -> ../../data_master",
+        "  makedirs: logs -> ../../logs",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"data_master\" -> \"../../data_master\"",
+        "  bare dir: \"data_master\" -> \"../../data_master\""
+      ],
+      "timestamp": "2026-03-24T21:04:56"
+    },
+    {
+      "original": "merge_meteo.py",
+      "destination": "scripts\\merge\\merge_meteo.py",
+      "sha256_before": "686deb055e7e247ae62148e37390ef9293c212b848aba1af7995137210c65080",
+      "sha256_after": "c848199a552fb81fab8915b934d463366ba894e9e192c1a46075657c89b067b9",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:56"
+    },
+    {
+      "original": "merge_meteo_master.py",
+      "destination": "scripts\\merge\\merge_meteo_master.py",
+      "sha256_before": "ba98a3ac5a86d586ffa194a9142bdc9d16c7122a59a41f119e878ee36c6f7545",
+      "sha256_after": "c24d2b9aa6bd21ccdab6ba0b566e8196294b54df5ff279cbc8ca5f9ad0e385b7",
+      "path_changes": [
+        "  path: 'data_master/meteo_master.csv' -> '../../data_master/meteo_master.csv'",
+        "  path: 'data_master/meteo_master.parquet' -> '../../data_master/meteo_master.parquet'",
+        "  makedirs: data_master -> ../../data_master",
+        "  makedirs: logs -> ../../logs",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"data_master\" -> \"../../data_master\"",
+        "  bare dir: \"data_master\" -> \"../../data_master\"",
+        "  bare dir: \"data_master\" -> \"../../data_master\""
+      ],
+      "timestamp": "2026-03-24T21:04:56"
+    },
+    {
+      "original": "merge_pedigree_master.py",
+      "destination": "scripts\\merge\\merge_pedigree_master.py",
+      "sha256_before": "63c4dca94f93e2fff6ad3179a6f8c6e0dafe3687ad89622cbf015e52ddf96202",
+      "sha256_after": "edc853fe9da41e53a6ad6924cefab2999937299de808cd8b86bdf29bf8b9c675",
+      "path_changes": [
+        "  path: 'output/02b_liste_courses_2013' -> '../../output/02b_liste_courses_2013'",
+        "  path: 'output/02b_scraper_letrot' -> '../../output/02b_scraper_letrot'",
+        "  makedirs: data_master -> ../../data_master",
+        "  makedirs: logs -> ../../logs",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"data_master\" -> \"../../data_master\"",
+        "  bare dir: \"data_master\" -> \"../../data_master\"",
+        "  bare dir: \"data_master\" -> \"../../data_master\"",
+        "  bare dir: \"data_master\" -> \"../../data_master\"",
+        "  bare dir: \"data_master\" -> \"../../data_master\""
+      ],
+      "timestamp": "2026-03-24T21:04:56"
+    },
+    {
+      "original": "merge_performances_master.py",
+      "destination": "scripts\\merge\\merge_performances_master.py",
+      "sha256_before": "3cf99775a8bd052bb6ea79df81577998de860ce64e541a396f3167492588fdab",
+      "sha256_after": "793864c7be536ee86a949cec673da64ea69f3c31722a8728bb2e6619c4190d27",
+      "path_changes": [
+        "  path: 'data_master/performances_master.parquet' -> '../../data_master/performances_master.parquet'",
+        "  path: 'data_master/performances_master.parquet' -> '../../data_master/performances_master.parquet'",
+        "  path: 'data_master/performances_master.parquet' -> '../../data_master/performances_master.parquet'",
+        "  makedirs: data_master -> ../../data_master",
+        "  makedirs: logs -> ../../logs",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"data_master\" -> \"../../data_master\"",
+        "  bare dir: \"data_master\" -> \"../../data_master\"",
+        "  bare dir: \"data_master\" -> \"../../data_master\"",
+        "  bare dir: \"data_master\" -> \"../../data_master\""
+      ],
+      "timestamp": "2026-03-24T21:04:56"
+    },
+    {
+      "original": "merge_rapports_21_38.py",
+      "destination": "scripts\\merge\\merge_rapports_21_38.py",
+      "sha256_before": "b10f0c26e744cfced75d66519a72d271d21ce3c99d50f2808902f782db527f27",
+      "sha256_after": "58cfae7867e786c93f6ac7c8578ff33bb14ae62c15a2c10047567f7de8375998",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:56"
+    },
+    {
+      "original": "merge_rapports_master.py",
+      "destination": "scripts\\merge\\merge_rapports_master.py",
+      "sha256_before": "68b95c435aa9e570127b05beca05089b4492aa09ac852633505e864325eb9430",
+      "sha256_after": "c0a9592aeff380c3517243dfc837cf1703ddd829995431a34b37da87bfa30a71",
+      "path_changes": [
+        "  path: 'data_master/rapports_master.parquet' -> '../../data_master/rapports_master.parquet'",
+        "  makedirs: data_master -> ../../data_master",
+        "  makedirs: logs -> ../../logs",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"data_master\" -> \"../../data_master\"",
+        "  bare dir: \"data_master\" -> \"../../data_master\""
+      ],
+      "timestamp": "2026-03-24T21:04:56"
+    },
+    {
+      "original": "merge_stats_externes_master.py",
+      "destination": "scripts\\merge\\merge_stats_externes_master.py",
+      "sha256_before": "6a5498fdd4713b9f9ac80ed1c3ea394d144080a571488b5c940fe7a99c125274",
+      "sha256_after": "c298e5546dd16c3ec3ebe0fb5fbb425b9eabfa05d3eec992a5be212c107bbef5",
+      "path_changes": [
+        "  makedirs: data_master -> ../../data_master",
+        "  makedirs: logs -> ../../logs",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"data_master\" -> \"../../data_master\"",
+        "  bare dir: \"data_master\" -> \"../../data_master\"",
+        "  bare dir: \"data_master\" -> \"../../data_master\"",
+        "  bare dir: \"data_master\" -> \"../../data_master\""
+      ],
+      "timestamp": "2026-03-24T21:04:56"
+    },
+    {
+      "original": "nettoyage_global.py",
+      "destination": "scripts\\pipeline\\nettoyage_global.py",
+      "sha256_before": "e9b9d1b340036ff5f3124bbdd881a0c242e0f1bc3d7c1a00795f3ecfba45a298",
+      "sha256_after": "77f79e64248eed24eca82aea8f3a38c1c509fd41cfcf1bdef31c307d314519b6",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:56"
+    },
+    {
+      "original": "organize_model_data.py",
+      "destination": "scripts\\utils\\organize_model_data.py",
+      "sha256_before": "b21bb0d8f3dccaadd9b56c3d9c3ee6b19ec9714befbad9b382f228c6aa9c3bb3",
+      "sha256_after": "bb19b42dc480d28a1e264b30fb17e9e32e5fccefeecd9b79c5b518ea14c4c7af",
+      "path_changes": [
+        "  path: 'output/features/features_matrix.json' -> '../../output/features/features_matrix.json'",
+        "  path: \"output/features/features_matrix.{ext}\" -> \"../../output/features/features_matrix.{ext}\"",
+        "  path: \"output/labels\" -> \"../../output/labels\"",
+        "  path: \"output/02_liste_courses/courses_normalisees.json\" -> \"../../output/02_liste_courses/courses_normalisees.json\"",
+        "  path: \"output/02_liste_courses/partants_normalises.json\" -> \"../../output/02_liste_courses/partants_normalises.json\"",
+        "  path: \"output/21_rapports_definitifs/rapports_definitifs.json\" -> \"../../output/21_rapports_definitifs/rapports_definitifs.json\"",
+        "  path: \"output/38_rapports_internet/rapports_internet.json\" -> \"../../output/38_rapports_internet/rapports_internet.json\"",
+        "  path: \"output/13_meteo_historique/meteo_historique.json\" -> \"../../output/13_meteo_historique/meteo_historique.json\"",
+        "  path: \"output/14_pedigree\" -> \"../../output/14_pedigree\"",
+        "  path: \"output/08_pedigree\" -> \"../../output/08_pedigree\"",
+        "  path: \"output/22_performances_detaillees/performances_detaillees.json\" -> \"../../output/22_performances_detaillees/performances_detaillees.json\"",
+        "  path: \"output/features/features_matrix.parquet\" -> \"../../output/features/features_matrix.parquet\"",
+        "  path: \"output/labels\" -> \"../../output/labels\"",
+        "  path: \"output/27_citations_enjeux/citations_enjeux.json\" -> \"../../output/27_citations_enjeux/citations_enjeux.json\"",
+        "  path: \"output/28_combinaisons_marche/combinaisons_marche.json\" -> \"../../output/28_combinaisons_marche/combinaisons_marche.json\"",
+        "  path: \"output/21_rapports_definitifs/rapports_definitifs.json\" -> \"../../output/21_rapports_definitifs/rapports_definitifs.json\"",
+        "  path: \"output/38_rapports_internet/rapports_internet.json\" -> \"../../output/38_rapports_internet/rapports_internet.json\"",
+        "  path: \"output/07_cotes_marche/cotes_marche.{ext}\" -> \"../../output/07_cotes_marche/cotes_marche.{ext}\"",
+        "  path: \"output/labels\" -> \"../../output/labels\"",
+        "  path: \"output/02_liste_courses/courses_normalisees.json\" -> \"../../output/02_liste_courses/courses_normalisees.json\"",
+        "  path: \"output/02_liste_courses/partants_normalises.json\" -> \"../../output/02_liste_courses/partants_normalises.json\"",
+        "  path: \"output/07_cotes_marche/cotes_marche.{ext}\" -> \"../../output/07_cotes_marche/cotes_marche.{ext}\"",
+        "  path: \"output/22_performances_detaillees/performances_detaillees.json\" -> \"../../output/22_performances_detaillees/performances_detaillees.json\"",
+        "  path: \"output/02_liste_courses/partants_normalises.json\" -> \"../../output/02_liste_courses/partants_normalises.json\"",
+        "  path: \"output/02_liste_courses/partants_normalises.json\" -> \"../../output/02_liste_courses/partants_normalises.json\"",
+        "  path: \"output/02_liste_courses/courses_normalisees.json\" -> \"../../output/02_liste_courses/courses_normalisees.json\"",
+        "  path: \"output/09_equipements\" -> \"../../output/09_equipements\"",
+        "  path: \"output/10_poids_handicaps\" -> \"../../output/10_poids_handicaps\"",
+        "  path: \"output/labels\" -> \"../../output/labels\"",
+        "  path: \"output/21_rapports_definitifs/rapports_definitifs.json\" -> \"../../output/21_rapports_definitifs/rapports_definitifs.json\"",
+        "  bare dir: \"data\" -> \"../../data\"",
+        "  bare dir: \"data\" -> \"../../data\"",
+        "  bare dir: \"data\" -> \"../../data\"",
+        "  bare dir: \"data\" -> \"../../data\"",
+        "  bare dir: \"data\" -> \"../../data\"",
+        "  bare dir: \"data\" -> \"../../data\"",
+        "  bare dir: \"data\" -> \"../../data\"",
+        "  bare dir: \"data\" -> \"../../data\"",
+        "  bare dir: \"data\" -> \"../../data\"",
+        "  bare dir: \"data\" -> \"../../data\""
+      ],
+      "timestamp": "2026-03-24T21:04:56"
+    },
+    {
+      "original": "organize_pipeline.py",
+      "destination": "scripts\\utils\\organize_pipeline.py",
+      "sha256_before": "12bf5674a6ed1fd12d3b02b336f017106b8c549b59e9641bf0f26ecf9de510e7",
+      "sha256_after": "8012101f2436d457bd3ba1685c415f3963604ed65129ed8f44e1ed7dceb80a0e",
+      "path_changes": [
+        "  path: \"logs/ (placeholder for telemetry logs)\" -> \"../../logs/ (placeholder for telemetry logs)\"",
+        "  path: \"logs/ (placeholder for alert logs)\" -> \"../../logs/ (placeholder for alert logs)\"",
+        "  path: \"logs/ (placeholder for failover logs)\" -> \"../../logs/ (placeholder for failover logs)\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"logs\" -> \"../../logs\"",
+        "  bare dir: \"logs\" -> \"../../logs\"",
+        "  bare dir: \"logs\" -> \"../../logs\"",
+        "  bare dir: \"data\" -> \"../../data\"",
+        "  bare dir: \"data\" -> \"../../data\""
+      ],
+      "timestamp": "2026-03-24T21:04:56"
+    },
+    {
+      "original": "parse_02b_letrot.py",
+      "destination": "scripts\\utils\\parse_02b_letrot.py",
+      "sha256_before": "ee311d996da74433b792656ffd7d2deeb1de3323f44585d683a6164f878ba112",
+      "sha256_after": "a575a55f2cb2c02eb14d9b21b481cbcc0203b5519620162044efe4e7070ac6fd",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:56"
+    },
+    {
+      "original": "patch_brutes_geny.py",
+      "destination": "scripts\\utils\\patch_brutes_geny.py",
+      "sha256_before": "2184b8f836ac9a7263e6261e7e142280200a7d64239ffe972f95e372bac25b56",
+      "sha256_after": "6ab334f3ee715222e5bbebc38124676b951982f2e056e671471cd3f4130a521a",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:56"
+    },
+    {
+      "original": "patch_brutes_letrot.py",
+      "destination": "scripts\\utils\\patch_brutes_letrot.py",
+      "sha256_before": "c6319e938712e081d47a3fb9aa43019dbec5fdd5b34241ab3c0f59faa5cbea9b",
+      "sha256_after": "43d2fa8851bd0223cc6cd5e0c95da4f9f081c451e31926a12e9b53b22a0388fa",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:56"
+    },
+    {
+      "original": "patch_brutes_pmu.py",
+      "destination": "scripts\\utils\\patch_brutes_pmu.py",
+      "sha256_before": "e477a888b436806abe828f196e6ca60e9f94dad1485ef5d6018bbe09142895f6",
+      "sha256_after": "20272b02e4f26693e3637fc4316a57aab765707025df1bd2f2e1ecf1404b087b",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:56"
+    },
+    {
+      "original": "patch_condition_pmu.py",
+      "destination": "scripts\\utils\\patch_condition_pmu.py",
+      "sha256_before": "5232ec720f73e6918e5872c5e5bd2706d4b9593d9d1623a87cdc0d7ad22ea2d1",
+      "sha256_after": "2374480f066cd7e832baf5753698fa836622c309657d4a921241b85a1f266d8a",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:56"
+    },
+    {
+      "original": "patch_terrain_equidia.py",
+      "destination": "scripts\\utils\\patch_terrain_equidia.py",
+      "sha256_before": "b5f5a9cab5232f5a160b8b5436f23fca7f7f14b4420fff7d5055107ee11f8ec4",
+      "sha256_after": "bd2aaec24599393d816dfdf1b8de064e2bfad66688396c702b1884c1114740e0",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\"",
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:56"
+    },
+    {
+      "original": "postprocess_equipements.py",
+      "destination": "scripts\\utils\\postprocess_equipements.py",
+      "sha256_before": "a06a9dec3742d489b64ff3728345c78c29de6642ec4f732a2f19ad865e4fc179",
+      "sha256_after": "2671557ddc54d6e3250af10c703128a260ba0b67761a64d168202e79099bd3bb",
+      "path_changes": [
+        "  bare dir: \"data_master\" -> \"../../data_master\""
+      ],
+      "timestamp": "2026-03-24T21:04:56"
+    },
+    {
+      "original": "postprocess_horse_stats.py",
+      "destination": "scripts\\utils\\postprocess_horse_stats.py",
+      "sha256_before": "bea10174e75c9caa4c19b18718ae9926844be952240018ae7866eb84aae89f64",
+      "sha256_after": "b385bf6180809fa8fd1fe0bfa6ab09dcd56502edde86b2dca70c884c074c8f65",
+      "path_changes": [
+        "  bare dir: \"data_master\" -> \"../../data_master\""
+      ],
+      "timestamp": "2026-03-24T21:04:56"
+    },
+    {
+      "original": "postprocess_marche.py",
+      "destination": "scripts\\utils\\postprocess_marche.py",
+      "sha256_before": "c8c2ba002db6a4094dd5d65f578b0bad70af8d3014a2eab4d61b7f681d0fda9e",
+      "sha256_after": "3522cf02ab4e85756c6f1e525baa28ff31c733f1f149cb231dc345362ea7667b",
+      "path_changes": [
+        "  bare dir: \"data_master\" -> \"../../data_master\""
+      ],
+      "timestamp": "2026-03-24T21:04:56"
+    },
+    {
+      "original": "postprocess_meteo.py",
+      "destination": "scripts\\utils\\postprocess_meteo.py",
+      "sha256_before": "cf365c9dc6ca8c179b5bf77e5ed7525d3ebee01011b6196b65dc642780a34b43",
+      "sha256_after": "a250d92b3f7e5e4f00439f149c93c132e2ac81018b5a9206193c334659a899c5",
+      "path_changes": [
+        "  bare dir: \"data_master\" -> \"../../data_master\""
+      ],
+      "timestamp": "2026-03-24T21:04:56"
+    },
+    {
+      "original": "postprocess_rapports.py",
+      "destination": "scripts\\utils\\postprocess_rapports.py",
+      "sha256_before": "f0ae83d470bd15749a2351dbe46011166fc63e65c78e744eb2483df87e47fb81",
+      "sha256_after": "b3c23124decfd227df6d23c722246b418a0d21071ab7f7dc3b6518f29c44ed92",
+      "path_changes": [
+        "  bare dir: \"data_master\" -> \"../../data_master\""
+      ],
+      "timestamp": "2026-03-24T21:04:56"
+    },
+    {
+      "original": "renormaliser.py",
+      "destination": "scripts\\utils\\renormaliser.py",
+      "sha256_before": "95490143d75dca85c44bccc2ed2685277a5220d1c91a0afff7accfb9c7796237",
+      "sha256_after": "9ce47addb7c134fa4859c24b81b2963a4d21449e238afbc8a4e80afc4b55c402",
+      "path_changes": [
+        "  bare dir: \"output\" -> \"../../output\""
+      ],
+      "timestamp": "2026-03-24T21:04:56"
+    },
+    {
+      "original": "test_endpoints.py",
+      "destination": "scripts\\utils\\test_endpoints.py",
+      "sha256_before": "f5161fa660f6195510d5eddcf2f4c970f4991d4a684a329fb6c7a49a5d58570f",
+      "sha256_after": "6a4f98f8313ca47be48f46c536755e02a62138e2c69077b6b0f08acc0cc11d7c",
+      "path_changes": [],
+      "timestamp": "2026-03-24T21:04:56"
+    }
+  ],
+  "error_details": []
+}
