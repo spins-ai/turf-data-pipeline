@@ -652,3 +652,231 @@ python scripts/create_release_tag.py --force
 # Skip checklist (use existing stats)
 python scripts/create_release_tag.py --skip-checklist
 ```
+
+---
+
+## 12. How to Add a New Feature Builder
+
+### Step 1: Create the Builder Script
+
+Create `feature_builders/my_new_builder.py` following this template:
+
+```python
+"""Feature builder: <description>."""
+import json
+import logging
+from pathlib import Path
+
+logger = logging.getLogger(__name__)
+BASE_DIR = Path(__file__).resolve().parent.parent
+INPUT = BASE_DIR / "data_master" / "partants_master.jsonl"
+OUTPUT = BASE_DIR / "output" / "features" / "my_new_features.jsonl"
+
+def build_features():
+    OUTPUT.parent.mkdir(parents=True, exist_ok=True)
+    count = 0
+    with open(INPUT, encoding="utf-8") as fin, \
+         open(OUTPUT, "w", encoding="utf-8", newline="\n") as fout:
+        for line in fin:
+            rec = json.loads(line)
+            feat = {
+                "partant_uid": rec["partant_uid"],
+                "course_uid": rec["course_uid"],
+                # ... compute features here ...
+            }
+            fout.write(json.dumps(feat, ensure_ascii=False) + "\n")
+            count += 1
+    logger.info("Wrote %d records to %s", count, OUTPUT)
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+    build_features()
+```
+
+Key rules:
+- Always read from `data_master/partants_master.jsonl` (streaming, line by line).
+- Always output `partant_uid` and `course_uid` as join keys.
+- Use `encoding="utf-8"` and `newline="\n"` on all file opens.
+- Derive all paths from `__file__`, never use hardcoded paths.
+- Keep RAM under 4 GB (use streaming, not `json.load()` on large files).
+
+### Step 2: Register in the DAG
+
+Edit `run_pipeline.py`, inside `build_dag()`. Add the script to the feature builder list in Phase 7:
+
+```python
+feature_builder_scripts = [
+    ...,
+    "feature_builders/my_new_builder.py",
+]
+```
+
+### Step 3: Update Master Feature Builder
+
+Edit `master_feature_builder.py` to load and join the new feature file. Add the path to `FEATURE_FILES` and specify which fields to include.
+
+### Step 4: Test
+
+```bash
+# Run just your builder
+python feature_builders/my_new_builder.py
+
+# Verify output
+python -c "
+import json
+with open('output/features/my_new_features.jsonl') as f:
+    rec = json.loads(f.readline())
+    print(json.dumps(rec, indent=2))
+"
+
+# Run quality checks
+python quality/run_all_tests.py
+```
+
+---
+
+## 13. Rebuilding the Feature Matrix
+
+If you need to rebuild the feature matrix from scratch (e.g., after modifying a feature builder):
+
+```bash
+# Option 1: Rebuild only master features (fastest, keeps existing feature files)
+python run_pipeline.py --only master_features
+
+# Option 2: Rebuild one specific builder then master features
+python feature_builders/cheval_features.py    # re-run the changed builder
+python master_feature_builder.py              # reconsolidate
+
+# Option 3: Rebuild ALL features from scratch
+python run_pipeline.py --from mega_merge      # re-runs Phase 7 + 8 + 9
+```
+
+After rebuilding, always run quality checks:
+
+```bash
+python quality/run_all_tests.py
+python scripts/diagnostic.py
+```
+
+---
+
+## 14. Diagnostic Commands Reference
+
+### Health Checks
+
+```bash
+# Full pipeline diagnostics (10 checks: files, imports, RAM, disk, git)
+python scripts/diagnostic.py
+
+# Quick status report (RAM, disk, record counts, freshness)
+python status_report.py
+
+# Data completeness report (fill rates per field)
+python data_completeness_report.py
+```
+
+### Data Validation
+
+```bash
+# Validate all JSON/JSONL files
+python validate_data_final.py
+
+# Audit scraper outputs (record counts, file sizes, dates)
+python scraper_results_audit.py
+
+# Run all quality tests (7 test suites)
+python quality/run_all_tests.py
+```
+
+### Telemetry and Monitoring
+
+```bash
+# Collect disk usage, record counts, growth rates
+python scripts/telemetry_collector.py
+
+# Daily maintenance (cleanup, freshness, checksums)
+python scripts/daily_maintenance.py
+
+# Verify file checksums
+python security/backup_checksums.py
+```
+
+### Pipeline State
+
+```bash
+# Check pipeline progress (which steps completed/failed)
+python run_pipeline.py --status
+
+# List all pipeline steps
+python run_pipeline.py --list
+
+# Preview what would run without executing
+python run_pipeline.py --dry-run
+```
+
+---
+
+## 15. Join Keys Between Tables
+
+All data files are linked through a consistent set of join keys:
+
+| Key | Format | Links |
+|-----|--------|-------|
+| `partant_uid` | 16-char hex hash | Primary key for partants. Links partants_master, features, labels |
+| `course_uid` | 16-char hex hash | Primary key for courses. Links courses_master, rapports, meteo |
+| `reunion_uid` | 16-char hex hash | Primary key for reunions. Links reunions, courses |
+| `horse_id` | 12-char hex hash | Links partants to historique_chevaux, pedigree |
+| `date_reunion_iso` | `YYYY-MM-DD` | Date key used in meteo, rapports, equipements joins |
+| `hippodrome_normalise` | lowercase string | Normalized hippodrome name for geographic joins |
+| `(date, hippodrome)` | composite | Used by meteo_master, rapports_master when no UID available |
+| `nom_cheval` | normalized string | Fallback join for external sources (CanalTurf, TurfoStats, Geny) |
+| `jockey_driver` | normalized string | Links partants to jockey stats and historique_jockeys |
+
+The mega merge (`mega_merge_partants_master.py`) performs all joins in order: first by `partant_uid`, then `course_uid`, then `horse_id`, then `(date, hippodrome)` composites, then name-based fuzzy matching as a last resort.
+
+---
+
+## 16. Hippodrome Aliases
+
+The pipeline normalizes hippodrome names to handle variant spellings across sources. The canonical mapping is in `hippodromes_db.py`. Common aliases:
+
+| Canonical Name | Known Aliases |
+|----------------|---------------|
+| vincennes | paris-vincennes, hippodrome de vincennes |
+| longchamp | paris-longchamp, parislongchamp |
+| cagnes sur mer | cagnes-sur-mer, cagnes |
+| maisons laffitte | maisons-laffitte, m-laffitte |
+| saint cloud | saint-cloud, st cloud, st-cloud |
+| la cepiere | toulouse la cepiere, toulouse |
+| lyon parilly | lyon-parilly, parilly, lyon la soie |
+| deauville | deauville-la touques, deauville la touques |
+| enghien | enghien soisy, enghien-soisy |
+| le croise laroche | croise-laroche, le croise-laroche |
+
+The normalization function (`utils/normalize.py :: normalize_hippodrome()`) lowercases, strips accents, removes hyphens, and maps known aliases. See `docs/HIPPODROMES.md` for the full database (673 hippodromes, 44 countries).
+
+---
+
+## 17. Known Limitations
+
+### Data Coverage Gaps
+
+- **Pre-2013 data**: The PMU API only provides data from ~2013 onward. Earlier data (2004-2012) comes from legacy sources (nanaelie/Le Trot) with fewer fields and lower fill rates.
+- **Pedigree depth**: Pedigree scrapers (12, 14, 36) are frequently blocked by Cloudflare. Coverage is partial (~36k horses out of 350k).
+- **Performances detaillees**: Script 22 provides only the last 9 races per horse from the PMU API; older performances are not available.
+- **Smarkets exchange data**: Limited to races with active betting markets (mostly Group races); ~640 KB total.
+
+### Technical Limitations
+
+- **RAM ceiling**: Mega merge requires 6-8 GB RAM for in-memory indexes. Machines with < 8 GB will struggle.
+- **No incremental feature rebuild**: Changing one feature builder requires re-running `master_feature_builder.py` over the entire dataset (1-3 hours).
+- **Windows file locking**: Some scripts may fail with `PermissionError` if another process holds a file open. Close all Python processes and retry.
+- **Rate limiting**: External scrapers (Racing Post, Geny, TurfoStats) are subject to rate limits and Cloudflare blocks. Expect partial data on first run.
+
+### Data Quality Caveats
+
+- **Hippodrome normalization**: Despite 673 entries in the database, some rare foreign hippodromes may not be recognized and will be stored as-is.
+- **Name matching**: Horse/jockey name matching across sources is imperfect. Accents, abbreviations, and transliterations can cause mismatches.
+- **Null fill rates**: Some fields have very low fill rates (e.g., `eleveur` at 0%, `cote_finale` at ~30%). Features derived from sparse fields will have many nulls.
+- **Time zones**: All timestamps are in Paris local time (CET/CEST). No UTC conversion is applied.
+- **Duplicate detection**: Cross-source deduplication uses heuristic matching. A small number of false positives/negatives is expected.

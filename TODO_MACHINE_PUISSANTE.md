@@ -682,18 +682,18 @@
 - [x] Créer docs/CHANGELOG.md — historique des modifications ✅ FAIT
 
 ## 10.3 Documentation pour la maintenance
-- [ ] Documenter le process de relance après crash
-- [ ] Documenter le process d'ajout d'une nouvelle source
-- [ ] Documenter le process d'ajout d'un nouveau builder
-- [ ] Documenter le process de rebuild de la matrice
-- [ ] Documenter les clés de jointure entre tables
-- [ ] Documenter les alias d'hippodromes
+- [x] Documenter le process de relance après crash ✅ FAIT — docs/PIPELINE_README.md §5 + docs/MAINTENANCE.md "After a Crash"
+- [x] Documenter le process d'ajout d'une nouvelle source ✅ FAIT — docs/PIPELINE_README.md §8
+- [x] Documenter le process d'ajout d'un nouveau builder ✅ FAIT — docs/PIPELINE_README.md §12
+- [x] Documenter le process de rebuild de la matrice ✅ FAIT — docs/PIPELINE_README.md §13
+- [x] Documenter les clés de jointure entre tables ✅ FAIT — docs/PIPELINE_README.md §15
+- [x] Documenter les alias d'hippodromes ✅ FAIT — docs/PIPELINE_README.md §16 + docs/HIPPODROMES.md
 
 ## 10.4 Schémas visuels
-- [ ] Diagramme du flux de données (mermaid ou draw.io)
-- [ ] Diagramme des dépendances entre scripts
-- [ ] Tableau de couverture par source × année
-- [ ] Matrice de jointure (quelle clé relie quoi)
+- [x] Diagramme du flux de données (mermaid ou draw.io) ✅ FAIT — docs/ARCHITECTURE.md §1 (ASCII) + docs/DAG.md (Mermaid)
+- [x] Diagramme des dépendances entre scripts ✅ FAIT — docs/ARCHITECTURE.md §2 + docs/DAG.md
+- [x] Tableau de couverture par source × année ✅ FAIT — docs/ARCHITECTURE.md §3
+- [x] Matrice de jointure (quelle clé relie quoi) ✅ FAIT — docs/PIPELINE_README.md §15 + docs/ARCHITECTURE.md §4
 
 # ┌─────────────────────────────────────────┐
 # │  ÉTAPE 11 — QUALITÉ FINALE             │
