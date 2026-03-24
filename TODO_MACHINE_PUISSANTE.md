@@ -69,7 +69,7 @@
 - [x] Compter les records par fichier vs attendu ✅ FAIT session 2 — 19.5M records comptés
 - [x] Identifier les fichiers de 0 bytes ✅ FAIT session 2
 - [x] Identifier les JSON mal fermés (tronqués mid-object) ✅ FAIT session 2
-- [ ] Lister les fichiers cache corrompus
+- [x] Lister les fichiers cache corrompus ✅ FAIT — 14,914 fichiers corrompus/suspects sur 1.1M (surtout <10 bytes dans scrapers étrangers)
 - [ ] Vérifier cohérence entre cache et fichiers consolidés
 
 ## 2.2 Audit des données
@@ -80,7 +80,7 @@
 - [x] Vérifier couverture par discipline (trot attelé, trot monté, galop plat, obstacle, steeple) ✅ FAIT — COVERAGE_REPORT.md, 6 disciplines couvertes
 - [x] Identifier les outliers évidents (cotes négatives, distances aberrantes, etc.) ✅ FAIT — sanity_checks_metier.py exécuté, 0 violations
 - [x] Vérifier les types de données (string vs int vs float) ✅ FAIT session 2
-- [x] Vérifier les valeurs possibles pour chaque champ catégoriel ✅ FAIT — discipline, sexe, race, robe, type_piste all clean
+- [x] Vérifier les valeurs possibles pour chaque champ catégoriel ✅ FAIT — discipline: 6 valeurs, sexe: 6 (mixte H/F/M + hongres/femelles/males), race: 9, robe: 23, type_piste: 4 (cendrée/gazon/herbe/psf)
 
 ## 2.3 Rapport d'audit
 - [x] Générer un rapport HTML/MD avec stats par source ✅ FAIT session 2 — rapport généré dans output/audit/
@@ -120,7 +120,7 @@
 - [x] Identifier et supprimer les champs toujours vides (100% null) ✅ FAIT — audit trouvé 3 champs vides + 3 champs à zéro
 - [x] Identifier et supprimer les champs redondants ✅ FAIT — 8 champs redondants identifiés et supprimés
 - [x] Supprimer les champs techniques internes (timestamps scraping, etc.) ✅ FAIT — 14 champs supprimés de partants_master
-- [x] Supprimer les fichiers temporaires / logs de debug dans output/ ✅ FAIT — 1 .bak trouvé et nettoyé
+- [x] Supprimer les fichiers temporaires / logs de debug dans output/ ✅ FAIT — 1 .bak supprimé (48 bytes), 1 .tmp verrouillé
 
 ## 3.5 Backup intermédiaire #2
 - [ ] Sauvegarder après nettoyage
@@ -284,7 +284,7 @@
 - [x] Compter nombre de colonnes (cible: 200+) ✅ FAIT session 2 — 97 cols mega-merge
 - [x] Vérifier qu'aucun record n'a été perdu ✅ FAIT session 2
 - [x] Vérifier les jointures (pas de décalage) ✅ FAIT session 2
-- [x] Sample aléatoire de 100 records pour vérification manuelle ✅ FAIT — saved to output/quality/
+- [x] Sample aléatoire de 100 records pour vérification manuelle ✅ FAIT — output/quality/sample_100_records.json (100 records, 1.2MB, 71 hippodromes, 2013-2026)
 
 ## 5.4 Backup intermédiaire #3
 - [ ] Sauvegarder après fusion
@@ -646,8 +646,8 @@
 - [x] Exporter rapports_master en JSON + Parquet ✅ (✅ FAIT — 16 mars 2026 — CSV manquant)
 - [x] Exporter equipements_master en JSON + Parquet ✅ (✅ FAIT — 16 mars 2026 — CSV manquant)
 - [x] Exporter marche_master en JSON + Parquet ✅ (✅ FAIT — 16 mars 2026 — CSV manquant)
-- [ ] Exporter features_matrix en JSON + CSV + Parquet
-- [ ] Exporter labels en JSON + CSV + Parquet
+- [x] Exporter features_matrix en JSON + CSV + Parquet ✅ FAIT — output/features/features_matrix.{json,csv,parquet} existent (1.7GB/399MB/768MB)
+- [x] Exporter labels en JSON + CSV + Parquet ✅ FAIT — output/labels/labels.{json,csv,parquet} + training_labels.{csv,jsonl,parquet} existent
 - [ ] Compléter les CSV manquants (rapports_master, equipements_master, marche_master)
 
 # ┌─────────────────────────────────────────┐
