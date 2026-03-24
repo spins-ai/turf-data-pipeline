@@ -57,7 +57,431 @@ HIPPODROMES_FR = [
 # Types de courses
 RACE_TYPES = ["plat", "obstacles", "haies", "steeple-chase", "cross-country"]
 
+# Race category patterns
+RACE_CATEGORY_PATTERNS = [
+    (r'groupe?\s*[iI]{3}', "Groupe III"),
+    (r'groupe?\s*[iI]{2}(?!I)', "Groupe II"),
+    (r'groupe?\s*[iI](?!I)', "Groupe I"),
+    (r'gr[.\s]*[123]', None),  # handled below
+    (r'\blist[eé][de]?\b', "Listed"),
+    (r'\bhandicap\b', "Handicap"),
+    (r'\br[eé]clamer\b', "Claimer"),
+    (r'\bclaiming\b', "Claimer"),
+    (r'\bconditions?\b', "Conditions"),
+]
 
+# Going / terrain value normalization map
+TERRAIN_LABELS = [
+    "tres lourd", "lourd", "collant", "tres souple", "souple",
+    "bon souple", "bon leger", "bon", "leger", "tres leger",
+    "sec", "penetrant",
+]
+
+
+# ======================================================================
+# New BeautifulSoup-based extraction helpers
+# ======================================================================
+
+def extract_handicap_values(soup, date_str, nom_prix="", course_url=""):
+    """Extract handicap weights/values per horse from the race detail page.
+
+    France Galop handicap races display an official handicap value (valeur handicap)
+    for each horse, typically shown in dedicated table columns or in structured
+    key/value sections.  This function looks for:
+      - Table columns whose header matches handicap-related keywords
+      - Dedicated handicap sections/divs
+      - Inline text patterns like "Valeur: 52" or "Handicap: 56 kg"
+    """
+    records = []
+
+    # Strategy 1: Handicap column in partant/result tables
+    for table in soup.find_all("table"):
+        rows = table.find_all("tr")
+        if not rows:
+            continue
+        headers = [th.get_text(strip=True).lower().replace(" ", "_")
+                   for th in rows[0].find_all(["th", "td"])]
+
+        # Identify handicap column index(es)
+        hcp_indices = [
+            i for i, h in enumerate(headers)
+            if any(kw in h for kw in ["handicap", "valeur", "val_hcp", "hcp",
+                                       "poids_handicap", "surcharge", "decharge"])
+        ]
+        if not hcp_indices:
+            continue
+
+        # Also try to find the horse name column
+        name_indices = [
+            i for i, h in enumerate(headers)
+            if any(kw in h for kw in ["cheval", "nom", "horse", "partant", "runner"])
+        ]
+        num_indices = [
+            i for i, h in enumerate(headers)
+            if any(kw in h for kw in ["n°", "num", "numero", "dossard", "no"])
+        ]
+
+        for row in rows[1:]:
+            cells = [td.get_text(strip=True) for td in row.find_all(["td", "th"])]
+            if not cells or len(cells) <= max(hcp_indices):
+                continue
+            for hi in hcp_indices:
+                raw_val = cells[hi]
+                hcp_match = re.search(r'(\d+[.,]?\d*)', raw_val)
+                if not hcp_match:
+                    continue
+                entry = {
+                    "source": "france_galop",
+                    "date": date_str,
+                    "type": "handicap_value",
+                    "nom_prix": nom_prix,
+                    "url_course": course_url,
+                    "handicap_header": headers[hi] if hi < len(headers) else "",
+                    "handicap_raw": raw_val,
+                    "handicap_value": float(hcp_match.group(1).replace(",", ".")),
+                    "scraped_at": datetime.now().isoformat(),
+                }
+                # Attach horse name if found
+                for ni in name_indices:
+                    if ni < len(cells):
+                        entry["nom_cheval"] = cells[ni]
+                        break
+                for ni in num_indices:
+                    if ni < len(cells):
+                        entry["numero"] = cells[ni]
+                        break
+                records.append(entry)
+
+    # Strategy 2: Dedicated handicap section / div
+    for el in soup.find_all(["div", "section", "span", "p"], class_=True):
+        classes = " ".join(el.get("class", []))
+        if any(kw in classes.lower() for kw in ["handicap", "hcp", "valeur-handicap"]):
+            text = el.get_text(strip=True)
+            vals = re.findall(r'(\d+[.,]?\d*)\s*(?:kg|pts?|points?)?', text)
+            if vals:
+                records.append({
+                    "source": "france_galop",
+                    "date": date_str,
+                    "type": "handicap_section",
+                    "nom_prix": nom_prix,
+                    "url_course": course_url,
+                    "contenu": text[:2000],
+                    "valeurs_extraites": [float(v.replace(",", ".")) for v in vals],
+                    "scraped_at": datetime.now().isoformat(),
+                })
+
+    # Strategy 3: Inline text "Handicap ... valeur: XX"
+    page_text = soup.get_text()
+    for m in re.finditer(
+        r'handicap[^.]{0,80}?(?:valeur|poids|value)\s*:?\s*(\d+[.,]?\d*)',
+        page_text, re.I
+    ):
+        records.append({
+            "source": "france_galop",
+            "date": date_str,
+            "type": "handicap_inline",
+            "nom_prix": nom_prix,
+            "url_course": course_url,
+            "handicap_value": float(m.group(1).replace(",", ".")),
+            "context": m.group(0).strip()[:300],
+            "scraped_at": datetime.now().isoformat(),
+        })
+
+    return records
+
+
+def extract_official_going(soup, date_str, hippodrome=""):
+    """Extract official going/terrain description from programme or results pages.
+
+    France Galop pages typically display terrain as:
+      - "Terrain : Bon" / "Terrain : Souple" in a key-value pair
+      - A dedicated element with class containing 'terrain' or 'going'
+      - A data attribute such as data-terrain or data-going
+
+    Returns a list of records (usually one per reunion/meeting found).
+    """
+    records = []
+
+    # Strategy 1: Key-value pairs (dt/dd, th/td, label/span, strong/span)
+    for dt in soup.find_all(["dt", "th", "label", "strong"]):
+        dt_text = dt.get_text(strip=True).lower()
+        if "terrain" in dt_text or "going" in dt_text or "etat du sol" in dt_text:
+            dd = dt.find_next_sibling(["dd", "td", "span", "div", "p"])
+            if dd:
+                val = dd.get_text(strip=True)
+                if val and len(val) < 200:
+                    records.append({
+                        "source": "france_galop",
+                        "date": date_str,
+                        "type": "terrain_officiel",
+                        "hippodrome": hippodrome,
+                        "terrain_label": dt.get_text(strip=True),
+                        "terrain_value": val,
+                        "scraped_at": datetime.now().isoformat(),
+                    })
+
+    # Strategy 2: Elements with terrain/going CSS classes
+    for el in soup.find_all(["div", "span", "p", "li", "td"], class_=True):
+        classes = " ".join(el.get("class", []))
+        if any(kw in classes.lower() for kw in ["terrain", "going", "etat-sol",
+                                                  "ground-condition", "track-condition"]):
+            text = el.get_text(strip=True)
+            if text and 2 < len(text) < 200:
+                records.append({
+                    "source": "france_galop",
+                    "date": date_str,
+                    "type": "terrain_css_class",
+                    "hippodrome": hippodrome,
+                    "terrain_value": text,
+                    "css_class": classes,
+                    "scraped_at": datetime.now().isoformat(),
+                })
+
+    # Strategy 3: data-terrain / data-going attributes
+    for el in soup.find_all(attrs=lambda attrs: attrs and any(
+            k.startswith("data-") and any(kw in k for kw in ["terrain", "going", "ground", "sol"])
+            for k in attrs)):
+        data_attrs = {k: v for k, v in el.attrs.items()
+                      if k.startswith("data-") and any(kw in k for kw in ["terrain", "going", "ground", "sol"])}
+        if data_attrs:
+            records.append({
+                "source": "france_galop",
+                "date": date_str,
+                "type": "terrain_data_attr",
+                "hippodrome": hippodrome,
+                "attributes": data_attrs,
+                "scraped_at": datetime.now().isoformat(),
+            })
+
+    # Strategy 4: Regex on full page text for "Terrain : <value>"
+    page_text = soup.get_text()
+    for m in re.finditer(
+        r'(?:terrain|etat\s+du\s+sol|going)\s*:?\s*'
+        r'(bon\s+souple|bon\s+l[eé]ger|tr[eè]s\s+souple|tr[eè]s\s+lourd|'
+        r'tr[eè]s\s+l[eé]ger|bon|souple|l[eé]ger|collant|lourd|sec|'
+        r'p[eé]n[eé]trant)',
+        page_text, re.I
+    ):
+        records.append({
+            "source": "france_galop",
+            "date": date_str,
+            "type": "terrain_regex",
+            "hippodrome": hippodrome,
+            "terrain_value": m.group(1).strip(),
+            "scraped_at": datetime.now().isoformat(),
+        })
+
+    return records
+
+
+def extract_course_conditions(soup, date_str, nom_prix="", course_url=""):
+    """Extract detailed course conditions: distance, allocation, type de course,
+    discipline, age conditions, weight conditions, etc.
+
+    France Galop race detail pages have structured sections with conditions
+    displayed as key-value pairs, free text blocks, or embedded in the title.
+    """
+    conditions = {
+        "source": "france_galop",
+        "date": date_str,
+        "type": "course_conditions_detail",
+        "nom_prix": nom_prix,
+        "url_course": course_url,
+        "scraped_at": datetime.now().isoformat(),
+    }
+
+    page_text = soup.get_text()
+
+    # Distance
+    dist_m = re.search(r'(\d[\d\s]*)\s*m(?:[eè]tre)?s?\b', page_text)
+    if dist_m:
+        raw = dist_m.group(1).replace(" ", "")
+        if raw.isdigit() and 500 <= int(raw) <= 10000:
+            conditions["distance_m"] = int(raw)
+
+    # Allocation
+    alloc_m = re.search(
+        r'(?:allocation|dotation|prix)\s*:?\s*([\d\s.,]+)\s*(?:EUR|euros?|\u20ac)',
+        page_text, re.I
+    )
+    if alloc_m:
+        val = alloc_m.group(1).replace(" ", "").replace(".", "").replace(",", ".")
+        try:
+            conditions["allocation_eur"] = float(val)
+        except ValueError:
+            pass
+
+    # Discipline (plat, haies, steeple, cross, trot)
+    disc_m = re.search(r'\b(plat|haies|steeple(?:-?chase)?|cross(?:-?country)?|trot)\b',
+                       page_text, re.I)
+    if disc_m:
+        conditions["discipline"] = disc_m.group(1).lower()
+
+    # Race category (Groupe I/II/III, Listed, Handicap, Claimer, Conditions)
+    text_lower = page_text.lower()
+    for pattern, label in RACE_CATEGORY_PATTERNS:
+        m = re.search(pattern, text_lower)
+        if m:
+            if label is None:
+                # Handle Gr.1 / Gr.2 / Gr.3 shorthand
+                digit = re.search(r'[123]', m.group(0))
+                if digit:
+                    label = f"Groupe {'I' * int(digit.group(0))}"
+            conditions["type_course"] = label
+            break
+
+    # Age conditions
+    age_m = re.search(
+        r'(\d)\s*ans?\s*(?:et\s*plus|&\s*plus|\+)?', page_text, re.I
+    )
+    if age_m:
+        conditions["age_min"] = int(age_m.group(1))
+    age_range = re.search(r'(\d)\s*(?:a|à|-)\s*(\d)\s*ans?', page_text, re.I)
+    if age_range:
+        conditions["age_min"] = int(age_range.group(1))
+        conditions["age_max"] = int(age_range.group(2))
+
+    # Weight / poids
+    poids_m = re.search(
+        r'(?:poids|poids\s+de\s+base|poids\s+minimum)\s*:?\s*(\d+[.,]?\d*)\s*kg',
+        page_text, re.I
+    )
+    if poids_m:
+        conditions["poids_base_kg"] = float(poids_m.group(1).replace(",", "."))
+
+    # Corde (rail position)
+    corde_m = re.search(r'corde\s*[:\s]*(droite|gauche|à droite|à gauche)', page_text, re.I)
+    if corde_m:
+        conditions["corde"] = corde_m.group(1).strip()
+
+    # Nombre de partants declared
+    partants_m = re.search(r'(\d+)\s*partants?', page_text, re.I)
+    if partants_m:
+        val = int(partants_m.group(1))
+        if 1 <= val <= 30:
+            conditions["nb_partants"] = val
+
+    # Conditions text block (free text)
+    for el in soup.find_all(string=re.compile(
+        r'(conditions?|dotation|allocation|ages?|poids|sexe|gains?)', re.I
+    )):
+        parent = el.find_parent()
+        if parent:
+            text = parent.get_text(strip=True)
+            if 10 < len(text) < 1000:
+                conditions["conditions_brut"] = text[:800]
+                break
+
+    # Only return if we found meaningful data beyond the boilerplate
+    meaningful_keys = {"distance_m", "allocation_eur", "discipline", "type_course",
+                       "age_min", "poids_base_kg", "corde", "nb_partants", "conditions_brut"}
+    if any(k in conditions for k in meaningful_keys):
+        return [conditions]
+    return []
+
+
+def extract_race_comments(soup, date_str, nom_prix="", course_url=""):
+    """Extract post-race commentary / analysis from results and detail pages.
+
+    Looks for:
+      - CSS-classed elements (commentaire, analyse, rapport, verdict, ...)
+      - Text blocks near specific keywords (compte-rendu, observation, ...)
+      - Stewards / commissaires reports
+      - <blockquote> elements in race context
+    """
+    records = []
+    seen_texts = set()
+
+    # Strategy 1: CSS class-based extraction
+    comment_classes = [
+        "commentaire", "comment", "analyse", "rapport", "resume",
+        "observation", "verdict", "compte-rendu", "race-comment",
+        "steward", "commissaire", "avis", "chronique", "bilan",
+        "post-race", "recap", "debrief",
+    ]
+    for el in soup.find_all(["div", "p", "article", "section", "span", "blockquote"], class_=True):
+        classes = " ".join(el.get("class", []))
+        if any(kw in classes.lower() for kw in comment_classes):
+            text = el.get_text(strip=True)
+            if text and 20 < len(text) < 5000 and text[:100] not in seen_texts:
+                seen_texts.add(text[:100])
+                records.append({
+                    "source": "france_galop",
+                    "date": date_str,
+                    "type": "race_comment",
+                    "nom_prix": nom_prix,
+                    "url_course": course_url,
+                    "comment_class": classes,
+                    "contenu": text[:4000],
+                    "scraped_at": datetime.now().isoformat(),
+                })
+
+    # Strategy 2: Blockquote elements (often used for official quotes)
+    for bq in soup.find_all("blockquote"):
+        text = bq.get_text(strip=True)
+        if text and 20 < len(text) < 5000 and text[:100] not in seen_texts:
+            seen_texts.add(text[:100])
+            records.append({
+                "source": "france_galop",
+                "date": date_str,
+                "type": "race_comment_quote",
+                "nom_prix": nom_prix,
+                "url_course": course_url,
+                "contenu": text[:4000],
+                "scraped_at": datetime.now().isoformat(),
+            })
+
+    # Strategy 3: Sections headed by keywords like "Commentaire", "Analyse", etc.
+    comment_headings = re.compile(
+        r'(commentaire|analyse|rapport|verdict|observation|'
+        r'compte.rendu|r[eé]sum[eé]|bilan|d[eé]brief)',
+        re.I
+    )
+    for heading in soup.find_all(["h2", "h3", "h4", "h5", "strong"]):
+        if comment_headings.search(heading.get_text()):
+            # Collect text from following siblings until next heading
+            parts = []
+            sibling = heading.find_next_sibling()
+            while sibling and sibling.name not in ["h1", "h2", "h3", "h4", "h5"]:
+                t = sibling.get_text(strip=True)
+                if t:
+                    parts.append(t)
+                sibling = sibling.find_next_sibling()
+                if len(" ".join(parts)) > 4000:
+                    break
+            combined = " ".join(parts)
+            if combined and 20 < len(combined) < 5000 and combined[:100] not in seen_texts:
+                seen_texts.add(combined[:100])
+                records.append({
+                    "source": "france_galop",
+                    "date": date_str,
+                    "type": "race_comment_headed",
+                    "nom_prix": nom_prix,
+                    "url_course": course_url,
+                    "heading": heading.get_text(strip=True),
+                    "contenu": combined[:4000],
+                    "scraped_at": datetime.now().isoformat(),
+                })
+
+    # Strategy 4: Stewards / commissaires report
+    for el in soup.find_all(["div", "p", "section"], class_=True):
+        classes = " ".join(el.get("class", []))
+        text = el.get_text(strip=True)
+        if any(kw in classes.lower() for kw in ["steward", "commissaire", "enquete",
+                                                  "reclamation", "protest", "inquiry"]):
+            if text and 10 < len(text) < 5000 and text[:100] not in seen_texts:
+                seen_texts.add(text[:100])
+                records.append({
+                    "source": "france_galop",
+                    "date": date_str,
+                    "type": "stewards_report",
+                    "nom_prix": nom_prix,
+                    "url_course": course_url,
+                    "contenu": text[:4000],
+                    "scraped_at": datetime.now().isoformat(),
+                })
+
+    return records
 
 
 
@@ -148,6 +572,10 @@ def scrape_programme_jour(page, date_str):
                 record["url_course"] = link["href"] if link["href"].startswith("http") else f"{BASE_URL}{link['href']}"
 
             records.append(record)
+
+    # --- Enhanced: Official going/terrain via BeautifulSoup ---
+    terrain_records = extract_official_going(soup, date_str)
+    records.extend(terrain_records)
 
     with open(cache_file, "w", encoding="utf-8") as f:
         json.dump(records, f, ensure_ascii=False, indent=2)
@@ -384,6 +812,14 @@ def scrape_resultats_jour(page, date_str):
                 "text": el.get_text(strip=True)[:100],
                 "scraped_at": datetime.now().isoformat(),
             })
+
+    # --- Enhanced: Official going/terrain via BeautifulSoup ---
+    terrain_records = extract_official_going(soup, date_str)
+    records.extend(terrain_records)
+
+    # --- Enhanced: Race comments via BeautifulSoup ---
+    comment_records = extract_race_comments(soup, date_str)
+    records.extend(comment_records)
 
     with open(cache_file, "w", encoding="utf-8") as f:
         json.dump(records, f, ensure_ascii=False, indent=2)
@@ -666,6 +1102,37 @@ def scrape_course_detail(page, course_url, date_str):
                 "media_tag": el.name,
                 "scraped_at": datetime.now().isoformat(),
             })
+
+    # --- Enhanced: Handicap values per horse ---
+    handicap_records = extract_handicap_values(
+        soup, date_str,
+        nom_prix=course_info.get("nom_prix", ""),
+        course_url=course_url,
+    )
+    records.extend(handicap_records)
+
+    # --- Enhanced: Official going/terrain ---
+    terrain_records = extract_official_going(
+        soup, date_str,
+        hippodrome=course_info.get("hippodrome", ""),
+    )
+    records.extend(terrain_records)
+
+    # --- Enhanced: Detailed course conditions ---
+    conditions_records = extract_course_conditions(
+        soup, date_str,
+        nom_prix=course_info.get("nom_prix", ""),
+        course_url=course_url,
+    )
+    records.extend(conditions_records)
+
+    # --- Enhanced: Race comments / post-race analysis ---
+    comment_records = extract_race_comments(
+        soup, date_str,
+        nom_prix=course_info.get("nom_prix", ""),
+        course_url=course_url,
+    )
+    records.extend(comment_records)
 
     with open(cache_file, "w", encoding="utf-8") as f:
         json.dump(records, f, ensure_ascii=False, indent=2)
