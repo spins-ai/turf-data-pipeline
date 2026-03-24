@@ -18,10 +18,10 @@ Usage:
     python master_feature_builder.py --input ... --output output/features/features_matrix.jsonl
 """
 
+from __future__ import annotations
+
 import sys as _sys, os as _os  # auto-added by organize_project.py
 _sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), '..'))  # project root
-
-from __future__ import annotations
 
 import argparse
 import json
@@ -2184,7 +2184,7 @@ def run_pipeline(input_path: str, output_path: str, logger: logging.Logger):
 
     # Save stats sidecar
     stats_path = output_path.replace(".jsonl", "_stats.json")
-    with open(stats_path, "w", encoding="utf-8") as f:
+    with open(stats_path, "w", encoding="utf-8", newline="\n") as f:
         json.dump({
             "total_partants": n_written,
             "total_features": len(all_feature_keys),

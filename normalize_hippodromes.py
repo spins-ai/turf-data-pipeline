@@ -211,7 +211,7 @@ def process_jsonl(input_path, output_path, lookup):
     tmp_path = output_path.with_suffix(".jsonl.tmp")
 
     with open(input_path, "r", encoding="utf-8", errors="replace", buffering=1024*1024) as fin, \
-         open(tmp_path, "w", encoding="utf-8", errors="replace") as fout:
+         open(tmp_path, "w", encoding="utf-8", errors="replace", newline="\n") as fout:
         while True:
             line = fin.readline()
             if not line:

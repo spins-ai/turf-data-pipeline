@@ -247,12 +247,12 @@ def main():
             return
 
     output_file = os.path.join(OUTPUT_DIR, "boturfers_hippodromes.json")
-    with open(output_file, "w", encoding="utf-8") as f:
+    with open(output_file, "w", encoding="utf-8", newline="\n") as f:
         json.dump(all_stats, f, ensure_ascii=False, indent=2)
 
     # JSONL
     jsonl_file = os.path.join(OUTPUT_DIR, "boturfers_hippodromes.jsonl")
-    with open(jsonl_file, "w", encoding="utf-8") as f:
+    with open(jsonl_file, "w", encoding="utf-8", newline="\n") as f:
         for record in all_stats:
             f.write(json.dumps(record, ensure_ascii=False) + "\n")
     print(f"  Sauvé: {jsonl_file} ({len(all_stats)} entrées)")

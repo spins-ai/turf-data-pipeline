@@ -9,10 +9,10 @@ Usage :
     python3 renormaliser.py
 """
 
+from __future__ import annotations
+
 import sys as _sys, os as _os  # auto-added by organize_project.py
 _sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), '..', '..'))  # project root
-
-from __future__ import annotations
 
 import json
 import sys

@@ -15,10 +15,10 @@ Usage :
     python3 07_cotes_marche.py --help
 """
 
+from __future__ import annotations
+
 import sys as _sys, os as _os  # auto-added by organize_project.py
 _sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), '..', '..'))  # project root
-
-from __future__ import annotations
 
 import argparse
 import csv

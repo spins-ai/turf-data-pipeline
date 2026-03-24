@@ -12,10 +12,10 @@ Usage :
     python3 patch_brutes_letrot.py [--pause 0.5] [--batch 200]
 """
 
+from __future__ import annotations
+
 import sys as _sys, os as _os  # auto-added by organize_project.py
 _sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), '..', '..'))  # project root
-
-from __future__ import annotations
 
 import argparse
 import html as html_module

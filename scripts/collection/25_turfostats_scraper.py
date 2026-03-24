@@ -156,8 +156,8 @@ def export_cache_to_jsonl():
     log.info(f"Export cache → JSONL")
     prog_count = 0
     course_count = 0
-    with open(jsonl_programmes, "w", encoding="utf-8") as fp, \
-         open(jsonl_courses, "w", encoding="utf-8") as fc:
+    with open(jsonl_programmes, "w", encoding="utf-8", newline="\n") as fp, \
+         open(jsonl_courses, "w", encoding="utf-8", newline="\n") as fc:
         for fname in sorted(os.listdir(CACHE_DIR)):
             if not fname.endswith(".json"):
                 continue
@@ -261,8 +261,8 @@ def main():
     log.info(f"Agrégation cache → JSONL")
     prog_count = 0
     course_count = 0
-    with open(jsonl_programmes, "w", encoding="utf-8") as fp, \
-         open(jsonl_courses, "w", encoding="utf-8") as fc:
+    with open(jsonl_programmes, "w", encoding="utf-8", newline="\n") as fp, \
+         open(jsonl_courses, "w", encoding="utf-8", newline="\n") as fc:
         for fname in sorted(os.listdir(CACHE_DIR)):
             if not fname.endswith(".json"):
                 continue

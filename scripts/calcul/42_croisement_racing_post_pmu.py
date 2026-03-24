@@ -231,7 +231,7 @@ def compute_croisement(partants, rp_index):
     output_file = os.path.join(OUTPUT_DIR, "croisement_rp_pmu.jsonl")
     enriched = 0
 
-    with open(output_file, "w", encoding="utf-8") as fout:
+    with open(output_file, "w", encoding="utf-8", newline="\n") as fout:
         for i, p in enumerate(partants):
             nom = normalize_name(p.get("nom_cheval", ""))
             result = {
@@ -302,7 +302,7 @@ def main():
     rp_records = load_racing_post()
     if not rp_records:
         log.warning("Pas de données Racing Post — fichier vide créé")
-        with open(os.path.join(OUTPUT_DIR, "croisement_rp_pmu.jsonl"), "w", encoding="utf-8", errors="replace") as f:
+        with open(os.path.join(OUTPUT_DIR, "croisement_rp_pmu.jsonl"), "w", encoding="utf-8", errors="replace", newline="\n") as f:
             pass
         return
 

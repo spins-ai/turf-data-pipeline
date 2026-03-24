@@ -199,7 +199,7 @@ def scrape_reunion_page(page, reunion_info, date_iso, output_file):
     for rec in records:
         append_jsonl(output_file, rec)
 
-    with open(cache_file, "w", encoding="utf-8") as f:
+    with open(cache_file, "w", encoding="utf-8", newline="\n") as f:
         json.dump({
             "url": url,
             "nb_records": len(records),
@@ -317,7 +317,7 @@ def scrape_course_page(page, course_info, date_iso, output_file):
     for rec in records:
         append_jsonl(output_file, rec)
 
-    with open(cache_file, "w", encoding="utf-8") as f:
+    with open(cache_file, "w", encoding="utf-8", newline="\n") as f:
         json.dump({"url": url, "nb_records": len(records), "date": date_iso},
                   f, ensure_ascii=False)
 

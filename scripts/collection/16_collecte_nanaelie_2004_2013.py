@@ -23,10 +23,10 @@ Usage :
     python3 16_collecte_nanaelie_2004_2013.py --date-debut 2010-01-01 --date-fin 2010-12-31
 """
 
+from __future__ import annotations
+
 import sys as _sys, os as _os  # auto-added by organize_project.py
 _sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), '..', '..'))  # project root
-
-from __future__ import annotations
 
 import argparse
 import csv
@@ -374,7 +374,7 @@ def sauver_jsonl(data: list[dict], path: Path, logger: logging.Logger):
         return
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_suffix(".tmp")
-    with open(tmp, "w", encoding="utf-8") as f:
+    with open(tmp, "w", encoding="utf-8", newline="\n") as f:
         for record in data:
             f.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
     tmp.replace(path)

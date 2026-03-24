@@ -428,7 +428,7 @@ def scrape_sale(page, sale_info, output_file):
     for rec in records:
         append_jsonl(output_file, rec)
 
-    with open(cache_file, "w", encoding="utf-8") as f:
+    with open(cache_file, "w", encoding="utf-8", newline="\n") as f:
         json.dump({"sale_url": sale_url, "count": len(records)},
                   f, ensure_ascii=False, indent=2)
 

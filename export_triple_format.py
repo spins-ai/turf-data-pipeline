@@ -91,7 +91,7 @@ def export_json(source: Path, output: Path, total: int) -> int:
     Utilise le streaming pour eviter de tout charger en RAM.
     Retourne la taille du fichier en octets.
     """
-    with open(output, "w", encoding="utf-8") as fout:
+    with open(output, "w", encoding="utf-8", newline="\n") as fout:
         fout.write("[\n")
         first = True
         for record in iter_jsonl(source):

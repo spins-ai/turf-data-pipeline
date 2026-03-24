@@ -287,7 +287,7 @@ def main():
 
     import contextlib
     with contextlib.ExitStack() as stack:
-        fout = stack.enter_context(open(output_file, "w", encoding="utf-8"))
+        fout = stack.enter_context(open(output_file, "w", encoding="utf-8", newline="\n"))
         if source_path.endswith(".jsonl"):
             opener = stack.enter_context(open(source_path, "r", encoding="utf-8"))
             records_iter = (json.loads(line.strip()) for line in opener if line.strip())

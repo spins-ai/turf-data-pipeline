@@ -199,7 +199,7 @@ def main():
     print(f"\n=== SAUVEGARDE ===")
 
     output_file = os.path.join(OUTPUT_DIR, "ifce_stats_all.json")
-    with open(output_file, "w", encoding="utf-8") as f:
+    with open(output_file, "w", encoding="utf-8", newline="\n") as f:
         json.dump(all_data, f, ensure_ascii=False, indent=2)
 
     # Agrégation cache -> JSONL
@@ -207,7 +207,7 @@ def main():
     cache_records = aggregate_cache_files()
     if cache_records:
         jsonl_file = os.path.join(OUTPUT_DIR, "ifce_stats_all.jsonl")
-        with open(jsonl_file, "w", encoding="utf-8") as f:
+        with open(jsonl_file, "w", encoding="utf-8", newline="\n") as f:
             for record in cache_records:
                 f.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
         print(f"  Sauvé: {jsonl_file} ({len(cache_records)} entrées)")

@@ -391,7 +391,7 @@ def main():
 
     log.info("Comblage en cours...")
 
-    with open(output_file, "w", encoding="utf-8") as fout:
+    with open(output_file, "w", encoding="utf-8", newline="\n") as fout:
         if source_path.endswith(".jsonl"):
             with open(source_path, "r", encoding="utf-8") as fin:
                 for line in fin:

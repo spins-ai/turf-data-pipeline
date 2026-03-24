@@ -258,7 +258,7 @@ def main():
 
     # Save dataset catalog
     catalog_file = os.path.join(CACHE_DIR, "dataset_catalog.json")
-    with open(catalog_file, "w", encoding="utf-8") as f:
+    with open(catalog_file, "w", encoding="utf-8", newline="\n") as f:
         json.dump(list(all_datasets.values()), f, ensure_ascii=False, indent=2)
 
     # Write catalog entries to JSONL

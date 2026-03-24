@@ -223,7 +223,7 @@ def stream_from_jsonl(input_path: str, output_dir: str,
 
     # Pass 2: compute & write
     n_written = 0
-    with open(out_path, "w", encoding="utf-8") as out:
+    with open(out_path, "w", encoding="utf-8", newline="\n") as out:
         for runners in course_groups.values():
             feats = _build_race_features(runners)
             for f in feats:

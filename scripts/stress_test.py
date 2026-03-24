@@ -88,7 +88,7 @@ def _read_jsonl_stream(path: Path) -> list[dict]:
 
 def _write_jsonl(path: Path, records: list[dict]) -> None:
     """Write records as JSONL."""
-    with open(path, "w", encoding="utf-8") as fh:
+    with open(path, "w", encoding="utf-8", newline="\n") as fh:
         for rec in records:
             fh.write(json.dumps(rec, ensure_ascii=False) + "\n")
 
@@ -123,7 +123,7 @@ def test_malformed_jsonl() -> None:
     try:
         with tempfile.TemporaryDirectory() as tmpdir:
             path = Path(tmpdir) / "malformed.jsonl"
-            with open(path, "w", encoding="utf-8") as fh:
+            with open(path, "w", encoding="utf-8", newline="\n") as fh:
                 fh.write('{"valid": "record", "num": 1}\n')
                 fh.write('THIS IS NOT JSON AT ALL {{{{\n')
                 fh.write('{"also_valid": true}\n')
@@ -387,7 +387,7 @@ def test_mixed_edge_cases() -> None:
     try:
         with tempfile.TemporaryDirectory() as tmpdir:
             path = Path(tmpdir) / "mixed.jsonl"
-            with open(path, "w", encoding="utf-8-sig") as fh:  # BOM
+            with open(path, "w", encoding="utf-8-sig", newline="\n") as fh:  # BOM
                 # Unicode names
                 fh.write(json.dumps({
                     "nom_cheval": "Etoile d'Or",

@@ -145,7 +145,7 @@ def export_cache_to_jsonl():
     jsonl_file = os.path.join(OUTPUT_DIR, "canalturf_chevaux.jsonl")
     log.info(f"Export cache → {jsonl_file}")
     jsonl_count = 0
-    with open(jsonl_file, "w", encoding="utf-8") as fout:
+    with open(jsonl_file, "w", encoding="utf-8", newline="\n") as fout:
         for fname in sorted(os.listdir(CACHE_DIR)):
             if not fname.endswith(".json"):
                 continue
@@ -237,7 +237,7 @@ def main():
         smart_pause(1.5, 0.8)
 
     log.info("Sauvegarde finale...")
-    with open(output_file, "w", encoding="utf-8") as f:
+    with open(output_file, "w", encoding="utf-8", newline="\n") as f:
         json.dump(all_horses, f, ensure_ascii=False)
 
     # Agrégation cache → JSONL
@@ -245,7 +245,7 @@ def main():
     log.info(f"Agrégation cache → {jsonl_file}")
     jsonl_count = 0
     # Overwrite: write fresh JSONL from all cache files
-    with open(jsonl_file, "w", encoding="utf-8") as fout:
+    with open(jsonl_file, "w", encoding="utf-8", newline="\n") as fout:
         for fname in sorted(os.listdir(CACHE_DIR)):
             if not fname.endswith(".json"):
                 continue

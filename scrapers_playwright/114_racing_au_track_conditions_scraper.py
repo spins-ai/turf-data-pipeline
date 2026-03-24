@@ -290,7 +290,7 @@ class RacingAuTrackConditionsPlaywright(PlaywrightScraperBase):
             records.append(rec)
 
         # --- Rail position updates ---
-        rail_updates = self.page.evaluate("""() => {
+        rail_updates = self.page.evaluate(r"""() => {
             const results = [];
             const els = document.querySelectorAll('div, span, p, li, td');
             for (const el of els) {

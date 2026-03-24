@@ -554,7 +554,7 @@ def main():
 
     # Aussi sauvegarder en JSON pour traitement automatique
     json_path = DOCS_DIR / "validation_croisee.json"
-    with open(json_path, "w", encoding="utf-8", errors="replace") as f:
+    with open(json_path, "w", encoding="utf-8", errors="replace", newline="\n") as f:
         # Nettoyer les sets pour JSON serialization
         clean_results = json.loads(json.dumps(results, default=str))
         json.dump(clean_results, f, ensure_ascii=False, indent=2)

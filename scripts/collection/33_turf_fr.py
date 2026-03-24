@@ -99,7 +99,7 @@ def scrape_day(date_str):
         smart_pause(1.5, 0.5)
     
     if records:
-        with open(cache_file, "w", encoding="utf-8") as f:
+        with open(cache_file, "w", encoding="utf-8", newline="\n") as f:
             json.dump(records, f, ensure_ascii=False)
     return records
 
@@ -108,7 +108,7 @@ def export_cache_to_jsonl():
     jsonl_file = os.path.join(OUTPUT_DIR, "turf_fr_cache.jsonl")
     log.info(f"Export cache → {jsonl_file}")
     count = 0
-    with open(jsonl_file, "w", encoding="utf-8") as fout:
+    with open(jsonl_file, "w", encoding="utf-8", newline="\n") as fout:
         for fname in sorted(os.listdir(CACHE_DIR)):
             if not fname.endswith(".json"):
                 continue

@@ -20,10 +20,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from utils.logging_setup import setup_logging
+from utils.scraping import load_checkpoint, save_checkpoint
 
 _PROJECT_ROOT = Path(__file__).resolve().parent
 OUTPUT_DIR = _PROJECT_ROOT / "output" / "160_ihrb"
 CACHE_DIR = OUTPUT_DIR / "cache"
+CHECKPOINT_FILE = OUTPUT_DIR / ".checkpoint.json"
 
 BASE_URL = "https://www.ihrb.ie"
 RESULTS_URL = f"{BASE_URL}/racing/results"
@@ -104,14 +106,20 @@ def main():
     parser.add_argument("--max-pages", type=int, default=200)
     args = parser.parse_args()
 
+    checkpoint = load_checkpoint(str(CHECKPOINT_FILE))
     results = scrape_ihrb(logger, max_pages=args.max_pages)
 
     if results:
         out_path = OUTPUT_DIR / "ihrb_results.jsonl"
-        with open(out_path, "w", encoding="utf-8") as f:
+        with open(out_path, "w", encoding="utf-8", newline="\n") as f:
             for rec in results:
                 f.write(json.dumps(rec, ensure_ascii=False) + "\n")
         logger.info("Saved %d records to %s", len(results), out_path)
+        save_checkpoint(str(CHECKPOINT_FILE), {
+            "total_records": len(results),
+            "status": "done",
+            "last_run": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        })
 
 
 if __name__ == "__main__":

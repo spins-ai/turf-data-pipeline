@@ -396,7 +396,7 @@ def scrape_by_letter(page, letter, output_file, checkpoint):
         records.extend(extract_embedded_json_data(soup))
 
         # Cache detail records
-        with open(detail_cache, "w", encoding="utf-8") as f:
+        with open(detail_cache, "w", encoding="utf-8", newline="\n") as f:
             json.dump(records, f, ensure_ascii=False, indent=2)
 
         for rec in records:

@@ -120,7 +120,7 @@ def export_cache_to_jsonl():
     jsonl_file = os.path.join(OUTPUT_DIR, "geny_data.jsonl")
     log.info(f"Export cache → {jsonl_file}")
     jsonl_count = 0
-    with open(jsonl_file, "w", encoding="utf-8") as fout:
+    with open(jsonl_file, "w", encoding="utf-8", newline="\n") as fout:
         for fname in sorted(os.listdir(CACHE_DIR)):
             if not fname.endswith(".json"):
                 continue
@@ -213,7 +213,7 @@ def main():
     jsonl_file = os.path.join(OUTPUT_DIR, "geny_data.jsonl")
     log.info(f"Agrégation cache → {jsonl_file}")
     jsonl_count = 0
-    with open(jsonl_file, "w", encoding="utf-8") as fout:
+    with open(jsonl_file, "w", encoding="utf-8", newline="\n") as fout:
         for fname in sorted(os.listdir(CACHE_DIR)):
             if not fname.endswith(".json"):
                 continue

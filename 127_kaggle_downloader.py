@@ -390,7 +390,7 @@ def convert_csv_to_jsonl(ds_dir, dataset_ref, jsonl_dir):
             try:
                 with open(fpath, "r", encoding="utf-8", errors="replace") as fin:
                     reader = csv.DictReader(fin, delimiter=delimiter)
-                    with open(jsonl_file, "w", encoding="utf-8") as fout:
+                    with open(jsonl_file, "w", encoding="utf-8", newline="\n") as fout:
                         for row in reader:
                             # Add metadata
                             record = {
