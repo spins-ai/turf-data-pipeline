@@ -21,12 +21,15 @@ Usage:
 
 import argparse
 import json
+import logging
 import os
 from collections import Counter, defaultdict
 from datetime import datetime
 from pathlib import Path
 
 from utils.normalize import normalize_name
+
+log = logging.getLogger(__name__)
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_MASTER = BASE_DIR / "data_master"
@@ -255,7 +258,7 @@ def find_data_files() -> list[tuple]:
                 dirs[:] = [d for d in dirs if d not in skip_dirs]
                 for fname in filenames:
                     if fname.endswith((".json", ".jsonl")) and not fname.endswith((".tmp", ".bak")):
-                        files.append((Path(root) / fname, fos.path.join(BASE_DIR, "output", "{subdir.name}")))
+                        files.append((Path(root) / fname, f"output/{subdir.name}"))
 
     return files
 

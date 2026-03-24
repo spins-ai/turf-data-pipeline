@@ -19,11 +19,14 @@ Usage:
 
 import argparse
 import json
+import logging
 import os
 import sys
 from collections import Counter, defaultdict
 from datetime import datetime
 from pathlib import Path
+
+log = logging.getLogger(__name__)
 
 BASE_DIR = Path(__file__).resolve().parent
 OUTPUT_DIR = BASE_DIR / "output"
