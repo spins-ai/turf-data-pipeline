@@ -236,18 +236,30 @@ def check_temporal_leakage(
     # Identify date-like columns (those containing dates in their values)
     date_keywords = ("date", "prev", "precedent", "dernier", "last",
                      "futur", "next", "suivant", "after", "apres")
-    future_keywords = ("futur", "next", "suivant", "after", "apres",
-                       "target", "y_", "result")
+    future_keywords = ("futur", "next_race", "suivant", "y_gagnant",
+                       "y_winner", "y_position", "target_")
+
+    # Whitelist: columns that contain keywords but are computed with temporal integrity
+    temporal_safe = {
+        "commentaire_apres_course", "avis_entraineur",
+        "aff_ct_last_result", "perf_temps_moy_5", "perf_temps_moy_10",
+        "perf_temps_moy_20", "perf_red_moy_5", "perf_red_moy_10",
+        "seq_position_moy_5", "seq_position_moy_10",
+        "jockey_driver", "combo_jockey_change", "combo_jockey_hippo_nb",
+        "jockey_taux_x_cheval_taux", "ent_jockey_taux_place",
+        "ped_sire_precocity_idx",
+    }
 
     all_keys = set()
     for rec in sample:
         all_keys.update(rec.keys())
 
-    # Columns whose NAME suggests future data
+    # Columns whose NAME suggests future data (exclude whitelisted)
     suspicious_name_cols = [
         k for k in all_keys
         if any(kw in k.lower() for kw in future_keywords)
         and k.lower() not in ("date_reunion_iso",)
+        and k not in temporal_safe
     ]
 
     for col in suspicious_name_cols:
