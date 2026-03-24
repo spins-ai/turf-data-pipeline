@@ -1,0 +1,95 @@
+# =============================================================================
+# alerts.yaml — Configuration des alertes pipeline
+# =============================================================================
+# Seuils, destinataires, canaux de notification.
+# Pilier 13 (Telemetrie) + Pilier 8 (Orchestration).
+# =============================================================================
+
+channels:
+  log:
+    enabled: true
+    level: "warning"    # log warnings et errors
+
+  file:
+    enabled: true
+    path: "logs/alerts.log"
+    level: "error"
+
+  # webhook:
+  #   enabled: false
+  #   url: "${ALERT_WEBHOOK_URL}"
+  #   level: "critical"
+
+  # telegram:
+  #   enabled: false
+  #   bot_token: "${TELEGRAM_BOT_TOKEN}"
+  #   chat_id: "${TELEGRAM_CHAT_ID}"
+  #   level: "error"
+
+  # discord:
+  #   enabled: false
+  #   webhook_url: "${DISCORD_WEBHOOK_URL}"
+  #   level: "error"
+
+severity_levels:
+  critical:
+    description: "Pipeline arrete, perte de donnees possible"
+    response_time_min: 5
+    examples:
+      - "Fichier master corrompu"
+      - "Disque plein > 95%"
+      - "0 records apres merge"
+
+  error:
+    description: "Script echoue, donnees incompletes"
+    response_time_min: 60
+    examples:
+      - "Scraper bloque par Cloudflare"
+      - "Merge a perdu des records"
+      - "Schema validation echouee"
+
+  warning:
+    description: "Anomalie detectee, a verifier"
+    response_time_min: 1440  # 24h
+    examples:
+      - "Source pas MAJ depuis 7 jours"
+      - "Taux remplissage en baisse"
+      - "Outliers detectes"
+
+  info:
+    description: "Information, pas d'action requise"
+    examples:
+      - "Script termine avec succes"
+      - "Backup cree"
+      - "Nouvelle source ajoutee"
+
+rules:
+  - name: "stale_source"
+    condition: "source.last_update_days > 7"
+    severity: "warning"
+    message: "Source {source.name} pas mise a jour depuis {source.last_update_days} jours"
+
+  - name: "disk_full"
+    condition: "disk.usage_percent > 90"
+    severity: "critical"
+    message: "Disque a {disk.usage_percent}% — nettoyer caches ou augmenter espace"
+
+  - name: "ram_high"
+    condition: "ram.usage_percent > 80"
+    severity: "warning"
+    message: "RAM a {ram.usage_percent}% — reduire batch size ou nb workers"
+
+  - name: "script_timeout"
+    condition: "script.runtime_min > 60"
+    severity: "warning"
+    message: "Script {script.name} tourne depuis {script.runtime_min} min sans progres"
+
+  - name: "records_decreased"
+    condition: "master.records < master.previous_records"
+    severity: "error"
+    message: "Master {master.name} a perdu des records: {master.previous_records} -> {master.records}"
+
+  - name: "fill_rate_drop"
+    condition: "field.fill_rate < field.previous_fill_rate - 0.05"
+    severity: "warning"
+    message: "Taux remplissage {field.name} en baisse: {field.previous_fill_rate} -> {field.fill_rate}"

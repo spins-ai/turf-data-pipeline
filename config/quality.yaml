@@ -1,0 +1,83 @@
+# =============================================================================
+# quality.yaml — Seuils de qualite pour le pipeline
+# =============================================================================
+# Pilier qualite: seuils de remplissage, outliers, alertes.
+# Utilise par quality/*.py et les scripts de validation.
+# =============================================================================
+
+thresholds:
+  # Taux de remplissage minimum par champ critique
+  min_fill_rate:
+    course_uid: 1.0
+    partant_uid: 1.0
+    date: 1.0
+    hippodrome: 0.99
+    discipline: 0.95
+    position_finale: 0.90
+    nom_cheval: 0.99
+    nom_jockey: 0.95
+    cote_finale: 0.70
+    distance: 0.95
+    terrain: 0.60
+    meteo: 0.50
+    pedigree: 0.40
+    sectionals: 0.20
+
+  # Seuils outliers
+  outliers:
+    cote_max: 1000
+    cote_min: 1.01
+    distance_max_m: 8000
+    distance_min_m: 800
+    poids_max_kg: 90
+    poids_min_kg: 40
+    nb_partants_max: 24
+    nb_partants_min: 2
+    age_cheval_max: 15
+    age_cheval_min: 2
+
+  # Feature quality
+  features:
+    max_null_rate: 0.90         # supprimee si >90% null
+    max_correlation: 0.95       # supprimee si correlees >0.95
+    min_importance: 0.001       # supprimee si importance SHAP < 0.001
+    max_inf_rate: 0.0           # aucun Inf tolere
+    max_nan_rate: 0.90          # meme que max_null_rate
+
+  # Non-regression
+  non_regression:
+    min_records_partants: 2900000    # ne doit jamais baisser sous 2.9M
+    min_records_courses: 250000      # ne doit jamais baisser sous 250K
+    min_features: 400                # minimum 400 features
+    min_labels: 2900000              # minimum 2.9M labels
+
+alerts:
+  # Seuils d'alerte
+  stale_source_days: 7         # alerte si source pas MAJ > 7j
+  disk_usage_percent: 90       # alerte si disque > 90%
+  ram_usage_percent: 80        # alerte si RAM > 80%
+  script_timeout_min: 60       # alerte si script bloque > 60 min
+
+  # Niveaux de severite
+  channels:
+    - type: "log"
+      level: "warning"
+    - type: "file"
+      level: "error"
+      path: "logs/alerts.log"
+
+validation:
+  # Schema validation
+  validate_after_merge: true
+  validate_after_scrape: true
+  validate_after_features: true
+
+  # Sanity checks metier
+  sanity_checks:
+    - "cheval_pas_2_courses_meme_jour"
+    - "jockey_pas_2_chevaux_meme_course"
+    - "naissance_avant_premiere_course"
+    - "poids_plage_realiste"
+    - "cote_superieure_1"
+    - "nb_partants_3_a_24"
+    - "gagnant_dans_partants"

@@ -1,0 +1,209 @@
+# =============================================================================
+# features.yaml — Configuration des features et builders
+# =============================================================================
+# Liste des features avec builder, parametres, seuils qualite.
+# =============================================================================
+
+defaults:
+  min_fill_rate: 0.10          # minimum 10% remplissage
+  max_null_rate: 0.90          # maximum 90% null -> supprimee
+  correlation_threshold: 0.95  # suppression si correlation > 0.95
+  importance_threshold: 0.001  # suppression si importance < 0.001
+
+builders:
+  # === BUILDERS ORIGINAUX (177 features debuggees) ===
+  musique_features:
+    script: "features/master_feature_builder.py"
+    nb_features: 22
+    status: "active"
+
+  temps_features:
+    script: "features/master_feature_builder.py"
+    nb_features: 15
+    status: "active"
+
+  profil_cheval_features:
+    script: "features/master_feature_builder.py"
+    nb_features: 24
+    status: "active"
+
+  equipement_features:
+    script: "features/master_feature_builder.py"
+    nb_features: 16
+    status: "active"
+
+  poids_features:
+    script: "features/master_feature_builder.py"
+    nb_features: 15
+    status: "active"
+
+  meteo_features:
+    script: "features/master_feature_builder.py"
+    nb_features: 15
+    status: "active"
+
+  combo_features:
+    script: "features/master_feature_builder.py"
+    nb_features: 13
+    status: "active"
+
+  class_change_features:
+    script: "features/master_feature_builder.py"
+    nb_features: 11
+    status: "active"
+
+  interaction_features:
+    script: "features/master_feature_builder.py"
+    nb_features: 10
+    status: "active"
+
+  precomputed_partant_joiner:
+    script: "features/master_feature_builder.py"
+    nb_features: 14
+    status: "active"
+
+  precomputed_entity_joiner:
+    script: "features/master_feature_builder.py"
+    nb_features: 22
+    status: "active"
+
+  # === NOUVEAUX BUILDERS (9 sources) ===
+  perf_detaillees_builder:
+    script: "features/master_feature_builder.py"
+    nb_features: 50
+    status: "active"
+
+  smarkets_builder:
+    script: "features/master_feature_builder.py"
+    nb_features: 18
+    status: "active"
+
+  racing_post_builder:
+    script: "features/master_feature_builder.py"
+    nb_features: 12
+    status: "active"
+
+  reunions_builder:
+    script: "features/master_feature_builder.py"
+    nb_features: 18
+    status: "active"
+
+  enrichissement_builder:
+    script: "features/master_feature_builder.py"
+    nb_features: 8
+    status: "active"
+
+  pedigree_advanced_builder:
+    script: "features/master_feature_builder.py"
+    nb_features: 18
+    status: "active"
+
+  canalturf_builder:
+    script: "features/master_feature_builder.py"
+    nb_features: 12
+    status: "active"
+
+  turfostats_builder:
+    script: "features/master_feature_builder.py"
+    nb_features: 12
+    status: "active"
+
+  geny_builder:
+    script: "features/master_feature_builder.py"
+    nb_features: 12
+    status: "active"
+
+  # === BUILDERS CROISEMENT (8 scripts calcul 41-49) ===
+  sequences_performances:
+    script: "scripts/calcul/41_sequences_performances.py"
+    nb_features: 30
+    status: "active"
+
+  croisement_racing_post:
+    script: "scripts/calcul/42_croisement_racing_post_pmu.py"
+    nb_features: 15
+    status: "active"
+
+  croisement_meteo:
+    script: "scripts/calcul/43_croisement_meteo_courses.py"
+    nb_features: 20
+    status: "active"
+
+  croisement_pedigree:
+    script: "scripts/calcul/44_croisement_pedigree_partants.py"
+    nb_features: 25
+    status: "active"
+
+  graphe_gnn:
+    script: "scripts/calcul/45_graphe_relations_gnn.py"
+    nb_features: 15
+    status: "active"
+
+  track_bias:
+    script: "scripts/calcul/46_track_bias_speed_class.py"
+    nb_features: 25
+    status: "active"
+
+  conditions_texte:
+    script: "scripts/calcul/48_parse_conditions_texte.py"
+    nb_features: 20
+    status: "active"
+
+  ecart_cotes:
+    script: "scripts/calcul/49_ecart_cotes_internet_national.py"
+    nb_features: 20
+    status: "active"
+
+  # === BUILDERS AFFINITE (10 croisements) ===
+  cheval_jockey_affinity:
+    script: "features/feat_cheval_jockey_affinity.py"
+    nb_features: 10
+    status: "active"
+
+  cheval_hippodrome_affinity:
+    script: "features/feat_cheval_hippodrome_affinity.py"
+    nb_features: 8
+    status: "active"
+
+  cheval_distance_affinity:
+    script: "features/feat_cheval_distance_affinity.py"
+    nb_features: 8
+    status: "active"
+
+  cheval_terrain_affinity:
+    script: "features/feat_cheval_terrain_affinity.py"
+    nb_features: 6
+    status: "active"
+
+  jockey_entraineur_combo:
+    script: "features/feat_jockey_entraineur_combo.py"
+    nb_features: 6
+    status: "active"
+
+  entraineur_hippodrome:
+    script: "features/feat_entraineur_hippodrome.py"
+    nb_features: 5
+    status: "active"
+
+  value_betting:
+    script: "features/feat_value_betting.py"
+    nb_features: 10
+    status: "active"
+
+  meteo_terrain_interaction:
+    script: "features/feat_meteo_terrain_interaction.py"
+    nb_features: 8
+    status: "active"
+
+  pedigree_discipline_match:
+    script: "features/feat_pedigree_discipline_match.py"
+    nb_features: 10
+    status: "active"
+
+  field_strength:
+    script: "features/feat_field_strength.py"
+    nb_features: 10
+    status: "active"
+
+# Total: 528+ features
+total_features_target: 528

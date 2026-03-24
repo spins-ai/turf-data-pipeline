@@ -1,0 +1,151 @@
+# =============================================================================
+# sources.yaml — Configuration de toutes les sources de donnees
+# =============================================================================
+# Pour chaque source: URL, frequence MAJ, priorite, rate limiting,
+# circuit breaker, fallback, etc.
+# =============================================================================
+
+defaults:
+  rate_limit_rpm: 60           # requetes par minute
+  circuit_breaker:
+    failure_threshold: 5       # nb erreurs avant ouverture
+    recovery_timeout_sec: 300  # attente avant half-open
+    half_open_max: 3           # nb requetes test en half-open
+  retry:
+    max_retries: 3
+    backoff_factor: 2
+  timeout_sec: 30
+  priority: "secondary"        # critical / primary / secondary / tertiary
+  frequency: "weekly"          # daily / weekly / monthly / once
+
+sources:
+  # === SOURCES CRITIQUES (quotidien) ===
+  pmu_api:
+    name: "PMU API officielle"
+    url: "https://offline.turfinfo.api.pmu.fr/rest/client/1"
+    type: "api"
+    priority: "critical"
+    frequency: "daily"
+    scripts: ["01_calendrier_reunions", "02_liste_courses", "04_resultats", "07_cotes_marche"]
+    rate_limit_rpm: 120
+    notes: "Source principale, API publique sans cle"
+
+  letrot:
+    name: "Le Trot"
+    url: "https://www.letrot.com"
+    type: "scraping"
+    priority: "critical"
+    frequency: "daily"
+    scripts: ["02b_scraper_letrot"]
+    rate_limit_rpm: 30
+    notes: "Donnees trot specifiques, complement PMU"
+
+  # === SOURCES PRIMAIRES (hebdomadaire) ===
+  sire_ifce:
+    name: "SIRE/IFCE"
+    url: "https://www.ifce.fr/sire/"
+    type: "scraping"
+    priority: "primary"
+    frequency: "weekly"
+    scripts: ["17_sire_ifce"]
+    rate_limit_rpm: 20
+
+  openmeteo:
+    name: "Open-Meteo"
+    url: "https://archive-api.open-meteo.com"
+    type: "api"
+    priority: "primary"
+    frequency: "daily"
+    scripts: ["fetch_openmeteo_missing"]
+    rate_limit_rpm: 300
+    notes: "API gratuite, historique meteo mondial"
+
+  france_galop:
+    name: "France Galop"
+    url: "https://www.france-galop.com"
+    type: "scraping"
+    priority: "primary"
+    frequency: "weekly"
+    scripts: ["80_france_galop"]
+    rate_limit_rpm: 20
+
+  # === SOURCES SECONDAIRES (hebdomadaire) ===
+  canalturf:
+    name: "CanalTurf"
+    url: "https://www.canalturf.com"
+    type: "scraping"
+    priority: "secondary"
+    frequency: "weekly"
+    scripts: ["24_canalturf"]
+    rate_limit_rpm: 30
+
+  turfostats:
+    name: "TurfoStats"
+    url: "https://www.turfostats.com"
+    type: "scraping"
+    priority: "secondary"
+    frequency: "weekly"
+    scripts: ["25_turfostats"]
+    rate_limit_rpm: 30
+
+  geny:
+    name: "Geny Courses"
+    url: "https://www.geny.com"
+    type: "scraping"
+    priority: "secondary"
+    frequency: "weekly"
+    scripts: ["26_geny"]
+    rate_limit_rpm: 30
+
+  smarkets:
+    name: "Smarkets Exchange"
+    url: "https://api.smarkets.com"
+    type: "api"
+    priority: "secondary"
+    frequency: "daily"
+    scripts: ["30_smarkets_exchange"]
+    rate_limit_rpm: 60
+
+  # === SOURCES TERTIAIRES (mensuel) ===
+  racing_post:
+    name: "Racing Post UK"
+    url: "https://www.racingpost.com"
+    type: "scraping"
+    priority: "tertiary"
+    frequency: "monthly"
+    scripts: ["37_rpscrape_racing_post"]
+    rate_limit_rpm: 15
+    notes: "Cloudflare, data UK principalement"
+
+  betfair:
+    name: "Betfair Exchange"
+    url: "https://api.betfair.com"
+    type: "api"
+    priority: "tertiary"
+    frequency: "daily"
+    scripts: ["68_betfair"]
+    requires_api_key: true
+    notes: "API key requise (payante)"
+    status: "blocked"
+
+  # === SOURCES BLOQUEES ===
+  meteo_france:
+    name: "Meteo France"
+    url: "https://donneespubliques.meteofrance.fr"
+    type: "api"
+    priority: "secondary"
+    frequency: "weekly"
+    scripts: ["35_meteo_france"]
+    requires_api_key: true
+    notes: "Donnees payantes"
+    status: "blocked"
+
+  timeform:
+    name: "Timeform"
+    url: "https://www.timeform.com"
+    type: "api"
+    priority: "tertiary"
+    frequency: "monthly"
+    requires_api_key: true
+    notes: "API payante, ratings UK"
+    status: "blocked"

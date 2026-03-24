@@ -1,0 +1,65 @@
+# =============================================================================
+# global.yaml — Configuration globale du pipeline turf-data
+# =============================================================================
+# Chemins, URLs de base, parametres globaux.
+# Les valeurs peuvent etre surchargees par variables d'environnement:
+#   PIPELINE_BASE_DIR, PIPELINE_OUTPUT_DIR, etc.
+# =============================================================================
+
+project:
+  name: turf-data-pipeline
+  version: "1.0.0"
+  description: "Pipeline de collecte, nettoyage et feature engineering pour donnees hippiques"
+
+paths:
+  base_dir: "."                          # racine du projet
+  output_dir: "./output"                 # donnees brutes par source
+  data_master_dir: "./data_master"       # fichiers maitres fusionnes
+  features_dir: "./features"             # matrice de features + builders
+  labels_dir: "./labels"                 # labels/targets
+  logs_dir: "./logs"                     # logs de tous les scripts
+  cache_dir: "./cache"                   # caches temporaires
+  exports_dir: "./exports"               # exports triple format
+  quality_dir: "./quality"               # rapports qualite
+  security_dir: "./security"             # checksums, audit secrets
+  backups_dir: "./backups"               # sauvegardes
+  pipeline_dir: "./pipeline"             # symlinks par module/modele
+  schemas_dir: "./schemas"               # JSON Schema
+  docs_dir: "./docs"                     # documentation
+  config_dir: "./config"                 # configuration
+
+urls:
+  pmu_api_base: "https://offline.turfinfo.api.pmu.fr/rest/client/1"
+  openmeteo_api: "https://archive-api.open-meteo.com/v1/archive"
+
+defaults:
+  date_debut: "2013-01-01"
+  date_fin: "2026-12-31"
+  http_timeout: 30
+  http_retry_max: 3
+  http_retry_backoff: 2
+  default_pause: 1.0
+  default_batch_size: 1000
+
+ram_limits:
+  scraping: 2048        # MB
+  merge: 16384          # MB
+  features: 32768       # MB
+  default: 4096         # MB
+
+performance:
+  max_workers: 4
+  max_concurrent_heavy: 3   # max taches >= 2 Go RAM simultanees
+
+logging:
+  level: "INFO"
+  format: "json"
+  rotation: true
+  max_log_size_mb: 100
+
+export:
+  csv: true
+  parquet: true
+  json: true
+
+python_exe: "python"   # overridden per platform in pipeline_config.yaml
