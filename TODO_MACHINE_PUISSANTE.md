@@ -1867,3 +1867,89 @@
 - [ ] reliability_diagram_data (bins pour calibration plot)
 - [ ] expected_calibration_error (ECE par type course)
 - [ ] temperature_scaling_param (paramètre T pour logits)
+
+---
+
+## FEATURES SPÉCIFIQUES PAR PHASE MODÈLE (68 modules)
+
+### Phase 1 — Infrastructure data (modules 1-8)
+- [ ] Déjà couvert par le pipeline actuel (nettoyage, validation, normalisation)
+
+### Phase 2 — Feature Engineering (modules 9-18)
+- [ ] advanced_feature_generator: combinaisons polynomiales top-20 features
+- [ ] rolling_stats_generator: rolling windows 3/5/10/20 courses
+- [ ] temporal_feature_builder: cycliques (sin/cos mois, jour_semaine)
+- [ ] odds_feature_builder: morning line vs closing, steam/drift velocity
+- [ ] jockey_trainer_synergy: combo J×E win_rate, ROI, nb_courses_ensemble
+- [ ] pedigree_feature_builder: dosage index, aptitude index composite
+- [ ] track_bias_detector: rail bias, draw advantage par config piste
+- [ ] pace_profile_builder: early/mid/late pace shares, pace collapse indicator
+- [ ] sectional_feature_builder: vitesse dernier 200m vs 1er 200m ratio
+- [ ] field_strength_builder: Elo moyen peloton, écart-type, nb outsiders
+
+### Phase 3 — Sélection features (modules 19-20)
+- [ ] Correlation matrix → supprimer features r>0.95
+- [ ] VIF (Variance Inflation Factor) → supprimer multicolinéarité
+- [ ] Mutual Information → garder top-K features
+- [ ] Boruta / RFECV → sélection automatique
+
+### Phase 4 — ML Core features (modules 21-25)
+- [ ] target_encoding par catégorielle (hippodrome, discipline, jockey)
+- [ ] frequency_encoding (nb courses par hippodrome/jockey/trainer)
+- [ ] weight_of_evidence (WoE) pour variables catégorielles
+- [ ] interaction_features top-10 paires les plus corrélées au target
+- [ ] lag_features (résultat course N-1, N-2, N-3 du même cheval)
+
+### Phase 5 — Deep Learning features (modules 26-30)
+- [ ] sequence_embeddings: dernières 10 courses en séquence (pour LSTM/GRU)
+- [ ] position_encoding temporel (sinusoïdal)
+- [ ] attention_ready_features: (cheval, jockey, course) triplets normalisés
+- [ ] tabnet_feature_masks: features pré-groupées par catégorie
+- [ ] tft_static_vs_dynamic: séparer features statiques (pedigree) vs dynamiques (forme)
+
+### Phase 6 — Modèles avancés features (modules 31-34)
+- [ ] graph_features: PageRank cheval dans réseau jockey-trainer-hippodrome (GNN)
+- [ ] uncertainty_features: variance prédictions bootstrap (Bayesian NN)
+- [ ] survival_features: temps survie dans top-3, hazard rate (Survival model)
+- [ ] quantile_targets: y_q10, y_q50, y_q90 position (Quantile regressor)
+
+### Phase 7 — AutoML (modules 35-37)
+- [ ] Pas de features spécifiques, AutoML teste toutes les combinaisons
+
+### Phase 8 — Fusion features (modules 38-40)
+- [ ] pred_catboost, pred_xgb, pred_lgbm, pred_rf comme features
+- [ ] pred_disagreement: max(preds) - min(preds)
+- [ ] pred_entropy: Shannon entropy des prédictions
+- [ ] pred_confidence: proba calibrée du modèle le plus sûr
+
+### Phase 9 — Calibration features (modules 41-43)
+- [ ] raw_logits par modèle (avant sigmoid)
+- [ ] temperature_scaled_proba
+- [ ] reliability_per_bin (bins de proba)
+
+### Phase 10 — Outsider features (modules 44-46)
+- [ ] cote_vs_elo_gap: écart cote marché vs Elo estimé
+- [ ] retour_forme_signal: cheval pas couru >60j + Elo élevé
+- [ ] anomaly_score: isolation forest sur features du cheval
+- [ ] gan_synthetic_minority: outsiders synthétiques pour augmentation
+
+### Phase 11 — Betting features (modules 47-50)
+- [ ] expected_value: proba_model × cote - 1
+- [ ] edge_percentage: (proba_model - proba_marché) / proba_marché
+- [ ] kelly_fraction: (p×b - q) / b optimal
+- [ ] value_confidence: edge × calibration_score
+
+### Phase 12 — Simulation features (modules 51-52)
+- [ ] mc_win_probability: % victoires sur 10K simulations
+- [ ] mc_place_probability: % top-3 sur simulations
+- [ ] mc_exacta_probability: paires gagnantes les plus fréquentes
+- [ ] finish_time_distribution: mean, std, skew du temps simulé
+
+### Phase 13 — Bet sizing features (modules 53-57)
+- [ ] kelly_bet_size: taille optimale Kelly
+- [ ] risk_adjusted_stake: Kelly × facteur risque
+- [ ] multi_bet_correlation: corrélation entre paris combinés
+- [ ] bankroll_fraction_optimal: % bankroll par pari
+
+### Phase 14-16 — Monitoring/Orchestration
+- [ ] Pas de features, c'est de l'infrastructure
