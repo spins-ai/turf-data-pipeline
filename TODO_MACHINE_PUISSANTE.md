@@ -1891,7 +1891,7 @@
 - [x] Déjà couvert par le pipeline actuel (nettoyage, validation, normalisation) ✅ FAIT — pipeline complet (nettoyage_global.py, validate_data_final.py, normalize_units.py)
 
 ### Phase 2 — Feature Engineering (modules 9-18)
-- [x] advanced_feature_generator: combinaisons polynomiales top-20 features ✅ FAIT — feature_builders/advanced_encoding_builder.py (advanced_combo_poly)
+- [x] advanced_feature_generator: combinaisons polynomiales top-20 features ✅ FAIT — feature_builders/advanced_encoding_builder.py (advanced_combo_poly) + polynomial_interaction_builder.py (top-5 poly combos: product/ratio/sq)
 - [x] rolling_stats_generator: rolling windows 3/5/10/20 courses ✅ FAIT — feature_builders/rolling_advanced_builder.py
 - [x] temporal_feature_builder: cycliques (sin/cos mois, jour_semaine) ✅ FAIT — feature_builders/advanced_encoding_builder.py (sin/cos month, dow, hour)
 - [x] odds_feature_builder: morning line vs closing, steam/drift velocity ✅ FAIT — feature_builders/odds_movement_features.py + closing_line_value_builder.py
@@ -1925,7 +1925,7 @@
 ### Phase 6 — Modèles avancés features (modules 31-34)
 - [x] graph_features: PageRank cheval dans réseau jockey-trainer-hippodrome (GNN) ✅ FAIT — feature_builders/graph_features_builder.py
 - [ ] uncertainty_features: variance prédictions bootstrap (Bayesian NN) (ML/MODELS: needs Bayesian NN training)
-- [ ] survival_features: temps survie dans top-3, hazard rate (Survival model) (ML/MODELS: needs survival model training)
+- [x] survival_features: temps survie dans top-3, hazard rate (Survival model) ✅ FAIT — feature_builders/survival_features_builder.py (hazard_rate, top3_survival_rate, career_longevity_days, races_per_year, career_trend)
 - [ ] quantile_targets: y_q10, y_q50, y_q90 position (Quantile regressor) (ML/MODELS: needs quantile model training)
 
 ### Phase 7 — AutoML (modules 35-37)
