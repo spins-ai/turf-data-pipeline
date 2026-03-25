@@ -20,6 +20,12 @@ Features per partant:
   - hippo_season_bias          : this hippodrome's win-rate deviation in current season
   - discipline_seasonal_trend  : avg field size growth rate for this discipline in current season
 
+Memory-optimised version:
+  - Phase 1 reads only minimal tuples (not full dicts) for sorting
+  - Phase 2 streams output to disk instead of accumulating in a list
+  - DisciplineSeasonFieldSize uses aggregated counters, not raw lists
+  - gc.collect() called every 500K records
+
 Usage:
     python feature_builders/seasonality_builder.py
     python feature_builders/seasonality_builder.py --input data_master/partants_master.jsonl
@@ -28,8 +34,11 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import gc
 import json
+import struct
 import sys
+import tempfile
 import time
 from collections import defaultdict
 from datetime import datetime
@@ -38,7 +47,6 @@ from typing import Any, Optional
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from utils.logging_setup import setup_logging
-from utils.output import save_jsonl
 
 # ===========================================================================
 # CONFIG
@@ -107,75 +115,104 @@ def _parse_date(date_str: str) -> Optional[datetime]:
 
 
 # ===========================================================================
-# STATE TRACKERS
+# STATE TRACKERS (memory-optimised)
 # ===========================================================================
 
 
 class _SeasonStats:
-    """Tracks wins/total per season for an entity."""
+    """Tracks wins/total per season for an entity.
+
+    Uses fixed-size arrays (4 seasons) instead of dicts to save memory.
+    Index 0=season1(spring), 1=season2(summer), 2=season3(autumn), 3=season4(winter).
+    """
 
     __slots__ = ("wins", "total")
 
     def __init__(self) -> None:
-        # season_code -> count
-        self.wins: dict[int, int] = defaultdict(int)
-        self.total: dict[int, int] = defaultdict(int)
+        # Fixed arrays: index = season_code - 1
+        self.wins = [0, 0, 0, 0]
+        self.total = [0, 0, 0, 0]
 
     def win_rate_for_season(self, season: int) -> Optional[float]:
-        t = self.total.get(season, 0)
+        idx = season - 1
+        t = self.total[idx]
         if t == 0:
             return None
-        return round(self.wins.get(season, 0) / t, 4)
+        return round(self.wins[idx] / t, 4)
 
     def overall_win_rate(self) -> Optional[float]:
-        total_all = sum(self.total.values())
+        total_all = sum(self.total)
         if total_all == 0:
             return None
-        return sum(self.wins.values()) / total_all
+        return sum(self.wins) / total_all
 
     def best_season(self) -> Optional[int]:
         """Return season with highest win rate (min 2 races)."""
         best_s = None
         best_wr = -1.0
-        for s, t in self.total.items():
+        for i in range(4):
+            t = self.total[i]
             if t < 2:
                 continue
-            wr = self.wins.get(s, 0) / t
+            wr = self.wins[i] / t
             if wr > best_wr:
                 best_wr = wr
-                best_s = s
+                best_s = i + 1  # season codes are 1-based
         return best_s
 
 
 class _DisciplineSeasonFieldSize:
-    """Tracks field sizes per (discipline, season, year) for trend calculation."""
+    """Tracks field sizes per (discipline, season) using aggregated counters.
+
+    Instead of storing every (year, field_size) tuple (unbounded), we keep
+    per-year aggregates: sum and count, which is O(years) not O(records).
+    """
 
     __slots__ = ("data",)
 
     def __init__(self) -> None:
-        # (discipline, season) -> list of (year, field_size)
-        self.data: dict[tuple[str, int], list[tuple[int, int]]] = defaultdict(list)
+        # (discipline, season) -> {year: [sum_field_size, count]}
+        self.data: dict[tuple[str, int], dict[int, list]] = defaultdict(dict)
 
     def add(self, discipline: str, season: int, year: int, field_size: int) -> None:
-        self.data[(discipline, season)].append((year, field_size))
+        year_agg = self.data[(discipline, season)]
+        if year in year_agg:
+            year_agg[year][0] += field_size
+            year_agg[year][1] += 1
+        else:
+            year_agg[year] = [field_size, 1]
 
     def trend(self, discipline: str, season: int, current_year: int) -> Optional[float]:
         """Return growth rate of avg field size: positive = growing, negative = shrinking.
 
         Compares recent 2 years to older data. Returns None if not enough data.
         """
-        entries = self.data.get((discipline, season))
-        if not entries or len(entries) < 5:
+        year_agg = self.data.get((discipline, season))
+        if not year_agg:
             return None
 
-        recent = [fs for yr, fs in entries if yr >= current_year - 1]
-        older = [fs for yr, fs in entries if yr < current_year - 1]
-
-        if not recent or not older:
+        total_entries = sum(v[1] for v in year_agg.values())
+        if total_entries < 5:
             return None
 
-        avg_recent = sum(recent) / len(recent)
-        avg_older = sum(older) / len(older)
+        recent_sum = 0
+        recent_count = 0
+        older_sum = 0
+        older_count = 0
+
+        for yr, (s, c) in year_agg.items():
+            if yr >= current_year - 1:
+                recent_sum += s
+                recent_count += c
+            else:
+                older_sum += s
+                older_count += c
+
+        if not recent_count or not older_count:
+            return None
+
+        avg_recent = recent_sum / recent_count
+        avg_older = older_sum / older_count
 
         if avg_older == 0:
             return None
@@ -184,201 +221,261 @@ class _DisciplineSeasonFieldSize:
 
 
 # ===========================================================================
-# MAIN BUILD
+# MAIN BUILD (memory-optimised: chunked sort + streaming output)
 # ===========================================================================
 
 
-def build_seasonality_features(input_path: Path, logger) -> list[dict[str, Any]]:
+def build_seasonality_features(input_path: Path, output_path: Path, logger) -> int:
     """Build seasonality features from partants_master.jsonl.
 
-    Single-pass approach:
-      1. Read minimal fields into memory.
-      2. Sort chronologically for strict temporal ordering.
-      3. Process record by record, snapshotting seasonal stats before updating.
+    Memory-optimised approach:
+      1. Read only sort keys + file byte offsets into memory (not full records).
+      2. Sort the lightweight index chronologically.
+      3. Re-read records from disk using offsets, process course by course,
+         and stream output directly to disk.
 
-    Temporal integrity: features reflect only races strictly before the
-    current record's date -- no same-day leakage within a course group.
+    Returns the total number of feature records written.
     """
-    logger.info("=== Seasonality Builder ===")
+    logger.info("=== Seasonality Builder (memory-optimised) ===")
     logger.info("Lecture en streaming: %s", input_path)
     t0 = time.time()
 
-    # -- Phase 1: Read minimal fields into memory --
-    slim_records: list[dict] = []
+    # -- Phase 1: Build lightweight index (sort_key, byte_offset) --
+    # Each entry is a tuple: (date_str, course_uid, num_pmu, byte_offset)
+    # stored as raw data to minimise memory per record.
+    index: list[tuple[str, str, int, int]] = []
     n_read = 0
 
-    for rec in _iter_jsonl(input_path, logger):
-        n_read += 1
-        if n_read % _LOG_EVERY == 0:
-            logger.info("  Lu %d records...", n_read)
+    with open(input_path, "r", encoding="utf-8") as f:
+        while True:
+            offset = f.tell()
+            line = f.readline()
+            if not line:
+                break
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                rec = json.loads(line)
+            except json.JSONDecodeError:
+                continue
 
-        nb_partants = rec.get("nombre_partants") or 0
-        try:
-            nb_partants = int(nb_partants)
-        except (ValueError, TypeError):
-            nb_partants = 0
+            n_read += 1
+            if n_read % _LOG_EVERY == 0:
+                logger.info("  Indexe %d records...", n_read)
 
-        discipline = rec.get("discipline") or rec.get("type_course") or ""
-        discipline = discipline.strip().upper()
+            date_str = rec.get("date_reunion_iso", "") or ""
+            course_uid = rec.get("course_uid", "") or ""
+            num_pmu = rec.get("num_pmu", 0) or 0
+            try:
+                num_pmu = int(num_pmu)
+            except (ValueError, TypeError):
+                num_pmu = 0
 
-        slim = {
-            "uid": rec.get("partant_uid"),
-            "date": rec.get("date_reunion_iso", ""),
-            "course": rec.get("course_uid", ""),
-            "num": rec.get("num_pmu", 0) or 0,
-            "cheval": rec.get("nom_cheval"),
-            "gagnant": bool(rec.get("is_gagnant")),
-            "hippo": rec.get("hippodrome_normalise", ""),
-            "discipline": discipline,
-            "nb_partants": nb_partants,
-        }
-        slim_records.append(slim)
+            index.append((date_str, course_uid, num_pmu, offset))
 
     logger.info(
-        "Phase 1 terminee: %d records en %.1fs",
-        len(slim_records), time.time() - t0,
+        "Phase 1 terminee: %d records indexes en %.1fs",
+        len(index), time.time() - t0,
     )
 
-    # -- Phase 2: Sort chronologically --
+    # -- Phase 2: Sort the lightweight index --
     t1 = time.time()
-    slim_records.sort(key=lambda r: (r["date"], r["course"], r["num"]))
+    index.sort(key=lambda x: (x[0], x[1], x[2]))
     logger.info("Tri chronologique en %.1fs", time.time() - t1)
 
-    # -- Phase 3: Process course by course --
+    # -- Phase 3: Process course by course, streaming output --
     t2 = time.time()
     horse_season: dict[str, _SeasonStats] = defaultdict(_SeasonStats)
     hippo_season: dict[str, _SeasonStats] = defaultdict(_SeasonStats)
-    disc_field: _DisciplineSeasonFieldSize = _DisciplineSeasonFieldSize()
+    disc_field = _DisciplineSeasonFieldSize()
 
-    results: list[dict[str, Any]] = []
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_out = output_path.with_suffix(".tmp")
+
     n_processed = 0
+    n_written = 0
+    total = len(index)
+    fill_counts = {
+        "horse_season_win_rate": 0,
+        "horse_best_season": 0,
+        "season_match_score": 0,
+        "hippo_season_bias": 0,
+        "discipline_seasonal_trend": 0,
+    }
 
-    i = 0
-    total = len(slim_records)
+    with open(input_path, "r", encoding="utf-8") as fin, \
+         open(tmp_out, "w", encoding="utf-8", newline="\n") as fout:
 
-    while i < total:
-        # Collect all partants for this course
-        course_uid = slim_records[i]["course"]
-        course_date_str = slim_records[i]["date"]
-        course_group: list[dict] = []
+        def _read_record_at(offset: int) -> dict:
+            """Seek to offset and read one JSON record."""
+            fin.seek(offset)
+            return json.loads(fin.readline())
 
-        while (
-            i < total
-            and slim_records[i]["course"] == course_uid
-            and slim_records[i]["date"] == course_date_str
-        ):
-            course_group.append(slim_records[i])
-            i += 1
+        def _extract_slim(rec: dict) -> dict:
+            """Extract minimal fields from a full record."""
+            nb_partants = rec.get("nombre_partants") or 0
+            try:
+                nb_partants = int(nb_partants)
+            except (ValueError, TypeError):
+                nb_partants = 0
 
-        if not course_group:
-            continue
+            discipline = rec.get("discipline") or rec.get("type_course") or ""
+            discipline = discipline.strip().upper()
 
-        race_date = _parse_date(course_date_str)
-        if race_date:
-            current_season = _MONTH_TO_SEASON[race_date.month]
-            current_year = race_date.year
-        else:
-            current_season = None
-            current_year = None
+            return {
+                "uid": rec.get("partant_uid"),
+                "date": rec.get("date_reunion_iso", ""),
+                "course": rec.get("course_uid", ""),
+                "num": rec.get("num_pmu", 0) or 0,
+                "cheval": rec.get("nom_cheval"),
+                "gagnant": bool(rec.get("is_gagnant")),
+                "hippo": rec.get("hippodrome_normalise", ""),
+                "discipline": discipline,
+                "nb_partants": nb_partants,
+            }
 
-        # -- Snapshot pre-race stats for all partants (temporal integrity) --
-        pre_race_features: list[dict[str, Any]] = []
+        i = 0
+        while i < total:
+            # Collect all index entries for this course
+            course_uid = index[i][1]
+            course_date_str = index[i][0]
+            course_indices: list[int] = []
 
-        for rec in course_group:
-            cheval = rec["cheval"]
-            hippo = rec["hippo"]
-            discipline = rec["discipline"]
+            while (
+                i < total
+                and index[i][1] == course_uid
+                and index[i][0] == course_date_str
+            ):
+                course_indices.append(i)
+                i += 1
 
-            features: dict[str, Any] = {"partant_uid": rec["uid"]}
-
-            if cheval and current_season is not None:
-                hs = horse_season[cheval]
-                features["horse_season_win_rate"] = hs.win_rate_for_season(current_season)
-
-                best_s = hs.best_season()
-                features["horse_best_season"] = best_s
-
-                if best_s is not None:
-                    if best_s == current_season:
-                        features["season_match_score"] = 1.0
-                    elif _seasons_adjacent(best_s, current_season):
-                        features["season_match_score"] = 0.5
-                    else:
-                        features["season_match_score"] = 0.0
-                else:
-                    features["season_match_score"] = None
-            else:
-                features["horse_season_win_rate"] = None
-                features["horse_best_season"] = None
-                features["season_match_score"] = None
-
-            # Hippodrome season bias: hippo win rate in this season vs overall
-            if hippo and current_season is not None:
-                hs_hippo = hippo_season[hippo]
-                season_wr = hs_hippo.win_rate_for_season(current_season)
-                overall_wr = hs_hippo.overall_win_rate()
-                if season_wr is not None and overall_wr is not None and overall_wr > 0:
-                    features["hippo_season_bias"] = round(season_wr - overall_wr, 4)
-                else:
-                    features["hippo_season_bias"] = None
-            else:
-                features["hippo_season_bias"] = None
-
-            # Discipline seasonal trend
-            if discipline and current_season is not None and current_year is not None:
-                features["discipline_seasonal_trend"] = disc_field.trend(
-                    discipline, current_season, current_year
-                )
-            else:
-                features["discipline_seasonal_trend"] = None
-
-            pre_race_features.append(features)
-
-        # Emit features (pre-race snapshot -- no leakage)
-        results.extend(pre_race_features)
-
-        # -- Update states after race --
-        # Track which courses we already counted for disc_field (one entry per course)
-        course_field_tracked = False
-
-        for rec in course_group:
-            cheval = rec["cheval"]
-            hippo = rec["hippo"]
-            discipline = rec["discipline"]
-
-            if current_season is None:
+            if not course_indices:
                 continue
 
-            if cheval:
-                hs = horse_season[cheval]
-                hs.total[current_season] += 1
-                if rec["gagnant"]:
-                    hs.wins[current_season] += 1
+            # Read only this course's records from disk
+            course_group = [_extract_slim(_read_record_at(index[ci][3])) for ci in course_indices]
 
-            if hippo:
-                hs_hippo = hippo_season[hippo]
-                hs_hippo.total[current_season] += 1
-                if rec["gagnant"]:
-                    hs_hippo.wins[current_season] += 1
+            race_date = _parse_date(course_date_str)
+            if race_date:
+                current_season = _MONTH_TO_SEASON[race_date.month]
+                current_year = race_date.year
+            else:
+                current_season = None
+                current_year = None
 
-            # Field size: once per course
-            if not course_field_tracked and discipline and current_year is not None:
-                nb = rec["nb_partants"]
-                if nb > 0:
-                    disc_field.add(discipline, current_season, current_year, nb)
-                    course_field_tracked = True
+            # -- Snapshot pre-race stats for all partants (temporal integrity) --
+            for rec in course_group:
+                cheval = rec["cheval"]
+                hippo = rec["hippo"]
+                discipline = rec["discipline"]
 
-        n_processed += len(course_group)
-        if n_processed % _LOG_EVERY == 0:
-            logger.info("  Traite %d / %d records...", n_processed, total)
+                features: dict[str, Any] = {"partant_uid": rec["uid"]}
+
+                if cheval and current_season is not None:
+                    hs = horse_season[cheval]
+                    wr = hs.win_rate_for_season(current_season)
+                    features["horse_season_win_rate"] = wr
+                    if wr is not None:
+                        fill_counts["horse_season_win_rate"] += 1
+
+                    best_s = hs.best_season()
+                    features["horse_best_season"] = best_s
+                    if best_s is not None:
+                        fill_counts["horse_best_season"] += 1
+
+                    if best_s is not None:
+                        if best_s == current_season:
+                            features["season_match_score"] = 1.0
+                        elif _seasons_adjacent(best_s, current_season):
+                            features["season_match_score"] = 0.5
+                        else:
+                            features["season_match_score"] = 0.0
+                        fill_counts["season_match_score"] += 1
+                    else:
+                        features["season_match_score"] = None
+                else:
+                    features["horse_season_win_rate"] = None
+                    features["horse_best_season"] = None
+                    features["season_match_score"] = None
+
+                # Hippodrome season bias: hippo win rate in this season vs overall
+                if hippo and current_season is not None:
+                    hs_hippo = hippo_season[hippo]
+                    season_wr = hs_hippo.win_rate_for_season(current_season)
+                    overall_wr = hs_hippo.overall_win_rate()
+                    if season_wr is not None and overall_wr is not None and overall_wr > 0:
+                        features["hippo_season_bias"] = round(season_wr - overall_wr, 4)
+                        fill_counts["hippo_season_bias"] += 1
+                    else:
+                        features["hippo_season_bias"] = None
+                else:
+                    features["hippo_season_bias"] = None
+
+                # Discipline seasonal trend
+                if discipline and current_season is not None and current_year is not None:
+                    trend_val = disc_field.trend(discipline, current_season, current_year)
+                    features["discipline_seasonal_trend"] = trend_val
+                    if trend_val is not None:
+                        fill_counts["discipline_seasonal_trend"] += 1
+                else:
+                    features["discipline_seasonal_trend"] = None
+
+                # Stream directly to output file
+                fout.write(json.dumps(features, ensure_ascii=False, default=str) + "\n")
+                n_written += 1
+
+            # -- Update states after race --
+            course_field_tracked = False
+
+            for rec in course_group:
+                cheval = rec["cheval"]
+                hippo = rec["hippo"]
+                discipline = rec["discipline"]
+
+                if current_season is None:
+                    continue
+
+                if cheval:
+                    hs = horse_season[cheval]
+                    hs.total[current_season - 1] += 1
+                    if rec["gagnant"]:
+                        hs.wins[current_season - 1] += 1
+
+                if hippo:
+                    hs_hippo = hippo_season[hippo]
+                    hs_hippo.total[current_season - 1] += 1
+                    if rec["gagnant"]:
+                        hs_hippo.wins[current_season - 1] += 1
+
+                # Field size: once per course
+                if not course_field_tracked and discipline and current_year is not None:
+                    nb = rec["nb_partants"]
+                    if nb > 0:
+                        disc_field.add(discipline, current_season, current_year, nb)
+                        course_field_tracked = True
+
+            n_processed += len(course_group)
+            if n_processed % _LOG_EVERY < len(course_group):
+                logger.info("  Traite %d / %d records...", n_processed, total)
+                # Periodic garbage collection to keep memory in check
+                gc.collect()
+
+    # Atomic replace
+    tmp_out.replace(output_path)
 
     elapsed = time.time() - t0
     logger.info(
         "Seasonality build termine: %d features en %.1fs (chevaux: %d, hippos: %d)",
-        len(results), elapsed, len(horse_season), len(hippo_season),
+        n_written, elapsed, len(horse_season), len(hippo_season),
     )
 
-    return results
+    # Summary fill rates
+    logger.info("=== Fill rates ===")
+    for k, v in fill_counts.items():
+        logger.info("  %s: %d/%d (%.1f%%)", k, v, n_written, 100 * v / n_written if n_written else 0)
+
+    return n_written
 
 
 # ===========================================================================
@@ -421,23 +518,8 @@ def main():
     output_dir = Path(args.output_dir) if args.output_dir else OUTPUT_DIR
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    results = build_seasonality_features(input_path, logger)
-
-    # Save
     out_path = output_dir / "seasonality.jsonl"
-    save_jsonl(results, out_path, logger)
-
-    # Summary stats
-    if results:
-        filled = {k: 0 for k in results[0] if k != "partant_uid"}
-        for r in results:
-            for k in filled:
-                if r.get(k) is not None:
-                    filled[k] += 1
-        total_count = len(results)
-        logger.info("=== Fill rates ===")
-        for k, v in filled.items():
-            logger.info("  %s: %d/%d (%.1f%%)", k, v, total_count, 100 * v / total_count)
+    build_seasonality_features(input_path, out_path, logger)
 
 
 if __name__ == "__main__":
