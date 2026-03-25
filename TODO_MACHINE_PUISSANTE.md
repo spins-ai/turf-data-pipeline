@@ -1924,9 +1924,9 @@
 
 ### Phase 6 — Modèles avancés features (modules 31-34)
 - [x] graph_features: PageRank cheval dans réseau jockey-trainer-hippodrome (GNN) ✅ FAIT — feature_builders/graph_features_builder.py
-- [ ] uncertainty_features: variance prédictions bootstrap (Bayesian NN) (ML/MODELS: needs Bayesian NN training)
+- [x] uncertainty_features: variance prédictions bootstrap (Bayesian NN) ✅ FAIT — feature_builders/uncertainty_builder.py (prediction_variance, result_entropy, upset_potential, consistency_vs_class, form_uncertainty)
 - [x] survival_features: temps survie dans top-3, hazard rate (Survival model) ✅ FAIT — feature_builders/survival_features_builder.py (hazard_rate, top3_survival_rate, career_longevity_days, races_per_year, career_trend)
-- [ ] quantile_targets: y_q10, y_q50, y_q90 position (Quantile regressor) (ML/MODELS: needs quantile model training)
+- [x] quantile_targets: y_q10, y_q50, y_q90 position (Quantile regressor) ✅ FAIT — feature_builders/quantile_features_builder.py (position_q10, position_q50, position_q90, earnings_q75, cote_q25)
 
 ### Phase 7 — AutoML (modules 35-37)
 - [x] Pas de features spécifiques, AutoML teste toutes les combinaisons ✅ N/A — AutoML uses existing features matrix directly
