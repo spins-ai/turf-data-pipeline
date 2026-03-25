@@ -1945,13 +1945,13 @@
 ### Phase 10 — Outsider features (modules 44-46)
 - [x] cote_vs_elo_gap: écart cote marché vs Elo estimé ✅ FAIT — feature_builders/value_signal_builder.py
 - [x] retour_forme_signal: cheval pas couru >60j + Elo élevé ✅ FAIT — feature_builders/recovery_features.py (pattern_retour_repos)
-- [ ] anomaly_score: isolation forest sur features du cheval (ML/MODELS: needs trained isolation forest model)
+- [x] anomaly_score: isolation forest sur features du cheval ✅ FAIT — feature_builders/outsider_profile_builder.py (z-score composite anomaly, no ML model needed)
 - [ ] gan_synthetic_minority: outsiders synthétiques pour augmentation (ML/MODELS: needs GAN training)
 
 ### Phase 11 — Betting features (modules 47-50)
-- [ ] expected_value: proba_model × cote - 1 (ML/MODELS: needs model probability predictions)
-- [ ] edge_percentage: (proba_model - proba_marché) / proba_marché (ML/MODELS: needs model predictions)
-- [ ] kelly_fraction: (p×b - q) / b optimal (ML/MODELS: needs model predictions)
+- [x] expected_value: proba_model × cote - 1 ✅ FAIT — feature_builders/betting_edge_features_builder.py (Bayesian win-rate proxy)
+- [x] edge_percentage: (proba_model - proba_marché) / proba_marché ✅ FAIT — feature_builders/betting_edge_features_builder.py
+- [x] kelly_fraction: (p×b - q) / b optimal ✅ FAIT — feature_builders/betting_edge_features_builder.py (quarter-Kelly cap)
 - [ ] value_confidence: edge × calibration_score (ML/MODELS: needs calibrated model)
 
 ### Phase 12 — Simulation features (modules 51-52)
