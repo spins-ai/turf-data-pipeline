@@ -138,9 +138,13 @@ def _extract_wind(rec: dict) -> Optional[float]:
 
 def _extract_temperature(rec: dict) -> Optional[float]:
     """Extract temperature from record, trying multiple fields."""
-    for field in ("reu_temperature", "meteo_temperature_c", "temperature"):
+    for field in (
+        "reu_temperature", "meteo_temperature_c", "temperature",
+        "met_temperature", "cnd_temperature", "temperature_2m",
+        "meteo_temp", "temp_celsius",
+    ):
         val = _safe_float(rec.get(field))
-        if val is not None:
+        if val is not None and -30 < val < 55:  # sanity bounds
             return val
     return None
 
@@ -201,16 +205,30 @@ class _HorseWeatherState:
     def snapshot_temperature_optimum(self, current_temp: Optional[float]) -> Optional[float]:
         """Distance from horse's best-performing temperature range.
 
-        Best temp = average temp of races where horse finished in top 3.
+        Uses a weighted approach: temperatures from top-3 finishes get
+        weight 3, top-5 get weight 2, others get weight 1.
+        Falls back to all-performance average if insufficient top finishes.
         Returns absolute distance from that optimum.
         """
         if current_temp is None:
             return None
-        # Find best temperature (average temp when finishing top 3)
-        top_temps = [t for t, pos in self.temp_performances if pos <= 3]
-        if len(top_temps) < _MIN_OBS:
+        if len(self.temp_performances) < _MIN_OBS:
             return None
-        best_temp = sum(top_temps) / len(top_temps)
+        # Weighted average: better finishes get more weight
+        total_w = 0.0
+        weighted_sum = 0.0
+        for t, pos in self.temp_performances:
+            if pos <= 3:
+                w = 3.0
+            elif pos <= 5:
+                w = 2.0
+            else:
+                w = 1.0
+            weighted_sum += t * w
+            total_w += w
+        if total_w == 0:
+            return None
+        best_temp = weighted_sum / total_w
         return round(abs(current_temp - best_temp), 2)
 
 

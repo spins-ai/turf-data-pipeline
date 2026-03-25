@@ -271,14 +271,18 @@ def build_pace_scenario_features(input_path: Path, logger) -> list[dict[str, Any
             })
 
         # Count front-runners in this field
+        # Use only classified runners as denominator (not total field size),
+        # otherwise the fraction is always near 0 when most horses lack history
         types_in_field = [p["pace_type"] for p in pre_race if p["pace_type"] is not None]
         nb_fr = sum(1 for t in types_in_field if t == 1)
-        fr_fraction = nb_fr / n_runners if n_runners > 0 else 0.0
+        nb_classified = len(types_in_field)
+        fr_fraction = nb_fr / nb_classified if nb_classified > 0 else 0.0
         pace_is_hot = fr_fraction >= PACE_HOT_THRESHOLD
 
         # Emit features
         for pr in pre_race:
             pace_type = pr["pace_type"]
+            leader_prob = pr["leader_prob"]
 
             # pace_advantage: closer benefits from hot pace, front-runner from cold
             pace_adv = None
@@ -286,6 +290,17 @@ def build_pace_scenario_features(input_path: Path, logger) -> list[dict[str, Any
                 if pace_type == 3 and pace_is_hot:
                     pace_adv = 1
                 elif pace_type == 1 and not pace_is_hot:
+                    pace_adv = 1
+                else:
+                    pace_adv = 0
+            elif leader_prob is not None and nb_classified > 0:
+                # Fallback for horses without full classification:
+                # Use leader_prob as a soft proxy for running style
+                is_likely_closer = leader_prob < 0.15
+                is_likely_front = leader_prob > 0.50
+                if is_likely_closer and pace_is_hot:
+                    pace_adv = 1
+                elif is_likely_front and not pace_is_hot:
                     pace_adv = 1
                 else:
                     pace_adv = 0

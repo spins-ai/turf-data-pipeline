@@ -58,8 +58,8 @@ PRIOR_WEIGHT = 10
 GLOBAL_WIN_RATE = 0.08  # ~8% baseline (approx 1/12 runners)
 
 # Smart-money odds shortening threshold
-SMART_MONEY_DROP_PCT = 0.15  # 15%
-SMART_MONEY_ELO_MAX_RANK = 3
+SMART_MONEY_DROP_PCT = 0.10  # 10% (was 15%, too strict with sparse morning odds)
+SMART_MONEY_ELO_MAX_RANK = 5  # top-5 Elo (was 3, too strict for larger fields)
 
 # Progress log every N records
 _LOG_EVERY = 500_000
@@ -149,8 +149,15 @@ def build_value_signal_features(input_path: Path, logger) -> list[dict[str, Any]
         if n_read % _LOG_EVERY == 0:
             logger.info("  Lu %d records...", n_read)
 
-        cote_finale = rec.get("cote_finale") or rec.get("rapport_final")
-        cote_matin = rec.get("cote_probable") or rec.get("cote_matin")
+        cote_finale = rec.get("cote_finale") or rec.get("rapport_final") or rec.get("rapport_pmu")
+        cote_matin = (
+            rec.get("cote_probable")
+            or rec.get("cote_matin")
+            or rec.get("rapport_probable")
+            or rec.get("cote_depart")
+            or rec.get("odds_start")
+            or rec.get("cote_tendance")
+        )
 
         slim = {
             "uid": rec.get("partant_uid"),
@@ -280,7 +287,7 @@ def build_value_signal_features(input_path: Path, logger) -> list[dict[str, Any]
                     (odds_rank[j] - elo_rank[j]) / (n_runners - 1), 4
                 )
 
-            # smart_money_signal: odds shortened > 15% AND Elo rank <= 3
+            # smart_money_signal: odds shortened > threshold AND good Elo rank
             smart = None
             if pr["cote_matin"] is not None and cote is not None and pr["cote_matin"] > 0:
                 drop_pct = (pr["cote_matin"] - cote) / pr["cote_matin"]
@@ -288,6 +295,9 @@ def build_value_signal_features(input_path: Path, logger) -> list[dict[str, Any]
                     1 if (drop_pct > SMART_MONEY_DROP_PCT and elo_rank[j] <= SMART_MONEY_ELO_MAX_RANK)
                     else 0
                 )
+            elif cote is not None:
+                # No morning odds available: default to 0 (no signal detected)
+                smart = 0
 
             results.append({
                 "partant_uid": pr["rec"]["uid"],

@@ -169,7 +169,14 @@ def build_ranking_features(input_path: Path, logger) -> list[dict[str, Any]]:
             "course": rec.get("course_uid", ""),
             "num": rec.get("num_pmu", 0) or 0,
             "age": _safe_int(rec.get("age")),
-            "gains": _safe_float(rec.get("gains_carriere") or rec.get("gains_total")),
+            "gains": _safe_float(
+                rec.get("gains_carriere_euros")
+                or rec.get("gains_carriere")
+                or rec.get("gains_total")
+                or rec.get("gains_prix_euros")
+                or rec.get("gainsCarriere")
+                or rec.get("gains")
+            ),
             "nb_courses": _safe_int(rec.get("nb_courses") or rec.get("nb_courses_carriere")),
             "poids": _safe_float(rec.get("poids_porte_kg")),
             "cote": cote,

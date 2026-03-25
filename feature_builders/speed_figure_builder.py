@@ -283,13 +283,28 @@ def build_speed_features(input_path: Path, logger) -> list[dict[str, Any]]:
         if n_read % _LOG_EVERY == 0:
             logger.info("  Lu %d records...", n_read)
 
+        # reduction_km_ms: use explicit field or estimate from temps_ms / distance
+        red_km_ms = rec.get("reduction_km_ms")
+        if red_km_ms is None:
+            temps_ms = rec.get("temps_ms")
+            dist_raw = rec.get("distance")
+            if temps_ms is not None and dist_raw is not None:
+                try:
+                    t_ms = float(temps_ms)
+                    d_m = float(dist_raw)
+                    if t_ms > 0 and d_m > 0:
+                        # reduction_km_ms = time_ms / distance_km
+                        red_km_ms = t_ms / (d_m / 1000.0)
+                except (TypeError, ValueError):
+                    pass
+
         slim = {
             "uid": rec.get("partant_uid"),
             "date": rec.get("date_reunion_iso", ""),
             "course": rec.get("course_uid", ""),
             "num": rec.get("num_pmu", 0) or 0,
             "cheval": rec.get("nom_cheval"),
-            "red_km_ms": rec.get("reduction_km_ms"),
+            "red_km_ms": red_km_ms,
             "hippo": rec.get("hippodrome_normalise", ""),
             "distance": rec.get("distance"),
             "terrain": rec.get("type_piste", ""),

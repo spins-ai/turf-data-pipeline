@@ -20,6 +20,8 @@ Features per partant:
   - elo_combined        : weighted combination (60/25/15)
   - elo_cheval_delta    : change since horse's last race
   - nb_races_elo        : number of past races for horse (experience)
+  - elo_discipline      : horse Elo within discipline (trot or galop)
+  - elo_surface         : horse Elo on this surface type (herbe or cendree)
 
 Usage:
     python feature_builders/elo_rating_builder.py
@@ -160,6 +162,9 @@ def build_elo_features(input_path: Path, logger) -> list[dict[str, Any]]:
         if n_read % _LOG_EVERY == 0:
             logger.info("  Lu %d records...", n_read)
 
+        discipline_raw = (rec.get("discipline") or "").upper().strip()
+        surface_raw = (rec.get("type_piste") or "").upper().strip()
+
         slim = {
             "uid": rec.get("partant_uid"),
             "date": rec.get("date_reunion_iso", ""),
@@ -170,6 +175,8 @@ def build_elo_features(input_path: Path, logger) -> list[dict[str, Any]]:
             "entraineur": rec.get("entraineur"),
             "gagnant": bool(rec.get("is_gagnant")),
             "position": rec.get("position_arrivee"),
+            "discipline": discipline_raw if discipline_raw else None,
+            "surface": surface_raw if surface_raw else None,
         }
         slim_records.append(slim)
 
@@ -185,6 +192,10 @@ def build_elo_features(input_path: Path, logger) -> list[dict[str, Any]]:
     horse_elo: dict[str, _EloState] = defaultdict(_EloState)
     jockey_elo: dict[str, _EloState] = defaultdict(_EloState)
     trainer_elo: dict[str, _EloState] = defaultdict(_EloState)
+    # Discipline-specific Elo: key = (horse_name, discipline)
+    horse_disc_elo: dict[tuple, _EloState] = defaultdict(_EloState)
+    # Surface-specific Elo: key = (horse_name, surface)
+    horse_surf_elo: dict[tuple, _EloState] = defaultdict(_EloState)
 
     results: list[dict[str, Any]] = []
     n_processed = 0
@@ -217,12 +228,17 @@ def build_elo_features(input_path: Path, logger) -> list[dict[str, Any]]:
                     "elo_combined": None,
                     "elo_cheval_delta": None,
                     "nb_races_elo": None,
+                    "elo_discipline": None,
+                    "elo_surface": None,
                 })
             continue
 
         # ── Snapshot pre-race Elo for all partants ──
         pre_race: list[dict[str, Any]] = []
         horse_ratings = []
+        # Determine discipline/surface for this course (all runners share same course)
+        course_discipline = course_group[0].get("discipline")
+        course_surface = course_group[0].get("surface")
 
         for rec in course_group:
             h = rec["cheval"]
@@ -235,6 +251,20 @@ def build_elo_features(input_path: Path, logger) -> list[dict[str, Any]]:
 
             h_nb = horse_elo[h].nb_races if h else 0
             h_prev = horse_elo[h].prev_rating if h else BASE_ELO
+
+            # Discipline-specific Elo
+            disc_elo = None
+            if h and course_discipline:
+                disc_key = (h, course_discipline)
+                disc_state = horse_disc_elo[disc_key]
+                disc_elo = disc_state.rating if disc_state.nb_races > 0 else None
+
+            # Surface-specific Elo
+            surf_elo = None
+            if h and course_surface:
+                surf_key = (h, course_surface)
+                surf_state = horse_surf_elo[surf_key]
+                surf_elo = surf_state.rating if surf_state.nb_races > 0 else None
 
             combined = (
                 COMBINED_WEIGHTS[0] * h_elo
@@ -251,6 +281,8 @@ def build_elo_features(input_path: Path, logger) -> list[dict[str, Any]]:
                 "combined": round(combined, 2),
                 "delta": round(delta, 2) if delta is not None else None,
                 "nb_races": h_nb,
+                "disc_elo": round(disc_elo, 2) if disc_elo is not None else None,
+                "surf_elo": round(surf_elo, 2) if surf_elo is not None else None,
             })
             horse_ratings.append(h_elo)
 
@@ -264,6 +296,8 @@ def build_elo_features(input_path: Path, logger) -> list[dict[str, Any]]:
                 "elo_combined": pr["combined"],
                 "elo_cheval_delta": pr["delta"],
                 "nb_races_elo": pr["nb_races"],
+                "elo_discipline": pr["disc_elo"],
+                "elo_surface": pr["surf_elo"],
             })
 
         # ── Update Elo ratings after race ──
@@ -275,6 +309,10 @@ def build_elo_features(input_path: Path, logger) -> list[dict[str, Any]]:
                 if rec["cheval"]:
                     horse_elo[rec["cheval"]].prev_rating = horse_elo[rec["cheval"]].rating
                     horse_elo[rec["cheval"]].nb_races += 1
+                    if course_discipline:
+                        horse_disc_elo[(rec["cheval"], course_discipline)].nb_races += 1
+                    if course_surface:
+                        horse_surf_elo[(rec["cheval"], course_surface)].nb_races += 1
                 if rec["jockey"]:
                     jockey_elo[rec["jockey"]].nb_races += 1
                 if rec["entraineur"]:
@@ -299,6 +337,24 @@ def build_elo_features(input_path: Path, logger) -> list[dict[str, Any]]:
                 h_state.prev_rating = h_state.rating
                 h_state.rating += k * (actual - expected)
                 h_state.nb_races += 1
+
+                # --- Discipline-specific Elo update ---
+                if course_discipline:
+                    d_state = horse_disc_elo[(rec["cheval"], course_discipline)]
+                    d_k = _get_k(d_state.nb_races)
+                    d_expected = _expected_score(d_state.rating, opp_avg)
+                    d_state.prev_rating = d_state.rating
+                    d_state.rating += d_k * (actual - d_expected)
+                    d_state.nb_races += 1
+
+                # --- Surface-specific Elo update ---
+                if course_surface:
+                    s_state = horse_surf_elo[(rec["cheval"], course_surface)]
+                    s_k = _get_k(s_state.nb_races)
+                    s_expected = _expected_score(s_state.rating, opp_avg)
+                    s_state.prev_rating = s_state.rating
+                    s_state.rating += s_k * (actual - s_expected)
+                    s_state.nb_races += 1
 
             # --- Jockey Elo update ---
             if rec["jockey"]:
