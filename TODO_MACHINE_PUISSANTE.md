@@ -571,7 +571,11 @@
 # │  SOURCES DANS LE PIPELINE              │
 # └─────────────────────────────────────────┘
 
-## 8.0 🔴 Audit HTML : re-vérifier TOUTES les sources pour valeurs cachées
+## 8.0 Parse des caches enrichis
+- [x] Parser 22_performances_detaillees cache (97K files) -> perf_detaillees_enriched.jsonl ✅ FAIT — 97,798 fichiers, 6,090,330 records, 4.0 GB, 0 erreurs (tempsDuPremier 89.4%, reductionKilometrique 21.8%, distanceAvecPrecedent 30.7%)
+- [x] Parser 21_rapports_definitifs cache (200K files) -> rapports_enriched.jsonl ✅ FAIT — 200,099 fichiers, 3,599,294 records, 1.4 GB, 0 erreurs (nombreGagnants 98.6%, 20 bet types)
+
+## 8.0b 🔴 Audit HTML : re-vérifier TOUTES les sources pour valeurs cachées
 - [ ] 🔴 Pour chaque source déjà scrapée : comparer champs collectés vs champs dispo dans HTML brut (BLOCKED: needs runtime + manual audit of each source HTML)
 - [ ] 🔴 Re-scraper en HTML brut les sources où on soupçonne des champs manquants (BLOCKED: needs runtime + Selenium/Playwright)
 - [ ] 🔴 Lister tous les champs HTML non exploités par source (tableau source → champs_ignorés) (BLOCKED: depends on HTML audit)
@@ -774,9 +778,10 @@
 - [x] Prêt à être branché sur le dossier modèles ✅ FAIT — check_deliverables.py 8/8 PASS
 
 # ════════════════════════════════════════════════════════════════
-# COMPTEURS FINAUX (mis à jour 19 mars 2026 — session 2)
+# COMPTEURS FINAUX (mis à jour 25 mars 2026 — session 3)
 # ════════════════════════════════════════════════════════════════
 # Scripts de collecte existants: 122 (41 originaux + 8 calcul 41-49 + 30 scrapers 51-80 + 10 scrapers 81-90 + 20 scrapers 103-122)
+# Scripts de parsing cache: 2 (parse_perf_detaillees_cache.py, parse_rapports_cache.py)
 # Playwright scrapers: 14 migrés (51-55, 58-60, 62, 64-66, 69) + 7 natifs (111, 113-116, 119-120)
 # Nouvelles sources à scraper: ~60+ restantes
 # Features actuelles: 528+ (matrice 36 GB, all builders exécutés)
@@ -792,6 +797,8 @@
 # Mega-merge: 2,930,290 x 97 cols, 17 GB
 # Features matrix: 36 GB
 # Labels: 4.86M rebuilt (March 25, 2026)
+# Cache enrichi perf_detaillees: 6,090,330 records (4.0 GB JSONL) depuis 97,798 fichiers cache
+# Cache enrichi rapports_definitifs: 3,599,294 records (1.4 GB JSONL) depuis 200,099 fichiers cache
 # Masters créés: courses (257K), pedigree (465MB, 1.4M), rapports (421MB, 221K),
 #                meteo (797MB, 257K), stats_externes, marche (67MB),
 #                equipements (277MB), horse_stats (162MB), performances

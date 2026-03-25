@@ -186,8 +186,13 @@ def main() -> None:
             if total % 500_000 == 0:
                 print(f"       ... {total / 1e6:.1f}M master lines processed")
 
-    # --- Atomic replace ----------------------------------------------------
-    os.replace(MASTER_OUT, MASTER_IN)
+    # --- Atomic replace (Windows-safe) -------------------------------------
+    bak = MASTER_IN + ".bak"
+    if os.path.exists(bak):
+        os.remove(bak)
+    os.rename(MASTER_IN, bak)
+    os.rename(MASTER_OUT, MASTER_IN)
+    os.remove(bak)
 
     elapsed = time.time() - t0
     pct_c = (matched_course / total * 100) if total else 0
