@@ -2106,3 +2106,32 @@ Total [ ] restantes : 118 taches
 - output/cross_reference/paris_turf_geny_merged.jsonl : sortie croisement
 - output/cross_reference/geny_id_registry.jsonl : registre GENY IDs
 - output/cross_reference/cross_reference_report.json : rapport croisement
+
+---
+
+## DONNÉES INEXPLOITÉES À INTÉGRER (découvert par audit profond)
+
+### P0 — Données critiques jamais mergées (8.7 GB)
+- [ ] Merger 23_pronostics (204K expert predictions) dans partants_master via date+course+partant
+- [ ] Merger 27_citations (5.26M betting stakes) dans partants_master via course_uid
+- [ ] Merger 101_pmu_api complet (1.6M) — prix, conditions, pariTypes
+- [ ] Merger 83_letrot (92K trot détaillé) via date+hippodrome+course
+- [ ] Merger 51_zeturf (416K alternative cotes) via date
+- [ ] Merger 53_paris_turf (35K going, class, winnerTimeKm) via date
+
+### P1 — Cache files non parsés (225K+ fichiers)
+- [ ] Parser 22_performances_detaillees cache (97K files) — tempsDuPremier, reductionKm historique
+- [ ] Parser 21_rapports_definitifs cache (200K files) — nombreGagnants (concentration paris)
+- [ ] Parser 101_pmu_api cache (225K files) — 48 champs supplémentaires
+- [ ] Parser 27_citations cache (177K files) — market depth indicators
+
+### P2 — Features dérivables manquantes
+- [ ] Ratios: gains_par_victoire, cote_ratio, poids_par_distance, gains_momentum
+- [ ] Deltas consécutifs: delta_cote, delta_poids, delta_distance, delta_reduction_km
+- [ ] Rankings intra-course: rank_age, rank_gains, rank_elo, rank_speed
+- [ ] Propager 202 features de features_matrix vers partants_master
+
+### P3 — Croisements inexploités
+- [ ] Smarkets exchange (30) × partants → back/lay odds
+- [ ] Paris-Turf externalId.GENY × geny_data
+- [ ] ZeTurf cotes × PMU cotes → market_divergence feature
