@@ -2,7 +2,7 @@
 
 Auto-generated from `output/features/features_matrix.jsonl` (sample: 500 rows).
 
-**Total features: 511+**
+**Total features: 510+ (across 73 builders, ~836 output columns including windowed variants)**
 
 ## Features by Builder
 
@@ -71,7 +71,7 @@ Auto-generated from `output/features/features_matrix.jsonl` (sample: 500 rows).
 | cross_features_builder | 6 |
 | closing_line_value_builder | 4 |
 | career_stats_builder | 6 |
-| **Total** | **511+** |
+| **Total** | **510+** |
 
 ## Detailed Feature List
 

@@ -1,7 +1,7 @@
 # Sources de donnees
 
 Liste exhaustive des 115 sources de donnees du pipeline hippique, groupees par categorie.
-Derniere mise a jour : 2026-03-22.
+Derniere mise a jour : 2026-03-25.
 
 ---
 
@@ -249,7 +249,7 @@ Derniere mise a jour : 2026-03-22.
 | ⚠️ Partial | 10 | Donnees partielles ou limitees |
 | ❌ Blocked | 35 | Bloque (Cloudflare, auth, anti-bot, payant) |
 | 🔄 In Progress | 1 | Collecte en cours (101 PMU API v2) |
-| **Total** | **105 sources + pipeline interne + 15 feature builders** | |
+| **Total** | **105 sources + pipeline interne + 73 feature builders** | |
 
 ---
 
@@ -276,10 +276,13 @@ Derniere mise a jour : 2026-03-22.
 
 | Categorie | Volume |
 |-----------|--------|
-| Sources brutes (output/) | ~400+ GB |
-| Feature matrix (all builders) | 234 GB |
-| Master export | 90 GB |
-| Elo ratings | 494 MB |
+| Sources brutes (output/) | ~460+ GB |
+| Feature matrix (73 builders) | 253 GB |
+| Master export (exports/) | 89 GB |
+| Elo ratings | 627 MB |
+| Labels | 1.4 GB |
 | Partants (records principaux) | 2,930,290 |
 | Courses (records principaux) | ~257,806 |
 | Training labels | 4,800,517 |
+| Feature builders | 73 (producing ~510 cataloged features) |
+| data_master/partants_master.jsonl | 24.4 GB |

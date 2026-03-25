@@ -1,8 +1,9 @@
 # FEATURE CATALOG - Horse Racing Prediction Model
 
-> Generated 2026-03-14
-> Current features: 67 (+ 13 ID columns = 80 total columns)
-> Target: 350-500 features
+> Updated 2026-03-25
+> Cataloged features: 510 (across 73 feature builders)
+> Estimated total output columns: ~836 (including windowed variants)
+> Target: 350-500 features -- EXCEEDED
 > This catalog lists ALL features buildable from available data sources.
 
 ---
