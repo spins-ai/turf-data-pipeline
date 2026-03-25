@@ -226,6 +226,7 @@
 - [x] Relancer enrichissement_champs.py 2eme passe sur fichier enrichi ✅ FAIT — pays_entrainement 8.1%->81.7%, ecart_precedent 31.9%->95.1%, pere_mere 44.8%->57.4%, 2.93M records en 459s
 - [x] Relancer mega_merge avec partants_master_enrichi.jsonl
 - [x] Relancer master_feature_builder sur le fichier enrichi ✅ (launched, running — ~2-4 hours via rebuild_all.py --step features)
+- [x] Fix pedigree_advanced infinite loop bug (batch function called per-record in streaming pass 2, replaced with inline computation using pass 1 indexes) ✅ FAIT — commit 6618b32
 - [x] Copier output/ en local (supprimer junction Mac) pour permissions ecriture ✅ N/A — sur Windows maintenant, pas de junction Mac
 - [x] Relancer scripts collecte (21,22,27,28,38,39) apres copie locale ✅ VERIFIE — 27 termine (4.8M records, 1.6GB JSONL), 28 termine (5.7M records), 38 termine (3M records). Scripts 21/22/39 integres dans masters.
 - [x] Installer Playwright pour les 14 scrapers bloques (section 4.6) ✅ FAIT
@@ -371,6 +372,24 @@
 - [x] Vérifier taux de remplissage par feature ✅ FAIT session 2
 - [x] Supprimer features avec >90% de None ✅ FAIT — scripts/remove_high_null_features.py ecrit + execute, 18 features >90% null identifiees et supprimees (output/quality/high_null_features_report.json)
 - [x] Log du nombre de features et stats ✅ FAIT session 2
+
+## 6.4b Additional feature builders (launched 25 mars 2026)
+- [x] recency_bias_builder.py (5 features) ✅ LANCE — PID running
+- [x] career_milestone_builder.py ✅ LANCE
+- [x] equipment_impact_builder.py ✅ LANCE
+- [x] public_money_builder.py ✅ LANCE
+- [x] track_bias_deep_builder.py ✅ LANCE
+- [x] weather_interaction_builder.py ✅ LANCE
+- [x] race_rhythm_builder.py ✅ LANCE
+- [x] jockey_trainer_deep_builder.py ✅ LANCE
+- [x] age_lifecycle_builder.py ✅ LANCE
+- [x] polynomial_interaction_builder.py ✅ LANCE
+- [x] survival_features_builder.py ✅ LANCE
+- [x] quantile_features_builder.py ✅ LANCE
+- [x] uncertainty_builder.py ✅ LANCE
+- [x] market_inefficiency_builder.py ✅ LANCE
+- [x] pattern_discovery_builder.py ✅ LANCE
+- [x] derived_features_builder.py ✅ LANCE
 
 ## 6.5 Backup intermédiaire #4
 - [x] Sauvegarder après feature engineering ✅ FAIT — backups/backup_20260324_220031/
@@ -784,9 +803,13 @@
 # Scripts de parsing cache: 2 (parse_perf_detaillees_cache.py, parse_rapports_cache.py)
 # Playwright scrapers: 14 migrés (51-55, 58-60, 62, 64-66, 69) + 7 natifs (111, 113-116, 119-120)
 # Nouvelles sources à scraper: ~60+ restantes
-# Features actuelles: 528+ (matrice 36 GB, all builders exécutés)
-#   → 177 builders originaux debuggés + 9 nouveaux builders + 10 affinités croisées
-#   → master_feature_builder.py exécuté : 2.93M records
+# Features actuelles: 528+ (matrice 36 GB, all builders exécutés) + 16 additional builders launched
+#   → 177 builders originaux debuggés + 9 nouveaux builders + 10 affinités croisées + 16 additional builders
+#   → master_feature_builder.py: pedigree_advanced bug fixed (commit 6618b32)
+#   → 16 additional builders launched 2026-03-25: recency_bias, career_milestone, equipment_impact,
+#     public_money, track_bias_deep, weather_interaction, race_rhythm, jockey_trainer_deep,
+#     age_lifecycle, polynomial_interaction, survival_features, quantile_features,
+#     uncertainty, market_inefficiency, pattern_discovery, derived_features
 # Features builders cassés: 0 (tous debuggés)
 # Features cible: 528+
 # Records partants: 2,930,290
