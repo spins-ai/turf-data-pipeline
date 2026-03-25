@@ -170,3 +170,42 @@ Marché des paris (combinaisons, types de pari)
 | `mch_rang_combinaison` | int | 5 | Rang de la combinaison dans le marché |
 | `mch_type_pari` | string | QUINTE_PLUS | Type de pari (QUINTE_PLUS, etc.) |
 
+---
+
+## Champs definitivement inaccessibles
+
+Certains champs de `partants_master` resteront a faible taux de remplissage car les donnees sources ne sont pas disponibles ou accessibles. Cette section documente chaque cas et la raison.
+
+| Champ | Fill rate actuel | Raison de l'inaccessibilite | Alternative |
+|-------|-----------------|----------------------------|-------------|
+| `poids_base_kg` | ~8.7% | Le poids de base n'est pas expose dans l'API publique PMU. Seules les courses a handicap publient cette donnee. Les pages web PMU affichent parfois le poids mais sans API stable. | Estimer via `poids_porte_kg - surcharge_decharge_kg` quand les deux sont connus. |
+| `surcharge_decharge_kg` | ~8.7% | Depend directement de `poids_base_kg` : la surcharge/decharge = difference entre poids porte et poids de base. Meme limitation API. | Calculable si `poids_base_kg` et `poids_porte_kg` sont tous deux disponibles. |
+| `avis_entraineur` | ~9.2% | L'API PMU retourne presque toujours NEUTRE (<0.1% non-neutre). Le texte riche des avis n'est disponible que sur les pages detail HTML avec scraping Selenium/Playwright, et seulement pour les courses recentes. | Utiliser `commentaire_apres_course` comme proxy qualitatif post-course. |
+| `temps_ms` | ~39% | Les temps de course ne sont enregistres que pour les partants ayant termine la course (pas les non-partants, disqualifies, arretes). Les courses anciennes (avant 2016) ont moins de couverture. Racing Post UK a des sectionals detailles mais sous abonnement payant. | `reduction_km_ms` est calculable quand `temps_ms` et `distance` sont connus. Pour les non-classes, le temps est naturellement absent. |
+| `reduction_km_ms` | ~39% | Derive directement de `temps_ms` et `distance`. Si le temps est absent, la reduction kilometrique ne peut pas etre calculee. | Imputable par moyenne de la course si au moins un temps est connu pour la meme course. |
+| `poids_porte_kg` | ~45.8% | Champ rempli principalement pour les courses de galop (plat, obstacle). En trot, il n'y a pas de notion de poids porte. L'API PMU expose ce champ de maniere inconsistante. | Pour le trot, mettre null est correct (pas de poids porte). Pour le galop, le scraping des pages detail PMU ou Racing Post peut completer. |
+| `cote_finale` | variable | Les cotes finales ne sont pas toujours archivees pour les courses anciennes. L'API PMU ne garantit pas la persistance des cotes apres la course. | Utiliser `cote_reference` ou `proba_implicite` comme approximation. |
+| `cote_reference` | variable | Meme probleme que `cote_finale` : les cotes de reference sont ephemeres dans l'API PMU. | Utiliser les cotes exchange Smarkets/Betfair quand disponibles. |
+| `gains_annee_euros` | variable | Ce champ change au cours de l'annee. Les donnees historiques ne preservent pas le snapshot au moment de la course. | Calculable en sommant les allocations gagnees dans `rapports_master` pour l'annee en cours. |
+| `gains_carriere_euros` | variable | Meme probleme de snapshot temporel que `gains_annee_euros`. | Calculable en sommant toutes les allocations historiques. |
+
+### Sources payantes qui pourraient ameliorer la couverture
+
+| Source | Champs potentiels | Cout estime | Priorite |
+|--------|-------------------|-------------|----------|
+| Racing Post / Timeform Pro | `temps_ms` sectionals detailles, RPR, TopSpeed | ~200-500 GBP/an | Haute |
+| Betfair API | `cote_finale` exchange, volume marche | Gratuit (avec cle API) | Haute |
+| Meteo France API | Donnees meteorologiques station par hippodrome | Variable (forfaits) | Moyenne |
+| OptixEQ | Speed figures avances, pace analysis | ~500 USD/an | Basse |
+| Equimetre / France Galop institutional | Biometrie, donnees GPS embarquees | Acces institutionnel | Basse |
+
+### Champs structurellement absents (par design)
+
+Ces champs sont naturellement vides pour certains types de courses et ne necessitent pas d'enrichissement :
+
+- **`poids_porte_kg`** pour le trot : les trotteurs ne portent pas de poids additionnel
+- **`handicap_valeur`** pour les non-handicaps : seules les courses a handicap ont une valeur de handicap
+- **`taux_reclamation_euros`** pour les non-reclamer : seules les courses a reclamer (~5.7% du total) ont ce champ
+- **`temps_ms`** pour les non-partants/disqualifies : un cheval qui ne termine pas la course n'a pas de temps
+- **`ecart_precedent`** pour le 1er : le premier partant n'a pas d'ecart avec le precedent
+
