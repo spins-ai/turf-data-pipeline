@@ -896,6 +896,25 @@ def _extract_vue_meeting_data(
                     and safe_int(p.get("distance")) != safe_int(race.get("distance"))
                     else None,
                 "oeilleres": "",
+                # --- 18 additional HIGH VALUE fields from Vue.js JSON ---
+                "record_personnel": p.get("record", ""),
+                "crack_series": p.get("crackSeries", False),
+                "cote_probable": p.get("rapportProbable"),
+                "gains_moyen_course": p.get("earningsAverage"),
+                "pere_mere": p.get("fatherMother", ""),
+                "commentaire_partant": p.get("commentairePartant", ""),
+                "avis_entraineur": p.get("avisEntraineur", ""),
+                "changement_entraineur": p.get("changementEntraineur", False),
+                "first_time_jockey": p.get("firstJockey", False),
+                "first_time_autostart": p.get("firstAutostart", False),
+                "first_time_corde": p.get("firstCorde", False),
+                "first_time_ferrure": p.get("firstFerrure", False),
+                "first_time_monte": p.get("firstSpecialiteMonte", False),
+                "course_rapprochee": p.get("courseRapprochee", False),
+                "date_derniere_course": p.get("lastRaceDate", ""),
+                "poids_kg": p.get("poids"),
+                "annee_naissance": p.get("annee"),
+                "robe": p.get("robe", ""),
             }
 
             # Parse temps (e.g. "1'19\"30" or "TNC")

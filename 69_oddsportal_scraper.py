@@ -38,6 +38,7 @@ from utils.scraping import smart_pause, append_jsonl, load_checkpoint, save_chec
 log = setup_logging("69_oddsportal")
 
 MAX_RETRIES = 3
+DEFAULT_TIMEOUT_MS = 30000
 
 BASE_URL = "https://www.oddsportal.com"
 

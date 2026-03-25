@@ -44,6 +44,7 @@ from utils.scraping import smart_pause, append_jsonl
 log = setup_logging("53_paris_turf")
 
 MAX_RETRIES = 3
+DEFAULT_TIMEOUT_MS = 30000
 
 BASE_URL = "https://www.paris-turf.com"
 
