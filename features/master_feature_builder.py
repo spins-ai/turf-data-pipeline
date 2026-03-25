@@ -354,6 +354,11 @@ def pass1_build_indexes(input_path: str, logger: logging.Logger) -> dict:
     # Entraineur-hippodrome
     ent_hippo_history = defaultdict(list)
 
+    # Pedigree sire/dam/damsire stats (for pedigree_advanced features)
+    ped_sire_stats = defaultdict(lambda: {"total": 0, "wins": 0, "places": 0, "gains": 0.0})
+    ped_dam_stats = defaultdict(lambda: {"total": 0, "wins": 0, "places": 0, "gains": 0.0})
+    ped_damsire_stats = defaultdict(lambda: {"total": 0, "wins": 0})
+
     # Course-level data: course_uid -> list of minimal runner info
     course_runners = defaultdict(list)
 
@@ -528,6 +533,29 @@ def pass1_build_indexes(input_path: str, logger: logging.Logger) -> dict:
                 if is_gagnant:
                     trainer_stats[trainer]["wins"] += 1
 
+            # --- Pedigree sire/dam/damsire stats ---
+            pere = _norm_name(p.get("pere") or p.get("nom_pere") or p.get("sire"))
+            mere_ped = _norm_name(p.get("mere") or p.get("nom_mere") or p.get("dam"))
+            pere_mere_ped = _norm_name(p.get("pere_mere") or p.get("dam_sire") or p.get("broodmare_sire"))
+            if pere:
+                ped_sire_stats[pere]["total"] += 1
+                if position_int == 1:
+                    ped_sire_stats[pere]["wins"] += 1
+                if position_int is not None and position_int <= 3:
+                    ped_sire_stats[pere]["places"] += 1
+                ped_sire_stats[pere]["gains"] += gains_course
+            if mere_ped:
+                ped_dam_stats[mere_ped]["total"] += 1
+                if position_int == 1:
+                    ped_dam_stats[mere_ped]["wins"] += 1
+                if position_int is not None and position_int <= 3:
+                    ped_dam_stats[mere_ped]["places"] += 1
+                ped_dam_stats[mere_ped]["gains"] += gains_course
+            if pere_mere_ped:
+                ped_damsire_stats[pere_mere_ped]["total"] += 1
+                if position_int == 1:
+                    ped_damsire_stats[pere_mere_ped]["wins"] += 1
+
             # --- Horse last jockey ---
             if cheval and jockey:
                 horse_last_jockey[cheval] = jockey
@@ -605,6 +633,9 @@ def pass1_build_indexes(input_path: str, logger: logging.Logger) -> dict:
         "course_nb_partants": course_nb_partants,
         "n_records": n_records,
         "record_order": record_order,
+        "ped_sire_stats": dict(ped_sire_stats),
+        "ped_dam_stats": dict(ped_dam_stats),
+        "ped_damsire_stats": dict(ped_damsire_stats),
     }
 
 
@@ -1776,14 +1807,76 @@ def compute_external_builder_features(p: dict, ext: dict, logger: logging.Logger
         except Exception as e:
             logger.debug("Feature builder error: %s", e)
 
-    # Pedigree advanced
+    # Pedigree advanced (inline — the batch builder was causing O(N^2) perf issue)
     try:
-        from feature_builders.pedigree_advanced_builder import build_pedigree_advanced_features
-        result = build_pedigree_advanced_features(single, logger)
-        if result:
-            for k, v in result[0].items():
-                if k != "partant_uid" and k not in p:
-                    feat[k] = v
+        from feature_builders.pedigree_advanced_builder import SIRE_STAMINA_INDEX, SIRE_PRECOCITY_INDEX
+        pere = _norm_name(p.get("pere") or p.get("nom_pere") or p.get("sire"))
+        mere_ped = _norm_name(p.get("mere") or p.get("nom_mere") or p.get("dam"))
+        pere_mere_ped = _norm_name(p.get("pere_mere") or p.get("dam_sire") or p.get("broodmare_sire"))
+        grand_pere_p = _norm_name(p.get("grand_pere_paternel") or p.get("grandsire"))
+        grand_pere_m = _norm_name(p.get("grand_pere_maternel"))
+
+        if pere or mere_ped:
+            # Sire stats from pre-built index
+            ped_sire_stats = ext.get("ped_sire_stats", {})
+            ped_dam_stats = ext.get("ped_dam_stats", {})
+            ped_damsire_stats = ext.get("ped_damsire_stats", {})
+
+            if pere and pere in ped_sire_stats and ped_sire_stats[pere]["total"] > 0:
+                ss = ped_sire_stats[pere]
+                feat["ped_sire_nb_offspring"] = ss["total"]
+                feat["ped_sire_win_rate"] = round(ss["wins"] / ss["total"], 4)
+                feat["ped_sire_place_rate"] = round(ss["places"] / ss["total"], 4)
+                feat["ped_sire_avg_gains"] = round(ss["gains"] / ss["total"], 2)
+
+            if mere_ped and mere_ped in ped_dam_stats and ped_dam_stats[mere_ped]["total"] > 0:
+                ds = ped_dam_stats[mere_ped]
+                feat["ped_dam_nb_offspring"] = ds["total"]
+                feat["ped_dam_win_rate"] = round(ds["wins"] / ds["total"], 4)
+                feat["ped_dam_place_rate"] = round(ds["places"] / ds["total"], 4)
+
+            if pere_mere_ped and pere_mere_ped in ped_damsire_stats and ped_damsire_stats[pere_mere_ped]["total"] > 0:
+                dss = ped_damsire_stats[pere_mere_ped]
+                feat["ped_damsire_nb"] = dss["total"]
+                feat["ped_damsire_win_rate"] = round(dss["wins"] / dss["total"], 4)
+
+            # Stamina/speed/precocity from known sires
+            if pere:
+                feat["ped_sire_stamina_idx"] = SIRE_STAMINA_INDEX.get(pere)
+                feat["ped_sire_precocity_idx"] = SIRE_PRECOCITY_INDEX.get(pere)
+            if pere_mere_ped:
+                feat["ped_damsire_stamina_idx"] = SIRE_STAMINA_INDEX.get(pere_mere_ped)
+
+            # Inbreeding detection
+            ancestors = set()
+            inbreeding = False
+            for anc in [pere, mere_ped, pere_mere_ped, grand_pere_p, grand_pere_m]:
+                if anc:
+                    if anc in ancestors:
+                        inbreeding = True
+                    ancestors.add(anc)
+            feat["ped_inbreeding_detected"] = inbreeding
+
+            # Lineage depth
+            depth = sum(1 for x in [pere, mere_ped, pere_mere_ped, grand_pere_p, grand_pere_m] if x)
+            feat["ped_lineage_depth"] = depth
+            feat["ped_has_full_pedigree"] = depth >= 4
+
+            # Nick key
+            if pere and pere_mere_ped:
+                feat["ped_nick_key"] = f"{pere}|{pere_mere_ped}"
+
+            # Discipline match
+            discipline = p.get("rapport_discipline_norm") or p.get("discipline_norm")
+            if pere and discipline:
+                stamina = SIRE_STAMINA_INDEX.get(pere)
+                if stamina is not None:
+                    if discipline in ("plat", "flat"):
+                        feat["ped_discipline_match"] = 1.0 - stamina
+                    elif discipline in ("obstacle", "haies", "steeple", "hurdle", "chase"):
+                        feat["ped_discipline_match"] = stamina
+                    elif discipline in ("trot_attele", "trot_monte", "trot"):
+                        feat["ped_discipline_match"] = 0.5
     except Exception as e:
         logger.debug("Feature builder error: %s", e)
 
@@ -2168,6 +2261,11 @@ def run_pipeline(input_path: str, output_path: str, logger: logging.Logger):
     # Load external data
     # ------------------------------------------------------------------
     ext = load_external_indexes(logger)
+
+    # Inject pedigree sire/dam indexes from pass 1 into ext for pedigree_advanced
+    ext["ped_sire_stats"] = indexes.get("ped_sire_stats", {})
+    ext["ped_dam_stats"] = indexes.get("ped_dam_stats", {})
+    ext["ped_damsire_stats"] = indexes.get("ped_damsire_stats", {})
 
     # ------------------------------------------------------------------
     # Pass 2: Compute features & write
