@@ -63,8 +63,15 @@ def jsonl_to_parquet_chunked(jsonl_path: Path, parquet_path: Path):
     # Pass 1: Discover all keys
     all_keys, expected_rows = discover_schema(jsonl_path)
 
-    # Pass 2: Write with unified schema (all columns as string for safety,
-    # then let downstream consumers cast as needed)
+    # For large files with many keys (high schema variance), force all-string
+    # to avoid cross-chunk type mismatches.
+    force_string = len(all_keys) > 500
+    if force_string:
+        print(f"  NOTE: {len(all_keys)} columns detected — using all-string mode for schema safety")
+
+    # Build a fixed schema upfront so all chunks match
+    schema = pa.schema([(k, pa.string()) for k in all_keys]) if force_string else None
+
     print(f"  Pass 2: Writing Parquet with {len(all_keys)} columns...")
     writer = None
     total_rows = 0
@@ -81,13 +88,16 @@ def jsonl_to_parquet_chunked(jsonl_path: Path, parquet_path: Path):
                 batch_lines.append(line)
 
                 if len(batch_lines) >= CHUNK_SIZE:
-                    table = _lines_to_table(batch_lines, all_keys)
+                    table = _lines_to_table(batch_lines, all_keys, force_string=force_string)
                     if writer is None:
+                        write_schema = schema if schema else table.schema
                         writer = pq.ParquetWriter(
                             str(tmp_path),
-                            table.schema,
+                            write_schema,
                             compression="snappy",
                         )
+                    if not force_string:
+                        table = _reconcile_schema(table, writer.schema)
                     writer.write_table(table)
                     total_rows += len(batch_lines)
                     elapsed = time.time() - start
@@ -100,13 +110,16 @@ def jsonl_to_parquet_chunked(jsonl_path: Path, parquet_path: Path):
 
         # Write remaining
         if batch_lines:
-            table = _lines_to_table(batch_lines, all_keys)
+            table = _lines_to_table(batch_lines, all_keys, force_string=force_string)
             if writer is None:
+                write_schema = schema if schema else table.schema
                 writer = pq.ParquetWriter(
                     str(tmp_path),
-                    table.schema,
+                    write_schema,
                     compression="snappy",
                 )
+            if not force_string:
+                table = _reconcile_schema(table, writer.schema)
             writer.write_table(table)
             total_rows += len(batch_lines)
 
@@ -126,8 +139,38 @@ def jsonl_to_parquet_chunked(jsonl_path: Path, parquet_path: Path):
     return total_rows
 
 
-def _lines_to_table(lines: list[str], all_keys: list[str]) -> pa.Table:
-    """Convert a list of JSON lines to a PyArrow Table with a fixed set of keys."""
+def _reconcile_schema(table: pa.Table, target_schema: pa.Schema) -> pa.Table:
+    """Cast table columns to match target_schema.  When a column type differs
+    (e.g. list<int> vs list<string>), serialize the column to JSON strings."""
+    if table.schema.equals(target_schema):
+        return table
+
+    new_columns = {}
+    for field in target_schema:
+        col = table.column(field.name)
+        if col.type != field.type:
+            # Try cast first, then fall back to JSON string serialization
+            try:
+                col = col.cast(field.type)
+            except (pa.ArrowInvalid, pa.ArrowNotImplementedError, pa.ArrowTypeError):
+                # Serialize both to string — but target type wins
+                str_values = [
+                    json.dumps(v.as_py(), ensure_ascii=False) if v.as_py() is not None else None
+                    for v in col
+                ]
+                col = pa.array(str_values, type=pa.string())
+                if field.type != pa.string():
+                    # Target schema had a complex type on chunk 1; can't fix.
+                    # This is a fundamental mismatch — skip gracefully.
+                    pass
+        new_columns[field.name] = col
+
+    return pa.table(new_columns)
+
+
+def _lines_to_table(lines: list[str], all_keys: list[str], force_string: bool = False) -> pa.Table:
+    """Convert a list of JSON lines to a PyArrow Table with a fixed set of keys.
+    Lists and dicts are serialized to JSON strings for schema stability across chunks."""
     records = []
     for line in lines:
         try:
@@ -138,30 +181,53 @@ def _lines_to_table(lines: list[str], all_keys: list[str]) -> pa.Table:
     if not records:
         return pa.table({k: pa.array([], type=pa.string()) for k in all_keys})
 
+    def _to_str(v):
+        if v is None:
+            return None
+        if isinstance(v, str):
+            return v
+        return json.dumps(v, ensure_ascii=False)
+
     # Build columns using all_keys for consistent schema
     columns = {}
     for key in all_keys:
         values = [r.get(key) for r in records]
 
-        # Try native type inference first
+        if force_string:
+            columns[key] = pa.array([_to_str(v) for v in values], type=pa.string())
+            continue
+
+        # Check if any value is a list or dict — serialize to JSON string for stability
+        has_complex = any(isinstance(v, (list, dict)) for v in values if v is not None)
+        if has_complex:
+            columns[key] = pa.array([_to_str(v) for v in values])
+            continue
+
+        # Try native type inference for scalar columns
         try:
             arr = pa.array(values)
             columns[key] = arr
         except (pa.ArrowInvalid, pa.ArrowTypeError, pa.ArrowNotImplementedError):
-            # Fall back to string for mixed types
-            columns[key] = pa.array(
-                [json.dumps(v, ensure_ascii=False) if v is not None and not isinstance(v, str) else v for v in values]
-            )
+            columns[key] = pa.array([_to_str(v) for v in values])
 
     return pa.table(columns)
 
 
+def auto_discover_stale(output_dir: Path) -> list[tuple[Path, Path]]:
+    """Walk output/ and find every .jsonl that has a corresponding .parquet
+    where the jsonl is newer (or parquet is missing)."""
+    stale = []
+    for jsonl_path in output_dir.rglob("*.jsonl"):
+        parquet_path = jsonl_path.with_suffix(".parquet")
+        if parquet_path.exists() and needs_refresh(jsonl_path, parquet_path):
+            stale.append((jsonl_path, parquet_path))
+    stale.sort(key=lambda pair: pair[0].stat().st_size)  # smallest first
+    return stale
+
+
 def main():
+    # --- Explicit high-priority files ---
     files_to_convert = [
-        (
-            ROOT / "data_master" / "partants_master.jsonl",
-            ROOT / "data_master" / "partants_master.parquet",
-        ),
         (
             ROOT / "output" / "labels" / "training_labels.jsonl",
             ROOT / "output" / "labels" / "training_labels.parquet",
@@ -171,6 +237,13 @@ def main():
             ROOT / "output" / "elo_ratings" / "elo_ratings.parquet",
         ),
     ]
+
+    # --- Auto-discover any other stale parquets ---
+    explicit_jsonls = {p[0] for p in files_to_convert}
+    auto_stale = auto_discover_stale(ROOT / "output")
+    for jsonl_path, parquet_path in auto_stale:
+        if jsonl_path not in explicit_jsonls:
+            files_to_convert.append((jsonl_path, parquet_path))
 
     print("=" * 60)
     print("Parquet Export Refresh")

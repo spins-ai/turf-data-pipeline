@@ -18,6 +18,7 @@ Usage:
     python scripts/rescrape_pmu_enriched.py
     python scripts/rescrape_pmu_enriched.py --max-days 30
     python scripts/rescrape_pmu_enriched.py --reset   # restart from scratch
+    python scripts/rescrape_pmu_enriched.py --start 2013-01-01 --end 2019-12-31
 """
 
 from __future__ import annotations
@@ -28,7 +29,7 @@ import os
 import re
 import sys
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
@@ -97,6 +98,47 @@ def discover_combos() -> list[tuple[str, int, int]]:
     return combos
 
 
+def discover_combos_from_api(
+    session, start_date: str, end_date: str
+) -> list[tuple[str, int, int]]:
+    """Query the PMU programme API for each date in [start, end] to discover
+    (date, R, C) combos.  Used when no cache exists (e.g. 2013-2019)."""
+    combos: list[tuple[str, int, int]] = []
+    current = datetime.strptime(start_date, "%Y-%m-%d").date()
+    end = datetime.strptime(end_date, "%Y-%m-%d").date()
+    total_days = (end - current).days + 1
+    day_count = 0
+
+    log.info("Discovering combos from API for %s -> %s (%d days)", start_date, end_date, total_days)
+    while current <= end:
+        date_pmu = current.strftime("%d%m%Y")
+        date_iso = current.strftime("%Y-%m-%d")
+        url = f"{BASE_API}/programme/{date_pmu}"
+        data = api_get(session, url)
+        day_count += 1
+
+        if data:
+            programme = data.get("programme", data)
+            reunions = programme.get("reunions", [])
+            for reunion in reunions:
+                num_r = reunion.get("numOfficiel", reunion.get("numExterne", 0))
+                courses = reunion.get("courses", [])
+                for course in courses:
+                    num_c = course.get("numOrdre", course.get("numExterne", 0))
+                    if num_r and num_c:
+                        combos.append((date_iso, int(num_r), int(num_c)))
+
+        if day_count % 50 == 0:
+            log.info("Discovery progress: %d/%d days, %d combos found so far", day_count, total_days, len(combos))
+
+        smart_pause(base=0.8, jitter=0.4)
+        current += timedelta(days=1)
+
+    combos.sort()
+    log.info("Discovered %d combos from API across %d days.", len(combos), total_days)
+    return combos
+
+
 # ===================================================================
 # API call
 # ===================================================================
@@ -161,11 +203,37 @@ def main():
         "--reset", action="store_true",
         help="Ignore checkpoint and restart from scratch"
     )
+    parser.add_argument(
+        "--start", type=str, default=None,
+        help="Start date (YYYY-MM-DD). When set, discovers combos from PMU API instead of cache."
+    )
+    parser.add_argument(
+        "--end", type=str, default=None,
+        help="End date (YYYY-MM-DD). Required when --start is used."
+    )
     args = parser.parse_args()
 
-    combos = discover_combos()
+    # --- Discovery ---
+    if args.start:
+        if not args.end:
+            parser.error("--end is required when --start is specified")
+        # Validate date format
+        try:
+            datetime.strptime(args.start, "%Y-%m-%d")
+            datetime.strptime(args.end, "%Y-%m-%d")
+        except ValueError:
+            parser.error("--start and --end must be YYYY-MM-DD format")
+
+        # For API-based discovery we need a session early
+        discovery_session = create_session()
+        discovery_session.headers.update(HEADERS)
+        combos = discover_combos_from_api(discovery_session, args.start, args.end)
+        discovery_session.close()
+    else:
+        combos = discover_combos()
+
     if not combos:
-        log.info("No combos found in cache — nothing to do.")
+        log.info("No combos found — nothing to do.")
         return
 
     # --- Checkpoint / resume ------------------------------------------------
