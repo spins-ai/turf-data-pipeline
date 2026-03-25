@@ -2,7 +2,7 @@
 
 Auto-generated from `output/features/features_matrix.jsonl` (sample: 500 rows).
 
-**Total features: 510+ (across 73 builders, ~836 output columns including windowed variants)**
+**Total features: 640+ (across 90 builders, ~970 output columns including windowed variants)**
 
 ## Features by Builder
 
@@ -71,7 +71,24 @@ Auto-generated from `output/features/features_matrix.jsonl` (sample: 500 rows).
 | cross_features_builder | 6 |
 | closing_line_value_builder | 4 |
 | career_stats_builder | 6 |
-| **Total** | **510+** |
+| unused_fields_builder | 10 |
+| rapport_features_builder | 8 |
+| weather_interaction_builder | 6 |
+| race_rhythm_builder | 5 |
+| jockey_trainer_deep_builder | 6 |
+| age_lifecycle_builder | 5 |
+| delta_features_builder | 8 |
+| ranking_features_builder | 8 |
+| derived_features_builder | 5 |
+| pattern_discovery_builder | 12 |
+| market_inefficiency_builder | 12 |
+| polynomial_interaction_builder | 15 |
+| survival_features_builder | 5 |
+| quantile_features_builder | 5 |
+| uncertainty_builder | 5 |
+| betting_edge_features_builder | 6 |
+| outsider_profile_builder | 6 |
+| **Total** | **640+** |
 
 ## Detailed Feature List
 
