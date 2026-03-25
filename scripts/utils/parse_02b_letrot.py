@@ -392,6 +392,21 @@ def process_file(filepath: str, filename: str) -> tuple:
                 "proba_implicite": None,
                 "record": p.get("record", ""),
                 "allocation_partant": p.get("allocation", 0),
+                # Enriched fields from Vue.js JSON
+                "crack_series": p.get("crackSeries", False),
+                "cote_probable": p.get("rapportProbable"),
+                "gains_moyen_course": p.get("earningsAverage"),
+                "changement_entraineur": p.get("changementEntraineur", False),
+                "first_time_jockey": p.get("firstJockey", False),
+                "first_time_autostart": p.get("firstAutostart", False),
+                "first_time_corde": p.get("firstCorde", False),
+                "first_time_ferrure": p.get("firstFerrure", False),
+                "first_time_monte": p.get("firstSpecialiteMonte", False),
+                "course_rapprochee": p.get("courseRapprochee", False),
+                "date_derniere_course": p.get("lastRaceDate", ""),
+                "poids_kg": p.get("poids"),
+                "annee_naissance": p.get("annee"),
+                "avis_entraineur_detail": p.get("avisEntraineur", ""),
                 "timestamp_collecte": datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
             }
             partants.append(partant_record)

@@ -361,6 +361,9 @@ class PartantNormalise:
 
     timestamp_collecte: str = ""
 
+    # Enriched fields from Vue.js parser (record, crack_series, cote_probable, etc.)
+    extras: dict = field(default_factory=dict)
+
 
 # ===========================================================================
 # HTTP
@@ -1723,6 +1726,26 @@ def _parse_json_partant(
 
     course_uid = make_uid(date_iso, hippo, f"R{num_reunion}", f"C{num_course}")
 
+    robe = (p.get("robe", "") or "").strip()
+    nom_pere_mere = (p.get("pere_mere", "") or p.get("nomPereMere", "") or "").strip()
+    commentaire = (p.get("commentaire_partant", "") or p.get("commentairePartant", "") or "").strip()
+    avis = (p.get("avis_entraineur", "") or p.get("avisEntraineur", "") or "").strip()
+
+    # Capture the 18 enriched fields from Vue.js parser into extras
+    extras: dict = {}
+    enriched_keys = [
+        "record_personnel", "crack_series", "cote_probable",
+        "gains_moyen_course", "changement_entraineur",
+        "first_time_jockey", "first_time_autostart", "first_time_corde",
+        "first_time_ferrure", "first_time_monte",
+        "course_rapprochee", "date_derniere_course",
+        "poids_kg", "annee_naissance",
+    ]
+    for key in enriched_keys:
+        val = p.get(key)
+        if val is not None and val != "" and val is not False:
+            extras[key] = val
+
     return PartantBrut(
         source="letrot",
         course_uid=course_uid,
@@ -1737,6 +1760,7 @@ def _parse_json_partant(
         age=age,
         sexe=sexe,
         race=race,
+        robe=robe,
         musique=musique,
         gains_carriere=gains_carriere,
         nombre_courses=nb_courses,
@@ -1754,6 +1778,10 @@ def _parse_json_partant(
         ordre_arrivee=position,
         temps_obtenu=temps,
         reduction_kilometrique=rk,
+        nom_pere_mere=nom_pere_mere,
+        commentaire_apres_course=commentaire,
+        avis_entraineur=avis,
+        extras=extras,
     )
 
 
@@ -1890,6 +1918,7 @@ def normaliser_partant(brute: PartantBrut, course_norm: CourseNormalisee) -> Par
         cote_reference=None,
         proba_implicite=None,
         timestamp_collecte=brute.timestamp_collecte,
+        extras=brute.extras if brute.extras else {},
     )
 
 
