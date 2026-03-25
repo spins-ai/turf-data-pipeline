@@ -195,6 +195,18 @@ def build_dag() -> Dict[str, Step]:
         "feature_builders/uncertainty_builder.py",
         "feature_builders/betting_edge_features_builder.py",
         "feature_builders/outsider_profile_builder.py",
+        "feature_builders/combo_triple_builder.py",
+        "feature_builders/streak_builder.py",
+        "feature_builders/recency_bias_builder.py",
+        "feature_builders/career_milestone_builder.py",
+        "feature_builders/equipment_impact_builder.py",
+        "feature_builders/public_money_builder.py",
+        "feature_builders/horse_profile_builder.py",
+        "feature_builders/track_bias_deep_builder.py",
+        "feature_builders/trainer_horse_compatibility_builder.py",
+        "feature_builders/seasonality_builder.py",
+        "feature_builders/experience_depth_builder.py",
+        "feature_builders/freshness_builder.py",
     ]
     for script in feature_builder_scripts:
         name = "fb_" + Path(script).stem

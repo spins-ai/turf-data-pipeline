@@ -2113,17 +2113,17 @@ Total [ ] restantes : 118 taches
 
 ### P0 — Données critiques jamais mergées (8.7 GB)
 - [ ] Merger 23_pronostics (204K expert predictions) dans partants_master via date+course+partant
-- [ ] Merger 27_citations (5.26M betting stakes) dans partants_master via course_uid
-- [ ] Merger 101_pmu_api complet (1.6M) — prix, conditions, pariTypes
+- [x] Merger 27_citations (5.26M betting stakes) dans partants_master via course_uid ✅ FAIT
+- [x] Merger 101_pmu_api complet (1.6M) — prix, conditions, pariTypes ✅ FAIT
 - [ ] Merger 83_letrot (92K trot détaillé) via date+hippodrome+course
 - [ ] Merger 51_zeturf (416K alternative cotes) via date
 - [ ] Merger 53_paris_turf (35K going, class, winnerTimeKm) via date
 
 ### P1 — Cache files non parsés (225K+ fichiers)
-- [ ] Parser 22_performances_detaillees cache (97K files) — tempsDuPremier, reductionKm historique
-- [ ] Parser 21_rapports_definitifs cache (200K files) — nombreGagnants (concentration paris)
-- [ ] Parser 101_pmu_api cache (225K files) — 48 champs supplémentaires
-- [ ] Parser 27_citations cache (177K files) — market depth indicators
+- [x] Parser 22_performances_detaillees cache (97K files) — tempsDuPremier, reductionKm historique ✅ FAIT
+- [x] Parser 21_rapports_definitifs cache (200K files) — nombreGagnants (concentration paris) ✅ FAIT
+- [x] Parser 101_pmu_api cache (225K files) — 48 champs supplémentaires ✅ FAIT
+- [x] Parser 27_citations cache (177K files) — market depth indicators ✅ FAIT
 
 ### P2 — Features dérivables manquantes
 - [ ] Ratios: gains_par_victoire, cote_ratio, poids_par_distance, gains_momentum

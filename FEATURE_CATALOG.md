@@ -1,9 +1,9 @@
 # FEATURE CATALOG - Horse Racing Prediction Model
 
 > Updated 2026-03-25
-> Cataloged features: 510 (across 73 feature builders)
-> Estimated total output columns: ~836 (including windowed variants)
-> Target: 350-500 features -- EXCEEDED
+> Cataloged features: 853 (across 95 feature builders)
+> Estimated total output columns: ~1,200 (including windowed variants)
+> Target: 350-500 features -- EXCEEDED (680+ target also exceeded)
 > This catalog lists ALL features buildable from available data sources.
 
 ---
@@ -834,6 +834,576 @@ statut, timestamp_collecte, type_piste, url_source
 
 ---
 
+## CATEGORY 30: RATING & ELO FEATURES
+> Source: partants (computed)
+> Builders: elo_rating_builder, bayesian_rating_builder, speed_figure_builder
+
+| # | Feature Name | Formula/Logic | Source | Status |
+|---|-------------|---------------|--------|--------|
+| 482 | elo_cheval | horse Elo at race time | partants | NOW |
+| 483 | elo_jockey | jockey Elo at race time | partants | NOW |
+| 484 | elo_entraineur | trainer Elo at race time | partants | NOW |
+| 485 | elo_combined | weighted combination (60/25/15) | partants | NOW |
+| 486 | elo_cheval_delta | change since horse's last race | partants | NOW |
+| 487 | nb_races_elo | number of past races for horse (experience) | partants | NOW |
+| 488 | bayes_horse_win_rate | Bayesian win rate for the horse (shrunk toward global avg) | partants | NOW |
+| 489 | bayes_horse_place_rate | Bayesian place rate (top 3) | partants | NOW |
+| 490 | bayes_jockey_win_rate | Bayesian win rate for jockey | partants | NOW |
+| 491 | bayes_jockey_roi | Bayesian ROI for jockey (shrunk toward -15% global avg) | partants | NOW |
+| 492 | bayes_trainer_win_rate | Bayesian win rate for trainer | partants | NOW |
+| 493 | bayes_combo_jt_win | Jockey-trainer combination win rate | partants | NOW |
+| 494 | bayes_confidence | 1 - (prior_weight / (prior_weight + nb_courses)) | partants | NOW |
+| 495 | speed_figure | standardized speed rating for this run (0-200 scale) | partants | NOW |
+| 496 | speed_figure_best | best speed figure in horse's career (before this race) | partants | NOW |
+| 497 | speed_figure_avg | average of last 5 speed figures | partants | NOW |
+| 498 | speed_figure_trend | linear regression slope of last 5 speed figures | partants | NOW |
+| 499 | speed_figure_rank | rank of this horse's best figure among the field | partants | NOW |
+| 500 | speed_vs_class | speed_figure_avg / average speed at this allocation level | partants | NOW |
+| 501 | speed_consistency | standard deviation of last 5 speed figures | partants | NOW |
+
+**Subtotal: 20 features (0 existing + 20 new)**
+
+---
+
+## CATEGORY 31: STREAK & MOMENTUM FEATURES
+> Source: partants (historique)
+> Builders: streak_builder, momentum_builder, recency_bias_builder
+
+| # | Feature Name | Formula/Logic | Source | Status |
+|---|-------------|---------------|--------|--------|
+| 502 | current_win_streak | consecutive wins heading into this race (0 if last was a loss) | partants | NOW |
+| 503 | current_loss_streak | consecutive non-wins heading into this race (0 if last was a win) | partants | NOW |
+| 504 | best_streak_career | longest win streak in the horse's career so far | partants | NOW |
+| 505 | streak_vs_field_avg | horse's current win streak minus avg win streak of the field | partants | NOW |
+| 506 | streak_at_hippodrome | current win streak at this specific hippodrome | partants | NOW |
+| 507 | momentum_3 | average of last 3 position ranks (lower = better) | partants | NOW |
+| 508 | momentum_5 | average of last 5 position ranks | partants | NOW |
+| 509 | momentum_trend | linear regression slope of last 5 positions (negative = improving) | partants | NOW |
+| 510 | regression_to_mean | how far current form is from career average (positive = above avg) | partants | NOW |
+| 511 | form_volatility | standard deviation of last 5 positions | partants | NOW |
+| 512 | weight_recent_3x | weighted avg position (last 3 races weighted 3x vs older) | partants | NOW |
+| 513 | weight_recent_5x | weighted avg position (last 5 races weighted 5x vs older) | partants | NOW |
+| 514 | exponential_decay_form | exponentially decayed avg position (lambda=0.3) | partants | NOW |
+| 515 | time_weighted_elo | Elo rating with time-decayed K-factor | partants | NOW |
+| 516 | recency_adjusted_speed | recent speed figure weighted higher than older ones | partants | NOW |
+
+**Subtotal: 15 features (0 existing + 15 new)**
+
+---
+
+## CATEGORY 32: CAREER MILESTONE & LIFECYCLE
+> Source: partants (historique)
+> Builders: career_milestone_builder, career_stats_builder, age_lifecycle_builder
+
+| # | Feature Name | Formula/Logic | Source | Status |
+|---|-------------|---------------|--------|--------|
+| 517 | is_first_10_races | 1 if horse has fewer than 10 career starts, else 0 | partants | NOW |
+| 518 | is_maiden | 1 if horse has never won before this race, else 0 | partants | NOW |
+| 519 | days_since_first_race | calendar days since the horse's first recorded race | partants | NOW |
+| 520 | is_career_best_class | 1 if this race's allocation is the highest the horse | partants | NOW |
+| 521 | nb_courses_carriere | total career race count before this race | partants | NOW |
+| 522 | gains_carriere_total | total career earnings before this race | partants | NOW |
+| 523 | gains_par_course_moyen | gains_carriere_total / nb_courses_carriere | partants | NOW |
+| 524 | win_rate_carriere | career win rate (wins / races) | partants | NOW |
+| 525 | place_rate_carriere | career place rate (top 3 / races) | partants | NOW |
+| 526 | best_allocation_won | highest allocation in a race the horse won | partants | NOW |
+| 527 | peak_age_for_discipline | is horse at peak age for its discipline? | partants | NOW |
+| 528 | races_since_peak | nb races since horse's best position | partants | NOW |
+| 529 | career_phase | early(0-10 races)/mid(10-30)/veteran(30+) | partants | NOW |
+| 530 | optimal_distance_age | does horse's current distance match | partants | NOW |
+
+**Subtotal: 14 features (0 existing + 14 new)**
+
+---
+
+## CATEGORY 33: PREFERENCE & AFFINITY (Advanced)
+> Source: partants (historique)
+> Builders: distance_preference_builder, going_preference_builder, draw_bias_builder, hippodrome_expertise_builder, horse_profile_builder
+
+| # | Feature Name | Formula/Logic | Source | Status |
+|---|-------------|---------------|--------|--------|
+| 531 | dist_pref_win_rate | horse win rate at current distance category | partants | NOW |
+| 532 | dist_pref_place_rate | horse place rate at current distance category | partants | NOW |
+| 533 | dist_pref_advantage | dist_pref_win_rate / overall win rate (>1 = prefers this distance) | partants | NOW |
+| 534 | dist_pref_nb_runs | number of past runs at this distance category | partants | NOW |
+| 535 | dist_pref_best_category | distance category where horse has best win rate | partants | NOW |
+| 536 | dist_match_score | 1.0 if current = best distance, 0.5 if adjacent, 0.0 otherwise | partants | NOW |
+| 537 | going_pref_win_rate | horse's win rate on current terrain type | partants | NOW |
+| 538 | going_pref_place_rate | horse's place rate on current terrain type | partants | NOW |
+| 539 | going_pref_advantage | going_pref_win_rate / overall win rate (>1 = prefers this going) | partants | NOW |
+| 540 | going_pref_nb_runs | number of past runs on this terrain type (confidence) | partants | NOW |
+| 541 | going_pref_best_terrain | terrain with best win rate (encoded as int) | partants | NOW |
+| 542 | going_match_score | 1.0 if current = best, 0.5 if adjacent, 0.0 if opposite | partants | NOW |
+| 543 | draw_win_rate | historical win rate from this draw at hippo+distance | partants | NOW |
+| 544 | draw_place_rate | historical place rate (top 3) from this draw | partants | NOW |
+| 545 | draw_advantage | draw_win_rate / avg_win_rate for the hippo+distance (>1 = advantaged) | partants | NOW |
+| 546 | draw_inside_bias | win rate of draws 1-4 vs 5+ at this hippo+distance | partants | NOW |
+| 547 | draw_position_normalized | numPmu / nb_partants (0-1 scale, 0=inside, 1=outside) | partants | NOW |
+| 548 | draw_nb_samples | number of historical races this draw stat is based on | partants | NOW |
+| 549 | horse_hippo_win_rate | horse's win rate at this hippodrome | partants | NOW |
+| 550 | horse_hippo_nb_runs | times horse has raced here | partants | NOW |
+| 551 | jockey_hippo_win_rate | jockey's win rate at this hippodrome | partants | NOW |
+| 552 | jockey_hippo_nb_runs | times jockey has ridden here | partants | NOW |
+| 553 | hippo_specialist_score | (horse_hippo_win_rate + jockey_hippo_win_rate) / 2 | partants | NOW |
+| 554 | hippo_first_time | 1 if horse has never raced at this hippodrome | partants | NOW |
+| 555 | is_front_runner_by_history | float, % of past races where horse finished top-3 from low corde (<=4) | partants | NOW |
+| 556 | preferred_distance_match | 1.0 if today's distance category == horse's best win-rate category, else 0 | partants | NOW |
+| 557 | preferred_terrain_match | 1.0 if today's type_piste == horse's best win-rate terrain, else 0 | partants | NOW |
+| 558 | career_roi | (total gains - total mise) / total mise  (mise = nb_courses * 1) | partants | NOW |
+| 559 | career_avg_beaten_length | average beaten-length across career | partants | NOW |
+| 560 | versatility_score | count of unique (distance_cat, type_piste, hippodrome) combos raced | partants | NOW |
+
+**Subtotal: 30 features (0 existing + 30 new)**
+
+---
+
+## CATEGORY 34: JOCKEY & TRAINER FORM
+> Source: partants (historique)
+> Builders: jockey_form_builder, trainer_form_builder, jockey_horse_affinity_builder, jockey_trainer_deep_builder, trainer_horse_compatibility_builder
+
+| # | Feature Name | Formula/Logic | Source | Status |
+|---|-------------|---------------|--------|--------|
+| 561 | jockey_win_rate_30j | jockey win rate in last 30 days | partants | NOW |
+| 562 | jockey_win_rate_90j | jockey win rate in last 90 days | partants | NOW |
+| 563 | jockey_rides_30j | number of rides in last 30 days | partants | NOW |
+| 564 | jockey_form_trend | win_rate_30j / win_rate_90j (>1 = improving) | partants | NOW |
+| 565 | trainer_win_rate_30j | trainer win rate in last 30 days | partants | NOW |
+| 566 | trainer_win_rate_90j | trainer win rate in last 90 days | partants | NOW |
+| 567 | trainer_runners_30j | number of runners trained in last 30 days | partants | NOW |
+| 568 | trainer_hot_streak | consecutive wins by trainer's horses (0 if last lost) | partants | NOW |
+| 569 | trainer_roi_30j | ROI of backing all trainer's horses in last 30 days | partants | NOW |
+| 570 | trainer_form_trend | win_rate_30j / win_rate_90j (>1 = improving form) | partants | NOW |
+| 571 | jh_combo_win_rate | win rate of this jockey on this specific horse | partants | NOW |
+| 572 | jh_combo_nb_rides | number of times this jockey has ridden this horse before | partants | NOW |
+| 573 | jh_combo_place_rate | place rate (top 3) of this jockey-horse combo | partants | NOW |
+| 574 | jh_is_regular | 1 if jockey has ridden this horse 3+ times, 0 otherwise | partants | NOW |
+| 575 | jh_first_time | 1 if this is the first time this jockey rides this horse | partants | NOW |
+| 576 | jt_combo_roi | ROI of betting on this jockey-trainer combo | partants | NOW |
+| 577 | jt_combo_avg_position | average finish position of combo | partants | NOW |
+| 578 | jockey_claiming_expert | jockey win rate in claiming races | partants | NOW |
+| 579 | trainer_2yo_specialist | trainer win rate with 2-year-old horses | partants | NOW |
+| 580 | trainer_horse_win_rate | win rate of this trainer with this specific horse | partants | NOW |
+| 581 | trainer_horse_nb_races | number of times trainer has trained this horse before | partants | NOW |
+| 582 | trainer_horse_roi | ROI backing this trainer-horse combo | partants | NOW |
+| 583 | trainer_new_horse | 1 if trainer has this horse for first time | partants | NOW |
+| 584 | trainer_speciality_match | 1 if trainer's best discipline = this race's discipline | partants | NOW |
+
+**Subtotal: 24 features (0 existing + 24 new)**
+
+---
+
+## CATEGORY 35: MARKET & VALUE SIGNALS
+> Source: partants (cotes, rapports)
+> Builders: closing_line_value_builder, value_signal_builder, betting_edge_features_builder, public_money_builder, market_inefficiency_builder
+
+| # | Feature Name | Formula/Logic | Source | Status |
+|---|-------------|---------------|--------|--------|
+| 585 | closing_line_value | (1/cote_ref - 1/cote_fin) * cote_fin | partants | NOW |
+| 586 | expected_value_brute | (estimated_prob * cote_fin) - 1 | partants | NOW |
+| 587 | cote_movement_pct | (cote_fin - cote_ref) / cote_ref * 100 | partants | NOW |
+| 588 | is_value_bet | 1 if expected_value_brute > 0 | partants | NOW |
+| 589 | expected_value | model_implied_prob * cote_finale - 1 | partants | NOW |
+| 590 | edge_vs_market | bayes_win_rate - (1 / cote_finale) | partants | NOW |
+| 591 | is_value_bet | 1 if expected_value > 0, else 0 | partants | NOW |
+| 592 | cote_vs_elo_gap | normalised gap between market-odds rank and Elo rank | partants | NOW |
+| 593 | smart_money_signal | 1 if odds shortened > 15% AND Elo rank <= 3 | partants | NOW |
+| 594 | kelly_fraction | (p*b - q) / b  where p = Bayesian win rate, | partants | NOW |
+| 595 | edge_percentage | (p_model - p_market) / p_market * 100 | partants | NOW |
+| 596 | edge_consistency | rolling hit-rate of positive-edge bets over | partants | NOW |
+| 597 | kelly_bankroll_pct | kelly_fraction * edge_consistency | partants | NOW |
+| 598 | market_prob | 1 / cote_finale  (implied market probability). | partants | NOW |
+| 599 | model_prob | Bayesian shrinkage win-rate used as proxy. | partants | NOW |
+| 600 | is_public_favorite | 1 if this horse has the lowest cote in the | partants | NOW |
+| 601 | favorite_vs_form_gap | rank_by_cote minus rank_by_recent_winrate | partants | NOW |
+| 602 | longshot_form_signal | 1 if horse has above-median recent win rate | partants | NOW |
+| 603 | market_vs_elo_divergence | z-scored difference between implied | partants | NOW |
+| 604 | mkt_odds_calibration_edge | actual_wr - implied_wr for this odds bucket | partants | NOW |
+| 605 | mkt_odds_bucket | categorical odds bucket (0-8) | partants | NOW |
+| 606 | mkt_hippo_fav_winrate | historical favourite win rate at this hippodrome | partants | NOW |
+| 607 | mkt_hippo_predictability | how predictable this hippodrome is (0-1 scale) | partants | NOW |
+| 608 | mkt_steam_odds_interaction | win rate for this drift_direction x odds_level combo | partants | NOW |
+| 609 | mkt_drift_direction | -1 (steamer), 0 (stable), +1 (drifter) | partants | NOW |
+| 610 | mkt_overbet_score | cumulative overbetting signal for this odds range | partants | NOW |
+| 611 | mkt_field_adj_implied_prob | field-size-adjusted implied probability | partants | NOW |
+| 612 | mkt_is_value_zone | 1 if odds are in a historically underbet range | partants | NOW |
+| 613 | mkt_fav_in_field | 1 if horse is the favourite in its race | partants | NOW |
+| 614 | mkt_fav_edge_vs_field_size | fav_win_rate_for_field_size - implied_probability | partants | NOW |
+| 615 | mkt_longshot_bias_score | degree to which this horse is affected by longshot bias | partants | NOW |
+
+**Subtotal: 31 features (0 existing + 31 new)**
+
+---
+
+## CATEGORY 36: FIELD & CLASS ANALYSIS
+> Source: partants (computed)
+> Builders: field_quality_builder, class_consistency_builder, course_context_builder, consistency_builder
+
+| # | Feature Name | Formula/Logic | Source | Status |
+|---|-------------|---------------|--------|--------|
+| 616 | field_elo_mean | Elo moyen du peloton | partants | NOW |
+| 617 | field_elo_std | ecart-type Elo du peloton | partants | NOW |
+| 618 | field_nb_outsiders | nb chevaux avec Elo < 1400 dans le peloton | partants | NOW |
+| 619 | field_nb_class_horses | nb chevaux avec Elo > 1600 | partants | NOW |
+| 620 | horse_elo_rank_in_field | rang du cheval par Elo dans ce peloton (1 = best) | partants | NOW |
+| 621 | class_level | current race class level (1-6) | partants | NOW |
+| 622 | class_win_rate_at_level | horse win rate at this specific class level | partants | NOW |
+| 623 | class_drop | 1 if running at lower class than avg career class | partants | NOW |
+| 624 | class_rise | 1 if running at higher class than avg career class | partants | NOW |
+| 625 | class_consistency_score | CV of finish positions across all classes | partants | NOW |
+| 626 | course_prestige | 1-5 scale (Handicap/other=1, Listed=2, Gr3=3, Gr2=4, Gr1=5) | partants | NOW |
+| 627 | is_course_phare | 1 if highest-allocation course in its reunion | partants | NOW |
+| 628 | type_paris_level | 1-5 based on bet types (simple=1 .. quinte=5) | partants | NOW |
+| 629 | nb_partants_normalized | nombre_partants / 20 | partants | NOW |
+| 630 | allocation_per_partant | allocation_totale / nb_partants | partants | NOW |
+| 631 | is_handicap | 1 if handicap race | partants | NOW |
+| 632 | position_std_5 | standard deviation of last 5 finishing positions | partants | NOW |
+| 633 | position_cv | coefficient of variation of all career finishing | partants | NOW |
+| 634 | best_worst_gap | best position - worst position over last 10 races | partants | NOW |
+| 635 | dnf_rate | fraction of career races that resulted in DNF | partants | NOW |
+| 636 | improvement_trend | OLS slope of last 10 finishing positions over time | partants | NOW |
+
+**Subtotal: 21 features (0 existing + 21 new)**
+
+---
+
+## CATEGORY 37: DELTA & LAG FEATURES
+> Source: partants (historique)
+> Builders: delta_features_builder, lag_features_builder, ranking_features_builder, derived_features_builder
+
+| # | Feature Name | Formula/Logic | Source | Status |
+|---|-------------|---------------|--------|--------|
+| 637 | delta_cote | cote_finale - previous cote_finale | partants | NOW |
+| 638 | delta_poids | poids_porte_kg - previous poids_porte_kg | partants | NOW |
+| 639 | delta_distance | distance - previous distance | partants | NOW |
+| 640 | delta_reduction_km | reduction_km_ms - previous reduction_km_ms | partants | NOW |
+| 641 | same_hippodrome | 1 if same hippodrome as last race, else 0 | partants | NOW |
+| 642 | same_jockey | 1 if same jockey as last race, else 0 | partants | NOW |
+| 643 | same_discipline | 1 if same discipline as last race, else 0 | partants | NOW |
+| 644 | days_between | days since previous race | partants | NOW |
+| 645 | lag_position_1 | position course N-1 du meme cheval | partants | NOW |
+| 646 | lag_position_2 | position course N-2 | partants | NOW |
+| 647 | lag_position_3 | position course N-3 | partants | NOW |
+| 648 | lag_cote_1 | cote finale course N-1 | partants | NOW |
+| 649 | lag_days_since_last | jours depuis derniere course | partants | NOW |
+| 650 | rank_age | rank of age within this race (1 = oldest) | partants | NOW |
+| 651 | rank_gains | rank of gains_carriere within race (1 = highest) | partants | NOW |
+| 652 | rank_nb_courses | rank of experience within race (1 = most experienced) | partants | NOW |
+| 653 | rank_poids | rank of weight within race (1 = heaviest) | partants | NOW |
+| 654 | percentile_cote | percentile of cote within race (0-1, lower = shorter price) | partants | NOW |
+| 655 | field_homogeneity | std(cotes) / mean(cotes) in race (coefficient of variation) | partants | NOW |
+| 656 | is_most_experienced | 1 if highest nb_courses in field, else 0 | partants | NOW |
+| 657 | is_youngest | 1 if lowest age in field, else 0 | partants | NOW |
+| 658 | class_drop_x_gains | spd_is_class_drop * gains_carriere_euros. | partants | NOW |
+| 659 | cote_vs_form | cote_finale / seq_position_moy_5. | partants | NOW |
+| 660 | inedit_x_experience | is_inedit * nb_courses_carriere. | partants | NOW |
+| 661 | places_2_3_rate | (nb_places_2eme + nb_places_3eme) | partants | NOW |
+| 662 | gains_per_race_rank | rank of (gains_carriere_euros | partants | NOW |
+
+**Subtotal: 26 features (0 existing + 26 new)**
+
+---
+
+## CATEGORY 38: PATTERN DISCOVERY & CROSS
+> Source: partants (computed)
+> Builders: pattern_discovery_builder, cross_features_builder, combo_triple_builder, interaction_advanced_builder
+
+| # | Feature Name | Formula/Logic | Source | Status |
+|---|-------------|---------------|--------|--------|
+| 663 | pat_dow_winrate | historical win rate on same day-of-week (all runners) | partants | NOW |
+| 664 | pat_career_stage | categorical 0-4 (debut/early/developing/mature/veteran) | partants | NOW |
+| 665 | pat_career_stage_winrate | historical win rate for this career stage bucket | partants | NOW |
+| 666 | pat_age_sex_dist_winrate | historical win rate for this age x sex x distance combo | partants | NOW |
+| 667 | pat_field_fav_interaction | field-size-adjusted expected win rate based on odds | partants | NOW |
+| 668 | pat_trainer_month_winrate | trainer's historical win rate in this calendar month | partants | NOW |
+| 669 | pat_trainer_month_delta | trainer_month_wr - trainer_overall_wr (seasonal edge) | partants | NOW |
+| 670 | pat_jockey_dist_terrain_wr | jockey win rate for this distance x terrain combo | partants | NOW |
+| 671 | pat_jockey_dist_terrain_n | number of past races in this triple combo | partants | NOW |
+| 672 | pat_career_wr_bucket | horse career win rate bucket (0-5 scale) | partants | NOW |
+| 673 | pat_career_wr_next_signal | historical next-win rate for this career wr bucket | partants | NOW |
+| 674 | pat_field_size_upset_rate | historical upset rate (fav loses) for this field size | partants | NOW |
+| 675 | horse_meteo_win_rate | horse's win rate in similar weather (rain/dry) | partants | NOW |
+| 676 | trainer_type_win_rate | trainer's win rate in this race type | partants | NOW |
+| 677 | age_month_factor | performance factor for horse's age in this month | partants | NOW |
+| 678 | sire_distance_terrain_score | sire's offspring win rate at distance+terrain | partants | NOW |
+| 679 | same_course_history | horse's win rate at hippo+distance+discipline | partants | NOW |
+| 680 | jockey_discipline_win_rate | jockey's win rate in this discipline | partants | NOW |
+| 681 | jockey_distance_terrain_wr | jockey x distance_bucket x terrain win rate | partants | NOW |
+| 682 | trainer_hippo_discipline_wr | trainer x hippodrome x discipline win rate | partants | NOW |
+| 683 | age_sex_distance_wr | age x sex x distance_bucket win rate | partants | NOW |
+| 684 | horse_season_wr | horse x season (quarter) win rate | partants | NOW |
+| 685 | jockey_corde_wr | jockey x corde (rope/rail) win rate | partants | NOW |
+| 686 | elo_x_cote | elo_cheval * (1 / cote_finale) | partants | NOW |
+| 687 | forme_x_distance_pref | momentum_3 * dist_pref_advantage | partants | NOW |
+| 688 | jockey_x_hippo_specialist | jockey_hippo_win_rate * horse_hippo_win_rate | partants | NOW |
+| 689 | age_x_distance | age * distance_category_encoded | partants | NOW |
+| 690 | fatigue_x_repos | fatigue_30j * jours_repos | partants | NOW |
+| 691 | field_size_x_draw | nombre_partants * draw_position_normalized | partants | NOW |
+
+**Subtotal: 29 features (0 existing + 29 new)**
+
+---
+
+## CATEGORY 39: ENCODING & ML-READY
+> Source: partants (computed)
+> Builders: target_encoding_builder, advanced_encoding_builder, ml_features_builder
+
+| # | Feature Name | Formula/Logic | Source | Status |
+|---|-------------|---------------|--------|--------|
+| 692 | te_hippodrome_win_rate | win rate historique par hippodrome (smoothed) | partants | NOW |
+| 693 | te_jockey_win_rate | win rate par jockey (smoothed) | partants | NOW |
+| 694 | te_trainer_win_rate | win rate par entraineur (smoothed) | partants | NOW |
+| 695 | te_discipline_win_rate | win rate par discipline (smoothed) | partants | NOW |
+| 696 | te_distance_cat_win_rate | win rate par categorie distance (smoothed) | partants | NOW |
+| 697 | te_month_win_rate | win rate par mois (smoothed) | partants | NOW |
+| 698 | freq_enc_hippodrome | nb past races at this hippodrome (all horses) | partants | NOW |
+| 699 | freq_enc_jockey_global | total career races of this jockey | partants | NOW |
+| 700 | freq_enc_trainer_global | total career races of this trainer | partants | NOW |
+| 701 | woe_hippodrome | Weight of Evidence for hippodrome (log odds) | partants | NOW |
+| 702 | woe_discipline | Weight of Evidence for discipline | partants | NOW |
+| 703 | sin_month | sin(2*pi*month/12) cyclical month encoding | partants | NOW |
+| 704 | cos_month | cos(2*pi*month/12) | partants | NOW |
+| 705 | sin_dow | sin(2*pi*day_of_week/7) cyclical DOW | partants | NOW |
+| 706 | cos_dow | cos(2*pi*day_of_week/7) | partants | NOW |
+| 707 | sin_hour | sin(2*pi*hour/24) cyclical hour | partants | NOW |
+| 708 | cos_hour | cos(2*pi*hour/24) | partants | NOW |
+| 709 | position_encoding_seq | sinusoidal position encoding for sequence index | partants | NOW |
+| 710 | advanced_combo_poly | polynomial combo of top features (cote * nb_partants) | partants | NOW |
+| 711 | win_probability_implied | 1/cote normalised by field sum | partants | NOW |
+| 712 | trainer_jockey_combo_roi | historical ROI of the trainer-jockey pair | partants | NOW |
+| 713 | trainer_jockey_combo_wins | historical win count of the pair | partants | NOW |
+| 714 | trainer_jockey_combo_runs | historical run count of the pair | partants | NOW |
+| 715 | horse_improvement_rate | linear Elo slope over last 5 races | partants | NOW |
+| 716 | distance_change_impact | current distance - last race distance (metres) | partants | NOW |
+| 717 | weight_change_impact | current weight - last race weight (kg) | partants | NOW |
+| 718 | days_since_win | calendar days since last win | partants | NOW |
+| 719 | surface_switch_flag | 1 if surface differs from last race | partants | NOW |
+| 720 | race_type_encoding_plat | 1 if galop plat | partants | NOW |
+| 721 | race_type_encoding_trot | 1 if trot (attele or monte) | partants | NOW |
+| 722 | field_size_bucket | 0=small(<=8), 1=medium(9-14), 2=large(>=15) | partants | NOW |
+| 723 | upset_frequency_cond | historical upset rate for this hippodrome+discipline | partants | NOW |
+| 724 | variance_historical | variance of finishing positions (last 10) | partants | NOW |
+| 725 | entropy_field | Shannon entropy of implied probabilities in field | partants | NOW |
+| 726 | frequency_enc_hippodrome | nb past races at this hippodrome (horse) | partants | NOW |
+| 727 | frequency_enc_jockey | nb past races for this jockey (career) | partants | NOW |
+| 728 | frequency_enc_trainer | nb past races for this trainer (career) | partants | NOW |
+| 729 | discipline_is_trot | 1 if trot discipline | partants | NOW |
+| 730 | discipline_is_galop | 1 if galop discipline | partants | NOW |
+
+**Subtotal: 39 features (0 existing + 39 new)**
+
+---
+
+## CATEGORY 40: DEEP LEARNING FEATURES
+> Source: partants (computed)
+> Builders: deep_learning_features_builder, sequence_builder
+
+| # | Feature Name | Formula/Logic | Source | Status |
+|---|-------------|---------------|--------|--------|
+| 731 | attention_cheval_norm | normalised horse ID hash (0-1) | partants | NOW |
+| 732 | attention_jockey_norm | normalised jockey ID hash (0-1) | partants | NOW |
+| 733 | attention_course_norm | normalised course context hash (0-1) | partants | NOW |
+| 734 | tft_is_static_pedigree | 1 if horse has pedigree data (static feature flag) | partants | NOW |
+| 735 | tft_is_static_hippo | 1 if hippodrome is known (static feature flag) | partants | NOW |
+| 736 | tft_is_dynamic_form | 1 (always; form is dynamic by nature) | partants | NOW |
+| 737 | tft_is_dynamic_odds | 1 if odds data available | partants | NOW |
+| 738 | tabnet_group_form | feature group ID for form features (0) | partants | NOW |
+| 739 | tabnet_group_pedigree | feature group ID for pedigree features (1) | partants | NOW |
+| 740 | tabnet_group_odds | feature group ID for odds features (2) | partants | NOW |
+| 741 | tabnet_group_context | feature group ID for context features (3) | partants | NOW |
+| 742 | has_full_sequence | 1 if horse has >=5 prior races for sequence models | partants | NOW |
+| 743 | seq_positions_10 | list of last 10 positions (padded with -1) | partants | NOW |
+| 744 | seq_cotes_10 | list of last 10 cotes finales (padded with -1) | partants | NOW |
+| 745 | seq_distances_10 | list of last 10 distances (padded with -1) | partants | NOW |
+| 746 | seq_jours_entre_10 | list of last 10 inter-race gaps in days (padded with -1) | partants | NOW |
+| 747 | seq_is_winner_10 | list of last 10 win flags 0/1 (padded with -1) | partants | NOW |
+| 748 | seq_length | actual number of past races (0-10) | partants | NOW |
+
+**Subtotal: 18 features (0 existing + 18 new)**
+
+---
+
+## CATEGORY 41: TEMPORAL & CALENDAR (Advanced)
+> Source: partants (dates)
+> Builders: temporal_advanced_features, seasonality_builder
+
+| # | Feature Name | Formula/Logic | Source | Status |
+|---|-------------|---------------|--------|--------|
+| 749 | jour_semaine | day of week (0=Mon, 6=Sun) | partants | NOW |
+| 750 | mois | month (1-12) | partants | NOW |
+| 751 | saison | season string (printemps, ete, automne, hiver) | partants | NOW |
+| 752 | is_weekend | bool (samedi/dimanche) | partants | NOW |
+| 753 | is_quinte | bool (course quinte du jour) | partants | NOW |
+| 754 | heure_course | hour of race (int, 0-23) | partants | NOW |
+| 755 | position_dans_reunion | which race number in the meeting (1, 2, ...) | partants | NOW |
+| 756 | horse_season_win_rate | horse's win rate in current season (spring/summer/autumn/winter) | partants | NOW |
+| 757 | horse_best_season | which season horse performs best in (1=spring..4=winter) | partants | NOW |
+| 758 | season_match_score | 1.0 if current=best, 0.5 adjacent, 0.0 opposite | partants | NOW |
+| 759 | hippo_season_bias | this hippodrome's win-rate deviation in current season | partants | NOW |
+| 760 | discipline_seasonal_trend | avg field size growth rate for this discipline in current season | partants | NOW |
+
+**Subtotal: 12 features (0 existing + 12 new)**
+
+---
+
+## CATEGORY 42: EQUIPMENT & CONDITION CHANGES
+> Source: partants (equipement, conditions)
+> Builders: equipment_impact_builder, first_time_events_builder, signal_features_builder
+
+| # | Feature Name | Formula/Logic | Source | Status |
+|---|-------------|---------------|--------|--------|
+| 761 | oeilleres_change_impact | win rate WITH oeilleres minus win rate WITHOUT | partants | NOW |
+| 762 | deferre_change_impact | win rate with current deferre config minus | partants | NOW |
+| 763 | equipment_stability_score | fraction of recent races (last 5) where the | partants | NOW |
+| 764 | first_time_psf | 1 if horse has never raced on PSF before | partants | NOW |
+| 765 | first_time_distance_cat | 1 if horse has never raced at this distance category | partants | NOW |
+| 766 | first_time_hippodrome | 1 if horse has never raced at this hippodrome | partants | NOW |
+| 767 | first_time_oeilleres | 1 if horse has equipment change (oeilleres or deferre) | partants | NOW |
+| 768 | nb_firsts_count | count of how many "firsts" this run has (0-4) | partants | NOW |
+| 769 | jockey_upgrade | 1 if current jockey has higher win rate than previous jockey | partants | NOW |
+| 770 | trainer_change_recent | 1 if trainer changed in last 90 days | partants | NOW |
+| 771 | class_drop_after_win | 1 if horse won last race and is now in lower class | partants | NOW |
+| 772 | returning_from_break | 1 if >90 days since last race | partants | NOW |
+| 773 | equipment_change | 1 if any equipment field differs from last run | partants | NOW |
+
+**Subtotal: 13 features (0 existing + 13 new)**
+
+---
+
+## CATEGORY 43: TRACK BIAS & WEATHER (Deep)
+> Source: partants (hippo, meteo)
+> Builders: track_bias_deep_builder, weather_interaction_builder, race_rhythm_builder
+
+| # | Feature Name | Formula/Logic | Source | Status |
+|---|-------------|---------------|--------|--------|
+| 774 | corde_advantage_today | win-rate of this corde position at this hippo vs expected (obs - exp) | partants | NOW |
+| 775 | inside_vs_outside_winrate | win-rate(inner cordes 1-4) - win-rate(outer cordes 9+) at this hippo | partants | NOW |
+| 776 | rail_position_bias | correlation proxy -- % of inner-corde winners at this hippo, past 365d | partants | NOW |
+| 777 | track_speed_vs_average | hippo avg speed / global avg speed (ratio), past 365d | partants | NOW |
+| 778 | hippodrome_unpredictability | 1 - (favourite win-rate at this hippo), past 365d | partants | NOW |
+| 779 | horse_rain_win_rate | horse's win rate when met_impact_meteo_score > 0.5 | partants | NOW |
+| 780 | horse_dry_win_rate | horse's win rate when met_impact_meteo_score <= 0.5 | partants | NOW |
+| 781 | rain_advantage | rain_win_rate - dry_win_rate (positive = prefers rain) | partants | NOW |
+| 782 | terrain_lourd_specialist | horse's win rate on 'lourd' terrain | partants | NOW |
+| 783 | wind_sensitivity | std of positions vs wind speed (high = sensitive) | partants | NOW |
+| 784 | temperature_optimum | distance from horse's best-performing temperature range | partants | NOW |
+| 785 | nb_favoris_battus_hippo | how often favorites (lowest odds) lose at this hippodrome | partants | NOW |
+| 786 | avg_winning_cote_hippo | average winning odds at hippodrome (high = unpredictable) | partants | NOW |
+| 787 | discipline_predictability | 1/entropy of winner distribution in discipline | partants | NOW |
+| 788 | course_surprise_index | how often the winner was >10.0 odds at hippo+distance | partants | NOW |
+| 789 | repeat_winner_rate | how often same horse wins back-to-back at same hippodrome | partants | NOW |
+
+**Subtotal: 16 features (0 existing + 16 new)**
+
+---
+
+## CATEGORY 44: EXPERIENCE & DATA QUALITY
+> Source: partants (computed)
+> Builders: experience_depth_builder, freshness_builder
+
+| # | Feature Name | Formula/Logic | Source | Status |
+|---|-------------|---------------|--------|--------|
+| 790 | hippo_experience | nb past races at this hippodrome | partants | NOW |
+| 791 | distance_experience | nb past races at this distance category | partants | NOW |
+| 792 | terrain_experience | nb past races on this terrain type | partants | NOW |
+| 793 | discipline_experience | nb past races in this discipline | partants | NOW |
+| 794 | total_variety_score | nb unique (hippo, distance, terrain, discipline) combos in career | partants | NOW |
+| 795 | data_freshness_score | days since last record for this horse (before current race) | partants | NOW |
+| 796 | form_sample_size | nb races in last 90 days (confidence measure) | partants | NOW |
+| 797 | odds_available | 1 if cote_finale is present, 0 if missing | partants | NOW |
+| 798 | pedigree_available | 1 if pere+mere known, 0 if missing | partants | NOW |
+| 799 | data_completeness | fraction of key fields filled for this record (0.0-1.0) | partants | NOW |
+
+**Subtotal: 10 features (0 existing + 10 new)**
+
+---
+
+## CATEGORY 45: STATISTICAL & QUANTILE
+> Source: partants (computed)
+> Builders: quantile_features_builder, survival_features_builder, uncertainty_builder
+
+| # | Feature Name | Formula/Logic | Source | Status |
+|---|-------------|---------------|--------|--------|
+| 800 | position_q10 | 10th percentile of historical positions (best case) | partants | NOW |
+| 801 | position_q50 | median historical position | partants | NOW |
+| 802 | position_q90 | 90th percentile (worst case) | partants | NOW |
+| 803 | earnings_q75 | 75th percentile of earnings per race | partants | NOW |
+| 804 | cote_q25 | 25th percentile of cotes (when horse is well-backed) | partants | NOW |
+| 805 | hazard_rate | historical probability of DNF (did not finish) | partants | NOW |
+| 806 | top3_survival_rate | cumulative % of races finishing in top 3 | partants | NOW |
+| 807 | career_longevity_days | days between first and last observed race | partants | NOW |
+| 808 | races_per_year | average races per year over career | partants | NOW |
+| 809 | career_trend | career-wide improving/declining trend (OLS slope | partants | NOW |
+| 810 | prediction_variance | variance of horse's recent positions (last 10) | partants | NOW |
+| 811 | result_entropy | Shannon entropy of position distribution | partants | NOW |
+| 812 | upset_potential | how often this horse beats the favorite | partants | NOW |
+| 813 | consistency_vs_class | std_positions / mean_position (CV) | partants | NOW |
+| 814 | form_uncertainty | max - min position in last 5 (range) | partants | NOW |
+
+**Subtotal: 15 features (0 existing + 15 new)**
+
+---
+
+## CATEGORY 46: ROLLING ADVANCED & OUTSIDER
+> Source: partants (computed)
+> Builders: rolling_advanced_builder, outsider_profile_builder, pace_scenario_builder
+
+| # | Feature Name | Formula/Logic | Source | Status |
+|---|-------------|---------------|--------|--------|
+| 815 | rolling_earnings_5 | sum of gains from last 5 races | partants | NOW |
+| 816 | rolling_win_rate_10 | win rate over last 10 races | partants | NOW |
+| 817 | rolling_place_rate_10 | place rate (top 3) over last 10 races | partants | NOW |
+| 818 | rolling_avg_cote_5 | average cote_finale over last 5 races | partants | NOW |
+| 819 | rolling_avg_field_size_5 | average nb_partants over last 5 races | partants | NOW |
+| 820 | rolling_distance_variety | nb unique distance categories in last 10 races | partants | NOW |
+| 821 | anomaly_score | composite z-score deviation across cote, Elo, | partants | NOW |
+| 822 | upset_freq_hippodrome | historical upset rate at this hippodrome | partants | NOW |
+| 823 | upset_freq_discipline | historical upset rate for this discipline. | partants | NOW |
+| 824 | upset_freq_distance | historical upset rate at this distance bucket. | partants | NOW |
+| 825 | is_profile_outlier | 1 if anomaly_score > 2.0 (2 sigma), else 0. | partants | NOW |
+| 826 | longshot_upset_score | anomaly_score * upset_freq for the conditions. | partants | NOW |
+| 827 | pace_early_leader_prob | probability this horse leads early | partants | NOW |
+| 828 | pace_finisher_type | 1=front-runner, 2=stalker, 3=closer | partants | NOW |
+| 829 | pace_collapse_risk | fraction of field that are front-runners (type=1); | partants | NOW |
+| 830 | pace_advantage | 1 if horse's type matches the favourable scenario | partants | NOW |
+
+**Subtotal: 16 features (0 existing + 16 new)**
+
+---
+
+## CATEGORY 47: RAPPORT & GRAPH FEATURES
+> Source: rapports, partants
+> Builders: rapport_features_builder, graph_features_builder, unused_fields_builder
+
+| # | Feature Name | Formula/Logic | Source | Status |
+|---|-------------|---------------|--------|--------|
+| 831 | avg_gagnant_dividend_hippo | running avg of rap_rapport_simple_gagnant | partants | NOW |
+| 832 | std_gagnant_dividend_hippo | running stdev of gagnant dividends at hippo. | partants | NOW |
+| 833 | avg_couple_dividend_hippo | running avg of rap_rapport_couple_gagnant | partants | NOW |
+| 834 | horse_avg_winning_dividend | running avg of gagnant dividends when this | partants | NOW |
+| 835 | horse_upset_dividend_avg | running avg of gagnant dividends when this | partants | NOW |
+| 836 | dividend_vs_cote_ratio | actual gagnant dividend / cote_finale | partants | NOW |
+| 837 | market_overround_actual | sum of implied probs from place dividends | partants | NOW |
+| 838 | is_historically_undervalued | 1 if horse's historical avg winning dividend | partants | NOW |
+| 839 | graph_jockey_centrality | nb unique horses this jockey has ridden (PageRank proxy) | partants | NOW |
+| 840 | graph_trainer_centrality | nb unique horses this trainer trains | partants | NOW |
+| 841 | graph_horse_connectivity | nb unique jockeys who have ridden this horse | partants | NOW |
+| 842 | graph_jt_combo_strength | jockey-trainer pair strength (courses together / total) | partants | NOW |
+| 843 | graph_hippo_diversity | nb different hippodromes this horse has raced at | partants | NOW |
+| 844 | network_strength | gnn_cheval_degree * gnn_jockey_nb_chevaux | partants | NOW |
+| 845 | history_coverage_rate | seq_nb_courses_historique / nb_courses_carriere | partants | NOW |
+| 846 | minor_place_rate | (nb_places_2eme + nb_places_3eme) / nb_courses_carriere | partants | NOW |
+| 847 | genetic_fitness | ped_inbreeding_score * ped_stamina_index | partants | NOW |
+| 848 | field_compression | spd_field_strength_avg / spd_field_strength_max | partants | NOW |
+| 849 | track_inside_bias | spd_bias_interieur (direct passthrough, never used) | partants | NOW |
+| 850 | weight_advantage | poids_base_kg - poids_monte_kg (positive = lighter ride) | partants | NOW |
+| 851 | implied_market_prob | 1 / (rap_rapport_simple_gagnant / 100) | partants | NOW |
+| 852 | terrain_weather_combo | cnd_cond_type_terrain * met_impact_meteo_score | partants | NOW |
+| 853 | age_distance_interaction | pgr_age_ans * distance / 1000 | partants | NOW |
+
+**Subtotal: 23 features (0 existing + 23 new)**
+
+---
+
 ## GRAND TOTAL SUMMARY
 
 | Category | # Features | Existing | New |
@@ -867,13 +1437,31 @@ statut, timestamp_collecte, type_piste, url_source
 | 27. Interaction Features | 10 | 0 | 10 |
 | 28. Calendar/Temporal | 9 | 0 | 9 |
 | 29. Proprietaire/Eleveur | 7 | 0 | 7 |
-| **TOTAL** | **481** | **193** | **288** |
+| 30. Rating & Elo | 20 | 0 | 20 |
+| 31. Streak & Momentum | 15 | 0 | 15 |
+| 32. Career Milestone & Lifecycle | 14 | 0 | 14 |
+| 33. Preference & Affinity (Adv) | 30 | 0 | 30 |
+| 34. Jockey & Trainer Form | 24 | 0 | 24 |
+| 35. Market & Value Signals | 31 | 0 | 31 |
+| 36. Field & Class Analysis | 21 | 0 | 21 |
+| 37. Delta & Lag Features | 26 | 0 | 26 |
+| 38. Pattern Discovery & Cross | 29 | 0 | 29 |
+| 39. Encoding & ML-Ready | 39 | 0 | 39 |
+| 40. Deep Learning Features | 18 | 0 | 18 |
+| 41. Temporal & Calendar (Adv) | 12 | 0 | 12 |
+| 42. Equipment & Condition Changes | 13 | 0 | 13 |
+| 43. Track Bias & Weather (Deep) | 16 | 0 | 16 |
+| 44. Experience & Data Quality | 10 | 0 | 10 |
+| 45. Statistical & Quantile | 15 | 0 | 15 |
+| 46. Rolling Advanced & Outsider | 16 | 0 | 16 |
+| 47. Rapport & Graph Features | 23 | 0 | 23 |
+| **TOTAL** | **853** | **193** | **660** |
 
 ---
 
 ## BUILDABILITY ASSESSMENT
 
-### Can be built NOW with available data: **~450 features**
+### Can be built NOW with available data: **~820 features**
 Almost all features can be built from existing data sources. The main limitations are:
 - `cote_mouvement` / `cote_reference` fields have partial fill rate
 - Meteo data covers ~31,778 courses out of ~257,806 (12%)
@@ -892,14 +1480,6 @@ Almost all features can be built from existing data sources. The main limitation
 
 ## IMPLEMENTATION PRIORITY
 
-### Phase 1 - Quick Wins (estimated +100 features, ~2h work)
-Add rolling windows (3, 10, 20) to existing builders, add missing rate calculations,
-calendar features, consistency features, class changes, recency features.
-
-### Phase 2 - New Builders (estimated +100 features, ~4h work)
-Jockey-trainer combo, proprietaire/eleveur, race conditions, rapports features,
-performances detaillees builder, interaction features.
-
-### Phase 3 - Enrichments (estimated +88 features, ~4h work)
-Horse-hippodrome/distance/discipline affinities (expanded), pedigree depth,
-track features from hippodromes_db, meteo cross-features, market value features.
+All 95 feature builders are implemented and registered in run_pipeline.py Phase 7.
+853 cataloged features across 47 categories, produced by 95 builders.
+All builders run in parallel after mega_merge (Phase 6) completes.
