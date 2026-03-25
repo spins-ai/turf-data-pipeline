@@ -1968,3 +1968,29 @@
 
 ### Phase 14-16 — Monitoring/Orchestration
 - [x] Pas de features, c'est de l'infrastructure ✅ FAIT — pipeline/ (run_pipeline.py, monitor_pipeline.py, orchestration_monitor.py)
+
+---
+
+## AUDIT CHAMPS MANQUÉS PAR API (après re-scraping PMU)
+
+### Vérifier chaque API pour champs non-extraits
+- [ ] Le Trot API (02b) → tester 1 requête passée, lister TOUS les champs, comparer avec ce qu'on extrait
+- [ ] France Galop API (80) → idem, chercher handicap officiel, terrain détaillé, commentaires
+- [ ] Equidia API (55) → idem, chercher commentaires, incidents, replays
+- [ ] Racing Post (37) → tester si RPR, topspeed, official rating sont dans le HTML
+- [ ] ZeTurf (51) → tester si cotes historiques opening/closing sont accessibles
+- [ ] OddsPortal (69) → tester opening/closing odds, mouvement de cotes
+- [ ] Turfomania (52) → tester si stats jockey/entraîneur détaillées sont dans les pages
+- [ ] TurfInfo (54) → tester si analyses/pronostics sont dans le HTML
+- [ ] Paris-Turf (53) → tester si commentaires experts sont accessibles
+- [ ] Pronosoft (81) → tester si consensus communautaire est extractible
+
+### Pour chaque API où on trouve des champs manqués
+- [ ] Écrire un script de re-scraping spécifique (comme rescrape_pmu_enriched.py)
+- [ ] Lancer le re-scraping historique
+- [ ] Cross-reference avec partants_master pour combler les trous
+- [ ] Mesurer le gain de fill rate
+
+### Objectif
+- [ ] Atteindre 80%+ fill rate sur TOUS les champs clés
+- [ ] Documenter les champs définitivement inaccessibles (avec raison)
