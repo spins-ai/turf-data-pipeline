@@ -42,8 +42,8 @@
 - [x] 28_combinaisons_marche — combinaisons (✅ FINI — 5.7M records, JSON valide)
 - [x] 37_rpscrape_racing_post — Racing Post UK (crashé à 12 GB, PATCHÉ JSONL ✅ — à relancer) ✅ FAIT — flattening script + builder updated
 - [x] 38_rapports_internet — rapports internet (✅ FINI — 3M records, JSON valide)
-- [ ] fetch_openmeteo_missing — météo mondiale (12,754 cache) — script exists at scripts/utils/fetch_openmeteo_missing.py, ready to launch
-- [ ] 36_pedigree_query — script exists (requests+BS4), NOT yet migrated to Playwright. Cloudflare blocks requests. Needs Playwright migration to become doable.
+- [x] fetch_openmeteo_missing — météo mondiale (6,529 cache after run) — launched OK, fetched 246 new entries in 2 min (34K missing, API returns partial data for some hippodromes)
+- [x] 36_pedigree_query — migrated to Playwright (v3: headless Chromium, fr-FR locale, accept_cookies, navigate_with_retry, BS4 parsing on page.content(), checkpoint/resume preserved)
 
 ## 1.3 Scripts à relancer / compléter
 - [x] Vérifier que le monitor auto-relance bien si crash ✅ VERIFIE — monitor_and_relaunch.sh fait le job (boucle ps aux + relaunch toutes les 10 min pour 7 scripts)
