@@ -1994,3 +1994,32 @@
 ### Objectif
 - [ ] Atteindre 80%+ fill rate sur TOUS les champs clés (pending on re-scraping completion)
 - [x] Documenter les champs définitivement inaccessibles (avec raison) ✅ FAIT — docs/DATA_DICTIONARY.md updated with "Champs definitivement inaccessibles" section
+
+---
+
+## TÂCHES OUBLIÉES / EN ATTENTE (revue conversation)
+
+### En attente de fin PMU enriched
+- [ ] Lancer PMU enriched re-scraping 2013-2019 (après 2020-2026)
+- [ ] Exécuter cross_reference_enriched.py pour merger enrichis dans master
+- [ ] Relancer master_feature_builder sur master enrichi
+- [ ] Mesurer fill rates après enrichissement (objectif 80%+)
+
+### Scrapers à lancer pour collecter
+- [ ] Lancer Racing Post Playwright (37) pour collecter RPR/TS/OR
+- [ ] Lancer PMU web detail (146) fixé pour ferrage/avis/commentaires
+- [ ] Relancer Le Trot (02b) avec 18 champs enrichis sur données historiques
+- [ ] Lancer TurfInfo retargeté (54) sur historique complet
+
+### Croisements pas encore exploités
+- [ ] Exploiter Paris-Turf externalId.GENY comme clé de croisement
+- [ ] Cross-reference Paris-Turf records/formFigs/handicapRatingKg dans master
+- [ ] Cross-reference Turfomania cote_probable comme 2ème source cotes
+
+### Innovations mentionnées (ELITE_REPORT)
+- [ ] NLP sur commentaires courses (sentiment analysis)
+- [ ] Social signal analysis (Twitter/forums tips)
+
+### Git
+- [ ] Merger branche naughty-bardeen dans main (PR ou merge direct)
+- [ ] Tag final data-v2.0 après enrichissement complet
