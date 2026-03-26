@@ -1,6 +1,6 @@
 # Fill Rate Dashboard - partants_master.jsonl
 
-**Generated**: 2026-03-25 21:33
+**Generated**: 2026-03-26 09:23
 **Total records**: 2,930,290
 **Sample size**: 5,000
 
@@ -110,7 +110,7 @@ Pre-2020 records have no PMU API source available.
 
 - **PMU enriched** (pmu_participants_enriched.jsonl): ~235K records
   - Join key: `(date, numReunion, numCourse, numPmu)`
-  - Match rate on sample: **7.7%** (386/5,000)
+  - Match rate on sample: **15.7%** (787/5,000)
 - **PMU participants** (pmu_participants.jsonl): ~1.39M records
   - Join key: `(date, num_reunion, num_course, numPmu)`
   - Match rate on sample: **44.5%** (2,226/5,000)

@@ -141,7 +141,8 @@ def jsonl_to_parquet_chunked(jsonl_path: Path, parquet_path: Path):
 
 def _reconcile_schema(table: pa.Table, target_schema: pa.Schema) -> pa.Table:
     """Cast table columns to match target_schema.  When a column type differs
-    (e.g. list<int> vs list<string>), serialize the column to JSON strings."""
+    (e.g. string vs int64), attempt safe casting. If bulk cast fails, cast
+    values individually (non-convertible values become null)."""
     if table.schema.equals(target_schema):
         return table
 
@@ -149,20 +150,35 @@ def _reconcile_schema(table: pa.Table, target_schema: pa.Schema) -> pa.Table:
     for field in target_schema:
         col = table.column(field.name)
         if col.type != field.type:
-            # Try cast first, then fall back to JSON string serialization
+            # Try direct cast first (fast path)
             try:
                 col = col.cast(field.type)
             except (pa.ArrowInvalid, pa.ArrowNotImplementedError, pa.ArrowTypeError):
-                # Serialize both to string — but target type wins
-                str_values = [
-                    json.dumps(v.as_py(), ensure_ascii=False) if v.as_py() is not None else None
-                    for v in col
-                ]
-                col = pa.array(str_values, type=pa.string())
-                if field.type != pa.string():
-                    # Target schema had a complex type on chunk 1; can't fix.
-                    # This is a fundamental mismatch — skip gracefully.
-                    pass
+                # Bulk cast failed -- try safe per-value conversion
+                try:
+                    col = col.cast(field.type, safe=False)
+                except Exception:
+                    # Last resort: convert to Python, coerce individually
+                    coerced = []
+                    for v in col.to_pylist():
+                        if v is None:
+                            coerced.append(None)
+                        else:
+                            try:
+                                # Try to convert the Python value
+                                if pa.types.is_integer(field.type):
+                                    coerced.append(int(v))
+                                elif pa.types.is_floating(field.type):
+                                    coerced.append(float(v))
+                                elif pa.types.is_string(field.type) or pa.types.is_large_string(field.type):
+                                    coerced.append(str(v))
+                                elif pa.types.is_boolean(field.type):
+                                    coerced.append(bool(v))
+                                else:
+                                    coerced.append(None)
+                            except (ValueError, TypeError):
+                                coerced.append(None)
+                    col = pa.array(coerced, type=field.type)
         new_columns[field.name] = col
 
     return pa.table(new_columns)
@@ -200,6 +216,12 @@ def _lines_to_table(lines: list[str], all_keys: list[str], force_string: bool = 
         # Check if any value is a list or dict — serialize to JSON string for stability
         has_complex = any(isinstance(v, (list, dict)) for v in values if v is not None)
         if has_complex:
+            columns[key] = pa.array([_to_str(v) for v in values])
+            continue
+
+        # Check for mixed scalar types (e.g. int + str) — coerce to string
+        non_none_types = set(type(v) for v in values if v is not None)
+        if len(non_none_types) > 1:
             columns[key] = pa.array([_to_str(v) for v in values])
             continue
 
