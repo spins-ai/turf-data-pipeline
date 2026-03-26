@@ -2,7 +2,7 @@
 """
 feature_builders.derived_features_builder
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-5 derived features from field interactions and ratios discovered
+9 derived features from field interactions and ratios discovered
 via correlation analysis on partants_master.
 
 These features combine existing raw fields that are individually weak
@@ -14,7 +14,7 @@ and sequence fields already respect temporal ordering in the pipeline).
 Produces:
   - derived_features.jsonl  in output/derived_features/
 
-Features per partant (5):
+Features per partant (9):
   - class_drop_x_gains     : spd_is_class_drop * gains_carriere_euros.
                               Horses dropping in class with high career earnings
                               are strong contenders (corr=0.158 with is_winner).
@@ -32,6 +32,15 @@ Features per partant (5):
                               / nb_courses_carriere) within the same course.
                               Percentile 0-1 where 0 = highest earnings
                               per race in the field (relative class measure).
+  - gains_par_victoire      : gains_carriere_euros / nb_victoires_carriere.
+                              Average earnings per win -- quality measure.
+  - cote_ratio              : cote_finale / cote_reference.
+                              Odds drift: >1 means drifted (less backed),
+                              <1 means shortened (more backed).
+  - poids_par_distance      : poids_porte_kg / (distance / 1000).
+                              Weight burden per km -- higher = harder task.
+  - gains_momentum          : gains_annee_euros / gains_carriere_euros.
+                              Recent earnings share -- high = current form.
 
 Usage:
     python feature_builders/derived_features_builder.py
@@ -89,7 +98,7 @@ def build_derived_features(
     partants: list[dict],
     logger: logging.Logger | None = None,
 ) -> list[dict]:
-    """Build 5 derived features from raw partants_master fields.
+    """Build 9 derived features from raw partants_master fields.
 
     Parameters
     ----------
@@ -101,7 +110,7 @@ def build_derived_features(
     Returns
     -------
     list[dict]
-        Input records augmented with 5 new feature columns.
+        Input records augmented with 9 new feature columns.
     """
     if logger is None:
         logger = logging.getLogger(__name__)
@@ -197,6 +206,35 @@ def build_derived_features(
             else None
         )
 
+        # --- 6. gains_par_victoire ---
+        nv = _get_float(row, "nb_victoires_carriere")
+        if g is not None and nv is not None and nv > 0:
+            feat["gains_par_victoire"] = round(g / nv, 2)
+        else:
+            feat["gains_par_victoire"] = None
+
+        # --- 7. cote_ratio ---
+        cr = _get_float(row, "cote_reference")
+        if cf is not None and cr is not None and cr > 0:
+            feat["cote_ratio"] = round(cf / cr, 4)
+        else:
+            feat["cote_ratio"] = None
+
+        # --- 8. poids_par_distance ---
+        ppk = _get_float(row, "poids_porte_kg")
+        dist = _get_float(row, "distance")
+        if ppk is not None and dist is not None and dist > 0:
+            feat["poids_par_distance"] = round(ppk / (dist / 1000), 4)
+        else:
+            feat["poids_par_distance"] = None
+
+        # --- 9. gains_momentum ---
+        ga = _get_float(row, "gains_annee_euros")
+        if ga is not None and g is not None and g > 0:
+            feat["gains_momentum"] = round(ga / g, 4)
+        else:
+            feat["gains_momentum"] = None
+
         if any(v is not None for v in feat.values()):
             enriched += 1
 
@@ -227,7 +265,7 @@ def build_derived_features(
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="5 derived features from field interactions and ratios"
+        description="9 derived features from field interactions and ratios"
     )
     parser.add_argument(
         "--input",

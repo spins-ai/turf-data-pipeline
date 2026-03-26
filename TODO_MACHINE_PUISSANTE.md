@@ -2156,7 +2156,7 @@ Total [ ] restantes : 118 taches
 - [x] Parser 27_citations cache (177K files) — market depth indicators ✅ FAIT
 
 ### P2 — Features dérivables manquantes
-- [ ] Ratios: gains_par_victoire, cote_ratio, poids_par_distance, gains_momentum
+- [x] Ratios: gains_par_victoire, cote_ratio, poids_par_distance, gains_momentum ✅ FAIT (derived_features_builder.py, 4 features ajoutees)
 - [x] Deltas consécutifs: delta_cote, delta_poids, delta_distance, delta_reduction_km ✅ FAIT (delta_features_builder.py)
 - [x] Rankings intra-course: rank_age, rank_gains, rank_elo, rank_speed ✅ FAIT (ranking_features_builder.py)
 - [x] Propager 202 features de features_matrix vers partants_master ✅ FAIT (propagate_features_to_master.py)
@@ -2164,4 +2164,4 @@ Total [ ] restantes : 118 taches
 ### P3 — Croisements inexploités
 - [x] Smarkets exchange (30) × partants → back/lay odds ✅ FAIT (merge_smarkets_to_master.py)
 - [ ] Paris-Turf externalId.GENY × geny_data
-- [ ] ZeTurf cotes × PMU cotes → market_divergence feature
+- [x] ZeTurf cotes × PMU cotes → market_divergence feature ✅ FAIT (market_divergence_builder.py)
