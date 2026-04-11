@@ -32,7 +32,7 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 FEATURES_DIR = Path("D:/turf-data-pipeline/04_FEATURES")
 
-INPUT_PARQUET = FEATURES_DIR / "features_normalized.parquet"
+INPUT_PARQUET = FEATURES_DIR / "features_consolidated.parquet"
 TRAIN_UIDS_TXT = FEATURES_DIR / "splits" / "train_uids.txt"
 
 OUTPUT_IMPORTANCE = FEATURES_DIR / "feature_importance.csv"
@@ -61,6 +61,9 @@ TARGET_COLS = {
     "target_roi",
 }
 # Post-race result columns that leak the outcome (must NEVER be features)
+# These are known ONLY after the race finishes.
+# NOTE: career/historical gains (gains_carriere, gains_annee, perf_gains_moy_5)
+#       are NOT leakage — they are cumulative stats known before the race.
 POST_RACE_COLS = {
     "comblage__position_arrivee", "nettoyage__position_arrivee",
     "feature_improvements__position_arrivee",
@@ -68,9 +71,18 @@ POST_RACE_COLS = {
     "beaten_lengths__bl_ecart_lengths",
     "beaten_lengths__bl_ecart_vs_avg",
     "beaten_lengths__bl_ecart_per_km",
+    "beaten_lengths__bl_race_tightness",
+    "log_transforms__log_rapport_simple_gagnant",
+    "race_timing__rtm_time_vs_winner",
+    "race_result_prediction__rrp_exacta_proxy",
+    "photo_finish__pf_race_competitiveness",
 }
 # Pattern-based exclusion: any column containing these substrings is post-race
-POST_RACE_PATTERNS = ["position_arrivee", "ecart_length", "bl_ecart"]
+POST_RACE_PATTERNS = [
+    "position_arrivee", "ecart_length", "bl_ecart",
+    "wmf_position_margin", "wmf_relative_speed_figure",
+    "wmf_horse_avg_time_behind", "rtm_time_vs_winner",
+]
 EXCLUDE_COLS = ID_COLS | TARGET_COLS | POST_RACE_COLS
 
 
