@@ -74,6 +74,9 @@ POST_RACE_COLS = {
     "beaten_lengths__bl_race_tightness",
     "log_transforms__log_rapport_simple_gagnant",
     "race_timing__rtm_time_vs_winner",
+    "race_timing__rtm_is_fastest",
+    "race_timing__rtm_speed_rank",
+    "win_margin_features__wmf_horse_in_top_quarter",
     "race_result_prediction__rrp_exacta_proxy",
     "photo_finish__pf_race_competitiveness",
 }
@@ -82,6 +85,9 @@ POST_RACE_PATTERNS = [
     "position_arrivee", "ecart_length", "bl_ecart",
     "wmf_position_margin", "wmf_relative_speed_figure",
     "wmf_horse_avg_time_behind", "rtm_time_vs_winner",
+    "rtm_is_fastest", "rtm_speed_rank",
+    "wmf_horse_in_top_quarter",
+    "pf_race_competitiveness", "rrp_exacta",
 ]
 EXCLUDE_COLS = ID_COLS | TARGET_COLS | POST_RACE_COLS
 
