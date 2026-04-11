@@ -1,6 +1,6 @@
 # Definitive TODO - Turf Data Pipeline
 
-Last updated: 2026-04-09
+Last updated: 2026-04-11
 
 ---
 
@@ -32,65 +32,55 @@ Last updated: 2026-04-09
 - [x] DEDUP_AUDIT.md
 - [x] Pipeline reproductible (run_full_pipeline.sh)
 
-### Scripts Ready (not yet run)
-- [x] prepare_targets.py (running, ~50% done)
-- [x] prepare_temporal_split.py
-- [x] audit_data_drift.py
-- [x] convert_master_to_parquet.py
-- [x] consolidate_features_parquet.py
-- [x] create_duckdb_index.py
-- [x] generate_feature_catalog_md.py
+### Scripts & Pipeline Execution
+- [x] prepare_targets.py — targets.jsonl generated
+- [x] prepare_temporal_split.py — temporal split done
+- [x] audit_data_drift.py — no critical drift detected
+- [x] convert_master_to_parquet.py — master converted to Parquet
+- [x] consolidate_features_parquet.py — 80 GB JSONL → ~5 GB Parquet (503 cols final)
+- [x] create_duckdb_index.py — DuckDB index operational
+- [x] generate_feature_catalog_md.py — catalog regenerated
+- [x] Leakage fix applied — 503 cols after removing leaky features
+- [x] Feature selection — 449 features selected for ML
+
+### Codebase Cleanup (2026-04-11)
+- [x] Delete obsolete DuckDB scripts (consolidate_features_duckdb.py, consolidate_features.py, convert_to_duckdb.py)
+- [x] Delete duplicate _v2 builders (8 files — non-v2 versions kept)
+- [x] Delete one-shot wave/launch shell scripts (10 files)
 
 ---
 
-## IN PROGRESS
+## TODO (optionnel, faible priorite)
 
-### Target Variables
-- [ ] prepare_targets.py en cours (lecture 26 GB master JSONL)
-  - Output: D:/turf-data-pipeline/04_FEATURES/targets/targets.jsonl
-
----
-
-## TODO (scripts prets, a lancer sequentiellement)
-
-### Execution sequentielle (1 a la fois, verifier RAM avant chaque)
-1. [ ] Temporal split (prepare_temporal_split.py) — ~10 min
-2. [ ] Data drift audit (audit_data_drift.py) — ~30 min, lit master + builders
-3. [ ] Parquet master conversion (convert_master_to_parquet.py) — ~20 min, besoin 5-10 GB RAM
-4. [ ] Consolidation Parquet (consolidate_features_parquet.py) — ~60 min, besoin ~30 GB RAM
-5. [ ] DuckDB index (create_duckdb_index.py) — ~5 min, besoin Parquet consolide
-
-### Data improvements (optionnel, faible priorite)
-6. [ ] Recuperer 3 colonnes manquantes (rap_dividend_moyen, rap_market_concentration, rap_nb_gagnants_simple)
+### Data improvements
+1. [ ] Recuperer 3 colonnes manquantes (rap_dividend_moyen, rap_market_concentration, rap_nb_gagnants_simple)
    - Deja disponibles dans master original + rapport_payout builder
    - Necessite re-enrichissement complet (25 GB x2 = tres lourd)
-7. [ ] Ameliorer fill rate poids_porte_kg
+2. [ ] Ameliorer fill rate poids_porte_kg
    - 100% pour galop, 0% pour trot attele (normal, pas de poids en trot attele)
    - Pas d'amelioration possible
-8. [ ] Ameliorer fill rate temps_ms/reduction_km_ms (39%)
+3. [ ] Ameliorer fill rate temps_ms/reduction_km_ms (39%)
    - Disponible seulement pour trot (67%), 0% pour galop
    - Limitation structurelle des donnees PMU
-9. [ ] Merger 83_letrot dans donnees trot
-10. [ ] Consolider 5 variantes partants_master en 1 seul
-11. [ ] Archiver donnees historiques pre-2015
-12. [ ] Compression JSONL → garder seulement Parquet
+4. [ ] Merger 83_letrot dans donnees trot
+5. [ ] Consolider 5 variantes partants_master en 1 seul
+6. [ ] Archiver donnees historiques pre-2015
+7. [ ] Compression JSONL → garder seulement Parquet
 
 ### Infrastructure (optionnel)
-13. [ ] Setup cron daily PMU API fetch
-14. [ ] Git commit propre + documentation finale
+8. [ ] Setup cron daily PMU API fetch
 
 ---
 
-## Stats pipeline actuelles
+## Stats pipeline finales
 - **2,930,290 records** dans partants_master.jsonl (26.7 GB)
 - **311 builders** avec sortie JSONL valide
-- **3,994 features** au total
-- **~80 GB** de builder outputs JSONL
-- **683 features** a supprimer (correlation >0.95)
-- **237 features** avec fill rate <10%
-- **0 temporal leakage** detecte
+- **503 colonnes** dans le Parquet consolide final (apres leakage fix)
+- **449 features** selectionnees pour ML (apres dedup + correlation + fill rate)
+- **~5 GB** Parquet consolide (vs ~80 GB JSONL builders)
+- **0 temporal leakage** detecte et corrige
 
-## Prochaine etape critique
-→ Consolidation Parquet (80 GB JSONL → ~5 GB Parquet)
-→ Puis DuckDB index pour requetes instantanees
-→ Puis ML/DL models (CatBoost, XGBoost, LightGBM)
+## Prochaine etape
+→ Pipeline data COMPLET — pret pour ML/DL
+→ CatBoost, XGBoost, LightGBM (nouveau dossier MODELES/)
+→ Stacking ensemble + meta selector
