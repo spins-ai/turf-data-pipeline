@@ -240,7 +240,7 @@ def stream_from_jsonl(input_path: str, output_dir: str,
 
 
 def main() -> None:
-    setup_logging()
+    setup_logging("odds_movement_features")
     logger = logging.getLogger(__name__)
 
     parser = argparse.ArgumentParser(

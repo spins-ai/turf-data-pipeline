@@ -301,7 +301,7 @@ def main() -> None:
 
     base = Path(__file__).resolve().parent.parent
     input_path = args.input or str(base / "output" / "02_liste_courses" / "partants_normalises.json")
-    output_dir = args.output_dir or str(base / "output" / "pace_profiles")
+    output_dir = args.output_dir or "D:/turf-data-pipeline/02_DONNEES_BRUTES/builder_outputs/pace_profile"
 
     print(f"Loading partants from {input_path} ...")
     with open(input_path, encoding="utf-8") as f:

@@ -61,9 +61,7 @@ from utils.types import utc_now_iso
 # Imports optionnels (dégradation gracieuse)
 # ---------------------------------------------------------------------------
 try:
-    import pyarrow as pa
-    import pyarrow.parquet as pq
-    HAS_PARQUET = True
+            HAS_PARQUET = True
 except ImportError:
     HAS_PARQUET = False
 

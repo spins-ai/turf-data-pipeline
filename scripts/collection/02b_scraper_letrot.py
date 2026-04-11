@@ -43,8 +43,6 @@ from pathlib import Path
 from typing import Any, Optional
 
 import requests
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
 
 try:
     from bs4 import BeautifulSoup

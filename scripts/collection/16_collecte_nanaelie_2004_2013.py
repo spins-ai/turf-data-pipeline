@@ -42,8 +42,6 @@ from utils.normalize import strip_accents
 from utils.types import safe_int as _safe_int
 
 import requests
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
 
 
 # ===========================================================================

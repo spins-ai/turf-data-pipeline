@@ -40,8 +40,6 @@ from pathlib import Path
 from typing import Optional
 
 import requests
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
 
 from hippodromes_db import get_hippodrome_info
 from utils.logging_setup import setup_logging

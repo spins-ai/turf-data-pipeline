@@ -65,10 +65,8 @@ from utils.output import save_jsonl
 # CONFIG
 # ===========================================================================
 
-PARTANTS_DEFAULT = os.path.join(
-    "data_master", "partants_master.jsonl"
-)
-OUTPUT_DIR_DEFAULT = os.path.join("output", "derived_features")
+PARTANTS_DEFAULT = "D:/turf-data-pipeline/03_DONNEES_MASTER/partants_master.jsonl"  # os.path.join(
+OUTPUT_DIR_DEFAULT = "D:/turf-data-pipeline/02_DONNEES_BRUTES/builder_outputs/derived_features"
 
 # Progress log every N records
 _LOG_EVERY = 500_000

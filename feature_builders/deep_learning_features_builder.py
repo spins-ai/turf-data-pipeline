@@ -43,10 +43,11 @@ from utils.output import save_jsonl
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 INPUT_CANDIDATES = [
+    Path("D:/turf-data-pipeline/03_DONNEES_MASTER/partants_master.jsonl"),
     _PROJECT_ROOT / "data_master" / "partants_master.jsonl",
     _PROJECT_ROOT / "data_master" / "partants_master_enrichi.jsonl",
 ]
-OUTPUT_DIR = _PROJECT_ROOT / "output" / "dl_features"
+OUTPUT_DIR = Path("D:/turf-data-pipeline/02_DONNEES_BRUTES/builder_outputs/deep_learning_features")
 _LOG_EVERY = 500_000
 
 

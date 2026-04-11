@@ -1,307 +1,96 @@
 # Definitive TODO - Turf Data Pipeline
 
-Last updated: 2026-03-26
+Last updated: 2026-04-09
 
 ---
 
-## Section 1: IMMEDIATE (can do right now, no blockers)
+## COMPLETED
 
-### 1.1 Run the 28 remaining feature builders
+### Data Quality & Audits
+- [x] Fix 7 OOM builders (streaming refactoring)
+- [x] Create 14 new feature builders (all 2,930,290 rows)
+- [x] Builder output integrity check (311 valid builders)
+- [x] Fill rate audit (3,994 features, CSV at 04_FEATURES/fill_rate_audit.csv)
+- [x] Feature catalog auto-generated (JSON + MD)
+- [x] Temporal leakage detection (0 real leaks found)
+- [x] Feature deduplication (504 exact + 263 near-duplicates identified)
+- [x] High correlation audit (683 features to drop, r>0.95)
+- [x] Schema consistency audit (1,339 missing keys, 56 mixed types, 54 empty strings)
+- [x] Outlier capping thresholds (1,090 features flagged, CSV ready)
+- [x] Type casting audit (all issues documented)
+- [x] Quality tests created (fill rate regression, completeness, ordering)
+- [x] Clean empty builder_outputs directories (3 removed)
+- [x] Collection scripts verified (syntax/imports OK)
+- [x] Missing data imputation strategy documented
 
-These builders exist in `feature_builders/` but have NOT been run yet.
-They are listed in FEATURE_CATALOG.md (21 of them) but have zero output.
+### Documentation
+- [x] DATA_SOURCES_GUIDE.md
+- [x] VERSION_MANIFEST.json
+- [x] FEATURE_CATALOG.md (auto-generated, 3,994 features)
+- [x] IMPUTATION_STRATEGY.md
+- [x] TEMPORAL_LEAKAGE_AUDIT.md
+- [x] DEDUP_AUDIT.md
+- [x] Pipeline reproductible (run_full_pipeline.sh)
 
-**Builders to run (estimated 2-4 hours each on full dataset):**
-
-```bash
-PYTHON="/c/Users/celia/AppData/Local/Programs/Python/Python312/python.exe"
-
-# Group A: Horse/form features (~30 min each)
-$PYTHON -m feature_builders.fatigue_features
-$PYTHON -m feature_builders.recovery_features
-$PYTHON -m feature_builders.momentum_builder
-$PYTHON -m feature_builders.career_stats_builder
-$PYTHON -m feature_builders.first_time_events_builder
-
-# Group B: Jockey/trainer features (~30 min each)
-$PYTHON -m feature_builders.jockey_form_builder
-$PYTHON -m feature_builders.trainer_form_builder
-$PYTHON -m feature_builders.jockey_horse_affinity_builder
-$PYTHON -m feature_builders.trainer_horse_compatibility_builder
-$PYTHON -m feature_builders.hippodrome_expertise_builder
-
-# Group C: Track/course features (~30 min each)
-$PYTHON -m feature_builders.course_context_builder
-$PYTHON -m feature_builders.going_preference_builder
-$PYTHON -m feature_builders.distance_preference_builder
-$PYTHON -m feature_builders.pace_profile_builder
-$PYTHON -m feature_builders.track_bias_detector
-
-# Group D: Market/odds features (~30 min each)
-$PYTHON -m feature_builders.odds_movement_features
-$PYTHON -m feature_builders.closing_line_value_builder
-$PYTHON -m feature_builders.market_entropy_features
-$PYTHON -m feature_builders.market_divergence_builder
-$PYTHON -m feature_builders.market_inefficiency_builder
-
-# Group E: Advanced/derived features (~1 hour each)
-$PYTHON -m feature_builders.temporal_advanced_features
-$PYTHON -m feature_builders.temporal_context_features
-$PYTHON -m feature_builders.pedigree_distance_aptitude
-$PYTHON -m feature_builders.pedigree_advanced_builder
-$PYTHON -m feature_builders.derived_features_builder
-$PYTHON -m feature_builders.pattern_discovery_builder
-$PYTHON -m feature_builders.advanced_encoding_builder
-$PYTHON -m feature_builders.perf_detaillees_builder
-```
-
-**Expected result:** Each produces a JSONL file in `output/<builder_name>/` with ~2.9M records.
-**Time estimate:** 8-12 hours total (can be parallelized).
-
-### 1.2 Rebuild features_matrix with all builders
-
-After running the 28 missing builders:
-
-```bash
-$PYTHON -m feature_builders.master_feature_builder
-```
-
-**Expected result:** `output/features/features_matrix.jsonl` grows from 383 columns to ~640+ columns.
-**Time estimate:** 2-4 hours.
-
-### 1.3 Copy features_matrix and training_labels to data_master/
-
-These critical files exist in `output/` but NOT in `data_master/`:
-
-```bash
-# After rebuild
-cp output/features/features_matrix_clean.jsonl data_master/features_matrix.jsonl
-cp output/labels/training_labels.jsonl data_master/training_labels.jsonl
-```
-
-**Expected result:** `data_master/features_matrix.jsonl` and `data_master/training_labels.jsonl` exist.
-**Time estimate:** 5 minutes.
-
-### 1.4 Clean up 44 dead imports
-
-44 Python files have unused imports. Not critical but should be cleaned for code quality.
-
-```bash
-$PYTHON -c "
-# Files with dead imports (non-exhaustive, see quality audit):
-# feature_builders/betting_edge_features_builder.py: math
-# feature_builders/field_strength_builder.py: json
-# feature_builders/market_divergence_builder.py: os
-# feature_builders/pattern_discovery_builder.py: math
-# feature_builders/seasonality_builder.py: struct, tempfile
-# ... and 39 more in scripts/collection/*.py
-"
-```
-
-**Time estimate:** 30 minutes.
-
-### 1.5 Refresh Parquet exports
-
-Parquet exports in `data_master/` exist for secondary tables but NOT for partants_master (too large for single Parquet without chunking).
-
-```bash
-$PYTHON scripts/refresh_parquet_exports.py
-```
-
-**Expected result:** All 12 Parquet files in `data_master/` updated.
-**Time estimate:** 10 minutes.
-
-### 1.6 Fix fill rate issues on key fields
-
-Fields with low fill rates that could be improved:
-- `poids_porte_kg`: 44.4% (only for galop, expected)
-- `cote_finale`: 70.7% (could be improved by cross-referencing rapports)
-- `is_gagnant`: 8.6% (note: this is correct for boolean - only winners are True, but 0/False records show as 0% fill because of the sampling method)
-
-No action needed on `is_gagnant` - it is correct (binary field).
+### Scripts Ready (not yet run)
+- [x] prepare_targets.py (running, ~50% done)
+- [x] prepare_temporal_split.py
+- [x] audit_data_drift.py
+- [x] convert_master_to_parquet.py
+- [x] consolidate_features_parquet.py
+- [x] create_duckdb_index.py
+- [x] generate_feature_catalog_md.py
 
 ---
 
-## Section 2: WAITING (needs a process to complete first)
+## IN PROGRESS
 
-### 2.1 PMU enrichment completion
-
-**Status:** The `partants_master_enrichi.jsonl` (24.4 GB, 2,930,290 records) exists but only has 178 columns vs the 181 in `partants_master.jsonl`. The enrichment dropped 3 columns.
-
-**Waiting on:** Verify which columns were dropped and whether the enrichment script `scripts/collection/40_enrichissement_partants.py` needs re-running with corrections.
-
-### 2.2 Cross-reference with external sources
-
-`partants_master_crossref.jsonl` has same record count (2,930,290) and 181 columns. Cross-referencing with Sporting Life / Timeform data is partially done:
-- `partants_master_enrichi_sl.jsonl`: 140 cols (Sporting Life enriched - FEWER columns, likely a slim version)
-- `partants_master_enrichi_tf.jsonl`: 140 cols (Timeform enriched - FEWER columns)
-
-**Waiting on:** Decision on whether slim versions are intentional or if full cross-reference merge is needed.
-
-### 2.3 Features matrix column expansion
-
-The current `output/features/features_matrix.jsonl` has 383 columns. FEATURE_CATALOG.md promises 640+. The gap of ~257 columns will be filled by running the 28 missing builders (Section 1.1) then rebuilding (Section 1.2).
-
-**Waiting on:** Completion of Section 1.1 and 1.2.
+### Target Variables
+- [ ] prepare_targets.py en cours (lecture 26 GB master JSONL)
+  - Output: D:/turf-data-pipeline/04_FEATURES/targets/targets.jsonl
 
 ---
 
-## Section 3: BLOCKED (paid APIs, external resources)
+## TODO (scripts prets, a lancer sequentiellement)
 
-### 3.1 Racing Post full data
+### Execution sequentielle (1 a la fois, verifier RAM avant chaque)
+1. [ ] Temporal split (prepare_temporal_split.py) — ~10 min
+2. [ ] Data drift audit (audit_data_drift.py) — ~30 min, lit master + builders
+3. [ ] Parquet master conversion (convert_master_to_parquet.py) — ~20 min, besoin 5-10 GB RAM
+4. [ ] Consolidation Parquet (consolidate_features_parquet.py) — ~60 min, besoin ~30 GB RAM
+5. [ ] DuckDB index (create_duckdb_index.py) — ~5 min, besoin Parquet consolide
 
-`output/102_racing_post/racing_post_data.jsonl` exists but is tiny (0.0 MB).
-The builder `racing_post_builder.py` and scraper `scripts/collection/37_racing_post.py` exist.
+### Data improvements (optionnel, faible priorite)
+6. [ ] Recuperer 3 colonnes manquantes (rap_dividend_moyen, rap_market_concentration, rap_nb_gagnants_simple)
+   - Deja disponibles dans master original + rapport_payout builder
+   - Necessite re-enrichissement complet (25 GB x2 = tres lourd)
+7. [ ] Ameliorer fill rate poids_porte_kg
+   - 100% pour galop, 0% pour trot attele (normal, pas de poids en trot attele)
+   - Pas d'amelioration possible
+8. [ ] Ameliorer fill rate temps_ms/reduction_km_ms (39%)
+   - Disponible seulement pour trot (67%), 0% pour galop
+   - Limitation structurelle des donnees PMU
+9. [ ] Merger 83_letrot dans donnees trot
+10. [ ] Consolider 5 variantes partants_master en 1 seul
+11. [ ] Archiver donnees historiques pre-2015
+12. [ ] Compression JSONL → garder seulement Parquet
 
-**Blocked by:** Racing Post requires paid API access or scraping is rate-limited/blocked.
-
-### 3.2 Smarkets exchange data
-
-`output/30_smarkets_exchange/smarkets_exchange.jsonl` is only 0.3 MB.
-
-**Blocked by:** Smarkets API requires authentication; limited French racing coverage.
-
-### 3.3 ProForm Racing
-
-`output/106_proform_racing/proform_data.jsonl` exists but is tiny.
-
-**Blocked by:** ProForm requires paid subscription.
-
-### 3.4 International scrapers (low priority)
-
-Several international scrapers have minimal data:
-- HKJC (0.6 MB), JRA (0.0 MB), Keeneland (0.0 MB), Singapore Pools (0.1 MB)
-
-**Blocked by:** These are non-French sources, useful only for international horses.
-
-### 3.5 Meteo France API
-
-`scripts/collection/35_meteo_france_api.py` exists but real-time weather data requires API key.
-
-**Blocked by:** Meteo France API subscription. NASA/OpenMeteo fallback is already working.
+### Infrastructure (optionnel)
+13. [ ] Setup cron daily PMU API fetch
+14. [ ] Git commit propre + documentation finale
 
 ---
 
-## Section 4: ML/MODELS (next project phase)
+## Stats pipeline actuelles
+- **2,930,290 records** dans partants_master.jsonl (26.7 GB)
+- **311 builders** avec sortie JSONL valide
+- **3,994 features** au total
+- **~80 GB** de builder outputs JSONL
+- **683 features** a supprimer (correlation >0.95)
+- **237 features** avec fill rate <10%
+- **0 temporal leakage** detecte
 
-### 4.1 Feature selection (Phase 3)
-
-```
-pipeline/phase_03_feature_selection/
-  19_selection_auto_features/
-  20_feature_subset_optimizer/
-```
-
-**Prerequisite:** Complete features_matrix with 640+ columns.
-**Task:** Run automated feature selection to reduce from 640+ to optimal subset.
-
-### 4.2 ML core models (Phase 4)
-
-```
-pipeline/phase_04_ml_core/
-  21_logistic_regression/
-  22_random_forest/
-  23_xgboost/
-  24_lightgbm/
-  25_catboost/
-```
-
-All module skeletons exist. Data placeholders (1 KB) exist. Need real data piped in.
-
-### 4.3 Deep learning models (Phase 5)
-
-```
-pipeline/phase_05_deep_learning/
-  26_mlp/
-  27_lstm/
-  28_gru/
-  29_tabnet/
-  30_tft/
-```
-
-**Prerequisite:** Completed feature matrix + training labels + GPU resources.
-
-### 4.4 Advanced models (Phase 6)
-
-GNN, Bayesian NN, Survival model, Quantile regressor.
-
-### 4.5 AutoML (Phase 7)
-
-AutoGluon, TPOT, H2O. Requires large memory / compute.
-
-### 4.6 Ensemble / Fusion (Phase 8)
-
-Stacking, Blending, Meta-model. Requires trained base models.
-
-### 4.7 Calibration (Phase 9)
-
-Platt scaling, Isotonic calibration. Requires trained models.
-
-### 4.8 Outsider detection (Phase 10)
-
-Anomaly detector, Retour de forme, GAN-Turf.
-
-### 4.9 Betting strategy (Phase 11)
-
-ROI predictor, Value Hunter RL, Meta-selector, ZURI Outsider Engine.
-
-### 4.10 Simulation & Bet Sizing (Phase 12-13)
-
-Monte Carlo, Race simulation, Kelly strategy, Ticket optimizer.
-
-### 4.11 Adaptation & Monitoring (Phase 14-15)
-
-Auto-recalibration, Model decay detection, Concept drift, Dashboard.
-
----
-
-## Section 5: NICE TO HAVE (improvements, not critical)
-
-### 5.1 Remove duplicate builder output mappings
-
-Some builders map to the same output file (e.g., `combo_features.py` and `combo_triple_builder.py` both map to `combo_triple_features/`). Clarify ownership.
-
-### 5.2 DuckDB conversion
-
-`scripts/convert_to_duckdb.py` exists. Converting the 25 GB partants_master to DuckDB would dramatically speed up queries.
-
-```bash
-$PYTHON scripts/convert_to_duckdb.py
-```
-
-### 5.3 Consolidate enriched master variants
-
-Currently 5 variants of partants_master exist (110+ GB total):
-- `partants_master.jsonl` (24.8 GB)
-- `partants_master_crossref.jsonl` (24.8 GB)
-- `partants_master_enrichi.jsonl` (24.4 GB)
-- `partants_master_enrichi_sl.jsonl` (16.6 GB)
-- `partants_master_enrichi_tf.jsonl` (16.5 GB)
-
-Consider keeping only the most complete version and archiving the rest.
-
-### 5.4 Quality test suite expansion
-
-7 quality tests exist in `quality/`. Consider adding:
-- Fill rate regression tests
-- Feature distribution drift tests
-- Builder output consistency tests
-
-### 5.5 Documentation refresh
-
-37 doc files exist. Some may be outdated:
-- `docs/FILL_RATES.md` (modified, uncommitted)
-- `docs/COVERAGE_REPORT.md`
-- `docs/STATS.md`
-
-### 5.6 Letrot merge script
-
-`scripts/merge_letrot_to_master.py` exists as untracked file. Needs review and commit.
-
-### 5.7 Pipeline orchestration
-
-`pipeline/phase_16_orchestration/` has 6 modules. Not yet wired to run the full pipeline end-to-end.
-
-### 5.8 CI/CD improvements
-
-`scripts/ci_check.py` exists. Could be integrated into GitHub Actions for automated quality checks.
+## Prochaine etape critique
+→ Consolidation Parquet (80 GB JSONL → ~5 GB Parquet)
+→ Puis DuckDB index pour requetes instantanees
+→ Puis ML/DL models (CatBoost, XGBoost, LightGBM)

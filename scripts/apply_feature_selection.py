@@ -58,8 +58,20 @@ TARGET_COLS = {
     "comblage__is_gagnant", "comblage__is_place",
     "is_gagnant", "is_place",
     "position_arrivee", "rapport_simple_gagnant", "rapport_place", "gains",
+    "target_roi",
 }
-EXCLUDE_COLS = ID_COLS | TARGET_COLS
+# Post-race result columns that leak the outcome (must NEVER be features)
+POST_RACE_COLS = {
+    "comblage__position_arrivee", "nettoyage__position_arrivee",
+    "feature_improvements__position_arrivee",
+    "comblage__statut", "nettoyage__statut",
+    "beaten_lengths__bl_ecart_lengths",
+    "beaten_lengths__bl_ecart_vs_avg",
+    "beaten_lengths__bl_ecart_per_km",
+}
+# Pattern-based exclusion: any column containing these substrings is post-race
+POST_RACE_PATTERNS = ["position_arrivee", "ecart_length", "bl_ecart"]
+EXCLUDE_COLS = ID_COLS | TARGET_COLS | POST_RACE_COLS
 
 
 # ---------------------------------------------------------------------------
@@ -102,11 +114,14 @@ except ImportError:
 # ---------------------------------------------------------------------------
 
 def discover_feature_columns(pf: pq.ParquetFile) -> list[str]:
-    """Return list of numeric feature column names (excluding IDs/targets)."""
+    """Return list of numeric feature column names (excluding IDs/targets/post-race)."""
     schema = pf.schema_arrow
     feature_cols = []
     for field in schema:
         if field.name in EXCLUDE_COLS:
+            continue
+        # Pattern-based exclusion for post-race result columns
+        if any(pat in field.name.lower() for pat in POST_RACE_PATTERNS):
             continue
         # Keep only numeric types (int, float, decimal)
         if (
@@ -410,8 +425,8 @@ def write_selected_parquet(
     n_rg = pf.metadata.num_row_groups
     total_rows = pf.metadata.num_rows
 
-    # Columns to write (always include UID)
-    cols_to_write = [UID_COL] + selected_features
+    # Columns to write (always include UID + target)
+    cols_to_write = [UID_COL, TARGET_COL] + selected_features
     # Filter to columns that exist in schema
     schema_names = set(pf.schema_arrow.names)
     cols_to_write = [c for c in cols_to_write if c in schema_names]

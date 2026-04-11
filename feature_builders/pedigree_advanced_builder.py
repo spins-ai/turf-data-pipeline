@@ -33,7 +33,7 @@ from utils.output import save_jsonl
 # ===========================================================================
 
 PARTANTS_DEFAULT = os.path.join("output", "02_liste_courses", "partants_normalises.jsonl")
-OUTPUT_DIR_DEFAULT = os.path.join("output", "pedigree_advanced_features")
+OUTPUT_DIR_DEFAULT = "D:/turf-data-pipeline/02_DONNEES_BRUTES/builder_outputs/pedigree_advanced"
 
 # Known sire profiles (stamina/speed tendencies) — expandable lookup
 # These are well-known French/international sires

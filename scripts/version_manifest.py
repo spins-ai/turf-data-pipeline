@@ -60,7 +60,7 @@ def main():
         "final_dataset": {
             "file": "features_selected.parquet",
             "rows": 2930290,
-            "columns": 455,
+            "columns": 456,
             "features": 453,
             "targets": ["comblage__is_gagnant (binary)", "target_roi (continuous)"],
             "id_column": "partant_uid",
@@ -68,6 +68,7 @@ def main():
         "splits": {
             "train_uids": "splits/train_uids.txt (2,394,129 UIDs)",
             "test_uids": "splits/test_uids.txt (416,807 UIDs)",
+            "val_uids": "splits/val_uids.txt (119,354 UIDs)",
             "method": "temporal split (earlier = train, later = test)",
         },
         "files": {},

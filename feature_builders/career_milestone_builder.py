@@ -2,302 +2,253 @@
 """
 feature_builders.career_milestone_builder
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Career milestone features capturing where a horse is in its racing lifecycle.
+Career milestone features -- tracking key career milestones and achievements.
 
-Temporal integrity: for any partant at date D, only races with date < D
-contribute to career state -- no future leakage.
+Single-pass streaming: features are derived from career statistics already
+present in the current record (nb_victoires_carriere, nb_courses_carriere,
+nb_places_carriere, gains_carriere). No temporal tracking needed.
 
 Produces:
-  - career_milestone_features.jsonl   in output/career_milestone/
+  - career_milestone.jsonl  in builder_outputs/career_milestone/
 
-Features per partant (5):
-  - is_first_10_races       : 1 if horse has fewer than 10 career starts, else 0
-  - is_maiden               : 1 if horse has never won before this race, else 0
-  - days_since_first_race   : calendar days since the horse's first recorded race
-  - total_prize_rank_in_field: rank of this horse's career earnings among today's
-                               field (1 = highest earner). Uses race-level ranking.
-  - is_career_best_class    : 1 if this race's allocation is the highest the horse
-                               has ever faced, else 0
+Features per partant (8):
+  - cms_is_maiden              : 1 if nb_victoires_carriere == 0 (never won)
+  - cms_is_first_10_starts     : 1 if nb_courses_carriere <= 10
+  - cms_win_rate_career        : nb_victoires / max(nb_courses, 1)
+  - cms_place_rate_career      : nb_places_carriere / max(nb_courses, 1)
+  - cms_wins_to_starts_ratio_log : log(nb_victoires + 1) / log(nb_courses + 2)
+  - cms_is_graded_performer    : 1 if gains_carriere > 200000
+  - cms_earnings_per_win       : gains_carriere / max(nb_victoires, 1)
+  - cms_career_profit_index    : (gains - nb_courses * 500) / max(nb_courses * 500, 1)
 
 Usage:
     python feature_builders/career_milestone_builder.py
-    python feature_builders/career_milestone_builder.py --input data_master/partants_master.jsonl
+    python feature_builders/career_milestone_builder.py --input path/to/partants_master.jsonl
 """
 
 from __future__ import annotations
 
 import argparse
+import gc
 import json
+import math
 import sys
 import time
-from collections import defaultdict
 from pathlib import Path
 from typing import Any, Optional
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from utils.logging_setup import setup_logging
-from utils.output import save_jsonl
 
 # ===========================================================================
 # CONFIG
 # ===========================================================================
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
+INPUT_PARTANTS = Path("D:/turf-data-pipeline/03_DONNEES_MASTER/partants_master.jsonl")
 INPUT_CANDIDATES = [
+    INPUT_PARTANTS,
     _PROJECT_ROOT / "data_master" / "partants_master.jsonl",
     _PROJECT_ROOT / "data_master" / "partants_master_enrichi.jsonl",
 ]
-OUTPUT_DIR = _PROJECT_ROOT / "output" / "career_milestone"
+OUTPUT_DIR = Path("D:/turf-data-pipeline/02_DONNEES_BRUTES/builder_outputs/career_milestone")
 
 _LOG_EVERY = 500_000
 
-# ===========================================================================
-# CAREER STATE TRACKER
-# ===========================================================================
-
-
-class _MilestoneState:
-    """Per-horse career accumulator for milestone features."""
-
-    __slots__ = ("nb_courses", "wins", "gains_total", "first_date", "max_allocation")
-
-    def __init__(self) -> None:
-        self.nb_courses: int = 0
-        self.wins: int = 0
-        self.gains_total: float = 0.0
-        self.first_date: str = ""  # ISO date of first race
-        self.max_allocation: float = 0.0  # highest allocation faced
+_FEATURE_KEYS = [
+    "cms_is_maiden",
+    "cms_is_first_10_starts",
+    "cms_win_rate_career",
+    "cms_place_rate_career",
+    "cms_wins_to_starts_ratio_log",
+    "cms_is_graded_performer",
+    "cms_earnings_per_win",
+    "cms_career_profit_index",
+]
 
 
 # ===========================================================================
-# STREAMING READER
+# HELPERS
 # ===========================================================================
 
 
-def _iter_jsonl(path: Path, logger):
-    """Yield dicts from a JSONL file, one line at a time (streaming)."""
-    count = 0
-    errors = 0
-    with open(path, "r", encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                yield json.loads(line)
-                count += 1
-            except json.JSONDecodeError:
-                errors += 1
-                if errors <= 10:
-                    logger.warning("Ligne JSON invalide ignoree (erreur %d)", errors)
-    logger.info("Lecture terminee: %d records, %d erreurs JSON", count, errors)
-
-
-def _days_between(date_a: str, date_b: str) -> Optional[int]:
-    """Calendar days between two ISO date strings (YYYY-MM-DD). Returns None on error."""
-    if not date_a or not date_b:
+def _safe_int(val) -> Optional[int]:
+    if val is None:
         return None
     try:
-        ya, ma, da = int(date_a[:4]), int(date_a[5:7]), int(date_a[8:10])
-        yb, mb, db = int(date_b[:4]), int(date_b[5:7]), int(date_b[8:10])
-        from datetime import date as _date
+        return int(val)
+    except (ValueError, TypeError):
+        return None
 
-        return (_date(yb, mb, db) - _date(ya, ma, da)).days
-    except (ValueError, IndexError):
+
+def _safe_float(val) -> Optional[float]:
+    if val is None:
+        return None
+    try:
+        v = float(val)
+        return v if v == v else None  # NaN check
+    except (ValueError, TypeError):
         return None
 
 
 # ===========================================================================
-# MAIN BUILD
+# FEATURE COMPUTATION
+# ===========================================================================
+
+
+def _compute_features(
+    nb_victoires: Optional[int],
+    nb_courses: Optional[int],
+    nb_places: Optional[int],
+    gains_carriere: Optional[float],
+) -> dict[str, Any]:
+    """Compute the 8 career milestone features from record-level career stats."""
+    feats: dict[str, Any] = {k: None for k in _FEATURE_KEYS}
+
+    # 1. cms_is_maiden: 1 if nb_victoires_carriere == 0
+    if nb_victoires is not None:
+        feats["cms_is_maiden"] = 1 if nb_victoires == 0 else 0
+
+    # 2. cms_is_first_10_starts: 1 if nb_courses_carriere <= 10
+    if nb_courses is not None:
+        feats["cms_is_first_10_starts"] = 1 if nb_courses <= 10 else 0
+
+    # 3. cms_win_rate_career: nb_victoires / max(nb_courses, 1)
+    if nb_victoires is not None and nb_courses is not None:
+        feats["cms_win_rate_career"] = round(
+            nb_victoires / max(nb_courses, 1), 4
+        )
+
+    # 4. cms_place_rate_career: nb_places / max(nb_courses, 1)
+    if nb_places is not None and nb_courses is not None:
+        feats["cms_place_rate_career"] = round(
+            nb_places / max(nb_courses, 1), 4
+        )
+
+    # 5. cms_wins_to_starts_ratio_log: log(nb_victoires + 1) / log(nb_courses + 2)
+    if nb_victoires is not None and nb_courses is not None:
+        feats["cms_wins_to_starts_ratio_log"] = round(
+            math.log(nb_victoires + 1) / math.log(nb_courses + 2), 6
+        )
+
+    # 6. cms_is_graded_performer: 1 if gains_carriere > 200000
+    if gains_carriere is not None:
+        feats["cms_is_graded_performer"] = 1 if gains_carriere > 200_000 else 0
+
+    # 7. cms_earnings_per_win: gains_carriere / max(nb_victoires, 1)
+    if gains_carriere is not None and nb_victoires is not None:
+        feats["cms_earnings_per_win"] = round(
+            gains_carriere / max(nb_victoires, 1), 2
+        )
+
+    # 8. cms_career_profit_index: (gains - nb_courses * 500) / max(nb_courses * 500, 1)
+    if gains_carriere is not None and nb_courses is not None:
+        cost = nb_courses * 500
+        feats["cms_career_profit_index"] = round(
+            (gains_carriere - cost) / max(cost, 1), 4
+        )
+
+    return feats
+
+
+# ===========================================================================
+# MAIN BUILD (single-pass streaming)
 # ===========================================================================
 
 
 def build_career_milestone_features(
-    input_path: Path, logger
-) -> list[dict[str, Any]]:
-    """Build career milestone features from partants_master.jsonl."""
+    input_path: Path, output_path: Path, logger
+) -> int:
+    """Build career milestone features from partants_master.jsonl.
+
+    Single-pass streaming: reads each record, extracts career stats,
+    computes features, and writes directly to disk.
+
+    Returns the total number of feature records written.
+    """
     logger.info("=== Career Milestone Builder ===")
     logger.info("Lecture en streaming: %s", input_path)
     t0 = time.time()
 
-    # -- Phase 1: Read minimal fields --
-    slim_records: list[dict] = []
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_out = output_path.with_suffix(".tmp")
+
+    fill_counts = {k: 0 for k in _FEATURE_KEYS}
     n_read = 0
+    n_written = 0
+    n_errors = 0
 
-    for rec in _iter_jsonl(input_path, logger):
-        n_read += 1
-        if n_read % _LOG_EVERY == 0:
-            logger.info("  Lu %d records...", n_read)
+    with open(input_path, "r", encoding="utf-8") as fin, \
+         open(tmp_out, "w", encoding="utf-8", newline="\n") as fout:
 
-        # Parse allocation safely
-        alloc_raw = rec.get("allocation")
-        alloc = None
-        if alloc_raw is not None:
+        for line in fin:
+            line = line.strip()
+            if not line:
+                continue
             try:
-                alloc = float(alloc_raw)
-            except (ValueError, TypeError):
-                alloc = None
-
-        # Parse gains safely
-        gains_raw = rec.get("gains_carriere_euros") or rec.get("gains")
-        gains = 0.0
-        if gains_raw is not None:
-            try:
-                gains = float(gains_raw)
-            except (ValueError, TypeError):
-                gains = 0.0
-
-        slim = {
-            "uid": rec.get("partant_uid"),
-            "date": rec.get("date_reunion_iso", ""),
-            "course": rec.get("course_uid", ""),
-            "num": rec.get("num_pmu", 0) or 0,
-            "cheval": rec.get("nom_cheval"),
-            "gagnant": bool(rec.get("is_gagnant")),
-            "allocation": alloc,
-            "gains_carriere": gains,
-        }
-        slim_records.append(slim)
-
-    logger.info(
-        "Phase 1 terminee: %d records en %.1fs",
-        len(slim_records),
-        time.time() - t0,
-    )
-
-    # -- Phase 2: Sort chronologically --
-    t1 = time.time()
-    slim_records.sort(key=lambda r: (r["date"], r["course"], r["num"]))
-    logger.info("Tri chronologique en %.1fs", time.time() - t1)
-
-    # -- Phase 3: Process date by date --
-    t2 = time.time()
-    horse_state: dict[str, _MilestoneState] = defaultdict(_MilestoneState)
-    results: list[dict[str, Any]] = []
-    n_processed = 0
-
-    i = 0
-    total = len(slim_records)
-
-    while i < total:
-        current_date = slim_records[i]["date"]
-        date_group: list[dict] = []
-
-        while i < total and slim_records[i]["date"] == current_date:
-            date_group.append(slim_records[i])
-            i += 1
-
-        # Group by course for field-level ranking
-        courses: dict[str, list[dict]] = defaultdict(list)
-        for rec in date_group:
-            courses[rec["course"]].append(rec)
-
-        # -- Emit features (pre-update snapshot) --
-        for course_uid, field in courses.items():
-            # Compute total_prize_rank within field
-            # Collect (gains_total, index) for ranking
-            gains_list: list[tuple[float, int]] = []
-            for idx, rec in enumerate(field):
-                cheval = rec["cheval"]
-                if cheval and cheval in horse_state:
-                    gains_list.append((horse_state[cheval].gains_total, idx))
-                else:
-                    gains_list.append((0.0, idx))
-
-            # Rank: highest gains = rank 1
-            gains_list.sort(key=lambda x: -x[0])
-            rank_map: dict[int, int] = {}
-            for rank, (_, idx) in enumerate(gains_list, 1):
-                rank_map[idx] = rank
-
-            for idx, rec in enumerate(field):
-                cheval = rec["cheval"]
-
-                if not cheval:
-                    results.append({
-                        "partant_uid": rec["uid"],
-                        "is_first_10_races": None,
-                        "is_maiden": None,
-                        "days_since_first_race": None,
-                        "total_prize_rank_in_field": None,
-                        "is_career_best_class": None,
-                    })
-                    continue
-
-                state = horse_state.get(cheval)
-
-                if state is None or state.nb_courses == 0:
-                    # Very first race
-                    results.append({
-                        "partant_uid": rec["uid"],
-                        "is_first_10_races": 1,
-                        "is_maiden": 1,
-                        "days_since_first_race": 0,
-                        "total_prize_rank_in_field": rank_map.get(idx),
-                        "is_career_best_class": 1,  # first race = best class by default
-                    })
-                else:
-                    nb = state.nb_courses
-                    is_first_10 = 1 if nb < 10 else 0
-                    is_maiden = 1 if state.wins == 0 else 0
-                    days_since = _days_between(state.first_date, current_date)
-
-                    alloc = rec["allocation"]
-                    if alloc is not None and state.max_allocation > 0:
-                        is_best_class = 1 if alloc > state.max_allocation else 0
-                    elif alloc is not None:
-                        is_best_class = 1
-                    else:
-                        is_best_class = None
-
-                    results.append({
-                        "partant_uid": rec["uid"],
-                        "is_first_10_races": is_first_10,
-                        "is_maiden": is_maiden,
-                        "days_since_first_race": days_since,
-                        "total_prize_rank_in_field": rank_map.get(idx),
-                        "is_career_best_class": is_best_class,
-                    })
-
-        # -- Update state with this date's outcomes --
-        for rec in date_group:
-            cheval = rec["cheval"]
-            if not cheval:
+                rec = json.loads(line)
+            except json.JSONDecodeError:
+                n_errors += 1
+                if n_errors <= 10:
+                    logger.warning("Ligne JSON invalide ignoree (erreur %d)", n_errors)
                 continue
 
-            state = horse_state[cheval]
+            n_read += 1
+            if n_read % _LOG_EVERY == 0:
+                logger.info("  Lu %d records...", n_read)
+                gc.collect()
 
-            if state.nb_courses == 0:
-                state.first_date = current_date
+            # Extract career stats from the record
+            nb_victoires = _safe_int(
+                rec.get("nb_victoires_carriere") or rec.get("nbVictoiresCarriere")
+            )
+            nb_courses = _safe_int(
+                rec.get("nb_courses_carriere") or rec.get("nbCoursesCarriere")
+            )
+            nb_places = _safe_int(
+                rec.get("nb_places_carriere") or rec.get("nbPlacesCarriere")
+            )
+            gains_carriere = _safe_float(
+                rec.get("gains_carriere") or rec.get("gainsCarriere")
+            )
 
-            state.nb_courses += 1
+            # Compute features
+            feats = _compute_features(nb_victoires, nb_courses, nb_places, gains_carriere)
 
-            if rec["gagnant"]:
-                state.wins += 1
+            # Build output record
+            out_rec: dict[str, Any] = {
+                "partant_uid": rec.get("partant_uid"),
+            }
+            for k in _FEATURE_KEYS:
+                v = feats[k]
+                out_rec[k] = v
+                if v is not None:
+                    fill_counts[k] += 1
 
-            state.gains_total += rec["gains_carriere"]
+            fout.write(json.dumps(out_rec, ensure_ascii=False) + "\n")
+            n_written += 1
 
-            alloc = rec["allocation"]
-            if alloc is not None and alloc > state.max_allocation:
-                state.max_allocation = alloc
-
-        n_processed += len(date_group)
-        if n_processed % _LOG_EVERY == 0:
-            logger.info("  Traite %d / %d records...", n_processed, total)
+    # Atomic replace
+    tmp_out.replace(output_path)
 
     elapsed = time.time() - t0
+    logger.info("Lecture terminee: %d records, %d erreurs JSON", n_read, n_errors)
     logger.info(
-        "Career milestone build termine: %d features en %.1fs (chevaux uniques: %d)",
-        len(results),
-        elapsed,
-        len(horse_state),
+        "Career milestone build termine: %d features en %.1fs",
+        n_written, elapsed,
     )
 
-    return results
+    # Summary fill rates
+    logger.info("=== Fill rates ===")
+    for k, v in fill_counts.items():
+        pct = 100.0 * v / n_written if n_written else 0
+        logger.info("  %s: %d/%d (%.1f%%)", k, v, n_written, pct)
+
+    return n_written
 
 
 # ===========================================================================
-# SAUVEGARDE & CLI
+# CLI
 # ===========================================================================
 
 
@@ -321,16 +272,12 @@ def main():
         description="Construction des features career milestone a partir de partants_master"
     )
     parser.add_argument(
-        "--input",
-        type=str,
-        default=None,
+        "--input", type=str, default=None,
         help="Chemin vers partants_master.jsonl (defaut: auto-detection)",
     )
     parser.add_argument(
-        "--output-dir",
-        type=str,
-        default=None,
-        help="Repertoire de sortie (defaut: output/career_milestone/)",
+        "--output-dir", type=str, default=None,
+        help="Repertoire de sortie (defaut: builder_outputs/career_milestone/)",
     )
     args = parser.parse_args()
 
@@ -340,23 +287,8 @@ def main():
     output_dir = Path(args.output_dir) if args.output_dir else OUTPUT_DIR
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    results = build_career_milestone_features(input_path, logger)
-
-    # Save
-    out_path = output_dir / "career_milestone_features.jsonl"
-    save_jsonl(results, out_path, logger)
-
-    # Summary stats
-    if results:
-        filled = {k: 0 for k in results[0] if k != "partant_uid"}
-        for r in results:
-            for k in filled:
-                if r.get(k) is not None:
-                    filled[k] += 1
-        total = len(results)
-        logger.info("=== Fill rates ===")
-        for k, v in filled.items():
-            logger.info("  %s: %d/%d (%.1f%%)", k, v, total, 100 * v / total)
+    out_path = output_dir / "career_milestone.jsonl"
+    build_career_milestone_features(input_path, out_path, logger)
 
 
 if __name__ == "__main__":
