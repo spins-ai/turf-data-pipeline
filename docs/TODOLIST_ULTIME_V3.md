@@ -223,7 +223,7 @@
 ### E4. [x] Supprimer training_labels.jsonl (corrompu, 941 Mo supprime)
 ### E5. [ ] Recalculer stats normalisation
 ### E6. [x] Traiter les colonnes NaN (186 colonnes 100% NaN exclues de la selection)
-### E7. [ ] Archiver les 17 builder_outputs suspects (11.7 Go)
+### E7. [x] Archiver builder_outputs suspects (15 dossiers vides supprimes, 6.6 Go liberes)
 ### E8. [x] Mettre a jour DuckDB features.duckdb (502 cols, 2.5 Go)
 
 ---
@@ -248,8 +248,8 @@
 ---
 
 ## COMPTEUR FINAL
-- Taches terminees: 40
-- Taches restantes: 22
+- Taches terminees: 41
+- Taches restantes: 21
 - TOTAL: 62
 
 ## ORDRE D'EXECUTION RECOMMANDE
