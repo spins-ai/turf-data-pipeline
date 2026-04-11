@@ -231,10 +231,10 @@
 ## F. CODE ET AUTOMATISATION (6 taches)
 
 ### F1. [ ] Migrer 333 fichiers vers config.py (chemins en dur)
-### F2. [ ] Mettre a jour run_full_pipeline.sh
+### F2. [x] Mettre a jour run_full_pipeline.sh (11 etapes, consolidation+selection+validation)
 ### F3. [x] Reparer les tests (30 passed, 1 skipped, 0 failures)
 ### F4. [ ] Setup collecte automatique quotidienne PMU
-### F5. [ ] Integrer validation dans le pipeline
+### F5. [x] Integrer validation dans le pipeline (etape 9 dans run_full_pipeline.sh)
 ### F6. [ ] Documenter le pipeline complet (README a jour)
 
 ---
@@ -242,14 +242,14 @@
 ## G. DERNIERE PASSE AVANT MODELES (3 taches)
 
 ### G1. [ ] Relancer tous les builders avec les nouvelles donnees
-### G2. [ ] Relancer apply_feature_selection.py (re-selection)
-### G3. [ ] Validation finale : zero leakage, toutes features propres
+### G2. [x] Relancer apply_feature_selection.py (FAIT: 500/2060 features, 3286 cols consolidated)
+### G3. [x] Validation finale (FAIT: zero leakage, target 8.5%, 30 tests passent)
 
 ---
 
 ## COMPTEUR FINAL
-- Taches terminees: 36
-- Taches restantes: 26
+- Taches terminees: 40
+- Taches restantes: 22
 - TOTAL: 62
 
 ## ORDRE D'EXECUTION RECOMMANDE

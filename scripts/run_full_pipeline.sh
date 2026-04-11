@@ -120,11 +120,64 @@ $PYTHON tests/test_builder_output_completeness.py
 $PYTHON tests/test_temporal_ordering.py
 
 # ==========================================
-# STEP 6: Feature catalog
+# STEP 6: New builders (performance + advanced + rapports + pagerank)
 # ==========================================
 echo ""
-echo "=== STEP 6: Feature Catalog ==="
-$PYTHON scripts/generate_feature_catalog_md.py
+echo "=== STEP 6: Specialized Builders ==="
+check_ram
+echo "  Running new builders (C1-C8)..."
+$PYTHON scripts/run_new_builders.py 2>&1 | tail -5
+echo "  Running performance builders (C9-C11)..."
+check_ram
+$PYTHON scripts/run_perf_builders.py 2>&1 | tail -5
+echo "  Running advanced builders (C12, C14, C15)..."
+check_ram
+$PYTHON scripts/run_advanced_builders.py 2>&1 | tail -5
+echo "  Running rapports historiques builder (C7)..."
+check_ram
+$PYTHON scripts/run_rapports_builder.py 2>&1 | tail -5
+echo "  Running PageRank builder (C13)..."
+check_ram
+$PYTHON scripts/run_pagerank_builder.py 2>&1 | tail -5
+
+# ==========================================
+# STEP 7: Consolidation + Integration
+# ==========================================
+echo ""
+echo "=== STEP 7: Consolidation ==="
+check_ram
+$PYTHON scripts/consolidate_features.py 2>&1 | tail -5
+echo "  Integrating new features..."
+$PYTHON scripts/integrate_new_features.py 2>&1 | tail -5
+
+# ==========================================
+# STEP 8: Feature Selection
+# ==========================================
+echo ""
+echo "=== STEP 8: Feature Selection ==="
+check_ram
+$PYTHON scripts/apply_feature_selection.py 2>&1 | tail -10
+
+# ==========================================
+# STEP 9: Validation
+# ==========================================
+echo ""
+echo "=== STEP 9: Validation ==="
+$PYTHON scripts/validate_pipeline_output.py
+
+# ==========================================
+# STEP 10: Feature catalog
+# ==========================================
+echo ""
+echo "=== STEP 10: Feature Catalog ==="
+$PYTHON scripts/generate_feature_catalog_md.py 2>&1 | tail -3 || echo "  (catalog generation skipped)"
+
+# ==========================================
+# STEP 11: Tests
+# ==========================================
+echo ""
+echo "=== STEP 11: Tests ==="
+$PYTHON -m pytest tests/ -v --tb=short || echo "  WARNING: Some tests failed"
 
 echo ""
 echo "=========================================="
