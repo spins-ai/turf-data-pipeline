@@ -22,10 +22,9 @@ CONSOLIDATED = Path("D:/turf-data-pipeline/04_FEATURES/features_consolidated.par
 OUTPUT_DIR = Path("D:/turf-data-pipeline/02_DONNEES_BRUTES/builder_outputs")
 
 # Edit this dict to specify which builders to integrate
+# Edit this dict to specify which builders to integrate
 BUILDERS = {
-    # "rapphist_x": OUTPUT_DIR / "rapphist_x" / "rapphist_x_features.jsonl",
-    # "pagerank_x": OUTPUT_DIR / "pagerank_x" / "pagerank_x_features.jsonl",
-    # "passthrough_x": OUTPUT_DIR / "passthrough_x" / "passthrough_x_features.jsonl",
+    # Add builder JSONL paths here when integrating new features
 }
 
 

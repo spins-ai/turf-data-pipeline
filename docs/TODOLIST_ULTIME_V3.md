@@ -64,7 +64,7 @@
 - Source: 83_letrot (982 Mo) + 02b_scraper_letrot
 - IMPACT: FAIBLE pour galop, ELEVE pour trot
 
-### B8. [ ] Pronostics experts -> parser
+### B8. [x] Pronostics experts (FAIT: 5 features, 8.8K matches sur 204K pronos - couverture faible)
 - Source: 23_pronostics (498 Mo, 207K fichiers)
 - IMPACT: MOYEN - consensus expert = signal utile
 
@@ -248,8 +248,8 @@
 ---
 
 ## COMPTEUR FINAL
-- Taches terminees: 41
-- Taches restantes: 21
+- Taches terminees: 42
+- Taches restantes: 20
 - TOTAL: 62
 
 ## ORDRE D'EXECUTION RECOMMANDE
