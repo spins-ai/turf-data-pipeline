@@ -217,7 +217,7 @@ def main():
     print(f"\nPhase 4: Assignation aux partants (DuckDB)...", flush=True)
     partant_courses = con.execute(f"""
         SELECT partant_uid, course_uid
-        FROM read_parquet('{PARTANTS_MASTER}', columns=['partant_uid', 'course_uid'])
+        FROM read_parquet('{PARTANTS_MASTER}')
     """).fetchall()
     print(f"  {len(partant_courses):,} partants lus", flush=True)
     con.close()

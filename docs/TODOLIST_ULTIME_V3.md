@@ -188,11 +188,11 @@
 
 ## D. SOURCES DE DONNEES SUPPLEMENTAIRES (5 taches)
 
-### D1. [ ] Donnees meteo fines (precipitations heure par heure)
-- OpenMeteo API archive: precipitations, vent, humidite au niveau hippodrome
-- On a deja meteo_master (257K courses) avec precip_total_mm, temperature, vent
-- Amelioration marginale: resolution horaire vs journaliere
-- IMPACT: MOYEN - BASSE PRIORITE (donnees actuelles suffisantes pour V1)
+### D1. [x] Donnees meteo fines (FAIT: 8 features meteofine_x, 56% couverture, 10K appels API)
+- OpenMeteo API archive: precipitations 3h/12h/24h/48h, temp, humidity, vent, rafales
+- 140K courses avec GPS, 1.64M partants matched
+- Cache: 8622 fichiers JSON dans meteo_fine_cache/
+- IMPACT: MOYEN - integre dans consolidated (3307 cols)
 
 ### D2. [ ] Donnees Turfomania/Zone-Turf (pronostics gratuits)
 - Donnees collectees (51_zeturf, 54_turfinfo) = metadata reunions seulement
@@ -225,7 +225,7 @@
 ### E5. [x] Recalculer stats normalisation (fait via apply_feature_selection + LightGBM)
 ### E6. [x] Traiter les colonnes NaN (186 colonnes 100% NaN exclues de la selection)
 ### E7. [x] Archiver builder_outputs suspects (15 dossiers vides supprimes, 6.6 Go liberes)
-### E8. [x] Mettre a jour DuckDB features.duckdb (502 cols, 2.5 Go)
+### E8. [x] Mettre a jour DuckDB features.duckdb (502 cols, 2.4 Go, rebuild 2026-04-11)
 
 ---
 
@@ -243,16 +243,17 @@
 ## G. DERNIERE PASSE AVANT MODELES (3 taches)
 
 ### G1. [x] Relancer tous les builders avec les nouvelles donnees (FAIT: commit 22aa740, 467K PMU records)
-### G2. [x] Relancer apply_feature_selection.py (FAIT: 500/2060 features, 3286 cols consolidated)
+### G2. [x] Relancer apply_feature_selection.py (FAIT: 500/2270 features, 3307 cols consolidated, top1=letrot_x__rang)
 ### G3. [x] Validation finale (FAIT: zero leakage, target 8.5%, 30 tests passent)
 
 ---
 
 ## COMPTEUR FINAL
-- Taches terminees: 55
-- Taches restantes: 7 (D1, D2, D4 = basse priorite/pas faisable)
+- Taches terminees: 56
+- Taches restantes: 6 (D2, D4 = basse priorite/pas faisable)
 - TOTAL: 62
 - PIPELINE PRET POUR ML: OUI (toutes taches critiques terminees)
+- Derniere mise a jour: 2026-04-11 (integration meteofine_x + renr_x, 3307 cols total)
 
 ## ORDRE D'EXECUTION RECOMMANDE
 
