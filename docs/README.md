@@ -1,147 +1,150 @@
 # Turf Data Pipeline
 
-Systeme de prediction hippique : 68 modules, 24 modeles ML, 16 phases.
-
-**Phase 1** (ce dossier) = collecte, nettoyage, fusion et feature engineering des donnees.
-**Phase 2** (dossier separe, a venir) = entrainement et inference des modeles ML.
+Pipeline de donnees pour la prediction hippique francaise (galop + trot).
+Collecte multi-sources, feature engineering avance, preparation pour modeles ML/DL.
 
 ---
 
-## Chiffres cles
+## Chiffres cles (avril 2026)
 
 | Metrique | Valeur |
 |----------|--------|
-| Reunions hippiques | 41,477 (2004-2026) |
+| Partants normalises | 2,930,290 |
 | Courses normalisees | ~257,806 |
-| Partants normalises | ~2,930,290 (66 champs) |
-| Sources de donnees | 40+ (API, scraping, open data) |
-| Features cataloguees | 481 (193 existantes + 288 nouvelles) |
-| Features cible | 528+ |
-| Scripts de collecte | 41 |
-| Feature builders | 30 |
-| Taille donnees brutes | ~52 GB |
-| Masters fusionnes | 9 fichiers, ~2.5 GB |
-| Modeles ML prevus | 24 |
-| Modules totaux | 68 |
+| Performances detaillees | 6,000,000+ |
+| Chevaux uniques | 116,000+ |
+| Periode couverte | 2013-2026 |
+| Sources de donnees | 40+ (API PMU, scraping, open data) |
+| Feature builders | 60+ |
+| Features consolidees | 3,297 |
+| Features selectionnees (top 500) | 502 |
+| Taille donnees brutes | ~250 Go (D:/turf-data-pipeline/02_DONNEES_BRUTES) |
+| Features consolidated.parquet | 6.79 Go |
+| Features selected.parquet | ~1.7 Go |
+| DuckDB | 2.5 Go |
+| Tests automatises | 30+ (pytest) |
+| Commits | 215+ |
 
 ---
 
-## Les 12 Etapes du pipeline
-
-Le pipeline est structure en 12 etapes sequentielles, de la collecte brute au livrable final pret pour les modeles ML.
-
-### Etape 1 -- Collecte des donnees
-41 scripts de collecte (01 a 40 + fetch_openmeteo) interrogent les API PMU, scrappent les sites hippiques (Le Trot, CanalTurf, TurfoStats, Geny, Racing Post, etc.), et telecharges les datasets ouverts (SIRE/IFCE, Kaggle). Les scripts utilisent le format JSONL en streaming pour limiter l'usage memoire a ~15 MB chacun, avec checkpoint automatique pour reprise apres crash.
-
-**Statut** : 21 scripts termines, ~10 en cours ou a relancer.
-
-### Etape 2 -- Verification et integrite
-`audit_data_integrity.py` verifie la validite des JSON/JSONL, compte les records, detecte les doublons, outliers, fichiers tronques, taux de remplissage.
-
-**Statut** : Script ecrit, a executer.
-
-### Etape 3 -- Nettoyage global
-`nettoyage_global.py` corrige l'encodage UTF-8, normalise les noms (chevaux, jockeys, hippodromes), uniformise les formats de date (ISO 8601), supprime les valeurs parasites.
-
-**Statut** : Script ecrit, a executer.
-
-### Etape 4 -- Comblage de trous
-`comblage_trous.py` remplit les champs manquants en croisant les sources existantes (penetrometre depuis reunions enrichies, pays_cheval depuis SIRE/IFCE, terrain infere depuis meteo + historique hippodrome, etc.).
-
-**Statut** : Script ecrit, a executer.
-
-### Etape 5 -- Fusion / Consolidation
-Plusieurs scripts `merge_*.py` fusionnent les sources par domaine en fichiers masters :
-
-| Master | Sources fusionnees | Records | Statut |
-|--------|--------------------|---------|--------|
-| courses_master | 02 + 02b | ~257K | A faire |
-| partants_master | 02 + 05-11 + 17 + 22-40 | ~2.7M | A faire |
-| pedigree_master | 08 + 12 + 14 + 36 | 1,413,913 | Fait |
-| meteo_master | 13 + 35 + Open-Meteo | 479,377 | Fait + enrichi |
-| rapports_master | 21 + 38 | 217,569 | Fait + enrichi |
-| marche_master | 27 + 28 | 151,258 | Fait + enrichi |
-| equipements_master | 09 + 10 | 573,111 | Fait + enrichi |
-| horse_stats_master | 05 | 80,656 | Fait + enrichi |
-
-### Etape 6 -- Feature Engineering
-8 scripts de calcul (41-49), 9 feature builders dans `feature_builders/`, 10 scripts d'affinites croisees, 5 scripts de post-processing, 7 builders existants (musique, temps, profil, etc.) et 7 feature builders supplementaires (`feat_historique.py`, `feat_croisements.py`, etc.).
-
-Objectif : passer de 67 features initiales a 481+ features couvrant forme, profil, jockey, entraineur, pedigree, meteo, terrain, marche, pace, equipement, poids, temps, conditions, repos, consistance, classe, rapports, calendrier, proprietaire et interactions croisees.
-
-**Statut** : Tous les scripts sont ecrits. Execution en attente sur machine puissante (64 GB RAM).
-
-### Etape 7 -- Collecte de nouvelles sources
-Extension vers des sources internationales : UK (Timeform, Racing Post), US (Equibase, DRF), AU (Punters.com.au, Racenet), cotes exchange (Betfair, Oddschecker), pedigree mondial, ventes/encheres, sectionals/GPS.
-
-**Statut** : Planifie.
-
-### Etape 8 -- Integration nouvelles sources dans le pipeline
-Pour chaque nouvelle source : parser, nettoyer, dedupliquer, creer le builder de features, ajouter les jointures, documenter.
-
-**Statut** : Planifie.
-
-### Etape 9 -- Organisation des dossiers
-Structure finale avec `output/` (brut), `data_master/` (fusionne), `features/` (matrice), `labels/`, `pipeline/` (symlinks par phase), `feature_builders/`, `docs/`, `quality/`, `logs/`, `backups/`. Export triple format JSON + CSV + Parquet.
-
-**Statut** : Partiellement fait (7 masters en Parquet).
-
-### Etape 10 -- Documentation
-Ce dossier `docs/` : README, SOURCES, SCHEMA, FEATURES, PIPELINE, INSTALL, plus AUDIT_MASTERS.md et CONTEXT.md.
-
-**Statut** : En cours.
-
-### Etape 11 -- Qualite finale
-Tests automatiques (JSON valides, symlinks, 0-bytes, NaN/Inf, dates, cotes, distances), statistiques finales, validation croisee entre sources, backup final.
-
-**Statut** : Scripts de test ecrits dans `quality/`.
-
-### Etape 12 -- Pret pour les modeles
-Verification que `partants_master.json` est complet, `features_matrix` contient 400+ features alignee avec les labels, tous les symlinks `pipeline/` fonctionnent, documentation a jour, backup fait.
-
-**Statut** : A venir.
-
----
-
-## 24 Modeles ML prevus (Phase 2)
-
-| Categorie | Modeles |
-|-----------|---------|
-| ML classique | Logistic Regression, Random Forest, XGBoost, LightGBM, CatBoost |
-| Deep Learning | MLP, LSTM, GRU, TabNet, TFT (Temporal Fusion Transformer) |
-| Avance | GNN, Bayesian NN, Survival Model, Quantile Regressor |
-| AutoML | AutoGluon, TPOT, H2O |
-| Fusion | Stacking, Blending, Meta-model |
-| Outsiders | Anomaly Detector, Retour Forme Hidden, GAN Turf |
-| RL | Value Hunter RL |
-
----
-
-## Structure du projet
+## Architecture
 
 ```
-turf-data-pipeline/
-  output/                    Donnees brutes collectees (~52 GB)
-  data_master/               Fichiers masters fusionnes (JSON + Parquet)
-  feature_builders/          30 builders de features
-  pipeline/                  Symlinks par phase (phase_01 a phase_16)
-  quality/                   Tests et monitoring qualite
-  labels/                    Labels pour les modeles
-  docs/                      Documentation (ce dossier)
-  XX_*.py                    Scripts de collecte (00-49)
-  merge_*.py                 Scripts de fusion
-  postprocess_*.py           Scripts d'enrichissement
-  feat_*.py                  Scripts de features croisees
-  hippodromes_db.py          Base de 673 hippodromes
-  requirements.txt           Dependances Python
+D:/turf-data-pipeline/
+  02_DONNEES_BRUTES/           Donnees brutes collectees (~250 Go)
+    00_enrichissement_meteo/   ... 70+ sous-dossiers par source
+    builder_outputs/           Sorties intermediaires des feature builders
+  03_DONNEES_MASTER/           Fichiers masters fusionnes (Parquet)
+    partants_master.parquet    2.93M rows, principal fichier de reference
+    courses_master.parquet     257K courses normalisees
+    performances_master.parquet 6M rows, base pour features vitesse
+    meteo_master.parquet       Meteo par reunion
+    horse_stats_master.parquet 80K chevaux, 17 cols
+  04_FEATURES/                 Features finales
+    features_consolidated.parquet  3297 cols, toutes les features
+    features_selected.parquet      502 cols (top 500 par LightGBM)
+    features.duckdb               Base DuckDB pour requetes rapides
+
+turf-data-pipeline/ (repo git)
+  config.py                    Configuration centralisee (chemins D:, URLs, RAM)
+  feature_builders/            60+ builders Python (1 par famille de features)
+  scripts/
+    collection/                Scripts de collecte (01-16)
+    run_full_pipeline.sh       Pipeline reproductible complet (11 etapes)
+    daily_collect_pmu.py       Collecte automatique quotidienne
+    daily_maintenance.py       Maintenance quotidienne
+    consolidate_features.py    Consolidation JSONL -> Parquet
+    apply_feature_selection.py Selection top 500 features (LightGBM)
+    validate_pipeline_output.py Validation finale (leakage, target, schema)
+  tests/                       Tests pytest (30+)
+  docs/                        Documentation
+  pipeline/                    Modules structures (phase_01 a phase_16, futur)
 ```
 
 ---
 
-## Liens utiles
+## Pipeline d'execution (11 etapes)
 
-- [SOURCES.md](SOURCES.md) -- Liste complete des sources de donnees
-- [SCHEMA.md](SCHEMA.md) -- Schemas des tables principales
-- [FEATURES.md](FEATURES.md) -- Catalogue des 481 features
-- [PIPELINE.md](PIPELINE.md) -- Flux d'execution et diagramme
-- [INSTALL.md](INSTALL.md) -- Guide d'installation
+```bash
+bash scripts/run_full_pipeline.sh [--collect] [--builders-only]
+```
+
+| Etape | Description | Duree approx |
+|-------|-------------|--------------|
+| 1 | Collecte PMU (optionnel, --collect) | ~30 min |
+| 2 | Feature builders (60+ builders sequentiels) | ~4h |
+| 3 | Audits qualite (fill rates, leakage, correlations) | ~10 min |
+| 4 | Targets + splits temporels | ~5 min |
+| 5 | Tests unitaires | ~2 min |
+| 6 | Builders specialises (C1-C15) | ~1h |
+| 7 | Consolidation + integration | ~30 min |
+| 8 | Feature selection (LightGBM top 500) | ~20 min |
+| 9 | Validation finale | ~5 min |
+| 10 | Catalogue features (Markdown) | ~2 min |
+| 11 | Tests pytest complets | ~3 min |
+
+---
+
+## Collecte automatique quotidienne
+
+```bash
+# Collecte du programme du jour a 8h
+python scripts/daily_collect_pmu.py
+
+# Collecte des resultats de la veille a 22h
+python scripts/daily_collect_pmu.py --days-back 1
+
+# Windows Task Scheduler:
+schtasks /create /tn "TurfPMU_Daily" /tr "python scripts/daily_collect_pmu.py" /sc daily /st 08:00
+schtasks /create /tn "TurfPMU_Results" /tr "python scripts/daily_collect_pmu.py --days-back 1" /sc daily /st 22:00
+```
+
+---
+
+## Features principales (top 20 par importance LightGBM)
+
+| Rang | Feature | Description |
+|------|---------|-------------|
+| 1 | cote_finale | Cote finale PMU du partant |
+| 2 | elo_x__elo_rating | Rating Elo du cheval |
+| 3 | spd_x__speed_figure | Figure de vitesse normalisee |
+| 4 | mch_x__mch_cote_value | Signal valeur cote/marche |
+| 5 | ev_x__proba_estimee | Probabilite Bayesienne de victoire |
+| 6 | mus_x__pos_last_1 | Position derniere course |
+| 7 | hdp_x__handicap_vs_field | Poids vs moyenne peloton |
+| 8 | cls_x__class_drop | Signal descente de classe |
+| 9 | pagerank_x__score | PageRank dans graphe chevaux |
+| 10 | rapphist_x__avg_simple_gagnant | Rapport moyen historique |
+
+---
+
+## Contraintes techniques
+
+- **RAM max**: 57 Go utilises sur 64 Go (check_ram avant chaque builder)
+- **1 builder a la fois**: ne jamais paralleliser (crash constate)
+- **Parquet partout**: lecture row-group par row-group pour gros fichiers
+- **Zero leakage**: validation automatique (pas de donnees post-course)
+- **Target**: 8.5% de taux positif (victoire)
+- **Schemas**: gestion null-type columns via scan multi-row-groups
+
+---
+
+## Prerequis
+
+- Python 3.12+
+- Windows 11 (64 Go RAM)
+- Disque D: (SSD, 500+ Go libres)
+- Packages: pyarrow, pandas, numpy, lightgbm, duckdb, requests, pytest
+
+```bash
+pip install pyarrow pandas numpy lightgbm duckdb requests pytest
+```
+
+---
+
+## Prochaines etapes
+
+1. Integrer donnees LeTrot (1.35M partants trot, 2024-2026)
+2. Meteorologie fine (precipitations horaires par hippodrome)
+3. Migration chemins en dur vers config.py (progressif)
+4. Modeles ML/DL (apres que toutes les donnees soient pretes)
