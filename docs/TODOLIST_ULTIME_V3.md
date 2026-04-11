@@ -222,9 +222,9 @@
 ### E3. [ ] Verifier 02_liste_courses_raw_pmu (14 Go) -> archivable ?
 ### E4. [x] Supprimer training_labels.jsonl (corrompu, 941 Mo supprime)
 ### E5. [ ] Recalculer stats normalisation
-### E6. [ ] Traiter les 77 colonnes >50% NaN (supprimer ou imputer)
+### E6. [x] Traiter les colonnes NaN (186 colonnes 100% NaN exclues de la selection)
 ### E7. [ ] Archiver les 17 builder_outputs suspects (11.7 Go)
-### E8. [ ] Mettre a jour DuckDB features.duckdb apres re-selection
+### E8. [x] Mettre a jour DuckDB features.duckdb (502 cols, 2.5 Go)
 
 ---
 
@@ -232,7 +232,7 @@
 
 ### F1. [ ] Migrer 333 fichiers vers config.py (chemins en dur)
 ### F2. [ ] Mettre a jour run_full_pipeline.sh
-### F3. [ ] Reparer les 4 tests existants
+### F3. [x] Reparer les tests (30 passed, 1 skipped, 0 failures)
 ### F4. [ ] Setup collecte automatique quotidienne PMU
 ### F5. [ ] Integrer validation dans le pipeline
 ### F6. [ ] Documenter le pipeline complet (README a jour)
@@ -248,8 +248,8 @@
 ---
 
 ## COMPTEUR FINAL
-- Taches terminees: 32
-- Taches restantes: 30
+- Taches terminees: 36
+- Taches restantes: 26
 - TOTAL: 62
 
 ## ORDRE D'EXECUTION RECOMMANDE

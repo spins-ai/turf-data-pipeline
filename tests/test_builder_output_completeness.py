@@ -13,6 +13,9 @@ BASE = Path("D:/turf-data-pipeline/02_DONNEES_BRUTES/builder_outputs")
 EXPECTED_ROWS = 2_930_290  # Known row count of partants_master.jsonl
 TOLERANCE = 0.001  # Allow 0.1% deviation
 
+# Builders that are NOT per-partant (different granularity)
+SKIP_BUILDERS = {"cross_reference", "dedup", "merged", "meta"}
+
 
 def test_output_completeness():
     if not BASE.exists():
@@ -25,6 +28,8 @@ def test_output_completeness():
     checked = 0
 
     for bdir in builders:
+        if bdir.name in SKIP_BUILDERS:
+            continue
         jsonls = [f for f in bdir.iterdir() if f.suffix == ".jsonl" and ".tmp" not in f.name]
         if not jsonls:
             empty_dirs.append(bdir.name)
@@ -92,14 +97,7 @@ def test_output_completeness():
     if empty_dirs:
         print(f"\nEmpty dirs (no .jsonl): {', '.join(empty_dirs[:10])}{'...' if len(empty_dirs) > 10 else ''}")
 
-    if failures:
-        print(f"\nFAILURES:")
-        for f_msg in failures:
-            print(f"  {f_msg}")
-        return False
-
-    print("ALL BUILDER OUTPUTS PASS COMPLETENESS CHECK")
-    return True
+    assert not failures, f"Builder output failures:\n" + "\n".join(failures)
 
 
 if __name__ == "__main__":

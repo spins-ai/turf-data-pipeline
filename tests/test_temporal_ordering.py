@@ -7,6 +7,7 @@ Samples from head and tail to verify ordering is preserved.
 """
 import json
 import sys
+import pytest
 from pathlib import Path
 
 BASE = Path("D:/turf-data-pipeline/02_DONNEES_BRUTES/builder_outputs")
@@ -71,8 +72,7 @@ def _get_builder_uids(fpath: Path, n_head: int, n_tail: int) -> tuple[list[str],
 
 def test_temporal_ordering():
     if not MASTER.exists():
-        print("SKIP: partants_master.jsonl not found.")
-        return True
+        pytest.skip("partants_master.jsonl not found")
 
     print("Loading master UIDs (head + tail)...", file=sys.stderr)
     master_head, master_tail = _get_master_uids(SAMPLE_HEAD, SAMPLE_TAIL)
@@ -126,14 +126,7 @@ def test_temporal_ordering():
     print(f"Builders checked: {checked}")
     print(f"Failures: {len(failures)}")
 
-    if failures:
-        print(f"\nFAILURES:")
-        for f_msg in failures[:20]:
-            print(f"  {f_msg}")
-        return False
-
-    print("ALL BUILDER OUTPUTS PASS TEMPORAL ORDERING CHECK")
-    return True
+    assert not failures, f"Temporal ordering failures:\n" + "\n".join(failures[:20])
 
 
 if __name__ == "__main__":

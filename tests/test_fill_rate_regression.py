@@ -66,14 +66,7 @@ def test_fill_rates():
     print(f"Features <{MIN_USEFUL_FILL}% fill: {len(useless)}")
     print(f"Critical feature checks: {len(CRITICAL_FEATURES)}")
 
-    if failures:
-        print(f"\nFAILURES ({len(failures)}):")
-        for f_msg in failures:
-            print(f"  {f_msg}")
-        return False
-
-    print("ALL CRITICAL FEATURES PASS")
-    return True
+    assert not failures, f"Fill rate failures:\n" + "\n".join(failures)
 
 
 if __name__ == "__main__":
