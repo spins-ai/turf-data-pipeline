@@ -132,7 +132,8 @@ except ImportError:
 # ---------------------------------------------------------------------------
 
 def discover_feature_columns(pf: pq.ParquetFile) -> list[str]:
-    """Return list of numeric feature column names (excluding IDs/targets/post-race)."""
+    """Return list of numeric feature column names (excluding IDs/targets/post-race).
+    Also excludes columns that are 100% NaN (checked on 3 sample row groups)."""
     schema = pf.schema_arrow
     feature_cols = []
     for field in schema:
@@ -148,6 +149,28 @@ def discover_feature_columns(pf: pq.ParquetFile) -> list[str]:
             or pa.types.is_decimal(field.type)
         ):
             feature_cols.append(field.name)
+
+    # Filter out columns that are 100% NaN (check 3 row groups)
+    n_rg = pf.metadata.num_row_groups
+    sample_rgs = [0, n_rg // 2, n_rg - 1]
+    all_null_cols = set(feature_cols)
+    for rg_idx in sample_rgs:
+        t = pf.read_row_group(rg_idx, columns=list(all_null_cols))
+        still_null = set()
+        for c in all_null_cols:
+            col = t.column(c)
+            if col.null_count == len(col):
+                still_null.add(c)
+        all_null_cols = still_null
+        del t
+        gc.collect()
+        if not all_null_cols:
+            break
+
+    if all_null_cols:
+        print(f"Excluded {len(all_null_cols)} columns (100% NaN): {sorted(all_null_cols)[:5]}...", file=sys.stderr)
+        feature_cols = [c for c in feature_cols if c not in all_null_cols]
+
     return feature_cols
 
 
